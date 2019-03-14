@@ -6,5 +6,5 @@ clean:
 %.tex: %.lhs
 	lhs2TeX -o $@ $<
 
-%.pdf: %.tex
+%.pdf: %.tex bibliography.bib
 	cd $(dir $<) && latexmk $(notdir $*)
