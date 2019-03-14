@@ -7,6 +7,4 @@ clean:
 	lhs2TeX -o $@ $<
 
 %.pdf: %.tex
-	cd $(dir $<) && xelatex $(notdir $*)
-	cd $(dir $<) && biber $(notdir $*)
-	cd $(dir $<) && xelatex $(notdir $*)
+	cd $(dir $<) && latexmk $(notdir $*)

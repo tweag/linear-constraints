@@ -7,10 +7,10 @@ pkgs.mkShell
       (texlive.combine {
         inherit (texlive)
           scheme-small
-          latexmk
+          latexmk biblatex
           stmaryrd lazylist polytable # for lhs2tex
-          biblatex
-          unicode-math;
+          unicode-math lm lm-math
+          logreq xstring;
       })
 
       ];
