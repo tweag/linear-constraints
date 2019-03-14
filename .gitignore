@@ -1,0 +1,16 @@
+*.fls
+*.fdb_latexmk
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.lof
+*.log
+*.out
+*.pdf
+*.run.xml
+*-blx.bib
+*.toc
+*~
+*.ptb
+*.tex
