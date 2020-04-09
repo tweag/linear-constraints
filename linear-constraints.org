@@ -1,0 +1,108 @@
+#+TITLE: Linear Constraints
+#+OPTIONS: toc:nil
+#+LATEX_CLASS: article
+#+LATEX_HEADER: \usepackage{mathpartir}
+
+* Motivation: safe type-changing mutable variables
+
+Manipulating memory cells through pointers is ubiquitous in systems programming
+languages, but requires a lot of care and attention to avoid usual errors
+like "use after free": referencing a memory cell that has been freed leads to
+undefined behaviour.
+
+A safe API around mutable pointers needs to ensure that every pointer indeed
+references a stored value. A reference is represented by the type =Ref l=,
+where =l= is some (abstract) address in memory, and can be thought of as the
+name of the reference. Perhaps surprisingly, the
+reference does not indicate what type of value is stored at its location.
+Indeed, there might not even be one! Having a reference on its own is hardly
+useful, we need to know what \emph{capabilities} the reference has.
+#+BEGIN_SRC haskell
+readRef :: Loc l a
+        => Ref l -> a
+        <= Loc l a
+#+END_SRC
+Here, =readRef= takes a reference to some location =l=, and returns the value of
+type =a= stored at that location. The =Loc l a= constraint in the /input
+context/ (before ==>=) represents a witness that there is indeed a value of
+type =a= at location =l=. The =Loc l a= constraint in the /output context/
+(after =<==) says that /after/ reading a reference, the location will still
+store a value of type =a=. Input constraints are /linear/, which means that they
+must be used once, and are consumed after this usage. Thus, =readRef= returns
+a new capability, indicating that the reference is still usable after reading
+from it.
+
+To see an example of where the reference is not usable after calling a function,
+consider the =freeRef= function, which frees up a reference, indicating to
+the runtime system that the location is now available for other uses.
+#+BEGIN_SRC haskell
+freeRef :: Loc l a
+        => Ref l -> ()
+#+end_SRC
+The =Loc l a= capability is /consumed/, and no other capability is returned.
+
+Dually, allocating a new reference does not require anything from the
+context[fn::Except that the name =l= be fresh.]
+#+BEGIN_SRC haskell
+newRef :: Ref l <= Loc l ()
+#+END_SRC
+Notice that the returned capability allows accessing a value of the unit type.
+This is because when a new reference is created, the memory is allocated, and
+initialised to the default unit value.
+If we wish to put a different value, we can do so with =writeRef=:
+#+BEGIN_SRC haskell
+writeRef :: Loc l a
+         => Ref l -> b -> ()
+         <= Loc l b
+#+END_SRC
+Notice that the type of the location changed. This is safe, because =writeRef=
+consumes the capability to access a value of type =a= at the location, and
+returns a new capability, stating that the value stored is now of type
+=b=.[fn::In our system, all types are boxed, and thus have the same size, but an
+extension is possible to allow other runtime representations.]
+
+Now we can write a function that swaps two pointers:
+#+BEGIN_SRC
+swap :: (Loc l1 a, Loc l2 b)
+     => Ref l1 -> Ref l2 -> ()
+     <= (Loc l1 b, Loc l2 a)
+swap r1 r2
+  = let tmp = readRef r1
+        ()  = writeRef r1 (readRef r2)
+    in writeRef r2 tmp
+#+END_SRC
+*************** TODO this assumes call-by-value, maybe that's too much of a stretch and we need to be monadic instead.
+*************** END
+Forgetting to save the old value of =r1= to a temporary variable is a type
+error:
+#+BEGIN_SRC haskell
+swap r1 r2
+  = let () = writeRef r1 (readRef r2)
+    in writeRef r2 (readRef r1)
+#+END_SRC
+because after writing =r2='s original value into =r1=, the capability
+in the context turns into =Loc l1 b=, thus =writeRef r2 (readRef 1)=
+returns =Loc l2 b=, and that mismatches the declared =Loc l2 a= in the output
+context.
+
+* Syntax
+
+| Terms          | $t, u$          | ::=   | $x$                               | variable         |
+|                |                 | \vert | $\lambda x.~t$                    | abstraction      |
+|                |                 | \vert | $t~u$                             | application      |
+|                |                 | \vert | let $x~=~u$ in $t$                | let-binding      |
+|                |                 | \vert | $C$                               | data constructor |
+|                |                 |       |                                   |                  |
+| Type variables | $\alpha, \beta$ |       |                                   |                  |
+| Name variables | $\mu, \nu$      |       |                                   |                  |
+| Names          | $n$             | ::=   | $\mu$                             | variable         |
+| Types          | $\tau, \sigma$  | ::=   | $\alpha$                          | variable         |
+|                |                 | \vert | $\tau \to \sigma$                 | function type    |
+|                |                 | \vert | $T~\overline{n}~\overline{\tau}~$ | type constructor |
+|                |                 |       |                                   |                  |
+
+\begin{mathpar}
+Hello \and
+no \and
+last one
+\end{mathpar}
