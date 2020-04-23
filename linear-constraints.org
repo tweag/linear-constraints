@@ -102,7 +102,19 @@ context.
 |                |                 |       |                                   |                  |
 
 \begin{mathpar}
-Hello \and
-no \and
-last one
+\infer [App]
+    {\Gamma;A+C \vdash t : \sigma \to \tau \Leftarrow D  \\ \Gamma;B \vdash u : \sigma \Leftarrow C}
+    {\Gamma;A+B \vdash t~u : \tau \Leftarrow D}
+\and
+\infer [Let]
+    {\Gamma, x : \sigma;A+C \vdash t : \tau \Leftarrow D  \\ \Gamma;B \vdash u : \sigma \Leftarrow C}
+    {\Gamma;A+B \vdash \text{let } x = u \text{ in } t : \tau \Leftarrow D}
+\and \\
+\infer [New]
+    { }
+    {\Gamma;A \vdash \text{new } n : () \Leftarrow A+n}
+\and
+\infer [Use]
+    { }
+    {\Gamma;A+n \vdash \text{use } n : () \Leftarrow A}
 \end{mathpar}
