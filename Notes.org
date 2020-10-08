@@ -1,0 +1,46 @@
+* Leading proposal
+
+https://github.com/tweag/linear-constraints/issues/13
+
+* What is exactly the instance selection algorithm?
+  - Specification
+  - Can it be understood from the point of view of the a programmer?
+
+* Question: is order of consuming/producing linear constraints crucial?
+
+Equivalently: Is there computational content in the constraint?
+
+  - If not: it's easy
+  - If yes: it's a bit of a can of worms
+
+Unfortunately, it seem that consuming/producing linear constraints
+crucial is necessary in the in the case of array updates. The "array
+value" is going to be consumed at multiple places, and GHC is allowed
+to reorder this code.
+
+So linear constraints *must* take care of ordering of operations.
+
+
+* Prototype 1
+- A 1-day hack mod of GHC that makes the implicity parameters linear.
+  - "with" is implemented by hacking let binding.
+  - no output constraints
+
+- link ?
+* Question: should packing/unpacking of pair/value constraint-type be explicit?
+
+
+If not, we'd have a system like this:
+
+P|Γ ⊢ M : (A → B) ; Q
+Q|Γ ⊢ N : A       ; R
+-----------------------
+P|Γ ⊢ M N : B     ; R
+
+- What does this choice mean for example programs?
+
+* Comparison with the implicit parameters?
+- Output constraints are new.
+- Implicit parameters were not linear. 
+- The old linear implicit parameters?
+  - ???
