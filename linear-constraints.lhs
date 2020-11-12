@@ -42,7 +42,7 @@ import GHC.Base
 %include polycode.fmt
 %format ->. = "⊸"
 %format =>. = "\Lolly"
-%format .<= = "\mathop{\circ\!\!\!=}"
+%format .<= = "\RLolly"
 %format IOL = "IO_L"
 
 %%%%%%%%%%%%%%%%% /lhs2tex %%%%%%%%%%%%%%%%%
@@ -87,10 +87,16 @@ import GHC.Base
 %%%%%%%%%%%%%%%%% Domain-specific macros %%%%%%%%%%%%%%%%%
 
   \newcommand{\cscheme}[1]{\mathcal{#1}}
-  \newcommand{\with}{\&}
+  \newcommand{\aand}{\&}
   \newcommand{\Lolly}{\mathop{=\!\!\!\circ}}
+  \newcommand{\RLolly}{\mathop{\circ\!\!\!=}}
   \newcommand{\subst}[2]{[#1]#2}
   \newcommand{\sby}[2]{#1 ↦ #2}
+
+  % language keywords
+  \newcommand{\keyword}[1]{\mathbf{#1}}
+  \newcommand{\kwith}{\keyword{with}}
+  \newcommand{\kin}{\keyword{in}}
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
@@ -110,10 +116,10 @@ import GHC.Base
 \newpage
 
 \section{Constraint entailment relation}
-\info{I'm assuming that we will need a $\with$ connective. It's probably
+\info{I'm assuming that we will need a $\aand$ connective. It's probably
   best in the declarative part of the system anyway, even if the
   algorithmic parts decides to do away with them. Though it's worth
-  noting that the declarative system may not need the $\with$
+  noting that the declarative system may not need the $\aand$
   connective at all. So maybe we can get rid if it. I suppose it's
   similar to how there is no implicational constraints in the
   declarative system except those coming from axioms.}
@@ -127,8 +133,8 @@ See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
     Q ⊩ Q \\
     \cscheme{Q_1} ⊩ Q_2 \quad\mathrm{and}\quad \cscheme{Q}_2 ⊗ Q_2 ⊩ Q_3 \quad\mathrm{then}\quad \cscheme{Q_1} ⊗ \cscheme{Q_2} ⊩ Q_3 \\
     \cscheme{Q_1} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q}_2 ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q_1} ⊗ \cscheme{Q_2} ⊩ Q_1 ⊗ Q_2 \\
-    \cscheme{Q} \with Q ⊩ Q \\
-    \cscheme{Q} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q} ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q} \with \cscheme{Q_2} ⊩ Q_1 ⊗ Q_2 \\
+    \cscheme{Q} \aand Q ⊩ Q \\
+    \cscheme{Q} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q} ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q} \aand \cscheme{Q_2} ⊩ Q_1 ⊗ Q_2 \\
   \end{array}
 \end{displaymath}
 
@@ -142,6 +148,9 @@ There are 3 rules about conjunction in OutsideIn, which translate to only 5 rule
 \info{We will probably need a linear (thin) arrow in the system:
   when generating a packed existential with linear constraints inside,
   the pack needs to be treated linearly.}
+\unsure{I think $\kwith$ should pack both existential variables and
+  linear constraint: they go well together. This is not how Csongor
+  designed it, originally, but it probably makes more sense.}
 
 See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
@@ -149,8 +158,19 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
   \inferrule
     {(x : ∀\overline{a}. Q_1 \Lolly υ) ∈ Γ\\
      Q ⊩ \subst{\overline{\sby{a}{τ}}}{Q_1}}
-    { Q;Γ ⊢  x : \subst{\overline{\sby{a}{τ}}}{υ}}\text{var}
+   { Q;Γ ⊢  x : \subst{\overline{\sby{a}{τ}}}{υ}}\text{var}
+
+
+   \inferrule
+   {Q'₁;Γ ⊩ e₁ : ∃̅a. 𝜏₁ \RLolly Q₁ \\
+     \textrm{freshness condition on }̅a\\
+     Q'₂⊗Q₁; Γ, x{:}τ₁ ⊩ e₂ : τ\\
+     Q ⊩ Q'₁⊗Q'₂}
+   {Q;Γ ⊩ \kwith~x = e₁~\kin~e₂ : 𝜏}\text{with}
 \end{mathpar}
+
+\info{No substitution on $Q_1$ in the $\kwith$ rule, because there is
+  only existential quantification.}
 
 \newpage
 
