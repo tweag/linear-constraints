@@ -182,9 +182,14 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
 \section{The algorithmic system}
 
-See Fig.13, p39 of OutsideIn~\cite{OutsideIn}
-\unsure{In this section, again, $Γ$ is treated intuitionistically
-  where it should probably be linear.}
+See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
+  again, $Γ$ is treated intuitionistically where it should probably be
+  linear.}  \unsure{For simplicity, I(Arnaud) assume that the data
+  types are only constructors. That is, the entire GADTiness of the
+  system is in $∃\overline{a}. τ \RLolly Q$ and deconstructed with
+  $\kunpack$. I think that we don't need to drop this assumption. It
+  does generalise straightforwardly to a full GADT system}
+
 \begin{mathpar}
   \inferrule
   { Γ \vdashi e : σ \leadsto C \\
