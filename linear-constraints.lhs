@@ -99,6 +99,7 @@ import GHC.Base
   \newcommand{\keyword}[1]{\mathbf{#1}}
   \newcommand{\kcase}{\keyword{case}}
   \newcommand{\kwith}{\keyword{with}}
+  \newcommand{\kunpack}{\keyword{unpack}}
   \newcommand{\kin}{\keyword{in}}
   \newcommand{\kof}{\keyword{of}}
 
@@ -153,7 +154,7 @@ There are 3 rules about conjunction in OutsideIn, which translate to only 5 rule
   when generating a packed existential with linear constraints inside,
   the pack needs to be treated linearly. This implies handling $Γ$
   linearly, but I(Arnaud) haven't done so yet, for the sake of simplicity.}
-\unsure{I think $\kwith$ should pack both existential variables and
+\unsure{I think $\kunpack$ should pack both existential variables and
   linear constraint: they go well together. This is not how Csongor
   designed it, originally, but it probably makes more sense.}
 
@@ -171,10 +172,10 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
      \textrm{freshness condition on }̅a\\
      Q'₂⊗Q₁; Γ, x{:}τ₁ ⊩ e₂ : τ\\
      Q ⊩ Q'₁⊗Q'₂}
-   {Q;Γ ⊢ \kwith~x = e₁~\kin~e₂ : 𝜏}\text{with}
+   {Q;Γ ⊢ \kunpack~x = e₁~\kin~e₂ : 𝜏}\text{with}
 \end{mathpar}
 
-\info{No substitution on $Q_1$ in the $\kwith$ rule, because there is
+\info{No substitution on $Q_1$ in the $\kunpack$ rule, because there is
   only existential quantification.}
 
 \newpage
