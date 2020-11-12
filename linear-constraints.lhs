@@ -35,7 +35,8 @@ import GHC.Base
 \usepackage{unicode-math}
 \usepackage[plain]{fancyref}
 
-%% Lhs2tex
+%%%%%%%%%%%%%%%%% lhs2tex %%%%%%%%%%%%%%%%%
+
 
 %include polycode.fmt
 %format ->. = "⊸"
@@ -43,23 +44,95 @@ import GHC.Base
 %format .<= = "\mathop{\circ\!\!\!=}"
 %format IOL = "IO_L"
 
-%% /lhs2tex
+%%%%%%%%%%%%%%%%% /lhs2tex %%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%% Editing marks %%%%%%%%%%%%%%%%%
+
+  \usepackage{xargs}
+  \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+  % ^^ Need for pgfsyspdfmark apparently?
+  \ifx\noeditingmarks\undefined
+      \setlength{\marginparwidth}{1.2cm} % Here's a size that matches the new PACMPL format -RRN
+      \newcommand{\Red}[1]{{\color{red}{#1}}}
+      \newcommand{\newaudit}[1]{{\color{blue}{#1}}}
+      \newcommand{\note}[1]{{\color{blue}{\begin{itemize} \item {#1} \end{itemize}}}}
+      \newenvironment{alt}{\color{red}}{}
+
+      \newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+      \newcommandx{\info}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
+      \newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+      \newcommandx{\inconsistent}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=red,#1]{#2}}
+      \newcommandx{\critical}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=red,#1]{#2}}
+      \newcommand{\improvement}[1]{\todo[linecolor=pink,backgroundcolor=pink!25,bordercolor=pink]{#1}}
+      \newcommandx{\resolved}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}} % use this to mark a resolved question
+  \else
+  %    \newcommand{\Red}[1]{#1}
+      \newcommand{\Red}[1]{{\color{red}{#1}}}
+      \newcommand{\newaudit}[1]{#1}
+      \newcommand{\note}[1]{}
+      \newenvironment{alt}{}{}
+  %    \renewcommand\todo[2]{}
+      \newcommand{\unsure}[2]{}
+      \newcommand{\info}[2]{}
+      \newcommand{\change}[2]{}
+      \newcommand{\inconsistent}[2]{}
+      \newcommand{\critical}[2]{}
+      \newcommand{\improvement}[1]{}
+      \newcommand{\resolved}[2]{}
+  \fi
+
+%%%%%%%%%%%%%%%%% /Editing marks %%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%% Domain-specific macros %%%%%%%%%%%%%%%%%
+
+  \newcommand{\cscheme}[1]{\mathcal{#1}}
+  \newcommand{\with}{\&}
+
+%%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
 \begin{document}
 
 \title{Linear Constraints}
 
-\author{Krzysztof Gogolewski, Csongor Kiss, and Arnaud Spiwack}
+\author{Jean-Philippe Bernardy, Richard Eisenberg, Csongor Kiss, Arnaud Spiwack}
 \date{}
 
 \maketitle
+
+\section*{Introduction}
+\info{There is an Appendix section with unorganised thoughts and examples.}
+\section{Constraint entailment relation}
+\info{I'm assuming that we will need a $\&$ connective. It's probably
+  best in the declarative part of the system anyway, even if the
+  algorithmic parts decides to do away with them.}
+
+See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
+
+\unsure{It's a tad trivial, but I wonder why the calligraphic-font Q is different here than in the OutsideIn paper}
+
+\begin{displaymath}
+  \begin{array}{l}
+    Q ⊩ Q \\
+    \cscheme{Q_1} ⊩ Q_2 \quad\mathrm{and}\quad \cscheme{Q}_2 ⊗ Q_2 ⊩ Q_3 \quad\mathrm{then}\quad \cscheme{Q_1} ⊗ \cscheme{Q_2} ⊩ Q_3 \\
+    \cscheme{Q_1} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q}_2 ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q_1} ⊗ \cscheme{Q_2} ⊩ Q_1 ⊗ Q_2 \\
+    \cscheme{Q} \with Q ⊩ Q \\
+    \cscheme{Q} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q} ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q} \with \cscheme{Q_2} ⊩ Q_1 ⊗ Q_2 \\
+  \end{array}
+\end{displaymath}
+
+There are 3 rules about conjunction in OutsideIn, which translate to only 5 rules here. I think these are exhaustive.
+
+\section{The declarative system}
+\change{Based on
+  \href{https://github.com/tweag/linear-constraints/issues/13}{\#13}.}
+
+\appendix
 
 \section{Preamble from Csongor}
 
 \begin{spec}
 data a .<= c where
   Pack :: c =>. a -> a .<= c
-
 data IOL c a = IOL {runIOL :: RealWorld -> (RealWorld, a .<= c)}
 \end{spec}
 
@@ -69,7 +142,6 @@ If we bake the constraint into |IOL|, then we need to change \emph{both} |c| and
 io_a >>= f = IOL $ \rw -> case runIOL io_a rw of
                             (rw', Pack a) -> runIOL (f a) rw'
 \end{spec}
-
 
 \section{Arnaud's motivating examples}
 

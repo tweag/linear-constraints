@@ -10,7 +10,8 @@ pkgs.mkShell
           latexmk biblatex
           stmaryrd lazylist polytable # for lhs2tex
           unicode-math lm lm-math
-          logreq xstring;
+          logreq xstring
+          xargs todonotes;
       })
 
       ];

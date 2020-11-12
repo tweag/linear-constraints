@@ -1,3 +1,4 @@
+## Latex
 *.fls
 *.fdb_latexmk
 *.aux
@@ -14,3 +15,6 @@
 *~
 *.ptb
 *.tex
+
+## Direnv
+.envrc

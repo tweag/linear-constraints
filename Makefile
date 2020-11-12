@@ -1,3 +1,11 @@
+# To continuously build the pdf, here is a one-liner
+#
+# $ while inotifywait -e modify linear-constraints.lhs; do make; done
+#
+# With nix
+#
+# $ while inotifywait -e modify linear-constraints.lhs shell.nix; do nix-shell --pure --run make; done
+
 all: linear-constraints.pdf
 
 clean:
