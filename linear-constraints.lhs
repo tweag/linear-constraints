@@ -1,3 +1,5 @@
+% -*- latex -*-
+
 %if style == newcode
 module LinearConstraints where
 
@@ -14,8 +16,6 @@ import Data.Kind (Constraint)
 import GHC.Base
 \end{code}
 %endif
-
-% -*- latex -*-
 
 \documentclass{article}
 
@@ -88,15 +88,19 @@ import GHC.Base
 
   \newcommand{\cscheme}[1]{\mathcal{#1}}
   \newcommand{\aand}{\&}
+  \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
   \newcommand{\Lolly}{\mathop{=\!\!\!\circ}}
   \newcommand{\RLolly}{\mathop{\circ\!\!\!=}}
   \newcommand{\subst}[2]{[#1]#2}
   \newcommand{\sby}[2]{#1 ↦ #2}
+  \newcommand{\vdashi}{⊢_i}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
+  \newcommand{\kcase}{\keyword{case}}
   \newcommand{\kwith}{\keyword{with}}
   \newcommand{\kin}{\keyword{in}}
+  \newcommand{\kof}{\keyword{of}}
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
@@ -147,7 +151,8 @@ There are 3 rules about conjunction in OutsideIn, which translate to only 5 rule
   \href{https://github.com/tweag/linear-constraints/issues/13}{\#13}.}
 \info{We will probably need a linear (thin) arrow in the system:
   when generating a packed existential with linear constraints inside,
-  the pack needs to be treated linearly.}
+  the pack needs to be treated linearly. This implies handling $Γ$
+  linearly, but I(Arnaud) haven't done so yet, for the sake of simplicity.}
 \unsure{I think $\kwith$ should pack both existential variables and
   linear constraint: they go well together. This is not how Csongor
   designed it, originally, but it probably makes more sense.}
@@ -162,15 +167,32 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
 
    \inferrule
-   {Q'₁;Γ ⊩ e₁ : ∃̅a. 𝜏₁ \RLolly Q₁ \\
+   {Q'₁;Γ ⊢ e₁ : ∃̅a. 𝜏₁ \RLolly Q₁ \\
      \textrm{freshness condition on }̅a\\
      Q'₂⊗Q₁; Γ, x{:}τ₁ ⊩ e₂ : τ\\
      Q ⊩ Q'₁⊗Q'₂}
-   {Q;Γ ⊩ \kwith~x = e₁~\kin~e₂ : 𝜏}\text{with}
+   {Q;Γ ⊢ \kwith~x = e₁~\kin~e₂ : 𝜏}\text{with}
 \end{mathpar}
 
 \info{No substitution on $Q_1$ in the $\kwith$ rule, because there is
   only existential quantification.}
+
+\newpage
+
+\section{The algorithmic system}
+
+See Fig.13, p39 of OutsideIn~\cite{OutsideIn}
+\unsure{In this section, again, $Γ$ is treated intuitionistically
+  where it should probably be linear.}
+\begin{mathpar}
+  \inferrule
+  { Γ \vdashi e : σ \leadsto C \\
+    K_i : ∀\overline{a}. \overline{υᵢ} ⟶ T\,\overline{a} \\
+    Γ,\overline{xᵢ{:}\subst{\overline{\sby{a}{γ}}}{υᵢ}} \vdashi e_i : τᵢ \leadsto Cᵢ\\
+    \textrm{unification of the }τᵢ\textrm{ yields τ} }
+  {Γ \vdashi \kcase~e~\kof \{ \overline{Kᵢ\,\overline{xᵢ} ⟶ eᵢ} \} : τ
+    \leadsto C⊗\bigaand Cᵢ}
+\end{mathpar}
 
 \newpage
 
