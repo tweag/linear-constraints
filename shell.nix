@@ -11,7 +11,8 @@ pkgs.mkShell
           stmaryrd lazylist polytable # for lhs2tex
           unicode-math lm lm-math
           logreq xstring
-          xargs todonotes;
+          xargs todonotes
+          mathpartir;
       })
 
       ];

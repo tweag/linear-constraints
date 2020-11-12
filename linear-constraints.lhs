@@ -34,13 +34,14 @@ import GHC.Base
   }
 \usepackage{unicode-math}
 \usepackage[plain]{fancyref}
+\usepackage{mathpartir}
 
 %%%%%%%%%%%%%%%%% lhs2tex %%%%%%%%%%%%%%%%%
 
 
 %include polycode.fmt
 %format ->. = "⊸"
-%format =>. = "\mathop{=\!\!\!\circ}"
+%format =>. = "\Lolly"
 %format .<= = "\mathop{\circ\!\!\!=}"
 %format IOL = "IO_L"
 
@@ -87,6 +88,9 @@ import GHC.Base
 
   \newcommand{\cscheme}[1]{\mathcal{#1}}
   \newcommand{\with}{\&}
+  \newcommand{\Lolly}{\mathop{=\!\!\!\circ}}
+  \newcommand{\subst}[2]{[#1]#2}
+  \newcommand{\sby}[2]{#1 ↦ #2}
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
@@ -102,9 +106,13 @@ import GHC.Base
 \section*{Introduction}
 \info{There is an Appendix section with unorganised thoughts and examples.}
 \section{Constraint entailment relation}
-\info{I'm assuming that we will need a $\&$ connective. It's probably
+\info{I'm assuming that we will need a $\with$ connective. It's probably
   best in the declarative part of the system anyway, even if the
-  algorithmic parts decides to do away with them.}
+  algorithmic parts decides to do away with them. Though it's worth
+  noting that the declarative system may not need the $\with$
+  connective at all. So maybe we can get rid if it. I suppose it's
+  similar to how there is no implicational constraints in the
+  declarative system except those coming from axioms.}
 
 See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
@@ -125,6 +133,14 @@ There are 3 rules about conjunction in OutsideIn, which translate to only 5 rule
 \section{The declarative system}
 \change{Based on
   \href{https://github.com/tweag/linear-constraints/issues/13}{\#13}.}
+See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
+
+\begin{mathpar}
+  \inferrule
+    {(x : ∀\overline{a}. Q_1 \Lolly υ) ∈ Γ\\
+     Q ⊩ \subst{\overline{\sby{a}{τ}}}{Q_1}}
+    { Q;Γ ⊢  x : \subst{\overline{\sby{a}{τ}}}{υ}}\text{var}
+\end{mathpar}
 
 \appendix
 
