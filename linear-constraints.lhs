@@ -104,7 +104,11 @@ import GHC.Base
 \maketitle
 
 \section*{Introduction}
-\info{There is an Appendix section with unorganised thoughts and examples.}
+\info{There is an Appendix section with unorganised thoughts and
+  examples.}
+
+\newpage
+
 \section{Constraint entailment relation}
 \info{I'm assuming that we will need a $\with$ connective. It's probably
   best in the declarative part of the system anyway, even if the
@@ -130,9 +134,15 @@ See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
 There are 3 rules about conjunction in OutsideIn, which translate to only 5 rules here. I think these are exhaustive.
 
+\newpage
+
 \section{The declarative system}
 \change{Based on
   \href{https://github.com/tweag/linear-constraints/issues/13}{\#13}.}
+\info{We will probably need a linear (thin) arrow in the system:
+  when generating a packed existential with linear constraints inside,
+  the pack needs to be treated linearly.}
+
 See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
 \begin{mathpar}
@@ -141,6 +151,8 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
      Q ⊩ \subst{\overline{\sby{a}{τ}}}{Q_1}}
     { Q;Γ ⊢  x : \subst{\overline{\sby{a}{τ}}}{υ}}\text{var}
 \end{mathpar}
+
+\newpage
 
 \appendix
 
