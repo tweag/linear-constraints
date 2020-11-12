@@ -97,6 +97,7 @@ import GHC.Base
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
+  \newcommand{\klet}{\keyword{let}}
   \newcommand{\kcase}{\keyword{case}}
   \newcommand{\kwith}{\keyword{with}}
   \newcommand{\kunpack}{\keyword{unpack}}
@@ -166,13 +167,24 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
      Q ⊩ \subst{\overline{\sby{a}{τ}}}{Q_1}}
    { Q;Γ ⊢  x : \subst{\overline{\sby{a}{τ}}}{υ}}\text{var}
 
-
    \inferrule
    {Q'₁;Γ ⊢ e₁ : ∃̅a. 𝜏₁ \RLolly Q₁ \\
      \textrm{freshness condition on }̅a\\
      Q'₂⊗Q₁; Γ, x{:}τ₁ ⊩ e₂ : τ\\
      Q ⊩ Q'₁⊗Q'₂}
-   {Q;Γ ⊢ \kunpack~x = e₁~\kin~e₂ : 𝜏}\text{with}
+   {Q;Γ ⊢ \kunpack~x = e₁~\kin~e₂ : 𝜏}\text{unpack}
+
+   \inferrule
+   {Q'₁;Γ ⊢ e₁ : 𝜏₁ \\
+     Q'₂; Γ, x{:}τ₁ ⊩ e₂ : τ\\
+     Q ⊩ Q'₁⊗Q'₂}
+   {Q;Γ ⊢ \kwith~x = e₁~\kin~e₂ : 𝜏}\text{with}
+
+   \inferrule
+   {Q'₁,Q₁; Γ ⊢ e₁ : 𝜏₁ \\
+     Q'₂; Γ, x{:}Q₁ \Lolly τ₁ ⊩ e₂ : τ\\
+     Q ⊩ Q'₁⊗Q'₂}
+   {Q;Γ ⊢ \klet~x = e₁~\kin~e₂ : 𝜏}\text{let}
 \end{mathpar}
 
 \info{No substitution on $Q_1$ in the $\kunpack$ rule, because there is
