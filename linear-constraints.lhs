@@ -227,14 +227,56 @@ See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   $\kunpack$. I think that we don't need to drop this assumption. It
   does generalise straightforwardly to a full GADT system}
 
+\unsure{It's actually not terribly easy to write the abstraction rule
+  without equality constraint generation. I've just written it wrong
+  for now, we can fix later, it's not particularly urgent. In fact,
+  the whole treatment of unification is a bit sloppy (in particular
+  unification should affect emitted constraints).}
+\unsure{Todo: the rule for a constraint-generalising signatureless
+  let}
+\improvement{Rule for with}
+\improvement{We also want let with a signature. There are two rules in
+  OutsideIn: when the signature is monomorphic, and when it's
+  polymorphic. Maybe we don't care about this distinction all that
+  much.}
+\improvement{In the unpack rule, we want $e₁$'s type to only unify
+  with an existential type, not necessarily be inferred as such.}
+\unsure{What variables must be existentially quantified over in the
+  unpack rules? This is probably affected by the fact that we don't
+  have equality constraints in this system.}
 \begin{mathpar}
   \inferrule
-  { Γ \vdashi e : σ \leadsto C \\
+  { \overline{α}\textrm{ fresh} \\
+    (x{:}∀\overline{a}.\, Q₁ \Lolly τ₁) ∈ Γ }
+  {Γ \vdashi x : \subst{\overline{\sby{a}{α}}}{τ₁} \leadsto
+    \subst{\overline{\sby{a}{α}}}{Q₁}}\text{var}
+
+  \inferrule
+  { α\textrm{ fresh} \\
+    Γ, x{:}a \vdashi e : τ \leadsto C}
+  { Γ \vdashi λx.\,e : α ⟶ τ \leadsto C }\text{abs}
+
+  \inferrule
+  { Γ \vdashi e₁ : τ₁ \leadsto C₁ \\
+    Γ \vdashi e₂ : τ₂ \leadsto C₂ \\
+    τ₁\textrm{ unifies with }τ₂⟶α\textrm{ an yied } α≔τ
+  }
+  {Γ \vdashi e₁\,e₂ : τ \leadsto C₁⊗C₂ }\text{app}
+
+  \inferrule
+  { Γ \vdashi e : σ \leadsto C \\ \overline{γ}\textrm{ fresh}\\
     K_i : ∀\overline{a}. \overline{υᵢ} ⟶ T\,\overline{a} \\
     Γ,\overline{xᵢ{:}\subst{\overline{\sby{a}{γ}}}{υᵢ}} \vdashi e_i : τᵢ \leadsto Cᵢ\\
-    \textrm{unification of the }τᵢ\textrm{ yields τ} }
+    \textrm{unification of the }τᵢ\textrm{ yields }τ }
   {Γ \vdashi \kcase~e~\kof \{ \overline{Kᵢ\,\overline{xᵢ} ⟶ eᵢ} \} : τ
-    \leadsto C⊗\bigaand Cᵢ}
+    \leadsto C⊗\bigaand Cᵢ}\text{case}
+
+  \inferrule
+  { Γ \vdashi e₁ : ∃\overline{a}.\,τ₁\RLolly Q₁ \leadsto C₁ \\
+    \overline{a}\textrm{ fresh}\\
+    Γ, x{:}τ₁ \vdashi e₂ : τ \leadsto C₂}
+  {Γ \vdashi \kunpack~x = e₁~\kin~e₂ : τ
+    \leadsto C₁⊗∃….\,Q₁ ⊃ C₂}\text{unpack}
 \end{mathpar}
 
 \newpage
