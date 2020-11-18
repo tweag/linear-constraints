@@ -93,7 +93,7 @@ import GHC.Base
   \newcommand{\RLolly}{\mathop{\circ\!\!\!=}}
   \newcommand{\subst}[2]{[#1]#2}
   \newcommand{\sby}[2]{#1 ↦ #2}
-  \newcommand{\vdashi}{⊢_i}
+  \newcommand{\vdashi}{⊢_{\mathsf{i}}}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
@@ -161,6 +161,16 @@ There are 3 rules about conjunction in OutsideIn, which translate to only 5 rule
 
 See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
+Main differences:
+\begin{itemize}
+\item $\kcase$ doesn't have GADTs
+\item $\klet$ is generalised over all linear constraints.
+\item $\kwith$ forces the consumption of constraints. It behaves like
+  the let of InsideOut
+\item Existential packs are our only GADT. They have a single
+  constructor, pattern-matched over by $\kunpack$.
+\end{itemize}
+\improvement{We also want let with a signature. For the sake of completeness}
 \begin{mathpar}
   \inferrule
     {(x : ∀\overline{a}. Q_1 \Lolly υ) ∈ Γ\\
@@ -168,8 +178,16 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
    { Q;Γ ⊢  x : \subst{\overline{\sby{a}{τ}}}{υ}}\text{var}
 
    \inferrule
-   {Q'₁;Γ ⊢ e₁ : ∃̅a. 𝜏₁ \RLolly Q₁ \\
-     \textrm{freshness condition on }̅a\\
+   {Q;Γ, (x{:}τ₁) ⊢ e : τ₂}
+   {Q;Γ ⊢ λx.e : τ₁ ⟶ τ₂}\text{abs}
+
+   \inferrule
+   {Q₁;Γ ⊢ e₁ : τ₁ ⟶ τ \\ Q₂;Γ ⊢ e₂ : τ₁ \\ Q ⊩ Q₁ ⊗ Q₂ }
+   {Q;Γ ⊢ e₁\,e₂ : τ}\text{app}
+
+   \inferrule
+   {Q'₁;Γ ⊢ e₁ : ∃\overline{a}. 𝜏₁ \RLolly Q₁ \\
+     \textrm{freshness condition on }\overline{a}\\
      Q'₂⊗Q₁; Γ, x{:}τ₁ ⊩ e₂ : τ\\
      Q ⊩ Q'₁⊗Q'₂}
    {Q;Γ ⊢ \kunpack~x = e₁~\kin~e₂ : 𝜏}\text{unpack}
@@ -185,6 +203,13 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
      Q'₂; Γ, x{:}Q₁ \Lolly τ₁ ⊩ e₂ : τ\\
      Q ⊩ Q'₁⊗Q'₂}
    {Q;Γ ⊢ \klet~x = e₁~\kin~e₂ : 𝜏}\text{let}
+
+   \inferrule
+   { Q;Γ ⊢ e : T\,\overline{τ} \\
+     Kᵢ : ∀\overline{a}. \overline{υᵢ} ⟶ T\,\overline{a}\\
+     Q; Γ, \overline{xᵢ:\subst{\overline{\sby{a}{τ}}}{υᵢ}} ⊢ uᵢ : τᵢ
+   }
+   {Q;Γ ⊢ \kcase~e~\kof \{ \overline{Kᵢ\,\overline{xᵢ} ⟶ eᵢ} \}}\text{case}
 \end{mathpar}
 
 \info{No substitution on $Q_1$ in the $\kunpack$ rule, because there is
