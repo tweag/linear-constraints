@@ -53,7 +53,7 @@ import GHC.Base
   \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
   % ^^ Need for pgfsyspdfmark apparently?
   \ifx\noeditingmarks\undefined
-      \setlength{\marginparwidth}{1.2cm} % Here's a size that matches the new PACMPL format -RRN
+      %\setlength{\marginparwidth}{1.2cm} % A size that matches the new PACMPL format
       \newcommand{\Red}[1]{{\color{red}{#1}}}
       \newcommand{\newaudit}[1]{{\color{blue}{#1}}}
       \newcommand{\note}[1]{{\color{blue}{\begin{itemize} \item {#1} \end{itemize}}}}
