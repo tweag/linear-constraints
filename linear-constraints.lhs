@@ -89,8 +89,9 @@ import GHC.Base
   \newcommand{\cscheme}[1]{\mathcal{#1}}
   \newcommand{\aand}{\&}
   \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
-  \newcommand{\Lolly}{\mathop{=\!\!\!\circ}}
-  \newcommand{\RLolly}{\mathop{\circ\!\!\!=}}
+  \newcommand{\lollycirc}{\raisebox{-0.2ex}{\scalebox{1.4}{$\circ$}}}
+  \newcommand{\Lolly}{\mathop{=\!\!\!{\lollycirc}}}
+  \newcommand{\RLolly}{\mathop{\lollycirc\!\!\!=}}
   \newcommand{\subst}[2]{[#1]#2}
   \newcommand{\sby}[2]{#1 ↦ #2}
   \newcommand{\vdashi}{⊢_{\mathsf{i}}}
