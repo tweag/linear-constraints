@@ -203,12 +203,6 @@ Main differences:
    {Q;Γ ⊢ \kunpack~x = e₁~\kin~e₂ : 𝜏}\text{unpack}
 
    \inferrule
-   {Q'₁;Γ ⊢ e₁ : 𝜏₁ \\
-     Q'₂; Γ, x{:}τ₁ ⊩ e₂ : τ\\
-     Q ⊩ Q'₁⊗Q'₂}
-   {Q;Γ ⊢ \kwith~x = e₁~\kin~e₂ : 𝜏}\text{with}
-
-   \inferrule
    { Q₁; Γ ⊢ e₁ : 𝜏₁ \\
      Q; Γ, x{:}Q₁ \Lolly τ₁ ⊩ e₂ : τ }
    {Q;Γ ⊢ \klet~x = e₁~\kin~e₂ : 𝜏}\text{let}
