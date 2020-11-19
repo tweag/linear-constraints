@@ -59,6 +59,8 @@ import GHC.Base
       \newcommand{\note}[1]{{\color{blue}{\begin{itemize} \item {#1} \end{itemize}}}}
       \newenvironment{alt}{\color{red}}{}
 
+      \newcommandx{\jp}[2][1=]{\todo[linecolor=purple,backgroundcolor=purple!25,bordercolor=purple,#1]{#2}}
+      
       \newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
       \newcommandx{\info}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
       \newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
@@ -135,6 +137,8 @@ See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
 \unsure{It's a tad trivial, but I wonder why the calligraphic-font Q is different here than in the OutsideIn paper}
 
+The calligraphic $\cscheme{Q}$ is like $Q$ but it has type-class axioms (instances from the top-level).
+(Possibly we will drop these altogether.)
 \begin{displaymath}
   \begin{array}{l}
     Q ⊩ Q \\
@@ -146,6 +150,11 @@ See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 \end{displaymath}
 
 There are 3 rules about conjunction in OutsideIn, which translate to only 5 rules here. I think these are exhaustive.
+
+\inconsistent{Last rule is bogus, but
+Maybe $&$-conjunctions can be C-constraints, and be eliminated before
+they are given to the simplifier (therefore may not need to be
+specified in the subsumption relation)}
 
 \newpage
 
@@ -220,6 +229,8 @@ Main differences:
 
 \section{The algorithmic system}
 
+
+
 See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   again, $Γ$ is treated intuitionistically where it should probably be
   linear.}  \unsure{For simplicity, I(Arnaud) assume that the data
@@ -260,7 +271,7 @@ See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   \inferrule
   { Γ \vdashi e₁ : τ₁ \leadsto C₁ \\
     Γ \vdashi e₂ : τ₂ \leadsto C₂ \\
-    τ₁\textrm{ unifies with }τ₂⟶α\textrm{ an yied } α≔τ
+    τ₁\textrm{ unifies with }τ₂⟶α\textrm{ and yield } α≔τ
   }
   {Γ \vdashi e₁\,e₂ : τ \leadsto C₁⊗C₂ }\text{app}
 
