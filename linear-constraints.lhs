@@ -103,6 +103,7 @@ import GHC.Base
   \newcommand{\klet}{\keyword{let}}
   \newcommand{\kcase}{\keyword{case}}
   \newcommand{\kwith}{\keyword{with}}
+  \newcommand{\kpack}{\keyword{unpack}}
   \newcommand{\kunpack}{\keyword{unpack}}
   \newcommand{\kin}{\keyword{in}}
   \newcommand{\kof}{\keyword{of}}
@@ -164,7 +165,10 @@ specified in the subsumption relation)}
 \info{We will probably need a linear (thin) arrow in the system:
   when generating a packed existential with linear constraints inside,
   the pack needs to be treated linearly. This implies handling $Γ$
-  linearly, but I(Arnaud) haven't done so yet, for the sake of simplicity.}
+  linearly, but I(Arnaud) haven't done so yet, for the sake of
+  simplicity. An interesting feature of linearity is that promotion
+  can only happens when both the variables and the constraints are
+  unrestricted. This will cause $\kpack$ to return a linear quantity. }
 \unsure{I think $\kunpack$ should pack both existential variables and
   linear constraint: they go well together. This is not how Csongor
   designed it, originally, but it probably makes more sense.}
@@ -226,7 +230,8 @@ Main differences:
 
 See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   again, $Γ$ is treated intuitionistically where it should probably be
-  linear.}  \unsure{For simplicity, I(Arnaud) assume that the data
+  linear.}
+\unsure{For simplicity, I(Arnaud) assume that the data
   types are only constructors. That is, the entire GADTiness of the
   system is in $∃\overline{a}. τ \RLolly Q$ and deconstructed with
   $\kunpack$. I think that we don't need to drop this assumption. It
