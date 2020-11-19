@@ -152,7 +152,7 @@ The calligraphic $\cscheme{Q}$ is like $Q$ but it has type-class axioms (instanc
 There are 3 rules about conjunction in OutsideIn, which translate to only 5 rules here. I think these are exhaustive.
 
 \inconsistent{Last rule is bogus, but
-Maybe $&$-conjunctions can be C-constraints, and be eliminated before
+Maybe $\&$-conjunctions can be C-constraints, and be eliminated before
 they are given to the simplifier (therefore may not need to be
 specified in the subsumption relation)}
 
