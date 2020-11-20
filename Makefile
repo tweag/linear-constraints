@@ -16,3 +16,10 @@ clean:
 
 %.pdf: %.tex bibliography.bib
 	cd $(dir $<) && latexmk $(notdir $*)
+
+nix::
+	nix-shell --pure --run make
+
+continous-nix::
+	nix-shell --run "while inotifywait -e modify linear-constraints.lhs shell.nix; do make nix; done"
+

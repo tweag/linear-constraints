@@ -5,6 +5,7 @@ pkgs.mkShell
       haskellPackages.lhs2tex
       biber
       ott
+      inotify-tools
       (texlive.combine {
         inherit (texlive)
           scheme-small
