@@ -162,16 +162,21 @@ specified in the subsumption relation)}
 \section{The declarative system}
 \change{Based on
   \href{https://github.com/tweag/linear-constraints/issues/13}{\#13}.}
-\info{We will probably need a linear (thin) arrow in the system:
+\info{We will certainly need a linear (thin) arrow in the system:
   when generating a packed existential with linear constraints inside,
   the pack needs to be treated linearly. This implies handling $Γ$
   linearly, but I(Arnaud) haven't done so yet, for the sake of
   simplicity. An interesting feature of linearity is that promotion
   can only happens when both the variables and the constraints are
   unrestricted. This will cause $\kpack$ to return a linear quantity. }
+%
+\jp{It's very important to explain in detail that linear constraints
+  (as linear values) can never escape to omega contexts.}
+%
 \unsure{I think $\kunpack$ should pack both existential variables and
   linear constraint: they go well together. This is not how Csongor
   designed it, originally, but it probably makes more sense.}
+\jp{pack/unpack consistency? in above comment?}
 
 See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
@@ -222,11 +227,11 @@ Main differences:
 \info{No substitution on $Q_1$ in the $\kunpack$ rule, because there is
   only existential quantification.}
 
+\jp{Regarding pack/unpack. Treating them as primitive implies that we will define linear constraints inside data types as Pack/Unpack.}
+
 \newpage
 
 \section{The algorithmic system}
-
-
 
 See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   again, $Γ$ is treated intuitionistically where it should probably be
@@ -290,6 +295,13 @@ See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
 \end{mathpar}
 
 \newpage
+
+\jp{We must say something about operational semantics (especially for
+  the Array example to make sense.). The linear constraint carries a
+  token for ordering of operations. How is this token manipulated with the surface syntax?
+  How it is represented in the operational semantics (presumably the linear constraints are translated to linear values)?
+
+}
 
 \appendix
 
@@ -425,6 +437,16 @@ freeze       :: O n =>. PArray a n -> Array a
 readArray :: Array a -> Int -> Frozen a
 readArray (Freeze arr) i = Freeze (readPArray arr i)
 \end{spec}
+
+\jp{IMO the Rust terminology is more confusing than anything. (what is borrowPArray even doing?)
+
+  I'd
+  rather say that the RW capability is threaded using a linear token
+  which is (semi-)implicitly passed around.
+
+  Also, why is the |Own| class used nowhere?
+
+}
 
 \printbibliography
 
