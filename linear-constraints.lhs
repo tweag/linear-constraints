@@ -357,6 +357,9 @@ think) but the details don't matter terribly.
 
 \newpage
 
+\section{Desugaring}
+\label{sec:desugaring}
+
 \jp{We must say something about operational semantics (especially for
   the Array example to make sense.). The linear constraint carries a
   token for ordering of operations. How is this token manipulated with the surface syntax?
@@ -367,6 +370,12 @@ think) but the details don't matter terribly.
   of a desugaring to the core calculus of the Linear Haskell paper.
 
 }
+
+Goal: describe transformations
+\begin{enumerate}
+\item Constraint generator + solver $\leadsto$ declarative system
+\item declarative system $\leadsto$ $λ^q$
+\end{enumerate}
 
 \newpage
 
