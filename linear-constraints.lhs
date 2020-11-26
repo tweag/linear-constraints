@@ -154,7 +154,12 @@ There are 3 rules about conjunction in OutsideIn, which translate to only 5 rule
 
 \unsure{Maybe $\&$-conjunctions can be C-constraints, and be eliminated before
 they are given to the simplifier (therefore may not need to be
-specified in the subsumption relation)}
+specified in the subsumption relation)
+
+[Arnaud]: I think we may be able to take a cue from focusing here: if
+a combinator is ``asynchronous'' then it need not appear in the
+subsumption rule (at least not in the simplifier) whereas if the
+combinator is ``synchronous'', then it does}
 
 \newpage
 
@@ -252,7 +257,10 @@ See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   with an existential type, not necessarily be inferred as such.}
 \unsure{What variables must be existentially quantified over in the
   unpack rules? This is probably affected by the fact that we don't
-  have equality constraints in this system.}
+  have equality constraints in this system. Maybe none? if we remove
+  unification from our framework altogether.}
+\unsure{The case rule, for an empty case, implies the existence of the
+  typically annoying $⊤$. We will have to confront this.}
 \begin{mathpar}
   \inferrule
   { \overline{α}\textrm{ fresh} \\
@@ -296,6 +304,13 @@ See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   How it is represented in the operational semantics (presumably the linear constraints are translated to linear values)?
 
 }
+
+\newpage
+
+\section{Extensions}
+\begin{itemize}
+\item Like there are implicational and universally-quantified constraints in the left-hand side of fat arrows, we may want to have $\aand$ constraints on the left hand side of (linear) fat arrows. This falls in the Linear Hereditary Harrop fragment described, for instance, in~\cite{resource-management-for-ll-proof-search}. Hereditary Harrop is a natural extension of Horn clauses in proof search algorithms.
+\end{itemize}
 
 \appendix
 
