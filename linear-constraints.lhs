@@ -146,14 +146,13 @@ The calligraphic $\cscheme{Q}$ is like $Q$ but it has type-class axioms (instanc
     \cscheme{Q_1} ⊩ Q_2 \quad\mathrm{and}\quad \cscheme{Q}_2 ⊗ Q_2 ⊩ Q_3 \quad\mathrm{then}\quad \cscheme{Q_1} ⊗ \cscheme{Q_2} ⊩ Q_3 \\
     \cscheme{Q_1} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q}_2 ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q_1} ⊗ \cscheme{Q_2} ⊩ Q_1 ⊗ Q_2 \\
     \cscheme{Q} \aand Q ⊩ Q \\
-    \cscheme{Q} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q} ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q} \aand \cscheme{Q_2} ⊩ Q_1 ⊗ Q_2 \\
+    \cscheme{Q} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q} ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q} ⊩ Q_1 \aand Q_2 \\
   \end{array}
 \end{displaymath}
 
 There are 3 rules about conjunction in OutsideIn, which translate to only 5 rules here. I think these are exhaustive.
 
-\inconsistent{Last rule is bogus, but
-Maybe $\&$-conjunctions can be C-constraints, and be eliminated before
+\unsure{Maybe $\&$-conjunctions can be C-constraints, and be eliminated before
 they are given to the simplifier (therefore may not need to be
 specified in the subsumption relation)}
 
