@@ -20,6 +20,6 @@ clean:
 nix::
 	nix-shell --pure --run make
 
-continous-nix::
+continous-nix:: nix
 	nix-shell --run "while inotifywait -e modify linear-constraints.lhs shell.nix; do make nix; done"
 
