@@ -46,6 +46,20 @@ keywords = "Linear logic, Theorem proving, Logic programming",
 abstract = "The design of linear logic programming languages and theorem provers opens a number of new implementation challenges not present in more traditional logic languages such as Horn clauses (Prolog) and hereditary Harrop formulas (λProlog and Elf). Among these, the problem of efficiently managing the linear context when solving a goal is of crucial importance for the use of these systems in non-trivial applications. This paper studies this problem in the case of Lolli [10], though its results have application to other systems including those based on linear type theory. We first give a proof-theoretic presentation of the operational semantics of this language as a resolution calculus. We then present a series of resource management systems designed to eliminate the non-determinism in the distribution of linear formulas that undermines the efficiency of a direct implementation of this system."
 }
 
+@article{hh-ll,
+title = "Logic Programming in a Fragment of Intuitionistic Linear Logic",
+journal = "Information and Computation",
+volume = "110",
+number = "2",
+pages = "327 - 365",
+year = "1994",
+issn = "0890-5401",
+doi = "https://doi.org/10.1006/inco.1994.1036",
+url = "http://www.sciencedirect.com/science/article/pii/S0890540184710364",
+author = "J.S. Hodas and D. Miller",
+abstract = "When logic programming is based on the proof theory of intuitionistic logic, it is natural to allow implications in goals and in the bodies of clauses. Attempting to prove a goal of the form D ⊃ G from the context (set of formulas) Γ leads to an attempt to prove the goal G in the extended context Γ ∪ {D}. Thus contexts, represented as the left-hand side of intuitionistic sequents, grow as stacks during the bottom-up search for a cut-free proof. While such an intuitionistic notion of context provides for elegant specifications of many computations, contexts can be made more expressive and flexible if they are based on linear logic. After presenting two equivalent formulations of a fragment of linear logic, we show that the fragment has a goal-directed interpretation, thereby partially justifying calling it a logic program-ming language. Logic programs based on the intuitionistic theory of hereditary Harrop formulas can be modularly embedded into this linear logic setting. Programming examples taken from theorem proving, natural language parsing, and data base programming are presented: each example requires a linear, rather than intuitionistic, notion of context to be modeled adequately. An interpreter for this logic programming language must address the problem of splitting contexts; that is, in the attempt to prove a multiplicative conjunction (tensor), say G1 ⊗ G2, from the context Δ the latter must be split into disjoint contexts Δ1 and Δ2 for which G1 follows from Δ1 and G2 follows from Δ2. Since there is an exponential number of such splits, it is important to delay the choice of a split as much as possible. A mechanism for the lazy splitting of contexts is presented based on viewing proof search as a process that takes a context, consumes part of it, and returns the rest (to be consumed elsewhere). In addition, we use collections of Kripke interpretations indexed by a commutative monoid to provide models for this logic programming language and show that logic programs admit canonical models."
+}
+
 @misc{shulman2018linear,
       title={Linear logic for constructive mathematics},
       author={Michael Shulman},

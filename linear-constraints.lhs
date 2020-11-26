@@ -216,9 +216,10 @@ Main differences:
    {Q;Γ ⊢ \klet~x = e₁~\kin~e₂ : 𝜏}\text{let}
 
    \inferrule
-   { Q;Γ ⊢ e : T\,\overline{τ} \\
+   { Q₁;Γ ⊢ e : T\,\overline{τ} \\
      Kᵢ : ∀\overline{a}. \overline{υᵢ} ⟶ T\,\overline{a}\\
-     Q; Γ, \overline{xᵢ:\subst{\overline{\sby{a}{τ}}}{υᵢ}} ⊢ uᵢ : τᵢ
+     Q₂; Γ, \overline{xᵢ:\subst{\overline{\sby{a}{τ}}}{υᵢ}} ⊢ uᵢ : τᵢ\\
+     Q⊩Q₁⊗Q₂
    }
    {Q;Γ ⊢ \kcase~e~\kof \{ \overline{Kᵢ\,\overline{xᵢ} ⟶ eᵢ} \}}\text{case}
 \end{mathpar}
@@ -316,6 +317,46 @@ presentation significantly.\unsure{This paragraph is more wordy than
 
 \newpage
 
+\section{Constraint solver}
+\label{sec:constraint-solver}
+
+Various recipes are given
+by~\cite{resource-management-for-ll-proof-search}.
+\info{The first presentation of returning output context that I could
+  find is~\cite{hh-ll}, but I
+  find~\cite{resource-management-for-ll-proof-search} more
+  informative.}
+These recipes are phrased in a way which implies goal oriented
+proof search, but they can be adapted \emph{mutatis mutandis} to GHC's
+backtrackingless rewrite-based search.
+
+The key points are
+\begin{itemize}
+\item Each rule return the remaining, unused (linear) hypotheses: the
+  \emph{leftovers}.
+\item To deal with $⊤$, remember that you've encountered a $⊤$ in a
+  different branch. And let you spend any leftover back into a
+  previous $⊤$
+\item In~\cite{resource-management-for-ll-proof-search}, there is a
+  third input context ($Ξ$), which represents a context which need to
+  be used, and cannot be returned as leftovers. However, this is used
+  to fail earlier in backtracking branches which are doomed to
+  fail. It doesn't apply to our backtrackingless
+  setting\unsure{[Arnaud]: I think.}
+\end{itemize}
+
+We can do pretty much like in OutsideIn: split the constraint between
+flat constraints and non-flat constraints if we wish (but, this time,
+non-flat constraint include $\aand$! so there will be significantly
+more). Apply synchronous rules on non-flat constraint to retrieve flat
+constraint, call the simplifier on them.
+
+To be honest, we can even do one atomic constraint at a time, given
+that we have no equality, hence our wanted can't interact (I [Arnaud]
+think) but the details don't matter terribly.
+
+\newpage
+
 \jp{We must say something about operational semantics (especially for
   the Array example to make sense.). The linear constraint carries a
   token for ordering of operations. How is this token manipulated with the surface syntax?
@@ -331,7 +372,14 @@ presentation significantly.\unsure{This paragraph is more wordy than
 
 \section{Extensions}
 \begin{itemize}
-\item Like there are implicational and universally-quantified constraints in the left-hand side of fat arrows, we may want to have $\aand$ constraints on the left hand side of (linear) fat arrows. This falls in the Linear Hereditary Harrop fragment described, for instance, in~\cite{resource-management-for-ll-proof-search}. Hereditary Harrop is a natural extension of Horn clauses in proof search algorithms.
+\item Like there are implicational and universally-quantified
+  constraints in the left-hand side of fat arrows, we may want to have
+  $\aand$ constraints on the left hand side of (linear) fat
+  arrows. This falls in the Linear Hereditary Harrop fragment
+  described, for instance, in~\cite{hh-ll}
+  and~\cite{resource-management-for-ll-proof-search}. Hereditary
+  Harrop is a natural extension of Horn clauses in proof search
+  algorithms.
 \end{itemize}
 
 \appendix
