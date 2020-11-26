@@ -103,7 +103,7 @@ import GHC.Base
   \newcommand{\klet}{\keyword{let}}
   \newcommand{\kcase}{\keyword{case}}
   \newcommand{\kwith}{\keyword{with}}
-  \newcommand{\kpack}{\keyword{unpack}}
+  \newcommand{\kpack}{\keyword{pack}}
   \newcommand{\kunpack}{\keyword{unpack}}
   \newcommand{\kin}{\keyword{in}}
   \newcommand{\kof}{\keyword{of}}
@@ -230,61 +230,79 @@ Main differences:
 
 \newpage
 
-\section{The algorithmic system}
+\section{Constraint generation}
 
 See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   again, $Γ$ is treated intuitionistically where it should probably be
   linear.}
+
+In a full blown Haskell with linear constraints, there wouldn't be
+linear equality constraints. That is, $a \sim b$\unsure{this notation
+  hasn't been introduced, so if it makes the cut explain where it
+  comes from} wouldn't appear to the left of a linear fat arrow. It's
+not that linear equalities don't make sense, see for
+instance~\cite{shulman2018linear} for a system which takes linear
+equality seriously. However, the usual unification algorithms are
+unsound for linear equalities, as they will gladly use the same
+equality many times (or none-at-all). Haskell could, by some arbitrary
+mean, reject equality constraints to the left of a linear fat arrow,
+or it could simply refuse to do any solving with such equalities.
+
+While it is possible that a future version of Haskell includes linear
+equality constraint, automatic resolution of linear equality
+constraints is way beyond the scope of this article. Nor is it needed,
+or even useful, for our use cases. As a consequence, linear
+constraints are fully orthogonal to type inference. Therefore, the
+syntax-directed constraint generation system presented in this section
+is legitimate in assuming that type inference is solved elsewhere;
+contrary to~\cite{OutsideIn}, where type inference is mixed with
+constraint generation. This separation of concern simplifies the
+presentation significantly.\unsure{This paragraph is more wordy than
+  it is clear, so let's not take it as an actual proposal for the
+  explanation, I [Arnaud] merely wanted to record my thoughts}
+
 \unsure{For simplicity, I(Arnaud) assume that the data
   types are only constructors. That is, the entire GADTiness of the
   system is in $∃\overline{a}. τ \RLolly Q$ and deconstructed with
   $\kunpack$. I think that we don't need to drop this assumption. It
   does generalise straightforwardly to a full GADT system}
 
-\unsure{It's actually not terribly easy to write the abstraction rule
-  without equality constraint generation. I've just written it wrong
-  for now, we can fix later, it's not particularly urgent. In fact,
-  the whole treatment of unification is a bit sloppy (in particular
-  unification should affect emitted constraints).}
+\unsure{Todo: the rule for $\kpack$}
 \unsure{Todo: the rule for a constraint-generalising signatureless
   let}
-\improvement{Rule for with}
 \improvement{We also want let with a signature. There are two rules in
   OutsideIn: when the signature is monomorphic, and when it's
   polymorphic. Maybe we don't care about this distinction all that
   much.}
-\improvement{In the unpack rule, we want $e₁$'s type to only unify
-  with an existential type, not necessarily be inferred as such.}
 \unsure{What variables must be existentially quantified over in the
   unpack rules? This is probably affected by the fact that we don't
   have equality constraints in this system. Maybe none? if we remove
   unification from our framework altogether.}
 \unsure{The case rule, for an empty case, implies the existence of the
   typically annoying $⊤$. We will have to confront this.}
+\unsure{We probably want the freshness condition on the $\kunpack$
+  rule, though these variables are universal variables, not
+  existentials.}
 \begin{mathpar}
   \inferrule
-  { \overline{α}\textrm{ fresh} \\
-    (x{:}∀\overline{a}.\, Q₁ \Lolly τ₁) ∈ Γ }
-  {Γ \vdashi x : \subst{\overline{\sby{a}{α}}}{τ₁} \leadsto
-    \subst{\overline{\sby{a}{α}}}{Q₁}}\text{var}
+  { (x{:}∀\overline{a}.\, Q₁ \Lolly τ₁) ∈ Γ }
+  {Γ \vdashi x : \subst{\overline{\sby{a}{τ}}}{τ₁} \leadsto
+    \subst{\overline{\sby{a}{τ}}}{Q₁}}\text{var}
 
   \inferrule
-  { α\textrm{ fresh} \\
-    Γ, x{:}a \vdashi e : τ \leadsto C}
+  { Γ, x{:}τ₀ \vdashi e : τ \leadsto C}
   { Γ \vdashi λx.\,e : α ⟶ τ \leadsto C }\text{abs}
 
   \inferrule
-  { Γ \vdashi e₁ : τ₁ \leadsto C₁ \\
-    Γ \vdashi e₂ : τ₂ \leadsto C₂ \\
-    τ₁\textrm{ unifies with }τ₂⟶α\textrm{ and yield } α≔τ
+  { Γ \vdashi e₁ : τ₂⟶τ \leadsto C₁ \\
+    Γ \vdashi e₂ : τ₂ \leadsto C₂
   }
   {Γ \vdashi e₁\,e₂ : τ \leadsto C₁⊗C₂ }\text{app}
 
   \inferrule
-  { Γ \vdashi e : σ \leadsto C \\ \overline{γ}\textrm{ fresh}\\
+  { Γ \vdashi e : T\,\overline{σ} \leadsto C \\
     K_i : ∀\overline{a}. \overline{υᵢ} ⟶ T\,\overline{a} \\
-    Γ,\overline{xᵢ{:}\subst{\overline{\sby{a}{γ}}}{υᵢ}} \vdashi e_i : τᵢ \leadsto Cᵢ\\
-    \textrm{unification of the }τᵢ\textrm{ yields }τ }
+    Γ,\overline{xᵢ{:}\subst{\overline{\sby{a}{σ}}}{υᵢ}} \vdashi e_i : τ \leadsto Cᵢ}
   {Γ \vdashi \kcase~e~\kof \{ \overline{Kᵢ\,\overline{xᵢ} ⟶ eᵢ} \} : τ
     \leadsto C⊗\bigaand Cᵢ}\text{case}
 
@@ -301,7 +319,11 @@ See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
 \jp{We must say something about operational semantics (especially for
   the Array example to make sense.). The linear constraint carries a
   token for ordering of operations. How is this token manipulated with the surface syntax?
-  How it is represented in the operational semantics (presumably the linear constraints are translated to linear values)?
+  How it is represented in the operational semantics (presumably the
+  linear constraints are translated to linear values)?
+
+  [Arnaud]: My plan is to give the operational semantics in the form
+  of a desugaring to the core calculus of the Linear Haskell paper.
 
 }
 
