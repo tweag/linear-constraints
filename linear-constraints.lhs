@@ -172,11 +172,6 @@ specified in the subsumption relation)}
 \jp{It's very important to explain in detail that linear constraints
   (as linear values) can never escape to omega contexts.}
 %
-\unsure{I think $\kunpack$ should pack both existential variables and
-  linear constraint: they go well together. This is not how Csongor
-  designed it, originally, but it probably makes more sense.}
-\jp{pack/unpack consistency? in above comment?}
-
 See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
 Main differences:
