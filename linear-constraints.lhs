@@ -210,16 +210,16 @@ Main differences:
    {Q;Γ ⊢ e₁\,e₂ : τ}\text{app}
 
    \inferrule
-   {Q'₁;Γ ⊢ e₁ : ∃\overline{a}. 𝜏₁ \RLolly Q₁ \\
+   {Q'₁;Γ ⊢ e₁ : ∃\overline{a}. τ₁ \RLolly Q₁ \\
      \textrm{freshness condition on }\overline{a}\\
      Q'₂⊗Q₁; Γ, x{:}τ₁ ⊩ e₂ : τ\\
      Q ⊩ Q'₁⊗Q'₂}
-   {Q;Γ ⊢ \kunpack~x = e₁~\kin~e₂ : 𝜏}\text{unpack}
+   {Q;Γ ⊢ \kunpack~x = e₁~\kin~e₂ : τ}\text{unpack}
 
    \inferrule
-   { Q₁; Γ ⊢ e₁ : 𝜏₁ \\
+   { Q₁; Γ ⊢ e₁ : τ₁ \\
      Q; Γ, x{:}Q₁ \Lolly τ₁ ⊩ e₂ : τ }
-   {Q;Γ ⊢ \klet~x = e₁~\kin~e₂ : 𝜏}\text{let}
+   {Q;Γ ⊢ \klet~x = e₁~\kin~e₂ : τ}\text{let}
 
    \inferrule
    { Q₁;Γ ⊢ e : T\,\overline{τ} \\
