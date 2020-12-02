@@ -40,10 +40,15 @@ import GHC.Base
 
 
 %include polycode.fmt
+%if style == poly
 %format ->. = "⊸"
 %format =>. = "\Lolly"
 %format .<= = "\RLolly"
 %format IOL = "IO_L"
+%format . = "."
+%format exists = "\exists"
+%format forall = "\forall"
+%endif
 
 %%%%%%%%%%%%%%%%% /lhs2tex %%%%%%%%%%%%%%%%%
 
