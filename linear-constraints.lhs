@@ -181,7 +181,11 @@ combinator is ``synchronous'', then it does}
   unrestricted. This will cause $\kpack$ to return a linear quantity. }
 %
 \jp{It's very important to explain in detail that linear constraints
-  (as linear values) can never escape to omega contexts.}
+  (as linear values) can never escape to omega contexts.
+
+  But then, don't we have to give linear types to composition
+  combinators? I am confused here.  }
+
 %
 See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
@@ -244,24 +248,30 @@ See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   linear.}
 
 In a full blown Haskell with linear constraints, there wouldn't be
-linear equality constraints. That is, $a \sim b$\unsure{this notation
+linear equality constraints.\jp{Seems to suggest that we have linear equality constraints here?}
+That is, $a \sim b$\unsure{this notation
   hasn't been introduced, so if it makes the cut explain where it
   comes from} wouldn't appear to the left of a linear fat arrow. It's
 not that linear equalities don't make sense, see for
 instance~\cite{shulman2018linear} for a system which takes linear
 equality seriously. However, the usual unification algorithms are
-unsound for linear equalities, as they will gladly use the same
+unsound for linear equalities, because they will gladly use the same
 equality many times (or none-at-all). Haskell could, by some arbitrary
 mean, reject equality constraints to the left of a linear fat arrow,
 or it could simply refuse to do any solving with such equalities.
 
 While it is possible that a future version of Haskell includes linear
-equality constraint, automatic resolution of linear equality
-constraints is way beyond the scope of this article. Nor is it needed,
-or even useful, for our use cases. As a consequence, linear
+equality constraints, automatic resolution of linear equality
+constraints is beyond the scope of this article. Nor is it needed,
+or even useful, for our use cases.
+%
+Thus, in general, no linear constraint can be used in, or influence in
+any way, the unification of type meta variables to types.  As a
+consequence, linear
+%
 constraints are fully orthogonal to type inference. Therefore, the
 syntax-directed constraint generation system presented in this section
-is legitimate in assuming that type inference is solved elsewhere;
+can legitimately assume that type inference is solved elsewhere;
 contrary to~\cite{OutsideIn}, where type inference is mixed with
 constraint generation. This separation of concern simplifies the
 presentation significantly.\unsure{This paragraph is more wordy than
@@ -354,7 +364,7 @@ The key points are
 We can do pretty much like in OutsideIn: split the constraint between
 flat constraints and non-flat constraints if we wish (but, this time,
 non-flat constraint include $\aand$! so there will be significantly
-more). Apply synchronous rules on non-flat constraint to retrieve flat
+more of them). Apply synchronous rules on non-flat constraint to retrieve flat
 constraint, call the simplifier on them.
 
 To be honest, we can even do one atomic constraint at a time, given
