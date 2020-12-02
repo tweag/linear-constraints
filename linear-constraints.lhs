@@ -244,6 +244,137 @@ Main differences:
 
 \jp{Regarding pack/unpack. Treating them as primitive implies that we will define linear constraints inside data types as Pack/Unpack.}
 
+\section{$\klet$ should be generalised}
+
+The let rule infers a qualified type for the bound variable, by generalising
+over all the linear constraints appearing in the bound expression. This is in
+stark contrast with OutsideIn's strategy of inferring fully monomorphic types
+for let expressions. So why not follow the established tradition and also infer
+monomorphic types when linear constraints are involved? Since the let binder is
+unrestricted, the variable $x$ may be used multiple times (or none at all). This
+means that the let \emph{must not consume any linear constraints}. \change{which
+means that if we also add linear lets to the language, then those can consume
+linear constraints. But I (Csongor) don't think linear lets will be necessary?}
+
+To illustrate the practical necessity of the let generalisation strategy,
+consider the following file handling API:
+
+\begin{code}
+newFile :: exists f. IO (File f .<= Open f)
+writeFile :: Open f =>. File f -> String -> IO (() .<= Open f)
+closeFile :: Open f =>. File f -> IO ()
+\end{code}
+
+The |newFile| function creates a file and returns a file handle |File f|,
+together with a linear constraint witnessing that the file |f| is open (note
+that |f| is existentially quantified). |writeFile| writes a string to an open
+file and keeps it open. Finally, |closeFile| closes the file and consumes the
+|Open f| constraint.
+
+Now consider the following program:
+
+\begin{code}
+readBad :: IO ()
+readBad = do
+  file <- newFile
+  writeFile file "hello"
+  let x = closeFile file
+  return ()
+\end{code}
+
+This program creates a new file, writes the string |"hello"| to it, then
+returns. Even though the |closeFile file| action is assigned to a variable, the
+action itself is never invoked, and the file remains open. The fixed version
+follows:
+
+\begin{code}
+readGood :: IO ()
+readGood = do
+  file <- newFile
+  writeFile file "hello"
+  let x = closeFile file
+  x
+\end{code}
+
+Here, |x| is actually executed, thus the file is closed before the function
+returns. The type of |x| in both cases is |Open f0 =>. IO ()| (with |f0| the
+existential variable created by |newFile|). Happily, |readBad| gets rejected
+because the |Open f0| constraint doesn't get consumed before the function returns.
+
+Unlike traditional let-generalisation, this behaviour can not be overridden with
+a signature, so writing |x :: IO ()| is rejected. \change{We don't have a rule
+for let with a signature yet, but it will have to be this way.}
+
+\subsection{Comparison with OutsideIn}
+
+So far we have argued that linear constraints should be quantified over in let
+bindings. But how does this fit into the OutsideIn constraint solver, the type
+inference framework employed by GHC?  In~\cite{OutsideIn}, the authors carefully
+consider various different generalisation strategies, each with different
+tradeoffs, before reaching the conclusion that no generalisation is the most
+ergonomic option.
+
+Here is a summary of the different criteria:
+
+\begin{description}
+  \item[Equalities]
+        OutsideIn never generalises over equality constraints. Doing
+        so would result in very large constraints, resulting in ergonomic and
+        performance penalties. In our system, equality constraints are always
+        unrestricted, so the issues around consumption explained above do not
+        apply to them. Thus, there is no need to generalise over equality
+        constraints in our system.
+  \item[Class constraints]
+        OutsideIn never generalises over class constraints. A downside of
+        generalising is that type errors are delayed to call sites when a
+        constraint can not be solved. In the case of linear constraints, this is
+        the desired behaviour, since whether the constraint can be solved depends
+        on whether it is available at the call site, which might differ from
+        whether it is available at the definition site.
+  \item[Type variables]
+        OutsideIn makes the observation that if a type variable is generalised,
+        then so must be all the constraints that mention that variable (otherwise
+        principal types are lost). Because constraints are not generalised, the
+        algorithm opts to also not generalise type variables. A possibility not
+        considered in~\cite{OutsideIn} is generalising only the constraint, but
+        not the type variables mentioned in it. This is the path we take: type
+        variables are not quantified over, but (linear) constraints are. This is
+        a sensible option in our setting because it still allows deferring
+        constraint solving to use sites, without deviating too much from GHC's
+        existing strategy.
+\end{description}
+
+To summarise, the generalisation strategy in let bindings is to always
+generalise over linear constraints, but keep type variables monomorphic and never
+quantify over nonlinear constraints (which includes all equality constraints).
+This is a conservative extension of OutsideIn.
+
+\subsection{Maybe we need to be more careful?}
+
+As I (Csongor) wrote the above example, I realised that the example API might
+not be sufficient. For example,
+
+\begin{code}
+readBad2 = do
+  file <- newFile
+  writeFile file "hello"
+  const (return ()) (closeFile file)
+\end{code}
+
+here the file handle is not closed, but according to the App rule, the |Open f0|
+constrant is consumed by the application to |const|. The issue here is that we
+want to actually ensure that |closeFile| gets \emph{executed}, so maybe a better
+interface would be
+
+\begin{code}
+newFile :: exists f. IO (File f .<= Open f)
+writeFile :: File f -> String -> IO (Open f =>. () .<= Open f)
+closeFile :: File f -> IO (Open f =>. ())
+\end{code}
+
+is there any other way to fix it? Maybe a linear constraint is only consumed in
+an application to a linear function?
+
 \newpage
 
 \section{Constraint generation}
