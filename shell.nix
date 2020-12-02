@@ -8,13 +8,24 @@ pkgs.mkShell
       inotify-tools
       (texlive.combine {
         inherit (texlive)
+          # basic toolbox
           scheme-small
+          cleveref
           latexmk biblatex
-          stmaryrd lazylist polytable # for lhs2tex
+          stmaryrd
           unicode-math lm lm-math
           logreq xstring
           xargs todonotes
-          mathpartir;
+          mathpartir
+          
+          # for lhs2tex
+          lazylist polytable 
+
+          # acmart and dependencies
+          acmart totpages trimspaces
+          libertine environ hyperxmp
+          ifmtarg comment ncctools
+          ;
       })
 
       ];

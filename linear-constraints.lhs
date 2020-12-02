@@ -17,7 +17,7 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass{article}
+\documentclass[natbib=false]{acmart}
 
 \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 \bibliography{bibliography}
@@ -109,6 +109,12 @@ import GHC.Base
   \newcommand{\kof}{\keyword{of}}
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
+\acmConference[WOODSTOCK'97]{ACM Woodstock conference}{July 1997}{El
+  Paso, Texas USA} 
+\acmYear{1997}
+\copyrightyear{2016}
+
+\acmPrice{15.00}
 
 \begin{document}
 
