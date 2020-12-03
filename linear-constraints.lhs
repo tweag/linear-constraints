@@ -261,7 +261,7 @@ To illustrate the practical necessity of the let generalisation strategy,
 consider the following file handling API:
 
 \begin{code}
-newFile :: exists f. IO (File f .<= Open f)
+newFile :: IO (exists f. File f .<= Open f)
 writeFile :: Open f =>. File f -> String -> IO (() .<= Open f)
 closeFile :: Open f =>. File f -> IO ()
 \end{code}
@@ -368,7 +368,7 @@ want to actually ensure that |closeFile| gets \emph{executed}, so maybe a better
 interface would be
 
 \begin{code}
-newFile :: exists f. IO (File f .<= Open f)
+newFile :: IO (exists f. File f .<= Open f)
 writeFile :: File f -> String -> IO (Open f =>. () .<= Open f)
 closeFile :: File f -> IO (Open f =>. ())
 \end{code}
