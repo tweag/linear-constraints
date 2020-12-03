@@ -37,6 +37,23 @@ import GHC.Base
 \usepackage{newunicodechar}
 \input{newunicodedefs}
 
+%%%%%%%%%%%%%%%%% Workaround %%%%%%%%%%%%%%%%%
+
+% This should be handled by the acmclass article, there are a couple
+% of issues about
+% this. https://github.com/borisveytsman/acmart/issues/271,
+% https://github.com/borisveytsman/acmart/issues/327 . Both have been
+% merged long ago, and the version of acmart in the shell.nix is from
+% 2020.
+
+\usepackage{fontspec}
+\setmainfont{Linux Libertine O}
+\setsansfont{Linux Biolinum O}
+\setmonofont{inconsolata}
+
+%%%%%%%%%%%%%%%%% /Workaround %%%%%%%%%%%%%%%%%
+
+
 %%%%%%%%%%%%%%%%% lhs2tex %%%%%%%%%%%%%%%%%
 
 
@@ -132,7 +149,7 @@ import GHC.Base
 \maketitle
 
 \section*{Introduction}
-\info{There is an Appendix section with unorganised thoughts and
+\info{There  is an Appendix section with unorganised thoughts and
   examples.}
 
 \newpage
