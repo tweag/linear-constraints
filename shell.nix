@@ -17,6 +17,7 @@ pkgs.mkShell
           logreq xstring
           xargs todonotes
           mathpartir
+          newunicodechar
           
           # for lhs2tex
           lazylist polytable 

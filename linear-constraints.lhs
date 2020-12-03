@@ -32,9 +32,10 @@ import GHC.Base
     citecolor={blue!50!black},
     urlcolor={blue!80!black}
   }
-\usepackage{unicode-math}
 \usepackage[plain]{fancyref}
 \usepackage{mathpartir}
+\usepackage{newunicodechar}
+\input{newunicodedefs}
 
 %%%%%%%%%%%%%%%%% lhs2tex %%%%%%%%%%%%%%%%%
 
