@@ -529,8 +529,12 @@ think) but the details don't matter terribly.
 
 Goal: describe transformations
 \begin{enumerate}
-\item Constraint generator + solver $\leadsto$ declarative system
-\item declarative system $\leadsto$ $λ^q$
+\item Constraint generator + solver $\leadsto$ declarative
+  system\unsure{My [Arnaud's] guess is that the main difficulty, here,
+  will be to deal with $⊤$ and its effect at a distance}
+\item declarative system $\leadsto$ $λ^q$\info{Really, this is just
+    evidence passing style. If the declarative system is well written,
+    it will be quite direct.}
 \end{enumerate}
 
 \newpage
