@@ -373,7 +373,9 @@ closeFile :: File f -> IO (Open f =>. ())
 \end{code}
 
 is there any other way to fix it? Maybe a linear constraint is only consumed in
-an application to a linear function?
+an application to a linear function?\info{Arnaud: yes! consuming a
+  linear constraints in a non-linear operation should be a type error,
+  otherwise linear constraints would be unsound.}
 
 \newpage
 
@@ -384,7 +386,9 @@ See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
   linear.}
 
 In a full blown Haskell with linear constraints, there wouldn't be
-linear equality constraints.\jp{Seems to suggest that we have linear equality constraints here?}
+linear equality constraints.\jp{Seems to suggest that we have linear
+  equality constraints here? [Arnaud]: my poor phrasing, I meant to
+  imply that we didn't have any equality constraints at all.}
 That is, $a \sim b$\unsure{this notation
   hasn't been introduced, so if it makes the cut explain where it
   comes from} wouldn't appear to the left of a linear fat arrow. It's
