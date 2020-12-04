@@ -1,0 +1,147 @@
+
+%% Ott grammar for linear constraints work
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Metavariables  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+metavar x  ::= {{ com Term variables }}
+metavar a  ::= {{ com Type variables }}
+metavar K  ::= {{ com Data constructors }}
+metavar T  ::= {{ com Type constructors }}
+indexvar i, j ::=  {{ com Index variables }}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Grammar  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+grammar
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Constraints  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Q :: 'Ct_' ::= {{ com Constraints }}
+| Q1 & Q2            ::   :: With
+| Q1 * Q2            ::   :: Tensor
+| Q [ theta ]        :: M :: Subst
+
+QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
+| Q                ::   :: GivenConstraint
+| QQ & Q           ::   :: With
+| QQ1 * QQ2        ::   :: Tensor
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Types  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+t {{ tex \tau }}, u {{ tex \upsilon }} :: 'Type_' ::= {{ com Types }}
+| Q =o t                 ::   :: Qual
+| t o= Q                 ::   :: Carry
+| forall as . t          ::   :: ForallNested
+  {{ tex [[forall]] [[as]]. [[t]] }}
+| exists as . t          ::   :: ExistsNested
+  {{ tex [[exists]] [[as]]. [[t]] }}
+| ts1 -> t2              ::   :: NestedFunction
+| T ts                   ::   :: TyConApp
+| t [ theta ]            :: M :: Subst
+
+ts {{ tex \overline{\tau} }}, us {{ tex \overline{\upsilon} }}
+  :: 'Types_' ::= {{ com List of types }}
+| empty                  ::   :: None
+| t                      ::   :: One
+| ts1 , .... , tsi       ::   :: Many
+| as                     :: M :: Vars
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Substitutions  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+theta {{ tex \theta }} :: 'Subst_' ::= {{ com Substitutions }}
+| ts / as                ::   :: Mappings
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Expressions  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+e :: 'Expr_' ::= {{ com Expressions }}
+| x                      ::   :: Var
+| \ x . e                ::   :: Lam
+| e1 e2                  ::   :: App
+| unpack x = e1 in e2    ::   :: Unpack
+| let x = e1 in e2       ::   :: Let
+| case e of { alts }     ::   :: Case
+
+alt :: 'Alt_' ::= {{ com Case alternative }}
+| K xs -> e              ::   :: Alt
+
+alts {{ tex \overline{\ottmv{K}\ \overline{\ottmv{x} } \to \ottnt{e} } }}
+  :: 'Alts_' ::= {{ com Case alternatives }}
+| empty                  ::   :: None
+| alt                    ::   :: One
+| alts1 ; .... ; altsi   ::   :: Many
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Variables  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+xs {{ tex \overline{\ottmv{x} } }} :: 'Termvars_' ::=
+| empty                  ::   :: None
+| x                      ::   :: One
+| xs1 , .... , xsi       ::   :: Many
+
+as {{ tex \overline{\ottmv{a} } }} :: 'Tyvars_' ::=
+| empty                  ::   :: None
+| a                      ::   :: One
+| as1 , .... , asi       ::   :: Many
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Contexts  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+binding :: 'Binding_' ::= {{ com Context binding }}
+| x : t           ::    :: Bnd
+  {{ tex [[x]]{:}[[t]] }}
+
+G {{ tex \Gamma }} :: 'Ctx_' ::= {{ com Contexts }}
+| empty             ::   :: None
+| binding           ::   :: One
+| G1 , .... , Gi    ::   :: Many
+| < binding >       :: M :: Repeat
+  {{ tex \overline{[[binding]]} }}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Terminals  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+terminals :: 'terminals_' ::=
+| &           ::   :: With    {{ tex \mathop{\&} }}
+| *           ::   :: Tensor  {{ tex \otimes }}
+| |-          ::   :: entails {{ tex \vdash }}
+| ||-         ::   :: Entails {{ tex \Vdash }}
+| \           ::   :: Lambda  {{ tex \lambda }}
+| ->          ::   :: Arrow   {{ tex \to }}
+| forall      ::   :: Forall  {{ tex \forall }}
+| exists      ::   :: Exists  {{ tex \exists }}
+| =o          ::   :: Lolli   {{ tex \Lolly }}
+| o=          ::   :: illoL   {{ tex \RLolly }}
+| \in         ::   :: In      {{ tex \in }}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+formula :: formula_ ::=
+| judgement                       ::   :: judgement
+| formula \\\\                    ::   :: lbh
+  {{ tex [[formula]] \ottlinebreakhack }}
+  % See ottalt, sec. 1.1
+| formula1 .... formulai          ::   :: dots
+| binding \in G                   ::   :: in_G
+| freshness condition on as       ::   :: freshness
+  {{ tex \text{freshness condition on } [[as]] }}
+| < formula >                     ::   :: Repeat
+  {{ tex \overline{[[formula]]} }}
+| K : t                           ::   :: DataconTy
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Parsing rules  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+parsing
+
+Type_ExistsNested <= Type_Carry

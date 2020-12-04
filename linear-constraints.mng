@@ -36,6 +36,14 @@ import GHC.Base
 \usepackage{newunicodechar}
 \input{newunicodedefs}
 
+%%%%%%%%%%%%%%%%% ott %%%%%%%%%%%%%%%%%
+
+\usepackage[supertabular,implicitLineBreakHack]{ottalt}
+\inputott{ott.tex}
+
+%%%%%%%%%%%%%%%%% /ott %%%%%%%%%%%%%%%%%
+
+
 %%%%%%%%%%%%%%%%% Workaround %%%%%%%%%%%%%%%%%
 
 % This should be handled by the acmclass article, there are a couple
@@ -72,7 +80,8 @@ import GHC.Base
 %%%%%%%%%%%%%%%%% Editing marks %%%%%%%%%%%%%%%%%
 
   \usepackage{xargs}
-  \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+  \usepackage[colorinlistoftodos,prependcaption]{todonotes}
+  \setuptodonotes{inline}
   % ^^ Need for pgfsyspdfmark apparently?
   \ifx\noeditingmarks\undefined
       %\setlength{\marginparwidth}{1.2cm} % A size that matches the new PACMPL format
@@ -166,15 +175,15 @@ See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
 \unsure{It's a tad trivial, but I wonder why the calligraphic-font Q is different here than in the OutsideIn paper}
 
-The calligraphic $\cscheme{Q}$ is like $Q$ but it has type-class axioms (instances from the top-level).
+The calligraphic $[[QQ]]$ is like $[[Q]]$ but it has type-class axioms (instances from the top-level).
 (Possibly we will drop these altogether.)
 \begin{displaymath}
   \begin{array}{l}
-    Q ⊩ Q \\
-    \cscheme{Q_1} ⊩ Q_2 \quad\mathrm{and}\quad \cscheme{Q}_2 ⊗ Q_2 ⊩ Q_3 \quad\mathrm{then}\quad \cscheme{Q_1} ⊗ \cscheme{Q_2} ⊩ Q_3 \\
-    \cscheme{Q_1} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q}_2 ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q_1} ⊗ \cscheme{Q_2} ⊩ Q_1 ⊗ Q_2 \\
-    \cscheme{Q} \aand Q ⊩ Q \\
-    \cscheme{Q} ⊩ Q_1 \quad\mathrm{and}\quad \cscheme{Q} ⊩ Q_2 \quad\mathrm{then}\quad \cscheme{Q} ⊩ Q_1 \aand Q_2 \\
+    [[Q ||- Q]] \\
+    [[QQ1 ||- Q2]] \text{ and } [[QQ2 * Q2 ||- Q3]] \text{ then } [[QQ1 * QQ2 ||- Q3]] \\
+    [[QQ1 ||- Q1]] \text{ and } [[QQ2 ||- Q2]] \text{ then } [[QQ1 * QQ2 ||- Q1 * Q2]] \\
+    [[QQ & Q ||- Q]] \\
+    [[QQ ||- Q1]] \text{ and } [[QQ ||- Q2]] \text{ then } [[QQ ||- Q1 & Q2]] \\
   \end{array}
 \end{displaymath}
 
@@ -196,7 +205,7 @@ combinator is ``synchronous'', then it does}
   \href{https://github.com/tweag/linear-constraints/issues/13}{\#13}.}
 \info{We will certainly need a linear (thin) arrow in the system:
   when generating a packed existential with linear constraints inside,
-  the pack needs to be treated linearly. This implies handling $Γ$
+  the pack needs to be treated linearly. This implies handling $[[G]]$
   linearly, but I(Arnaud) haven't done so yet, for the sake of
   simplicity. An interesting feature of linearity is that promotion
   can only happens when both the variables and the constraints are
@@ -221,42 +230,10 @@ Main differences:
   constructor, pattern-matched over by $\kunpack$.
 \end{itemize}
 \improvement{We also want let with a signature. For the sake of completeness}
-\begin{mathpar}
-  \inferrule
-    {(x : ∀\overline{a}. Q_1 \Lolly υ) ∈ Γ\\
-     Q ⊩ \subst{\overline{\sby{a}{τ}}}{Q_1}}
-   { Q;Γ ⊢  x : \subst{\overline{\sby{a}{τ}}}{υ}}\text{var}
 
-   \inferrule
-   {Q;Γ, (x{:}τ₁) ⊢ e : τ₂}
-   {Q;Γ ⊢ λx.e : τ₁ ⟶ τ₂}\text{abs}
+\drules[E]{$[[Q;G |- e : t]]$}{Expression typing}{Var,Abs,App,Unpack,Let,Case}
 
-   \inferrule
-   {Q₁;Γ ⊢ e₁ : τ₁ ⟶ τ \\ Q₂;Γ ⊢ e₂ : τ₁ \\ Q ⊩ Q₁ ⊗ Q₂ }
-   {Q;Γ ⊢ e₁\,e₂ : τ}\text{app}
-
-   \inferrule
-   {Q'₁;Γ ⊢ e₁ : ∃\overline{a}. τ₁ \RLolly Q₁ \\
-     \textrm{freshness condition on }\overline{a}\\
-     Q'₂⊗Q₁; Γ, x{:}τ₁ ⊩ e₂ : τ\\
-     Q ⊩ Q'₁⊗Q'₂}
-   {Q;Γ ⊢ \kunpack~x = e₁~\kin~e₂ : τ}\text{unpack}
-
-   \inferrule
-   { Q₁; Γ ⊢ e₁ : τ₁ \\
-     Q; Γ, x{:}Q₁ \Lolly τ₁ ⊩ e₂ : τ }
-   {Q;Γ ⊢ \klet~x = e₁~\kin~e₂ : τ}\text{let}
-
-   \inferrule
-   { Q₁;Γ ⊢ e : T\,\overline{τ} \\
-     Kᵢ : ∀\overline{a}. \overline{υᵢ} ⟶ T\,\overline{a}\\
-     Q₂; Γ, \overline{xᵢ:\subst{\overline{\sby{a}{τ}}}{υᵢ}} ⊢ uᵢ : τᵢ\\
-     Q⊩Q₁⊗Q₂
-   }
-   {Q;Γ ⊢ \kcase~e~\kof \{ \overline{Kᵢ\,\overline{xᵢ} ⟶ eᵢ} \}}\text{case}
-\end{mathpar}
-
-\info{No substitution on $Q_1$ in the $\kunpack$ rule, because there is
+\info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
 
 \jp{Regarding pack/unpack. Treating them as primitive implies that we will define linear constraints inside data types as Pack/Unpack.}
