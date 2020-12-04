@@ -17,13 +17,12 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[natbib=false]{acmart}
+\documentclass[acmsmall,review,natbib=false]{acmart}
 
 \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 \bibliography{bibliography}
 \usepackage{amsmath}
 \usepackage{amsthm}
-\usepackage{amssymb}
 \usepackage{xcolor}
 \usepackage{hyperref}
 \hypersetup{
@@ -46,17 +45,17 @@ import GHC.Base
 % merged long ago, and the version of acmart in the shell.nix is from
 % 2020.
 
-\usepackage{fontspec}
-\setmainfont{Linux Libertine O}
-\setsansfont{Linux Biolinum O}
-\setmonofont{inconsolata}
+%% \usepackage{fontspec}
+%% \setmainfont{Linux Libertine O}
+%% \setsansfont{Linux Biolinum O}
+%% \setmonofont{inconsolata}
 
 %%%%%%%%%%%%%%%%% /Workaround %%%%%%%%%%%%%%%%%
 
 
 %%%%%%%%%%%%%%%%% lhs2tex %%%%%%%%%%%%%%%%%
 
-
+\let\Bbbk\undefined    % see https://github.com/kosmikus/lhs2tex/issues/82
 %include polycode.fmt
 %if style == poly
 %format ->. = "⊸"
