@@ -217,10 +217,8 @@ See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
 
 Main differences:
 \begin{itemize}
+\item Linearity as in the Linear Haskell paper
 \item $\kcase$ doesn't have GADTs
-\item $\klet$ is generalised over all linear constraints.
-\item $\kwith$ forces the consumption of constraints. It behaves like
-  the let of InsideOut
 \item Existential packs are our only GADT. They have a single
   constructor, pattern-matched over by $\kunpack$.
 \end{itemize}
@@ -234,7 +232,14 @@ Main differences:
 
 \jp{Regarding pack/unpack. Treating them as primitive implies that we will define linear constraints inside data types as Pack/Unpack.}
 
+\newpage
+
 \section{$\klet$ should be generalised}
+
+\unsure{In the current version of the system $\klet$ doesn't
+  generalise. We may want to repurpose this argumentation as a
+  discussion on possible refinement of the type system for
+  convenience.}
 
 The let rule infers a qualified type for the bound variable, by generalising
 over all the linear constraints appearing in the bound expression. This is in
