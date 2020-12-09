@@ -64,6 +64,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | x                      ::   :: Var
 | \ x . e                ::   :: Lam
 | e1 e2                  ::   :: App
+| pack e                 ::   :: Pack
 | unpack x = e1 in e2    ::   :: Unpack
 | let x = e1 in e2       ::   :: Let
 | case e of { alts }     ::   :: Case

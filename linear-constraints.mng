@@ -233,7 +233,8 @@ Main differences:
 \end{itemize}
 \improvement{We also want let with a signature. For the sake of completeness}
 
-\drules[E]{$[[Q;G |- e : t]]$}{Expression typing}{Var,Abs,App,Unpack,Let,Case}
+\drules[E]{$[[Q;G |- e : t]]$}{Expression
+  typing}{Var,Abs,App,Pack,Unpack,Let,Case,Sub}
 
 \info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}

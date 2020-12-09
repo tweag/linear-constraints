@@ -35,16 +35,18 @@ Q;G |- \x.e : t1 -> t2
 
 Q1;G |- e1 : t1 -> t
 Q2; G |- e2 : t1
-Q ||- Q1 * Q2
 ---------------- :: App
-Q;G |- e1 e2 : t
+Q1*Q2;G |- e1 e2 : t
+
+Q*Q1;G |- e : t[ts/as]
+------------------------- :: Pack
+Q;G |- pack e : exists as. t o= Q1
 
 Q1';G |- e1 : exists as. t1 o= Q1
 freshness condition on as
 Q2' * Q1;G,x:t1 |- e2 : t
-Q ||- Q1' *  Q2'
 ------------------------------ :: Unpack
-Q;G |- unpack x = e1 in e2 : t
+Q1'*Q2';G |- unpack x = e1 in e2 : t
 
 Q1;G |- e1 : t1
 Q;G,x:Q1 =o t1 |- e2 : t
@@ -53,7 +55,11 @@ Q;G |- let x = e1 in e2 : t
 
 Q1;G |- e : T ts
 < Ki : forall as. usi -> T as >
-< Q2; G, < xij : uij[ts/as] > |- ei : t >
-Q ||- Q1 * Q2
+< Q2; G, < xi : ui[ts/as] > |- ei : t >
 ------------------------- :: Case
-Q;G |- case e of { alts } : t
+Q1*Q2;G |- case e of { alts } : t
+
+Q1;G |- e : t
+Q1 ||- Q
+------------------------- :: Sub
+Q;G |- e : t
