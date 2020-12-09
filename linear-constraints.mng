@@ -80,11 +80,10 @@ import GHC.Base
 %%%%%%%%%%%%%%%%% Editing marks %%%%%%%%%%%%%%%%%
 
   \usepackage{xargs}
-  \usepackage[colorinlistoftodos,prependcaption]{todonotes}
-  \setuptodonotes{inline}
+  \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
   % ^^ Need for pgfsyspdfmark apparently?
   \ifx\noeditingmarks\undefined
-      %\setlength{\marginparwidth}{1.2cm} % A size that matches the new PACMPL format
+      \setlength{\marginparwidth}{1.2cm} % A size that matches the new PACMPL format
       \newcommand{\Red}[1]{{\color{red}{#1}}}
       \newcommand{\newaudit}[1]{{\color{blue}{#1}}}
       \newcommand{\note}[1]{{\color{blue}{\begin{itemize} \item {#1} \end{itemize}}}}
@@ -173,7 +172,10 @@ import GHC.Base
 
 See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
-\unsure{It's a tad trivial, but I wonder why the calligraphic-font Q is different here than in the OutsideIn paper}
+\unsure{It's a tad trivial, but I wonder why the calligraphic-font Q
+  is different here than in the OutsideIn paper. ETA: for a brief
+  moment, I believe I saw the same calligraphic Q, then it went away
+  for yet another variant (this one seems to come from the txfonts)}
 
 The calligraphic $[[QQ]]$ is like $[[Q]]$ but it has type-class axioms (instances from the top-level).
 (Possibly we will drop these altogether.)

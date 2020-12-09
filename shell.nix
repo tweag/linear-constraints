@@ -20,15 +20,16 @@ pkgs.mkShell
           newunicodechar
           
           # for lhs2tex
-          lazylist polytable 
+          lazylist polytable
+
+          # for ott
+          supertabular
 
           # acmart and dependencies
           acmart totpages trimspaces
           libertine environ hyperxmp
           ifmtarg comment ncctools
-          inconsolata # newtx
-          # acmart warns if newtx is absent, but it conflicts with
-          # amssymb. So let's leave it out for now.
+          inconsolata newtx txfonts
           ;
       })
 

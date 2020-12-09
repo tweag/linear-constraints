@@ -1,11 +1,3 @@
-# To continuously build the pdf, here is a one-liner
-#
-# $ while inotifywait -e modify linear-constraints.lhs; do make; done
-#
-# With nix
-#
-# $ while inotifywait -e modify linear-constraints.lhs shell.nix; do nix-shell --pure --run make; done
-
 OTT_FILES = grammar.ott rules.ott
 OTT_OPTS = -tex_show_meta false -tex_wrap false -picky_multiple_parses false
 OTT_TEX = ott.tex
@@ -31,5 +23,4 @@ nix::
 	nix-shell --pure --run make
 
 continous-nix:: nix
-	nix-shell --run "while inotifywait -e modify linear-constraints.lhs shell.nix; do make nix; done"
-
+	nix-shell --run "while inotifywait -e modify linear-constraints.mng $(OTT_FILES) shell.nix; do make nix; done"
