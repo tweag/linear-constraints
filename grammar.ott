@@ -23,7 +23,9 @@ grammar
 Q :: 'Ct_' ::= {{ com Constraints }}
 | Q1 & Q2            ::   :: With
 | Q1 * Q2            ::   :: Tensor
+| ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
+| pi . Q             :: M :: Scale  {{tex [[pi]]{⋅}[[Q]]}}
 
 QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
 | Q                ::   :: GivenConstraint
@@ -40,7 +42,8 @@ t {{ tex \tau }}, u {{ tex \upsilon }} :: 'Type_' ::= {{ com Types }}
   {{ tex [[forall]] [[as]]. [[t]] }}
 | exists as . t          ::   :: ExistsNested
   {{ tex [[exists]] [[as]]. [[t]] }}
-| ts1 -> t2              ::   :: NestedFunction
+| ts1 -> t2              :: S :: NestedUrFunction
+| ts1 ->_ pis t2           :: S :: Function  {{ tex [[ts1]] \to_{[[pis]]} [[t2]] }}
 | T ts                   ::   :: TyConApp
 | t [ theta ]            :: M :: Subst
 
@@ -50,6 +53,20 @@ ts {{ tex \overline{\tau} }}, us {{ tex \overline{\upsilon} }}
 | t                      ::   :: One
 | ts1 , .... , tsi       ::   :: Many
 | as                     :: M :: Vars
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Multiplicities  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+pi {{ tex \pi }} :: 'Mult_' ::= {{ com Multiplicities }}
+  | 1                    ::   :: One
+  | omega                ::   :: Many
+  % I'd like to avoid multiplicity variables if we can, as they are
+  % not very relevant to our discussion
+
+pis {{ tex \overline{\pi} }} :: 'Mults_' ::= {{ com Lists of multiplicities }}
+| empty                  ::   :: None
+| pi                     ::   :: One
+| pis1 , .... , pisi      ::   :: Many
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Substitutions  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,13 +112,15 @@ as {{ tex \overline{\ottmv{a} } }} :: 'Tyvars_' ::=
 %%  Contexts  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 binding :: 'Binding_' ::= {{ com Context binding }}
-| x : t           ::    :: Bnd
-  {{ tex [[x]]{:}[[t]] }}
+| x :_ pi t           ::    :: Bnd
+  {{ tex [[x]]{:}_{[[pi]]}[[t]] }}
 
 G {{ tex \Gamma }} :: 'Ctx_' ::= {{ com Contexts }}
 | empty             ::   :: None
 | binding           ::   :: One
 | G1 , .... , Gi    ::   :: Many
+| G1 + G2           :: M :: Add
+| pi . G            :: M :: Scale {{ tex [[pi]]{⋅}[[G]]}}
 | < binding >       :: M :: Repeat
   {{ tex \overline{[[binding]]} }}
 
@@ -121,6 +140,7 @@ terminals :: 'terminals_' ::=
 | =o          ::   :: Lolli   {{ tex \Lolly }}
 | o=          ::   :: illoL   {{ tex \RLolly }}
 | \in         ::   :: In      {{ tex \in }}
+| omega       ::   :: Many    {{ tex \omega }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -146,3 +166,6 @@ formula :: formula_ ::=
 parsing
 
 Type_ExistsNested <= Type_Carry
+Ct_Tensor <= Ct_Unrestricted
+Ct_Tensor <= Ct_Scale
+Ctx_Add <= Ctx_Scale
