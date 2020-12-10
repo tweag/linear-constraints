@@ -443,7 +443,7 @@ presentation significantly.\unsure{This paragraph is more wordy than
 
   \inferrule
   { Γ, x{:}τ₀ \vdashi e : τ \leadsto C}
-  { Γ \vdashi λx.\,e : α ⟶ τ \leadsto C }\text{abs}
+  { Γ \vdashi λx.\,e : 𝜏₀ ⟶ τ \leadsto C }\text{abs}
 
   \inferrule
   { Γ \vdashi e₁ : τ₂⟶τ \leadsto C₁ \\
