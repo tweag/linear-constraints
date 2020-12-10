@@ -137,7 +137,8 @@ G {{ tex \Gamma }} :: 'Ctx_' ::= {{ com Contexts }}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 terminals :: 'terminals_' ::=
-| &           ::   :: With    {{ tex \mathop{\&} }}
+| &           ::   :: With    {{ tex \aand }}
+| &&          ::   :: BigWith {{ tex \bigaand }}
 | *           ::   :: Tensor  {{ tex \otimes }}
 | |-          ::   :: entails {{ tex \vdash }}
 | |->         ::   :: infer {{ tex \vdashi }}

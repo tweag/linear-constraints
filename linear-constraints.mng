@@ -119,7 +119,7 @@ import GHC.Base
 %%%%%%%%%%%%%%%%% Domain-specific macros %%%%%%%%%%%%%%%%%
 
   \newcommand{\cscheme}[1]{\mathcal{#1}}
-  \newcommand{\aand}{\&}
+  \newcommand{\aand}{\mathop{\&}}
   \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
   \newcommand{\lollycirc}{\raisebox{-0.2ex}{\scalebox{1.4}{$\circ$}}}
   \newcommand{\Lolly}{\mathop{=\!\!\!{\lollycirc}}}
