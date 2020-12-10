@@ -435,36 +435,8 @@ presentation significantly.\unsure{This paragraph is more wordy than
 \unsure{We probably want the freshness condition on the $\kunpack$
   rule, though these variables are universal variables, not
   existentials.}
-\begin{mathpar}
-  \inferrule
-  { (x{:}∀\overline{a}.\, Q₁ \Lolly τ₁) ∈ Γ }
-  {Γ \vdashi x : \subst{\overline{\sby{a}{τ}}}{τ₁} \leadsto
-    \subst{\overline{\sby{a}{τ}}}{Q₁}}\text{var}
-
-  \inferrule
-  { Γ, x{:}τ₀ \vdashi e : τ \leadsto C}
-  { Γ \vdashi λx.\,e : 𝜏₀ ⟶ τ \leadsto C }\text{abs}
-
-  \inferrule
-  { Γ \vdashi e₁ : τ₂⟶τ \leadsto C₁ \\
-    Γ \vdashi e₂ : τ₂ \leadsto C₂
-  }
-  {Γ \vdashi e₁\,e₂ : τ \leadsto C₁⊗C₂ }\text{app}
-
-  \inferrule
-  { Γ \vdashi e : T\,\overline{σ} \leadsto C \\
-    K_i : ∀\overline{a}. \overline{υᵢ} ⟶ T\,\overline{a} \\
-    Γ,\overline{xᵢ{:}\subst{\overline{\sby{a}{σ}}}{υᵢ}} \vdashi e_i : τ \leadsto Cᵢ}
-  {Γ \vdashi \kcase~e~\kof \{ \overline{Kᵢ\,\overline{xᵢ} ⟶ eᵢ} \} : τ
-    \leadsto C⊗\bigaand Cᵢ}\text{case}
-
-  \inferrule
-  { Γ \vdashi e₁ : ∃\overline{a}.\,τ₁\RLolly Q₁ \leadsto C₁ \\
-    \overline{a}\textrm{ fresh}\\
-    Γ, x{:}τ₁ \vdashi e₂ : τ \leadsto C₂}
-  {Γ \vdashi \kunpack~x = e₁~\kin~e₂ : τ
-    \leadsto C₁⊗∃….\,Q₁ ⊃ C₂}\text{unpack}
-\end{mathpar}
+\drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
+  App, Case, Unpack}
 
 \newpage
 

@@ -63,3 +63,39 @@ Q1;G |- e : t
 Q1 ||- Q
 ------------------------- :: Sub
 Q;G |- e : t
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Constraint generation  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+defns
+Gen :: '' ::=
+
+defn
+G |-> e : t ~> C :: :: Gen :: 'G_' {{ com Constraint generation }}
+by
+
+x :_1 forall as. Q =o u \in G
+------------------------------ :: Var
+G |-> x : u[ts/as] ~> Q[ts/as]
+
+G, x:_pi t0 |-> e : t ~> C
+------------------------------ :: Abs
+G |-> \x. e : t0 ->_pi t ~> C
+
+G |-> e1 : t2 -> t ~> C1
+G |-> e2 : t2 ~> C2
+------------------------------ :: App
+G |-> e1 e2 : t ~> C1 * C2
+
+G |-> e : T ss ~> C
+Ki : forall as. usi -> T as
+G, <xi:_pi ui[ss/as]> |-> ei : t ~> Ci
+------------------------------ :: Case
+G |-> case e of {alts} : t ~> C1 * && Ci
+
+G |-> e1 : exists as. t1 o= Q1 ~> C1
+as fresh
+G, x:_pi t1 |-> e2 : t ~> C2
+------------------------------ :: Unpack
+G |-> unpack x = e1 in e2 : t ~> C1 * Q1 => C2

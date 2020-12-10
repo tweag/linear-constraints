@@ -32,10 +32,18 @@ QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
 | QQ & Q           ::   :: With
 | QQ1 * QQ2        ::   :: Tensor
 
+C :: 'Ctg_' ::= {{ com Generated constraints}}
+| Q                  ::   :: Simple
+| C1 * C2            ::   :: Tensor
+| C1 & C2            ::   :: With
+| Q => C             ::   :: Impl  {{ tex [[Q]] ⊃ [[C]]}}
+| && C               :: M :: BigWith
+| C [ theta ]        :: M :: Subst
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Types  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-t {{ tex \tau }}, u {{ tex \upsilon }} :: 'Type_' ::= {{ com Types }}
+t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com Types }}
 | Q =o t                 ::   :: Qual
 | t o= Q                 ::   :: Carry
 | forall as . t          ::   :: ForallNested
@@ -47,7 +55,7 @@ t {{ tex \tau }}, u {{ tex \upsilon }} :: 'Type_' ::= {{ com Types }}
 | T ts                   ::   :: TyConApp
 | t [ theta ]            :: M :: Subst
 
-ts {{ tex \overline{\tau} }}, us {{ tex \overline{\upsilon} }}
+ts {{ tex \overline{\tau} }}, us {{ tex \overline{\upsilon} }}, ss {{ tex \overline{\sigma} }}
   :: 'Types_' ::= {{ com List of types }}
 | empty                  ::   :: None
 | t                      ::   :: One
@@ -132,7 +140,9 @@ terminals :: 'terminals_' ::=
 | &           ::   :: With    {{ tex \mathop{\&} }}
 | *           ::   :: Tensor  {{ tex \otimes }}
 | |-          ::   :: entails {{ tex \vdash }}
+| |->         ::   :: infer {{ tex \vdashi }}
 | ||-         ::   :: Entails {{ tex \Vdash }}
+| ~>          ::   :: generates {{ tex \leadsto }}
 | \           ::   :: Lambda  {{ tex \lambda }}
 | ->          ::   :: Arrow   {{ tex \to }}
 | forall      ::   :: Forall  {{ tex \forall }}
@@ -155,6 +165,8 @@ formula :: formula_ ::=
 | binding \in G                   ::   :: in_G
 | freshness condition on as       ::   :: freshness
   {{ tex \text{freshness condition on } [[as]] }}
+| as fresh                        ::   :: fresh
+  {{ tex [[as]] \text{ fresh} }}
 | < formula >                     ::   :: Repeat
   {{ tex \overline{[[formula]]} }}
 | K : t                           ::   :: DataconTy
