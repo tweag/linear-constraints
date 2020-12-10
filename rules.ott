@@ -99,3 +99,7 @@ as fresh
 G, x:_pi t1 |-> e2 : t ~> C2
 ------------------------------ :: Unpack
 G |-> unpack x = e1 in e2 : t ~> C1 * Q1 => C2
+
+G |-> e : t[us/as] ~> C
+------------------------------ :: Pack
+G |-> pack e : exists as. t o= Q ~> C * Q[ts/as]

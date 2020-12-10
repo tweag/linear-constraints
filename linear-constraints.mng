@@ -413,30 +413,23 @@ presentation significantly.\unsure{This paragraph is more wordy than
   it is clear, so let's not take it as an actual proposal for the
   explanation, I [Arnaud] merely wanted to record my thoughts}
 
-\unsure{For simplicity, I(Arnaud) assume that the data
-  types are only constructors. That is, the entire GADTiness of the
-  system is in $∃\overline{a}. τ \RLolly Q$ and deconstructed with
-  $\kunpack$. I think that we don't need to drop this assumption. It
-  does generalise straightforwardly to a full GADT system}
-
-\unsure{Todo: the rule for $\kpack$}
 \unsure{Todo: the rule for a constraint-generalising signatureless
   let}
 \improvement{We also want let with a signature. There are two rules in
   OutsideIn: when the signature is monomorphic, and when it's
   polymorphic. Maybe we don't care about this distinction all that
   much.}
-\unsure{What variables must be existentially quantified over in the
-  unpack rules? This is probably affected by the fact that we don't
-  have equality constraints in this system. Maybe none? if we remove
-  unification from our framework altogether.}
 \unsure{The case rule, for an empty case, implies the existence of the
   typically annoying $⊤$. We will have to confront this.}
 \unsure{We probably want the freshness condition on the $\kunpack$
   rule, though these variables are universal variables, not
   existentials.}
+\info{Not caring about inferences simplifies $\kpack$ quite a bit, we
+  are using the pseudo-inferred type to generate constraint. In a real
+  system, we would need $\kpack$ to know its type (\emph{e.g.} using
+  bidirectional type checking).}
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
-  App, Case, Unpack}
+  App, Case, Unpack, Pack}
 
 \newpage
 
