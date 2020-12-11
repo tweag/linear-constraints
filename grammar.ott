@@ -37,6 +37,8 @@ C :: 'Ctg_' ::= {{ com Generated constraints}}
 | C1 * C2            ::   :: Tensor
 | C1 & C2            ::   :: With
 | Q => C             ::   :: Impl  {{ tex [[Q]] ⊃ [[C]]}}
+| ! C                ::   :: Unrestricted
+| pi . C             :: M :: Scale  {{tex [[pi]]{⋅}[[C]]}}
 | && C               :: M :: BigWith
 | C [ theta ]        :: M :: Subst
 
@@ -128,6 +130,7 @@ G {{ tex \Gamma }} :: 'Ctx_' ::= {{ com Contexts }}
 | binding           ::   :: One
 | G1 , .... , Gi    ::   :: Many
 | G1 + G2           :: M :: Add
+| Sum G2            :: M :: BigSum
 | pi . G            :: M :: Scale {{ tex [[pi]]{⋅}[[G]]}}
 | < binding >       :: M :: Repeat
   {{ tex \overline{[[binding]]} }}
@@ -152,6 +155,7 @@ terminals :: 'terminals_' ::=
 | o=          ::   :: illoL   {{ tex \RLolly }}
 | \in         ::   :: In      {{ tex \in }}
 | omega       ::   :: Many    {{ tex \omega }}
+| Sum         ::   :: BigSum  {{ tex \sum }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,4 +185,6 @@ parsing
 Type_ExistsNested <= Type_Carry
 Ct_Tensor <= Ct_Unrestricted
 Ct_Tensor <= Ct_Scale
+Ctg_Tensor <= Ctg_Unrestricted
+Ctg_Tensor <= Ctg_Scale
 Ctx_Add <= Ctx_Scale

@@ -376,9 +376,8 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 
 \section{Constraint generation}
 
-See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{In this section,
-  again, $Γ$ is treated intuitionistically where it should probably be
-  linear.}
+See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{Todo: syntax to
+  select the $\pi$ in case, linear $\kunpack$ rule}
 
 In a full blown Haskell with linear constraints, there wouldn't be
 linear equality constraints.\jp{Seems to suggest that we have linear
