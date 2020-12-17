@@ -558,6 +558,10 @@ think) but the details don't matter terribly.
   writeFile f x >> writeFile f y then the arguments of could be
   handled in any order (for constraints!), and it's a shame to reject
   this.
+
+  [arnaud] I don't think so, because in this case, writeFile f y is
+  forced to use the most nested evidence, which is that given by
+  writeFile f x
   
 }
 
