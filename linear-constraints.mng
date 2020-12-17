@@ -432,6 +432,45 @@ presentation significantly.\unsure{This paragraph is more wordy than
 
 \newpage
 
+\subsection{Soundness}
+\label{sec:constraint-generation-soundness}
+\begin{lemma}
+  If $[[G |-> e : t ~> C]]$ and \emph{condition about the
+    solver}\unsure{Todo} then there exists $[[Q]]$ such that $[[Q ; G |-
+  e : t]]$ and $[[QQ*Q_g*Q_r ||- Q*Q_o]]$\unsure{$[[Q_r]]$ are the
+    residuals, like in InsideOut, that is, the wanted which remain
+  to be proved. $[[Q_o]]$ are due to linearity, and are the given
+  which remain to be used.} and $[[Q; G |- e : t]]$.
+\end{lemma}
+\begin{proof}
+  \unsure{The proof is a sketch}
+  \begin{description}
+  \item[Unpack] We have
+    \begin{itemize}
+    \item $[[pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q1 => C2]]$
+    \item $[[G1 |-> e1 : exists as. t1 o= Q1 ~> C1]]$
+    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
+    \end{itemize}
+    By induction\unsure{I realise that the condition about the solver
+      doesn't only need more constraints, but also less scaling, how
+      do best do I add this?}
+    \begin{itemize}
+    \item There exists $[[Q]]$ such that\unsure{Something about
+        residuals and outputs} and $[[Q; G1 |- e1 : exists as. t1 o=
+      Q1]]$
+    \item There exists $[[Q']]$ such that \unsure{Again residuals and
+        outputs} and $[[Q' ; G2, x:_pi t1 |- e2 : t]]$
+    \end{itemize}
+    Therefore \unsure{The condition about residuals and outputs and
+      extensions} and $[[pi.Q * Q' ; pi.G1 + G2 |- unpack x = e1 in e2
+    : t]]$
+  \item[Case] \unsure{Arnaud: will I be able to avoid a $\aand$ constraint
+     or not? I'm guessing not.}
+  \end{description}
+\end{proof}
+
+\newpage
+
 \section{Constraint solver}
 \label{sec:constraint-solver}
 

@@ -94,11 +94,11 @@ Gi, <xi:_pi ui[ss/as]> |-> ei : t ~> Ci
 ------------------------------ :: Case
 pi.G + Sum Gi |-> case e of {alts} : t ~> pi.C * && Ci
 
-G |-> e1 : exists as. t1 o= Q1 ~> C1
+G1 |-> e1 : exists as. t1 o= Q1 ~> C1
 as fresh
-G, x:_pi t1 |-> e2 : t ~> C2
+G2, x:_pi t1 |-> e2 : t ~> C2
 ------------------------------ :: Unpack
-G |-> unpack x = e1 in e2 : t ~> C1 * Q1 => C2
+pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q1 => C2
 
 G |-> e : t[us/as] ~> C
 ------------------------------ :: Pack
