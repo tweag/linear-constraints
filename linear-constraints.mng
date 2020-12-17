@@ -435,12 +435,23 @@ presentation significantly.\unsure{This paragraph is more wordy than
 \newpage
 
 \subsection{Soundness of constraint generation}
+\label{sec:constraint-generation-soundness}
 
 If we can type e:t generate constraints, and these constraints are
 simplifiable, then we can type e:t in the declarative system, provided
 the suitable constraints.
 
-\label{sec:constraint-generation-soundness}
+\begin{lemma}
+  If $[[Q |-s C1*C2 ~> Q_o;Q_r]]$ then there exists $[[Q_o']]$,
+  $[[Q_r']]$, $[[Q_r'']]$ such that
+  \begin{itemize}
+  \item $[[Q |-s C1 ~> Q_o';Q_r']]$
+  \item $[[Q_o' |-s C2 ~> Q_o;Q_r'']]$
+  \item $[[Q_r]] = [[Q_r' * Q_r'']]$\unsure{I'm not sure this last one
+    is quite the correct criterion}
+  \end{itemize}
+\end{lemma}
+
 \begin{lemma}
   For all $[[C_ext]]$, $[[Q_g]]$ if
   \begin{itemize}
@@ -461,7 +472,15 @@ the suitable constraints.
   \unsure{The proof is a sketch}
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
-  \item[App] \unsure{Most of the linearity problems are here}
+  \item[App] \info{Most of the linearity problems are here}
+    We have
+    \begin{itemize}
+    \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
+    \item $[[Q_g |-s C1 * pi.C2 * C_ext ~> Q_o;Q_r]]$
+    \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
+    \item $[[G2 |-> e2 : t2 ~> C2]]$
+    \end{itemize}
+    \unsure{Unfinished}
   \item[Unpack] We have
     \begin{itemize}
     \item $[[pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q1 => C2]]$
