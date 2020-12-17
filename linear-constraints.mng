@@ -531,7 +531,25 @@ think) but the details don't matter terribly.
 \label{sec:desugaring}
 
 \info{The plan is to give the operational semantics in the form
-  of a desugaring to the core calculus of the Linear Haskell paper.
+  of a desugaring to the core calculus of the Linear Haskell paper.}
+
+
+\info{
+  On unicity of tokens:
+
+  A constraint like ``Open'' (no argument), does not make much sense
+  to use as a linear constraint. Because if we can make it once, then
+  we can make it omega times, and it's useless (it's similar to linear
+  constants in linear haskell. They were not supported.)
+
+  So, we're using something like ``Open f'' instead. Together with a
+  an existential variable f. Then the API can ensure that there is a
+  single token for this constraint at any given point. The API can
+  however create several copies --- but then it's up to the API to
+  make sure that the order of picking the constraints is
+  computationally irrelevant. (Label constraints as computationally
+  relevant? Then GHC could issue errors if there is computational
+  relevance and it ends up making a choice.)
 
 }
 
