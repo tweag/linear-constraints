@@ -57,7 +57,7 @@ Q1;G1 |- e : T ts
 < Ki : forall as. usi ->_pisi T as >
 < Q2; G2, < xi :_pii ui[ts/as] > |- ei : t >
 ------------------------- :: Case
-Q1*Q2;pi.G1+G2 |- case e of { alts } : t
+pi.Q1*Q2;pi.G1+G2 |- case e of { alts } : t
 
 Q1;G |- e : t
 Q1 ||- Q
