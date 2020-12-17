@@ -515,13 +515,7 @@ think) but the details don't matter terribly.
 \section{Desugaring}
 \label{sec:desugaring}
 
-\jp{We must say something about operational semantics (especially for
-  the Array example to make sense.). The linear constraint carries a
-  token for ordering of operations. How is this token manipulated with the surface syntax?
-  How it is represented in the operational semantics (presumably the
-  linear constraints are translated to linear values)?
-
-  [Arnaud]: My plan is to give the operational semantics in the form
+\info{The plan is to give the operational semantics in the form
   of a desugaring to the core calculus of the Linear Haskell paper.
 
 }
