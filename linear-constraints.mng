@@ -551,6 +551,14 @@ think) but the details don't matter terribly.
   relevant? Then GHC could issue errors if there is computational
   relevance and it ends up making a choice.)
 
+  [arnaud] maybe reject all programs which force the constraint solver
+  to make an ordering choice
+  
+  [jp] still worried about the order of treating arguments: if we have
+  writeFile f x >> writeFile f y then the arguments of could be
+  handled in any order (for constraints!), and it's a shame to reject
+  this.
+  
 }
 
 Goal: describe transformations
