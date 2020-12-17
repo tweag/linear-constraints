@@ -127,6 +127,7 @@ import GHC.Base
   \newcommand{\subst}[2]{[#1]#2}
   \newcommand{\sby}[2]{#1 ↦ #2}
   \newcommand{\vdashi}{⊢_{\mathsf{i}}}
+  \newcommand{\vdashs}{⊢_{\mathsf{s}}}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
@@ -436,25 +437,34 @@ presentation significantly.\unsure{This paragraph is more wordy than
 \subsection{Soundness}
 \label{sec:constraint-generation-soundness}
 \begin{lemma}
-  If $[[G |-> e : t ~> C]]$ and \emph{condition about the
-    solver}\unsure{Todo} then there exists $[[Q]]$ such that $[[Q ; G |-
-  e : t]]$ and $[[QQ*Q_g*Q_r ||- Q*Q_o]]$\unsure{$[[Q_r]]$ are the
-    residuals, like in InsideOut, that is, the wanted which remain
-  to be proved. $[[Q_o]]$ are due to linearity, and are the given
-  which remain to be used.} and $[[Q; G |- e : t]]$.
+  For all $[[C_ext]]$, $[[Q_g]]$ if
+  \begin{itemize}
+  \item $[[G |-> e : t ~> C]]$
+  \item $[[Q_g |-s C*C_ext ~> Q_o;Q_r]]$\unsure{This condition doesn't
+    apply to the induction hypotheses, we need to strengthen it somehow.}
+  \end{itemize}
+  then there exists $[[Q]]$ such that
+  \begin{itemize}
+  \item $[[Q_g*Q_r ||- Q*Q_o]]$\unsure{$[[Q_r]]$ are the residuals,
+      like in InsideOut, that is, the wanted which remain to be
+      proved. $[[Q_o]]$ are due to linearity, and are the given which
+      remain to be used.}
+  \item $[[Q; G |- e : t]]$
+  \end{itemize}
 \end{lemma}
 \begin{proof}
   \unsure{The proof is a sketch}
+  By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
+  \item[App] \unsure{Most of the linearity problems are here}
   \item[Unpack] We have
     \begin{itemize}
     \item $[[pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q1 => C2]]$
+    \item $[[Q_g |-s pi.C1 * Q1 => C2 * C_ext ~> Q_o;Q_r]]$
     \item $[[G1 |-> e1 : exists as. t1 o= Q1 ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By induction\unsure{I realise that the condition about the solver
-      doesn't only need more constraints, but also less scaling, how
-      do best do I add this?}
+    By induction hypothesis
     \begin{itemize}
     \item There exists $[[Q]]$ such that\unsure{Something about
         residuals and outputs} and $[[Q; G1 |- e1 : exists as. t1 o=

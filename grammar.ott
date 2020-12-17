@@ -10,7 +10,7 @@ metavar a  ::= {{ com Type variables }}
 metavar K  ::= {{ com Data constructors }}
 metavar T  ::= {{ com Type constructors }}
 indexvar i, j ::=  {{ com Index variables }}
-indexvar g, r, o, ext ::=  {{ com Annotation variables }}
+indexvar g, w, r, o, ext ::=  {{ com Annotation variables }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Grammar  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -146,6 +146,7 @@ terminals :: 'terminals_' ::=
 | *           ::   :: Tensor  {{ tex \otimes }}
 | |-          ::   :: entails {{ tex \vdash }}
 | |->         ::   :: infer {{ tex \vdashi }}
+| |-s         ::   :: solve {{ tex \vdashs }}
 | ||-         ::   :: Entails {{ tex \Vdash }}
 | ~>          ::   :: generates {{ tex \leadsto }}
 | \           ::   :: Lambda  {{ tex \lambda }}
