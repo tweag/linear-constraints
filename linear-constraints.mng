@@ -208,9 +208,7 @@ combinator is ``synchronous'', then it does}
 %
 \jp{It's very important to explain in detail that linear constraints
   (as linear values) can never escape to omega contexts.
-
-  But then, don't we have to give linear types to composition
-  combinators? I am confused here.  }
+}
 
 %
 See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
@@ -221,6 +219,10 @@ Main differences:
 \item $\kcase$ doesn't have GADTs
 \item Existential packs are our only GADT. They have a single
   constructor, pattern-matched over by $\kunpack$.
+
+  (Consequently, we encode linear constraints inside data types as
+  existential pack type.)
+
 \end{itemize}
 \improvement{We also want let with a signature. For the sake of completeness}
 
@@ -230,7 +232,6 @@ Main differences:
 \info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
 
-\jp{Regarding pack/unpack. Treating them as primitive implies that we will define linear constraints inside data types as Pack/Unpack.}
 
 \newpage
 
