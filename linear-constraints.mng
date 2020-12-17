@@ -434,7 +434,12 @@ presentation significantly.\unsure{This paragraph is more wordy than
 
 \newpage
 
-\subsection{Soundness}
+\subsection{Soundness of constraint generation}
+
+If we can type e:t generate constraints, and these constraints are
+simplifiable, then we can type e:t in the declarative system, provided
+the suitable constraints.
+
 \label{sec:constraint-generation-soundness}
 \begin{lemma}
   For all $[[C_ext]]$, $[[Q_g]]$ if
