@@ -437,9 +437,12 @@ presentation significantly.\unsure{This paragraph is more wordy than
 \subsection{Soundness of constraint generation}
 \label{sec:constraint-generation-soundness}
 
-If we can type e:t generate constraints, and these constraints are
-simplifiable, then we can type e:t in the declarative system, provided
-the suitable constraints.
+If we can type a term and generate constraints ($[[G |-> e : t ~> C]]$), and
+these constraints are simplifiable under a set of ambient constraints
+$[[Q_g]]$, ($[[Q_g |-s C ~> Q;Q_r]]$) \unsure{the simplifier relation is not
+  described in this document, I did this part by memory} with no leftover
+($Q_r$ empty), then we can type it in the declarative system
+($[[Q;G |- e : t]]$).\unsure{In fact, do we have to bring the simplifier here? Can we instead use the constraint entailment relation and show separately that the simplifier is sound for constraint entailment?}
 
 \begin{lemma}
   If $[[Q |-s C1*C2 ~> Q_o;Q_r]]$ then there exists $[[Q_o']]$,
@@ -508,9 +511,11 @@ the suitable constraints.
 
 \section{Constraint solver}
 \label{sec:constraint-solver}
+\todo{Is this the same as constraint simplifier? What is the mathematical relation?}
+
 
 Various recipes are given
-by~\cite{resource-management-for-ll-proof-search}.
+by~\textcite{resource-management-for-ll-proof-search}.
 \info{The first presentation of returning output context that I could
   find is~\cite{hh-ll}, but I
   find~\cite{resource-management-for-ll-proof-search} more
