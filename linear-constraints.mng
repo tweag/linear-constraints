@@ -442,24 +442,47 @@ these constraints are simplifiable under a set of ambient constraints
 $[[Q_g]]$, ($[[Q_g |-s C ~> Q;Q_r]]$) \unsure{the simplifier relation is not
   described in this document, I did this part by memory} with no leftover
 ($Q_r$ empty), then we can type it in the declarative system
-($[[Q;G |- e : t]]$).\unsure{In fact, do we have to bring the simplifier here? Can we instead use the constraint entailment relation and show separately that the simplifier is sound for constraint entailment?}
+($[[Q;G |- e : t]]$).\unsure{In fact, do we have to bring the
+  simplifier here? Can we instead use the constraint entailment
+  relation and show separately that the simplifier is sound for
+  constraint entailment? [arnaud]: entailment doesn't understand
+  $[[C]]$ constraints. However, I agree with the sentiment, and I've
+  been considering introducing an extended entailment for $[[C]]$
+  constraints rather than deal with the more algorithmic system.}
 
 \begin{lemma}
-  If $[[Q |-s C1*C2 ~> Q_o;Q_r]]$ then there exists $[[Q_o']]$,
-  $[[Q_r']]$, $[[Q_r'']]$ such that
+  \label{lem:inversion}
   \begin{itemize}
-  \item $[[Q |-s C1 ~> Q_o';Q_r']]$
-  \item $[[Q_o' |-s C2 ~> Q_o;Q_r'']]$
-  \item $[[Q_r]] = [[Q_r' * Q_r'']]$\unsure{I'm not sure this last one
-    is quite the correct criterion}
+  \item If $[[Q |-s C1*C2 ~> Q_o;Q_r]]$ then there exists $[[Q_o']]$,
+    $[[Q_r']]$, $[[Q_r'']]$ such that
+    \begin{itemize}
+    \item $[[Q |-s C1 ~> Q_o';Q_r']]$
+    \item $[[Q_o' |-s C2 ~> Q_o;Q_r'']]$
+    \item $[[Q_r]] = [[Q_r' * Q_r'']]$\unsure{I'm not sure this last
+        one is quite the correct criterion. In that we may want an
+        equivalence rather than an equality.}
+    \end{itemize}
+  \item If $[[Q |-s pi.C ~> Q_o;Q_r]]$ then there exists $[[Q']]$,
+    $[[Q_o']]$, $[[Q_r']]$, such that
+    \begin{itemize}
+    \item $[[Q' |-s C ~> Q_o'; Q_r']]$
+    \item $[[Q]] = [[pi.Q']]$
+    \item $[[Q_o]] = [[pi.Q_o']]$\unsure{This is almost certainly
+        wrong. Which pleads for defining the inversion lemma on a less
+        algorithmic relation}
+    \item $[[Q_r]] = [[pi.Q_r']]$\unsure{Again, these equality
+        probably want to be equivalences}
+    \end{itemize}
   \end{itemize}
 \end{lemma}
 
+\newpage
+
 \begin{lemma}
-  For all $[[C_ext]]$, $[[Q_g]]$ if
+  For all $[[Q_g]]$ if
   \begin{itemize}
   \item $[[G |-> e : t ~> C]]$
-  \item $[[Q_g |-s C*C_ext ~> Q_o;Q_r]]$\unsure{This condition doesn't
+  \item $[[Q_g |-s C ~> Q_o;Q_r]]$\unsure{This condition doesn't
     apply to the induction hypotheses, we need to strengthen it somehow.}
   \end{itemize}
   then there exists $[[Q]]$ such that
@@ -473,21 +496,39 @@ $[[Q_g]]$, ($[[Q_g |-s C ~> Q;Q_r]]$) \unsure{the simplifier relation is not
 \end{lemma}
 \begin{proof}
   \unsure{The proof is a sketch}
+  \unsure{The proof needs to be corrected for the fixed Lemma~\ref{lem:inversion}}
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
   \item[App] \info{Most of the linearity problems are here}
     We have
     \begin{itemize}
     \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
-    \item $[[Q_g |-s C1 * pi.C2 * C_ext ~> Q_o;Q_r]]$
+    \item $[[Q_g |-s C1 * pi.C2 ~> Q_o;Q_r]]$
     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
-    \unsure{Unfinished}
+    By Lemma~\ref{lem:inversion}, there exists $[[Q_o']]$, $[[Q_r']]$,
+    $[[Q_o'']]$, $[[Q_o''']]$, $[[Q_r'']]$ such that
+    \begin{itemize}
+    \item $[[Q_g |-s C1 ~> Q_o';Q_r']]$
+    \item $[[Q_o'' |-s C2 ~> Q_o''';Q_r'' ]]$
+    \item $[[Q_o']] = [[pi.Q_o'']]$
+    \item $[[Q_o]] = [[pi.Q_o''']]$
+    \item $[[Q_r]] = [[Q_r' * pi.Q_r'']]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item There exists $[[Q1]]$ such that
+      \begin{itemize}
+      \item $[[Q_g*Q_r' ||- Q_1*Q_o']]$
+      \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
+      \end{itemize}
+    \item There exists\ldots\unsure{unfinished, but straightforward}
+    \end{itemize}
   \item[Unpack] We have
     \begin{itemize}
     \item $[[pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q1 => C2]]$
-    \item $[[Q_g |-s pi.C1 * Q1 => C2 * C_ext ~> Q_o;Q_r]]$
+    \item $[[Q_g |-s pi.C1 * Q1 => C2 ~> Q_o;Q_r]]$
     \item $[[G1 |-> e1 : exists as. t1 o= Q1 ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
