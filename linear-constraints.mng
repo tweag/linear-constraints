@@ -179,7 +179,7 @@ See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
   for yet another variant (this one seems to come from the txfonts)}
 
 The calligraphic $[[QQ]]$ is like $[[Q]]$ but it has type-class axioms (instances from the top-level).
-(Possibly we will drop these altogether.)
+(Possibly we will drop these altogether. \unsure{Then, is this a symmetric relation?})
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
@@ -189,6 +189,7 @@ The calligraphic $[[QQ]]$ is like $[[Q]]$ but it has type-class axioms (instance
     [[QQ ||- Q1]] \text{ and } [[QQ ||- Q2]] \text{ then } [[QQ ||- Q1 & Q2]] \\
   \end{array}
 \end{displaymath}
+
 
 There are 3 rules about conjunction in OutsideIn, which translate to only 5 rules here. I think these are exhaustive.
 
@@ -440,7 +441,7 @@ presentation significantly.\unsure{This paragraph is more wordy than
 If we can type a term and generate constraints ($[[G |-> e : t ~> C]]$), and
 these constraints are solvable using $[[Q]]$.
 , ($[[Q |-s C ~> Q_o;Q_r]]$) with no leftover
-($Q_r$ not outputs $Q_o$), then we can type it in the declarative system
+($Q_r$ and $Q_o$ empty), then we can type it in the declarative system
 ($[[Q;G |- e : t]]$).\unsure{In fact, do we have to bring the
   simplifier here? Can we instead use the constraint entailment
   relation and show separately that the simplifier is sound for
@@ -551,8 +552,9 @@ these constraints are solvable using $[[Q]]$.
 
 \section{Constraint solver}
 \label{sec:constraint-solver}
-\todo{Is this the same as constraint simplifier? What is the mathematical relation?}
+$[[Q_g |-s C ~> Q_o;Q_r]]$
 
+(It has the property: $[[Q_g * Q_r ||- Q * Q_o]]$, if Q is equivalent to C (but I can't write this according to ott.))
 
 Various recipes are given
 by~\textcite{resource-management-for-ll-proof-search}.
