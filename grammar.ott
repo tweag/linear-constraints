@@ -24,6 +24,7 @@ grammar
 Q :: 'Ct_' ::= {{ com Constraints }}
 | Q1 & Q2            ::   :: With
 | Q1 * Q2            ::   :: Tensor
+| 1                  ::   :: Empty {{tex \mathbf{1}}}
 | ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
 | pi . Q             :: M :: Scale  {{tex [[pi]]{⋅}[[Q]]}}
