@@ -671,6 +671,8 @@ io_a >>= f = IOL $ \rw -> case runIOL io_a rw of
                             (rw', Pack a) -> runIOL (f a) rw'
 \end{spec}
 
+% $ emacs
+
 \section{Arnaud's motivating examples}
 
 \subsection{Linear IO without the hassle (file handles)}
