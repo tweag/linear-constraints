@@ -440,6 +440,11 @@ presentation significantly.\unsure{This paragraph is more wordy than
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
   App, Case, Unpack, Pack}
 
+\jp{In the case rule, the sum is a bit confusing. It may just work with
+  linear haskell, but Morally it is a union (or with), perhaps this should be written so for symmetry with what happens with constraints?}
+\jp{In the case rule, the letter e is used twice; this is confusing.}
+\jp{In G-Unpack, the use of ⊃ is confusing (it's not a superset, but rather a linear implication?). }
+
 \newpage
 
 \subsection{Soundness of constraint generation}
