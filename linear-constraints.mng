@@ -173,13 +173,11 @@ import GHC.Base
 
 See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
-\unsure{It's a tad trivial, but I wonder why the calligraphic-font Q
-  is different here than in the OutsideIn paper. ETA: for a brief
-  moment, I believe I saw the same calligraphic Q, then it went away
-  for yet another variant (this one seems to come from the txfonts)}
-
 The calligraphic $[[QQ]]$ is like $[[Q]]$ but it has type-class axioms (instances from the top-level).
-(Possibly we will drop these altogether. \unsure{Then, is this a symmetric relation?})
+(Possibly we will drop these altogether. \unsure{Then, is this a
+  symmetric relation?})
+\unsure{Needs full Ottisation}
+\unsure{Do we need a rule for $!$ here?}
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
@@ -201,6 +199,15 @@ specified in the subsumption relation)
 a combinator is ``asynchronous'' then it need not appear in the
 subsumption rule (at least not in the simplifier) whereas if the
 combinator is ``synchronous'', then it does}
+
+\newpage
+\unsure{I [Arnaud] am currently thinking that we want to make a
+  relation like this which extends the entailment to C-constraints. It
+  would abstract over the actual solver and clarify proofs. It
+  probably doesn't fit here, though.}
+\drules[C]{$[[Q |- C]]$}
+  {Generalised constraint entailment}
+  {Sem,Tensor,With,Impl,Promotion}
 
 \newpage
 
@@ -481,8 +488,7 @@ these constraints are solvable using $[[Q]]$ with no leftover,
   For all $[[Q_g]]$ if
   \begin{itemize}
   \item $[[G |-> e : t ~> C]]$
-  \item $[[Q_g |-s C ~> Q_o;Q_r]]$\unsure{This condition doesn't
-    apply to the induction hypotheses, we need to strengthen it somehow.}
+  \item $[[Q_g |-s C ~> Q_o;Q_r]]$
   \end{itemize}
   then there exists $[[Q]]$ such that
   \begin{itemize}
