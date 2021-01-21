@@ -169,7 +169,7 @@ See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
-    [[Q1 ||- Q2]] \text{ and } [[Q2 ||- Q3]] \text{ then } [[Q1 ||- Q3]] \\
+    [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q1 * Q ||- Q3]] \\
     [[Q ||- Q1 * Q2]] \text{ then the exists } [[Q']] \text{ and } [[Q'']]
     \text{ such that } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
     [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
@@ -471,6 +471,13 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     \end{itemize}
   \end{itemize}
 \end{lemma}
+\unsure{I want to reformulate these lemmas in terms of the logical
+  entailment relation. I think they correspond to the uniform proof
+  story from~\cite{hh-ll}, namely, any provable sequent with a
+  non-atomic right-hand side can be proved with a right introduction
+  rule. There is a bit of complication here due to the domain-specific
+  entailment but the decomposability requirement should give us the
+  same result.}
 
 \newpage
 
@@ -550,7 +557,11 @@ these constraints are solvable using $[[Q]]$ with no leftover,
 $[[Q_g |-s C ~> Q_o;Q_r]]$
 
 Correctness property: $[[Q_g * Q_r |- C * Q_o]]$.\unsure{We would
-  typically have $[[Q_o]]⊆[[Q_g]]$, but does it matter?}
+  typically have $[[Q_o]]⊆[[Q_g]]$, but does it matter? Actually, I'm
+  [Arnaud] tempted to posit that this wouldn't always hold for
+  GHC. Indeed, GHC rewrites givens, therefore, $[[Q_o]]$ may have
+  extra formula or rewritten formulas which are not actually in
+  $[[Q_g]]$.}
 
 Various recipes are given
 by~\textcite{resource-management-for-ll-proof-search}.
@@ -801,3 +812,5 @@ readArray (Freeze arr) i = Freeze (readPArray arr i)
 \printbibliography
 
 \end{document}
+
+% LocalWords:  sequent
