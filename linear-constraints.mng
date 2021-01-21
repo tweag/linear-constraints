@@ -175,8 +175,10 @@ See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
     [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
   \end{array}
 \end{displaymath}
-\unsure{Missing: $[[Q]]$ should be equal (up to reordering) to $[[Q' *
-  Q'']]$ in the tensor splitting condition}
+\unsure{Missing: $[[Q]]$ should be equal (up to reordering) to
+  $[[Q' * Q'']]$ in the tensor splitting condition. Or, at least, some
+  form of entailment relation. What precisely will be apparent in the
+  proof of the inversion/uniformity lemma}
 
 \newpage
 \unsure{I [Arnaud] am currently thinking that we want to make a
