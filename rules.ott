@@ -25,7 +25,7 @@ Q |- C :: :: Crules :: 'C_'  {{ com Generalised constraint entailment }}
 by
 
 Q1 ||- Q2
---------- :: Sem
+--------- :: Dom
 Q1 |- Q2
 
 Q1 |- C1

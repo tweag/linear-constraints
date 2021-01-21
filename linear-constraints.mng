@@ -163,42 +163,20 @@ import GHC.Base
 \newpage
 
 \section{Constraint entailment relation}
-\info{I'm assuming that we will need a $\aand$ connective. It's probably
-  best in the declarative part of the system anyway, even if the
-  algorithmic parts decides to do away with them. Though it's worth
-  noting that the declarative system may not need the $\aand$
-  connective at all. So maybe we can get rid if it. I suppose it's
-  similar to how there is no implicational constraints in the
-  declarative system except those coming from axioms.}
-
 See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
-The calligraphic $[[QQ]]$ is like $[[Q]]$ but it has type-class axioms (instances from the top-level).
-(Possibly we will drop these altogether. \unsure{Then, is this a
-  symmetric relation?})
-\unsure{Needs full Ottisation}
 \unsure{Do we need a rule for $!$ here?}
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
-    [[QQ1 ||- Q2]] \text{ and } [[QQ2 * Q2 ||- Q3]] \text{ then } [[QQ1 * QQ2 ||- Q3]] \\
-    [[QQ1 ||- Q1]] \text{ and } [[QQ2 ||- Q2]] \text{ then } [[QQ1 * QQ2 ||- Q1 * Q2]] \\
-    [[QQ & Q ||- Q]] \\
-    [[QQ ||- Q1]] \text{ and } [[QQ ||- Q2]] \text{ then } [[QQ ||- Q1 & Q2]] \\
+    [[Q1 ||- Q2]] \text{ and } [[Q2 ||- Q3]] \text{ then } [[Q1 ||- Q3]] \\
+    [[Q ||- Q1 * Q2]] \text{ then the exists } [[Q']] \text{ and } [[Q'']]
+    \text{ such that } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
+    [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
   \end{array}
 \end{displaymath}
-
-
-There are 3 rules about conjunction in OutsideIn, which translate to only 5 rules here. I think these are exhaustive.
-
-\unsure{Maybe $\&$-conjunctions can be C-constraints, and be eliminated before
-they are given to the simplifier (therefore may not need to be
-specified in the subsumption relation)
-
-[Arnaud]: I think we may be able to take a cue from focusing here: if
-a combinator is ``asynchronous'' then it need not appear in the
-subsumption rule (at least not in the simplifier) whereas if the
-combinator is ``synchronous'', then it does}
+\unsure{Missing: $[[Q]]$ should be equal (up to reordering) to $[[Q' *
+  Q'']]$ in the tensor splitting condition}
 
 \newpage
 \unsure{I [Arnaud] am currently thinking that we want to make a
@@ -207,7 +185,12 @@ combinator is ``synchronous'', then it does}
   probably doesn't fit here, though.}
 \drules[C]{$[[Q |- C]]$}
   {Generalised constraint entailment}
-  {Sem,Tensor,With,Impl,Promotion}
+  {Dom,Tensor,With,Impl,Promotion}
+\info{[Arnaud]: It's really more of a side remark, but there seems
+  to be a connection with focusing here: if a combinator is
+  ``asynchronous'' then it need not appear in $[[Q]]$ constraints
+  whereas if the combinator is ``synchronous'', then it does.}
+
 
 \newpage
 
@@ -566,7 +549,8 @@ these constraints are solvable using $[[Q]]$ with no leftover,
 \label{sec:constraint-solver}
 $[[Q_g |-s C ~> Q_o;Q_r]]$
 
-(It has the property: $[[Q_g * Q_r ||- Q * Q_o]]$, if Q is equivalent to C (but I can't write this according to ott.))
+Correctness property: $[[Q_g * Q_r |- C * Q_o]]$.\unsure{We would
+  typically have $[[Q_o]]⊆[[Q_g]]$, but does it matter?}
 
 Various recipes are given
 by~\textcite{resource-management-for-ll-proof-search}.
