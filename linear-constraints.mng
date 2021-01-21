@@ -437,6 +437,8 @@ presentation significantly.\unsure{This paragraph is more wordy than
   are using the pseudo-inferred type to generate constraint. In a real
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
+\unsure{The case rule should have constructors with fields with
+  varying multiplicities}
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
   App, Case, Unpack, Pack}
 
