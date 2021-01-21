@@ -165,6 +165,10 @@ import GHC.Base
 \section{Constraint entailment relation}
 See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
+For simplicity, and contrary to OutsideIn, we don't introduce a notion
+of $\mathcal{Q}$ (toplevel axioms), because they don't interact in an
+interesting way to linearity.
+
 \unsure{Do we need a rule for $!$ here?}
 \begin{displaymath}
   \begin{array}{l}
@@ -774,7 +778,7 @@ class Read n
 class Write n
 class Own n
 type RW n = (Read n, Write n)
-type O n = ()
+type O n = (Read n, Write n, Own n)
 
 data PArray (a :: * -> *) n -- Permission Array
 type Array a = Frozen (PArray a)
