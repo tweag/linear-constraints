@@ -747,7 +747,7 @@ unrestrictArray :: a ⊸ Unrestricted (Array a)
 unrestrictArray x = newArray $ \marr ->
   freeze $
   writeMArray 0 x marr
-\end{spec} % $ <- syntax highlighting bug
+\end{spec} % emacs <- syntax highlighting bug
 
 This is not ok if I want to make a multidimensional array (say an
 |MArray (MArray a)|), which I would later freeze.
@@ -774,16 +774,29 @@ syntax).
 With linear constraints:
 
 \begin{spec}
-class Read n
-class Write n
-class Own n
-type RW n = (Read n, Write n)
-type O n = (Read n, Write n, Own n)
+-- Each reference has 3 linear capabilities associated with it. References can be freely copied, but the capabilities are controlled linearly.
 
-data PArray (a :: * -> *) n -- Permission Array
+-- The relation between references and capabilities is mediated with an existential type variable (of kind Token for legibility here, but we can let Token = Type with no loss of expressivity.)
+
+kind Token
+class Read (n :: Token)    -- read capability
+class Write (n :: Token)   -- write capability
+class Own (n :: Token)     -- move, free,
+
+type O n = (Read n, Write n, Own n) -- but we cannot move unless no one has kept a reference, so really all 3 capabilities are needed. We never use Own alone, always O.
+
+type RW n = (Read n, Write n) -- likewise, one cannot be writing unless we also have read access (so that a reader does not see changes happening while it is reading)
+
+type ReferenceKind = Token -> Type -- kind of types which are associated to capabilities via tokens (so ``references'')
+
+data PArray (a :: Token -> Type) (n :: Token)
+  -- QUESTIONS: is this an array of References? Is it a boxed array or unboxed array? Are all references inside it associated with the same token?
+
 type Array a = Frozen (PArray a)
+
+
 data Frozen a where
-  Freeze :: Read n => a n -> Frozen a
+  Freezed :: Read n => a n -> Frozen a
 data Reading a where
   Read :: Read n =>. a n -> Reading a
 data Borrowed a where
@@ -791,29 +804,33 @@ data Borrowed a where
 data Owned (a :: * -> *) where
   Move :: O n =>. a n -> Owned a
 
+
 newPArray    :: (forall n. O n =>. PArray a n -> Unrestricted b) ⊸ Unrestricted b
-  -- Alternatively: |(Owned (Parray a) ⊸ Unrestricted b) ⊸ Unrestricted b|
+-- Create a new array with the 3 capabilities available (|O n|).
+
 writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> Owned a .<= RW n
-  -- Relinquishes the ownership of the |a p| arguments. Returns
-  -- ownership of the old value
+  -- Relinquishes the ownership of the |a p| argument. Returns
+  -- ownership of the old value.
+  -- iiuc: The reference p is moved inside the array (if we'd make a copy we don't need the O p capability). So we make a new token for it (existentially quantified by Owned).
+  -- ? With this interface it seems that the owner will be able to freeze the array, but the reference will survive. So it seems that there is a bug here.
+
+writePArrayAlt  :: (RW n, O p) =>. PArray a n -> Int -> a p -> () .<= (RW n)
+-- here the ownership of |a p| is absorbed by n.
+-- Operational semantics: move the p *reference* inside n.
+
 readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
-borrowPArray
-  :: RW n =>. Parray a n -> Int -> (Borrowed a ⊸ Unrestricted b) ⊸ Unrestricted b .<= RW n
+-- OK
+
+borrowPArray :: RW n =>. Parray a n -> Int -> (Borrowed a ⊸ Unrestricted b) ⊸ Unrestricted b .<= RW n
+-- I don't think that this is necessary, the linear constraints should be threaded correctly with the generic mechanism to any function which demands the RW capability.
+
 freeze       :: O n =>. PArray a n -> Array a
+-- OK
 
 readArray :: Array a -> Int -> Frozen a
-readArray (Freeze arr) i = Freeze (readPArray arr i)
+readArray (Freezed arr) i = Freezed (readPArray arr i)
 \end{spec}
 
-\jp{IMO the Rust terminology is more confusing than anything. (what is borrowPArray even doing?)
-
-  I'd
-  rather say that the RW capability is threaded using a linear token
-  which is (semi-)implicitly passed around.
-
-  Also, why is the |Own| class used nowhere?
-
-}
 
 \printbibliography
 
