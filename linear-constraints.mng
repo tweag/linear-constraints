@@ -160,14 +160,109 @@ import GHC.Base
 \info{There  is an Appendix section with unorganised thoughts and
   examples.}
 
+\unsure{Not the actual beginning of the introduction}
+Consider the following example from the Linear Haskell
+article~\cite{LinearHaskell}, where |IOL| is the linear IO monad.
+\begin{code}
+firstLine :: FilePath -> IOL Bytestring
+firstLine fp =
+  do  { f <- openFile fp
+      ; (f, Ur bs) <- readLine f
+      ; closeFile f
+      ; return bs }
+\end{code}
+
+We see that linear types introduce some noise on the |readLine| line:
+we need to destruct an extra pair, and an extra |Ur| (called
+|Unrestricted| in~\cite{LinearHaskell}), compared to the
+traditional (albeit less safe)\unsure{It only gets worse in larger
+  program. This makes the extra safety afforded by linear types too
+  rarely worth it.}
+\begin{code}
+firstLine :: FilePath -> IO Bytestring
+firstLine fp =
+  do  { f <- openFile fp
+      ; bs <- readLine f
+      ; closeFile f
+      ; return bs }
+\end{code}
+
+This extra noise is the consequence of the fact that, as far as a
+linear type system is concerned, |f| is expended after |readLine
+f|. But, of course, we typically want to do more with a file that
+reading just one line of it, so the linear |readLine| is given the type.
+
+\begin{code}
+  readLine :: File ⊸ IOL (File, Unrestricted ByteString)
+\end{code}
+
+It appears to return a new file, but really, it returns a new name for
+the same file. It really is these names which can only be used once,
+the file handle itself continues to exist until |closeFile| is called.
+
+This is a bit of a bother, though. Why do I have to manage a bunch of
+names to help a compiler count? Surely this can be handled by the
+typechecker automatically. And, indeed, compilers with \emph{ad hoc}
+specialised logic let me write essentially the traditional program but
+with the guarantee that if I forget to |closeFile|, I'll get a type
+error. This is most notably the case of the
+\textsc{ats}~\cite{AtsLinearViews}, and Mezzo
+languages\unsure{Citation needed}.\unsure{Both \textsc{ats} and Mezzo
+  are specialised in handling pointers-and-mutations, rather than
+  file. So the sentence above is a little bit of a lie. Either
+  rephrase to say that we can write programs of \emph{this type}, or
+  use an array example instead of a file example. Though I think that
+  the file example is a better introduction.}
+
+\unsure{Maybe we want to hammer in the fact that, in Linear Haskell,
+  there is no use case natively understood by the compiler. Every
+  abstraction is built user-side. \textsc{Ats}'s views are closest to
+  what we are doing, though seems to only be geared towards pointers.}
+In this article we introduce a generic extension to Linear Haskell,
+which lets the typechecker handle the counting. With this extension
+|firstLine| would be written as:
+\unsure{probably display |pack| in bold in Haskell code}
+\begin{code}
+firstLine :: FilePath -> IOL Bytestring
+firstLine fp =
+  do  { pack f <- openFile fp
+      ; pack bs <- readLine f
+      ; closeFile f
+      ; return bs }
+\end{code}
+
+There is a bit of boilerplate left, but it doesn't involve managing
+names to please the compiler. This considerably lowers the cost of
+using a linear-type based abstraction.\unsure{I'm trying to get at the
+  cost/benefit analysis thing and how it matters a lot, but I haven't
+  found a convincing way to do so without ranting for a page or so,
+  I'll get back to this when the rest of the paper is written and I
+  revisit the introduction.}
+
+\paragraph{Contributions}
+\unsure{TODO}
+
 \newpage
 
-\section{Constraint entailment relation}
+\section{What it looks like}
+\label{sec:what-it-looks-like}
+
+\newpage
+
+\section{Examples}
+\label{sec:examples}
+
+
+\newpage
+
+\section{The declarative system}
+
+\subsection{Constraint entailment relation}
 See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
 
 For simplicity, and contrary to OutsideIn, we don't introduce a notion
 of $\mathcal{Q}$ (toplevel axioms), because they don't interact in an
-interesting way to linearity.
+interesting way with linearity.
 
 \unsure{Do we need a rule for $!$ here?}
 \begin{displaymath}
@@ -200,7 +295,9 @@ interesting way to linearity.
 
 \newpage
 
-\section{The declarative system}
+\subsection{Declarative type system}
+\label{sec:decl-type-syst}
+
 \change{Based on
   \href{https://github.com/tweag/linear-constraints/issues/13}{\#13}.}
 %
@@ -219,7 +316,9 @@ Main differences:
   constructor, pattern-matched over by $\kunpack$.
 
   (Consequently, we encode linear constraints inside data types as
-  existential pack type.)
+  existential pack type.)\unsure{We may need a comment on the fact
+    that $\kunpack$ doesn't have a $\pi$ index. There would be nothing
+    wrong with it, I imagine, it's just a little bit useless.}
 
 \end{itemize}
 \improvement{We also want let with a signature. For the sake of completeness}
@@ -836,4 +935,4 @@ readArray (Freezed arr) i = Freezed (readPArray arr i)
 
 \end{document}
 
-% LocalWords:  sequent
+% LocalWords:  sequent typechecker

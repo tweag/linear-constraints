@@ -74,13 +74,13 @@ Q1*pi.Q2;G1+pi.G2 |- e1 e2 : t
 
 Q*Q1;G |- e : t[ts/as]
 ------------------------- :: Pack
-Q;G |- pack e : exists as. t o= Q1
+omega.Q;G |- pack e : exists as. t o= Q1
 
-Q1';G1 |- e1 : exists as. t1 o= Q1
+Q1;G1 |- e1 : exists as. t1 o= Q
 freshness condition on as
-Q2' * Q1;G2,x:_pi t1 |- e2 : t
+Q2 * Q;G2,x:_omega t1 |- e2 : t
 ------------------------------------------------- :: Unpack
-pi.Q1' * Q2';pi.G1 + G2 |- unpack x = e1 in e2 : t
+Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t
 
 Q1;G1 |- e1 : t1
 Q2;G2,x:_pi t1 |- e2 : t
