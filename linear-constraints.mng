@@ -73,6 +73,7 @@ import GHC.Base
 %format . = "."
 %format exists = "\exists"
 %format forall = "\forall"
+%format pack = "\kpack"
 %endif
 
 %%%%%%%%%%%%%%%%% /lhs2tex %%%%%%%%%%%%%%%%%
@@ -257,7 +258,7 @@ using a linear-type based abstraction.\unsure{I'm trying to get at the
   may serve as a way to unify these lines of research.\unsure{Speak of
   the Pony language? On the one hand Pony is a pretty cool piece of
   tech, on the other hand, I don't know enough to say something
-  smart about it.}
+  smart about it.}\unsure{Should we speak of typestate here?}
 \item A typechecking algorithm, based on a combination
   of~\cite{OutsideIn}
   and~\cite{resource-management-for-ll-proof-search}, that respects
@@ -331,7 +332,61 @@ There are a few things to notice
 \end{itemize}
 
 This still leaves questions open: where does |f| come from? where does
-|Open f| come from? what are the types of |openFile| and
+|Open f| come from? what are the types of |openFile| and |readLine|?
+The answers to these three question rely on the same device: we
+introduce a type construction |exists a1 ... an. t .<= Q|\unsure{Todo:
+  render the indices as actual indices}, where |Q| is some (linear)
+constraint.
+
+The fact that existential quantification generate new type-level names
+is a folklore observation. It's used crucially in the interface of the
+|ST| monad\unsure{citation needed} and of type-class
+reflection\unsure{citation needed} (in both of these cases, existential
+quantification is encoded as a rank-2 universal quantificaton). We
+shall use it exactly this way: |openFile| uses an existential
+quantifier to generate the type-level name of the file
+handle. Existentially quantified types are paired with constraint |Q|
+which we understand as being returned by functions. We will freely
+omit the |exists a1 ... an.| or |.<= Q| parts when they are
+empty. This lets us give the following \textsc{api} to files:
+
+\begin{code}
+openFile :: FilePath -> IOL (exists f. File f .<= Open f)
+readLine :: Open f =>. File f -> IOL (() .<= Open f)
+closeFile :: Open f =>. File f -> IOL ()
+\end{code}
+
+Haskell doesn't have such existential quantification, however each
+instance of such existential quantification can be encoded as a
+\textsc{gadt}. For instance |exists f. File f .<= Open f| can be
+implemented as
+
+\begin{code}
+data NewFile where
+  Pack :: Open f =>. File f -> NewFile
+\end{code}
+
+Therefore, the existential types of this article are really a
+convenience for the sake of exposition\unsure{Though, see the
+  existential type paper}. Correspondingly, existential types are
+introduced by a data constructor, which we write |pack|.
+
+When pattern-matching on a |pack| all the existentially quantified
+names are introduced in scope and all the returned constraints are
+made available. With all these ingredients, we can indeed write, as
+promised in the introduction
+\begin{code}
+firstLine :: FilePath -> IOL Bytestring
+firstLine fp =
+  do  { pack f <- openFile fp
+      ; pack bs <- readLine f
+      ; closeFile f
+      ; return bs }
+\end{code}
+\unsure{Deduplicate with the version in the introduction to avoid desync?}
+
+\unsure {Explain that existentially quantified type always have an
+  implicit unrestricted at their core.}
 
 \unsure{Link to a typestate paper + mention how much closer this is
   to the idea of typestate than the pedestrian encoding in regular
@@ -438,8 +493,8 @@ See Figure~\ref{fig:typing-rules}.
 Main differences:
 \begin{itemize}
 \item Linearity as in the Linear Haskell paper
-\item $\kcase$ doesn't have GADTs
-\item Existential packs are our only GADT. They have a single
+\item $\kcase$ doesn't have \textsc{gadt}s
+\item Existential packs are our only \textsc{gadt}. They have a single
   constructor, pattern-matched over by $\kunpack$.
 
   (Consequently, we encode linear constraints inside data types as
