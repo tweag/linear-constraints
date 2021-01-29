@@ -152,10 +152,38 @@ import GHC.Base
 
 \title{Linear Constraints}
 
-\author{Jean-Philippe Bernardy, Richard Eisenberg, Csongor Kiss, Arnaud Spiwack}
-\date{}
+\author{Jean-Philippe Bernardy}
+\affiliation{
+  \institution{University of Gothenburg}
+  \city{Gothenburg}
+  \country{Sweden}
+}
+\email{jean-philippe.bernardy@@gu.se}
+\author{Richard Eisenberg}
+\affiliation{
+  \institution{Tweag}
+  \city{Paris}
+  \country{France}
+}
+\email{richard.eisenberg@@tweag.io}
+\author{Csongor Kiss}
+\affiliation{
+  \institution{Imperial College London}
+  \city{London}
+  \country{United Kingdom}
+}
+\email{csongor.kiss14@@imperial.ac.uk}
+\author{Arnaud Spiwack}
+\affiliation{
+  \institution{Tweag}
+  \city{Paris}
+  \country{France}
+}
+\email{arnaud.spiwack@@tweag.io}
 
 \maketitle
+
+\renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, and Spiwack}
 
 \section*{Introduction}
 \info{There  is an Appendix section with unorganised thoughts and
