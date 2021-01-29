@@ -345,16 +345,51 @@ This still leaves questions open: where does |f| come from? where does
 
 \newpage
 
-\section{The declarative system}
+\section{A qualified type system}
+
+\unsure{Some transition from example into the technique needed here.}
+
+The description of the type system in this section, as well as the
+type inference algorithm of Section~\ref{sec:type-inference}, are
+strongly inspired by the presentation of
+OutsideIn~\cite{OutsideIn}. OutsideIn is a foundation of the type
+inference algorithm of \textsc{ghc}, the most popular Haskell
+compiler, as such we decided to frame this presentation as an
+extension of OutsideIn. We have chosen, for the sake of clarity of the
+exposition, to omit details of OutsideIn which do not interact with
+linear constraints. We shall point out such simplifications where they
+arise.
 
 \subsection{Constraint entailment relation}
-See Fig 3, p14 of OutsideIn\cite{OutsideIn}.
+\label{sec:constraint-domain}
 
-For simplicity, and contrary to OutsideIn, we don't introduce a notion
-of $\mathcal{Q}$ (toplevel axioms), because they don't interact in an
-interesting way with linearity.
+\info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
 
-\unsure{Do we need a rule for $!$ here?}
+Like OutsideIn (see~\cite[Section 3.2, in particular Figure
+3]{OutsideIn}), we parameterise the entire type system by a constraint
+domain. This domain is characterised by an entailment relation
+$[[Q1 ||- Q2]]$. The purpose of the constraint domain is to give a
+syntax and semantics to constraints, both of which are abstract in the
+type system. For instance, in \textsc{ghc}, the domain includes type
+classes the entailment relation describes instance resolution.
+
+For the sake of the examples of this article the domain need only be
+the simplest possible domain. The domain serves to support the rest of
+Haskell, or any future extension.
+
+OutsideIn introduces, as part of the constraint domain, a generalised
+kind of constraint $\mathcal{Q}$, which include toplevel axioms, such
+as type-class instance declaration declarations. Such toplevel axioms
+are never linear~--~just like toplevel definition are never linear in
+Linear Haskell~\cite{LinearHaskell}~--~as such they don't have
+interesting interaction with the rest of the system, and we choose to
+omit them for simplicity.
+
+The constraint entailment relation must satisfy the following
+properties:
+
+\unsure{Do we need a rule for $!$ here? Can I prove associativity and
+  symmetry of the tensor product with this? Do I need to?}
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
@@ -369,34 +404,36 @@ interesting way with linearity.
   form of entailment relation. What precisely will be apparent in the
   proof of the inversion/uniformity lemma}
 
-\newpage
-\unsure{I [Arnaud] am currently thinking that we want to make a
-  relation like this which extends the entailment to C-constraints. It
-  would abstract over the actual solver and clarify proofs. It
-  probably doesn't fit here, though.}
-\drules[C]{$[[Q |- C]]$}
-  {Generalised constraint entailment}
-  {Dom,Tensor,With,Impl,Promotion}
-\info{[Arnaud]: It's really more of a side remark, but there seems
-  to be a connection with focusing here: if a combinator is
-  ``asynchronous'' then it need not appear in $[[Q]]$ constraints
-  whereas if the combinator is ``synchronous'', then it does.}
-
+Another difference with OutsideIn is that we don't require the
+presence of equality constraints. We come back to the motivation for
+this simplification in Section~\ref{sec:constraint-generation}.
 
 \newpage
 
-\subsection{Declarative type system}
-\label{sec:decl-type-syst}
+\subsection{Typing rules}
+\label{sec:typing-rules}
 
-\change{Based on
-  \href{https://github.com/tweag/linear-constraints/issues/13}{\#13}.}
+Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system is
+presented as a \emph{qualified type system} in the style first introduced
+by~\cite{QualifiedTypes}. Such a qualified type system introduces a
+judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
+type context, and $[[Q]]$ is a constraint from the domain of
+Section~\ref{sec:constraint-domain}. For the most part $[[Q]]$ behaves
+much like with $[[G]]$, which will be instrumental for
+desugaring in Section~\ref{sec:desugaring}; the main difference is
+that $[[G]]$ is referred to explicitly with variables, whereas $[[Q]]$
+is used implicitly in \rref{E-Var}.
+
+\unsure{We probably want the grammar somewhere}
 %
 \jp{It's very important to explain in detail that linear constraints
   (as linear values) can never escape to omega contexts.
 }
 
 %
-See Fig 10, p25 of OutsideIn\cite{OutsideIn}.
+\info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
+
+See Figure~\ref{fig:typing-rules}.
 
 Main differences:
 \begin{itemize}
@@ -409,12 +446,17 @@ Main differences:
   existential pack type.)\unsure{We may need a comment on the fact
     that $\kunpack$ doesn't have a $\pi$ index. There would be nothing
     wrong with it, I imagine, it's just a little bit useless.}
-
+\item Explicit subsumption rule \rref*{E-Sub}
 \end{itemize}
 \improvement{We also want let with a signature. For the sake of completeness}
 
-\drules[E]{$[[Q;G |- e : t]]$}{Expression
-  typing}{Var,Abs,App,Pack,Unpack,Let,Case,Sub}
+\begin{figure}
+  \centering
+  \drules[E]{$[[Q;G |- e : t]]$}{Expression
+    typing}{Var,Abs,App,Pack,Unpack,Let,Case,Sub}
+  \caption{Qualified type system}
+  \label{fig:typing-rules}
+\end{figure}
 
 \info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
@@ -425,7 +467,32 @@ Main differences:
 \section{Type inference}
 \label{sec:type-inference}
 
+\unsure{Should we keep with the terminology type inference (here and
+  everywhere throughout the paper) considering that we assume that
+  types are inferred by someone else, but really just ``infer
+  constraints'' in some sense.}
+
+\unsure{Todo: transition}
+
+\subsection{Generated constraints}
+\label{sec:wanteds}
+
+\unsure{I [Arnaud] am currently thinking that we want to make a
+  relation like this which extends the entailment to C-constraints. It
+  would abstract over the actual solver and clarify proofs.}
+\drules[C]{$[[Q |- C]]$}
+  {Generalised constraint entailment}
+  {Dom,Tensor,With,Impl,Promotion}
+\info{[Arnaud]: It's really more of a side remark, but there seems
+  to be a connection with focusing here: if a combinator is
+  ``asynchronous'' then it need not appear in $[[Q]]$ constraints
+  whereas if the combinator is ``synchronous'', then it does.}
+
+\newpage
+
+
 \subsection{Constraint generation}
+\label{sec:constraint-generation}
 
 See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{Todo: syntax to
   select the $\pi$ in case, linear $\kunpack$ rule}
@@ -705,6 +772,13 @@ Goal: describe transformations
     evidence passing style. If the declarative system is well written,
     it will be quite direct.}
 \end{enumerate}
+
+\newpage
+
+\section{Implementation}
+\label{sec:implementation}
+
+\unsure{Todo: discussion on the prototype implementation}
 
 \newpage
 
