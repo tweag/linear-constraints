@@ -933,6 +933,66 @@ readTwoLines path = do
 It looks exactly the same as without linear types. But you still get
 an error for double-free and use-after-free usages.
 
+\subsection{Quantum IO Monad}
+
+To showcase another area where deploying linear constraints seems promising, let
+us review the quantum computational model. At the fundamental level, the
+evolution of a quantum state is \emph{unitary}, which, in essence, means that
+information cannot be lost at any point in a quantum circuit. Quantum circuit
+gates can thus only express \emph{reversible} operations, and algorithms
+operating on quantum machines therefore need to be carefully constructed to only
+use reversible operations.
+
+This criterion also poses a challenge to language designers who wish to create
+high-level abstractions that can be compiled down to a realisable quantum
+circuit, as many common operators, such as the logical OR, are not expressible
+in a quantum machine due to their loss of information.
+
+In \cite{altenkirch2010quantum} the authors describe an encoding of quantum
+computation in the Quantum IO (QIO) monad, which can effectively simulate
+probabilistic quantum operations by sampling a probability distribution. The
+framework supplies a DSL, |U|, for reversible computations. This DSL includes,
+for example |unot :: Qbit -> U|, which reverses negates a quantum bit (qbit), and |ifQ
+:: Qbit -> U -> U| which runs a reversible computation when the supplied quantum
+bit is in the true state. Qbits can be initialised using the |mkQbit ::
+Bool -> QIO Qbit| operation, and reversible computations can be executed on the
+state of the machine using |applyU :: U -> QIO ()|.
+
+These seemingly simple combinators already expose a shortcoming of the API: it
+is possible to express irreversible computations: given some |q :: Qbit|, |ifQ q
+(unot q)| sets |q|'s value to false. Indeed, the QIO monad enforces a semantic
+side condition that the conditional variable must not be modified in the body.
+This condition is enforced by the simulator by throwing a runtime error when
+such updates are attempted.
+
+A better solution would be to catch the error before even attempting to execute
+the program! Using linear constraints, we can provide a safe API for expressing
+reversible computations.
+
+The strategy is to modify the QIO API to keep track of having write access to a
+qbit. Initialising a qbit provides write access to the qbit.
+
+\begin{code}
+mkQbit :: Bool -> exists u. QIO (Qbit q) .<= Write q
+\end{code}
+
+Then, we modify |unot| to require write access to the qbit.
+
+\begin{code}
+unot :: Write q =>. Qbit q -> U .<= Write q
+\end{code}
+
+Finally, |ifQ| consumes write access.
+
+\begin{code}
+ifQ :: Write q =>. Qbit -> U -> U .<= Write q
+\end{code}
+
+This way, writing |ifQ q (unot q)| will no longer typecheck, as the call to
+|ifQ| has consumed the write access to |q|, thus the body will not be able to
+modify it. Of course, it is still possible to write any \emph{other} qbit |r| in the
+body, creating an \emph{entagled} pair of qbits: |ifQ q (unot r)|.
+
 \subsection{Ownership and so on…}
 
 From the linear types paper:
