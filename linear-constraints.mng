@@ -1056,28 +1056,43 @@ type O n = (Read n, Write n, Own n) -- but we cannot move unless no one has kept
 
 type RW n = (Read n, Write n) -- likewise, one cannot be writing unless we also have read access (so that a reader does not see changes happening while it is reading)
 
-type ReferenceKind = Token -> Type -- kind of types which are associated to capabilities via tokens (so ``references'')
+type Reference = Token -> Type -- kind of types which are associated to capabilities via tokens (so ``references'')
 
-data PArray (a :: Token -> Type) (n :: Token)
-  -- QUESTIONS: is this an array of References? Is it a boxed array or unboxed array? Are all references inside it associated with the same token?
+AtomRef a :: Reference
 
-type Array a = Frozen (PArray a)
+data AtomRef (a :: Type) (n :: Token)
+
+writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
+readRef :: (Read n) =>. AtomRef a n -> a .<= Read n
+dealloc :: O n =>. AtomRef a n -> ()
+newRef :: (forall n. O n =>. AtomRef a n -> Unrestricted b) ⊸ Unrestricted b
+aliasRef :: forall n. (RW n, O p) =>. AtomRef a n -> AtomRef a p -> () .<= RW n
+
+-- Polymorphic aliasing
+aliasRef' :: forall n. (RW n, O p, KnownRef a) =>. a n -> a p -> () .<= RW n
 
 
-data Frozen a where
-  Freezed :: Read n => a n -> Frozen a
-data Reading a where
-  Read :: Read n =>. a n -> Reading a
-data Borrowed a where
-  Borrow :: RW n =>. a n -> Borrowed a
-data Owned (a :: * -> *) where
-  Move :: O n =>. a n -> Owned a
+data PArray (a :: Reference) (n :: Token)
+  -- This an array of References: is an array of boxed stuff. Are all
+  -- references inside it are associated with the same token.
 
+PArray a :: Reference
+
+-- type Array a = Frozen (PArray a)
+-- data Frozen a where
+--   Freezed :: Read n => a n -> Frozen a
+-- data Reading a where
+--   Read :: Read n =>. a n -> Reading a
+-- data Borrowed a where
+--   Borrow :: RW n =>. a n -> Borrowed a
+-- data Owned (a :: * -> *) where
+--   Move :: O n =>. a n -> Owned a
 
 newPArray    :: (forall n. O n =>. PArray a n -> Unrestricted b) ⊸ Unrestricted b
 -- Create a new array with the 3 capabilities available (|O n|).
 
-writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> Owned a .<= RW n
+-- Wrong:
+-- writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> Owned a .<= RW n
   -- Relinquishes the ownership of the |a p| argument. Returns
   -- ownership of the old value.
   -- iiuc: The reference p is moved inside the array (if we'd make a copy we don't need the O p capability). So we make a new token for it (existentially quantified by Owned).
@@ -1090,11 +1105,15 @@ writePArrayAlt  :: (RW n, O p) =>. PArray a n -> Int -> a p -> () .<= (RW n)
 readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
 -- OK
 
-borrowPArray :: RW n =>. Parray a n -> Int -> (Borrowed a ⊸ Unrestricted b) ⊸ Unrestricted b .<= RW n
--- I don't think that this is necessary, the linear constraints should be threaded correctly with the generic mechanism to any function which demands the RW capability.
+-- QUESTION:
+borrowPArrayElement     :: RW n =>. Parray a n -> Int -> (Borrowed a             ⊸ Unrestricted b         ) ⊸ Unrestricted b .<= RW n
+borrowPArrayElementAlt  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ Unrestricted b .<= RW p) ⊸ Unrestricted b .<= RW n
+borrowPArrayElementAlt' :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ k              .<= RW p) ⊸              k .<= RW n -- continuation won't be called from an unrestricted context because the initial RW n constraint is unique and linear.
 
+-- freeze       :: O n =>. PArray a n -> Array a
 freeze       :: O n =>. PArray a n -> Array a
 -- OK
+
 
 readArray :: Array a -> Int -> Frozen a
 readArray (Freezed arr) i = Freezed (readPArray arr i)
