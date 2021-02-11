@@ -985,7 +985,7 @@ unot :: Write q =>. Qbit q -> U .<= Write q
 Finally, |ifQ| consumes write access.
 
 \begin{code}
-ifQ :: Write q =>. Qbit -> U -> U .<= Write q
+ifQ :: Write q =>. Qbit q -> U -> U .<= Write q
 \end{code}
 
 This way, writing |ifQ q (unot q)| will no longer typecheck, as the call to
