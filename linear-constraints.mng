@@ -1164,10 +1164,11 @@ writePArrayAlt  :: (RW n, O p) =>. PArray a n -> Int -> a p -> () .<= (RW n)
 readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
 -- OK
 
--- QUESTION:
 borrowPArrayElement     :: RW n =>. Parray a n -> Int -> (Borrowed a             ⊸ Unrestricted b         ) ⊸ Unrestricted b .<= RW n
 borrowPArrayElementAlt  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ Unrestricted b .<= RW p) ⊸ Unrestricted b .<= RW n
 borrowPArrayElementAlt' :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ k              .<= RW p) ⊸              k .<= RW n -- continuation won't be called from an unrestricted context because the initial RW n constraint is unique and linear.
+
+borrowPArrayElement is the only way to access an element in read-write
 
 -- freeze       :: O n =>. PArray a n -> Array a
 freeze       :: O n =>. PArray a n -> Array a
