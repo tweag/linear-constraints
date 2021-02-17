@@ -91,7 +91,8 @@ import GHC.Base
       \newenvironment{alt}{\color{red}}{}
 
       \newcommandx{\jp}[2][1=]{\todo[linecolor=purple,backgroundcolor=purple!25,bordercolor=purple,#1]{#2}}
-      
+      \newcommandx{\csongor}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=purple,#1]{#2}}
+
       \newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
       \newcommandx{\info}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
       \newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
@@ -181,6 +182,17 @@ import GHC.Base
 }
 \email{arnaud.spiwack@@tweag.io}
 
+\begin{abstract}
+This paper presents \emph{linear constraints}, a language feature that improves
+the ergonomics of using linear types by freeing programmers from having to
+manually pass around linear resource tokens. The resulting code retains the
+safety of the linear version while also keeping the simplicity of the
+traditional version. We present a qualified type system with linear constraints,
+and a typechecking algorithm. We prove the soundness of the algorithm with
+respect to the type system, and show how our changes can be integrated into
+|OutsideIn|, GHC's existing constraint solver algorithm.
+\end{abstract}
+
 \maketitle
 
 \renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, and Spiwack}
@@ -189,11 +201,16 @@ import GHC.Base
 \info{There  is an Appendix section with unorganised thoughts and
   examples.}
 
-\unsure{Not the actual beginning of the introduction. For instance
-  some general reminder material about linear types is probably a
-  great idea.}
-Consider the following example from the Linear Haskell
-article~\cite{LinearHaskell}, where |IOL| is the linear IO monad.
+Linear type systems have seen somewhat of a renessaince in recent years in
+various mainstream programming communities. Rust's ownership system guarantees
+memory safety for systems programmers, Haskell's linear types give functional
+programmers safe APIs for low-level mutable data structures, and even
+dependently typed programmers can now use linear types with Idris 2.
+
+\csongor{Say something about ergonomics to set up the next part}
+
+To get a sense of the power of linear types, consider the following example from
+the Linear Haskell article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO monad}:
 \begin{code}
 firstLine :: FilePath -> IOL Bytestring
 firstLine fp =
@@ -201,14 +218,22 @@ firstLine fp =
       ; (f, Ur bs) <- readLine f
       ; closeFile f
       ; return bs }
-\end{code}
+\end{code} This simple function opens a file, reads its first line, then closes
+it. Linearity ensures that the file handle |f| is consumed at the end.
+Forgetting to call |closeFile f| would result in a type error since |f| would
+remain unused at the end of the function. Notice that `readLine` consumes the
+file handle, and returns a fresh one, to be used in further interactions with
+the file. The line's content is returned in an |Ur| wrapper (pronounced
+``unrestricted'') to signify that it can be used arbitrary many times.
 
-We see that linear types introduce some noise on the |readLine| line:
-we need to destruct an extra pair, and an extra |Ur| (called
-|Unrestricted| in~\cite{LinearHaskell}), compared to the
-traditional (albeit less safe)\unsure{It only gets worse in larger
-  program. This makes the extra safety afforded by linear types too
-  rarely worth it.}
+% We see that linear types introduce some noise on the |readLine| line:
+% we need to destruct an extra pair, and an extra |Ur| (called
+% |Unrestricted| in~\cite{LinearHaskell}), compared to the
+% traditional (albeit less safe)\unsure{It only gets worse in larger
+%   program. This makes the extra safety afforded by linear types too
+%   rarely worth it.}
+
+Compare this function with the traditional, non-linear version:
 \begin{code}
 firstLine :: FilePath -> IO Bytestring
 firstLine fp =
@@ -218,10 +243,71 @@ firstLine fp =
       ; return bs }
 \end{code}
 
-This extra noise is the consequence of the fact that, as far as a
-linear type system is concerned, |f| is expended after |readLine
-f|. But, of course, we typically want to do more with a file that
-reading just one line of it, so the linear |readLine| is given the type.
+This version is less safe, because the type system does not keep track of the
+file handle, so the programmer must. But it is also simpler: apparently, in the
+linear version, we traded clarity for safety. Since the file handle is now an
+expendable resource, the type system must know at all times where it is being
+consumed, so the file handle must be passed around manually, culminating in
+extra noise. Worse, the larger the program gets, the more additional bookkeeping
+this requires.
+
+But reading the non-linear version, it is perfectly clear where the
+handle is used, and ultimately, consumed. Could the compiler not figure this out
+without extra help?
+
+In this paper, we answer this question affirmatively, and introduce \emph{linear
+constraints}, an extension of Haskell's type class mechanism to be aware of
+linearity. This way, resource consumption is tracked without explicitly having
+to thread the tokens through the program. The final version of |firstLine| is thus:
+\begin{code}
+firstLine :: FilePath -> IOL Bytestring
+firstLine fp =
+  do  { f <- openFile fp
+      ; bs <- readLine f
+      ; closeFile f
+      ; return bs }
+\end{code}
+
+Note the only change from the unsafe version is that this version runs in the
+linear IO monad.
+
+\paragraph{Our contributions are as follows}
+
+\begin{itemize}
+\item A system of qualified types that allows a constraint assumption
+  to be given a multiplicity. Linear assumptions are used precisely
+  once in the body of a definition.
+\item This system supports examples that have motivated the design of
+  several resource-aware systems, such as ownership à la Rust, or
+  capabilities in the style of Mezzo\unsure{citation needed} or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
+  may serve as a way to unify these lines of research.\unsure{Speak of
+  the Pony language? On the one hand Pony is a pretty cool piece of
+  tech, on the other hand, I don't know enough to say something
+  smart about it.}\unsure{Should we speak of typestate here?}
+\item A typechecking algorithm, based on a combination
+  of~\cite{OutsideIn}
+  and~\cite{resource-management-for-ll-proof-search}, that respects
+  the multiplicity of assumptions. We prove that this algorithm is
+  sound and complete with respect to our type system.\unsure{Can we
+    have a concrete completeness result?}
+\item Our algorithm additionally desugars expressions in our qualified
+  type system into a core language (directly inspired
+  by Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
+  prove that the output of desugaring is well-typed in the core
+  language.
+\end{itemize}
+
+\newpage
+
+\section{Motivation}
+
+
+\csongor{I moved the more detailed stuff from the introduction here for now. We
+have more space here to elaborate the problem statement}
+% This extra noise is the consequence of the fact that, as far as a
+% linear type system is concerned, |f| is expended after |readLine
+% f|. But, of course, we typically want to do more with a file that
+% reading just one line of it, so the linear |readLine| is given the type.
 
 \begin{code}
   readLine :: File ⊸ IOL (File, Unrestricted ByteString)
@@ -274,33 +360,6 @@ using a linear-type based abstraction.\unsure{I'm trying to get at the
   I'll get back to this when the rest of the paper is written and I
   revisit the introduction.}
 
-\paragraph{Our contributions are as follows}
-
-\begin{itemize}
-\item A system of qualified types that allows a constraint assumption
-  to be given a multiplicity. Linear assumptions are used precisely
-  once in the body of a definition.
-\item This system supports examples that have motivated the design of
-  several resource-aware systems, such as ownership à la Rust, or
-  capabilities in the style of Mezzo\unsure{citation needed} or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
-  may serve as a way to unify these lines of research.\unsure{Speak of
-  the Pony language? On the one hand Pony is a pretty cool piece of
-  tech, on the other hand, I don't know enough to say something
-  smart about it.}\unsure{Should we speak of typestate here?}
-\item A typechecking algorithm, based on a combination
-  of~\cite{OutsideIn}
-  and~\cite{resource-management-for-ll-proof-search}, that respects
-  the multiplicity of assumptions. We prove that this algorithm is
-  sound and complete with respect to our type system.\unsure{Can we
-    have a concrete completeness result?}
-\item Our algorithm additionally desugars expressions in our qualified
-  type system into a core language (directly inspired
-  by Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
-  prove that the output of desugaring is well-typed in the core
-  language.
-\end{itemize}
-
-\newpage
 
 \section{What it looks like}
 \label{sec:what-it-looks-like}
