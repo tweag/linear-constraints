@@ -630,6 +630,33 @@ Main differences:
   ``asynchronous'' then it need not appear in $[[Q]]$ constraints
   whereas if the combinator is ``synchronous'', then it does.}
 
+\begin{lemma}
+  \label{lem:inversion}
+  \begin{itemize}
+  \item If $[[Q |- C1*C2]]$ then there exists $[[Q1]]$ and
+    $[[Q2]]$ such that
+    \begin{itemize}
+    \item $[[Q1 |- C1]]$
+    \item $[[Q2 |- C2]]$
+    \item $[[Q]] = [[Q1 * Q2]]$\unsure{I'm not sure this last
+        one is quite the correct criterion. In that we may want an
+        equivalence rather than an equality.}
+    \end{itemize}
+  \item If $[[Q |- pi.C]]$ then there exists $[[Q']]$ such that
+    \begin{itemize}
+    \item $[[Q' |- C]]$
+    \item $[[Q]] = [[pi.Q']]$
+    \end{itemize}
+  \item If $[[Q |- Q' => C]]$ then $[[Q * Q' |- C]]$
+  \end{itemize}
+\end{lemma}
+\unsure{I think they correspond to the uniform proof
+  story from~\cite{hh-ll}, namely, any provable sequent with a
+  non-atomic right-hand side can be proved with a right introduction
+  rule. There is a bit of complication here due to the domain-specific
+  entailment but the decomposability requirement should give us the
+  same result.}
+
 \newpage
 
 
@@ -705,7 +732,8 @@ presentation significantly.\unsure{This paragraph is more wordy than
 If we can type a term and generate constraints ($[[G |-> e : t ~> C]]$), and
 these constraints are solvable using $[[Q]]$ with no leftover,
 ($[[Q |-s C ~> 1;1]]$), then we can type it in the declarative system
-($[[Q;G |- e : t]]$).\unsure{In fact, do we have to bring the
+($[[Q;G |- e : t]]$).\unsure{TODO: rewrite now that we don't talk
+  about the solver here. In fact, do we have to bring the
   simplifier here? Can we instead use the constraint entailment
   relation and show separately that the simplifier is sound for
   constraint entailment? [arnaud]: entailment doesn't understand
@@ -714,54 +742,13 @@ these constraints are solvable using $[[Q]]$ with no leftover,
   constraints rather than deal with the more algorithmic system.}
 
 \begin{lemma}
-  \label{lem:inversion}
-  \begin{itemize}
-  \item If $[[Q |-s C1*C2 ~> Q_o;Q_r]]$ then there exists $[[Q_o']]$,
-    $[[Q_r']]$, $[[Q_r'']]$ such that
-    \begin{itemize}
-    \item $[[Q |-s C1 ~> Q_o';Q_r']]$
-    \item $[[Q_o' |-s C2 ~> Q_o;Q_r'']]$
-    \item $[[Q_r]] = [[Q_r' * Q_r'']]$\unsure{I'm not sure this last
-        one is quite the correct criterion. In that we may want an
-        equivalence rather than an equality.}
-    \end{itemize}
-  \item If $[[Q |-s pi.C ~> Q_o;Q_r]]$ then there exists $[[Q']]$,
-    $[[Q_o']]$, $[[Q_r']]$, such that
-    \begin{itemize}
-    \item $[[Q' |-s C ~> Q_o'; Q_r']]$
-    \item $[[Q]] = [[pi.Q']]$
-    \item $[[Q_o]] = [[pi.Q_o']]$\unsure{This is almost certainly
-        wrong. Which pleads for defining the inversion lemma on a less
-        algorithmic relation}
-    \item $[[Q_r]] = [[pi.Q_r']]$\unsure{Again, these equality
-        probably want to be equivalences}
-    \end{itemize}
-  \end{itemize}
-\end{lemma}
-\unsure{I want to reformulate these lemmas in terms of the logical
-  entailment relation. I think they correspond to the uniform proof
-  story from~\cite{hh-ll}, namely, any provable sequent with a
-  non-atomic right-hand side can be proved with a right introduction
-  rule. There is a bit of complication here due to the domain-specific
-  entailment but the decomposability requirement should give us the
-  same result.}
-
-\newpage
-
-\begin{lemma}
   For all $[[Q_g]]$ if
   \begin{itemize}
   \item $[[G |-> e : t ~> C]]$
-  \item $[[Q_g |-s C ~> Q_o;Q_r]]$
+  \item $[[Q_g |- C]]$
   \end{itemize}
-  then there exists $[[Q]]$ such that
-  \begin{itemize}
-  \item $[[Q_g*Q_r ||- Q*Q_o]]$\unsure{$[[Q_r]]$ are the residuals,
-      like in InsideOut, that is, the wanted which remain to be
-      proved. $[[Q_o]]$ are due to linearity, and are the given which
-      remain to be used.}
-  \item $[[Q; G |- e : t]]$
-  \end{itemize}
+  then
+  $[[Q_g; G |- e : t]]$
 \end{lemma}
 \begin{proof}
   \unsure{The proof is a sketch}
@@ -772,46 +759,42 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     We have
     \begin{itemize}
     \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
-    \item $[[Q_g |-s C1 * pi.C2 ~> Q_o;Q_r]]$
+    \item $[[Q_g |- C1 * pi.C2]]$
     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exists $[[Q_o']]$, $[[Q_r']]$,
-    $[[Q_o'']]$, $[[Q_o''']]$, $[[Q_r'']]$ such that
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such that
     \begin{itemize}
-    \item $[[Q_g |-s C1 ~> Q_o';Q_r']]$
-    \item $[[Q_o'' |-s C2 ~> Q_o''';Q_r'' ]]$
-    \item $[[Q_o']] = [[pi.Q_o'']]$
-    \item $[[Q_o]] = [[pi.Q_o''']]$
-    \item $[[Q_r]] = [[Q_r' * pi.Q_r'']]$
+    \item $[[Q1 |- C1]]$
+    \item $[[Q2 |- C2]]$
+    \item $[[Q_g]] = [[Q1 * pi.Q2]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item There exists $[[Q1]]$ such that
-      \begin{itemize}
-      \item $[[Q_g*Q_r' ||- Q_1*Q_o']]$
-      \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
-      \end{itemize}
-    \item There exists\ldots\unsure{unfinished, but straightforward}
+    \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
+    \item $[[Q2; G2 |- e2 : t2]]$
     \end{itemize}
+    Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
   \item[Unpack] We have
     \begin{itemize}
-    \item $[[pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q1 => C2]]$
-    \item $[[Q_g |-s pi.C1 * Q1 => C2 ~> Q_o;Q_r]]$
-    \item $[[G1 |-> e1 : exists as. t1 o= Q1 ~> C1]]$
+    \item $[[pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q' => C2]]$
+    \item $[[Q_g |- omega.C1 * Q' => C2]]$
+    \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
+    such that
+    \begin{itemize}
+    \item $[[Q_1 |- C1]]$
+    \item $[[Q_2 * Q' |- C2]]$
+    \item $[[Q_g]] = [[omega.Q1 * Q2]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item There exists $[[Q]]$ such that\unsure{Something about
-        residuals and outputs} and $[[Q; G1 |- e1 : exists as. t1 o=
-      Q1]]$
-    \item There exists $[[Q']]$ such that \unsure{Again residuals and
-        outputs} and $[[Q' ; G2, x:_pi t1 |- e2 : t]]$
+    \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
+    \item $[[Q_2*Q ; G2 |- e2 : t]]$
     \end{itemize}
-    Therefore \unsure{The condition about residuals and outputs and
-      extensions} and $[[pi.Q * Q' ; pi.G1 + G2 |- unpack x = e1 in e2
-    : t]]$
+    Therefore $[[Q_g ; pi.G1 + G2 |- unpack x = e1 in e2 : t]]$
   \item[Case] \unsure{Arnaud: will I be able to avoid a $\aand$ constraint
      or not? I'm guessing not.}
   \end{description}
