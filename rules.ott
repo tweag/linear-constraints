@@ -70,7 +70,7 @@ Q1*pi.Q2;G1+pi.G2 |- e1 e2 : t
 
 Q*Q1;G |- e : t[ts/as]
 ------------------------- :: Pack
-omega.Q;G |- pack e : exists as. t o= Q1
+omega.Q;omega.G |- pack e : exists as. t o= Q1
 
 Q1;G1 |- e1 : exists as. t1 o= Q
 freshness condition on as
