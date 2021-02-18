@@ -692,9 +692,6 @@ Main differences:
 \subsection{Generated constraints}
 \label{sec:wanteds}
 
-\unsure{I [Arnaud] am currently thinking that we want to make a
-  relation like this which extends the entailment to C-constraints. It
-  would abstract over the actual solver and clarify proofs.}
 \drules[C]{$[[Q |- C]]$}
   {Generalised constraint entailment}
   {Dom,Tensor,With,Impl}
@@ -709,7 +706,8 @@ $$
 \left\{
   \begin{array}{lcl}
     [[pi.(C1 * C2)]] & = & [[pi.C1 * pi.C2]] \\
-    [[pi.(C1 & C2)]] & = & [[pi.C1 * pi.C2]] \\
+    [[omega.(C1 & C2)]] & = & [[omega.C1 * omega.C2]] \\
+    [[1.(C1 & C2)]] & = & [[C1 & C2]] \\
     [[pi.(rho.(Q => C))]] & = & [[(pi.rho).(Q => C)]]
   \end{array}
 \right.
@@ -717,14 +715,25 @@ $$
 
 Note that there is no ambiguity when writing $[[Q => C]]$ for
 $[[1.(Q => C)]]$, since $[[pi.(1.(Q => C))]]$ is indeed equal to
-$[[pi.(Q => C)]]$.
+$[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
+  true of writing $[[q]]$ in the the simple constraints.}
 
 \begin{lemma}
   \label{lem:wanted:promote}
   If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
 \end{lemma}
 \begin{proof}
-  todo
+  By induction on the syntax of $[[C]]$
+  \begin{itemize}
+  \item If $[[C]]=[[Q]]$, then the result follows
+    from Lemma~\ref{lem:q:promotion}
+  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
+    proved the corresponding case in Lemma~\ref{lem:q:promotion}.
+  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
+    immediate, so we can assume without loss of generality that
+    $[[pi]]=[[omega]]$.\unsure{I'm not sure that I have enough
+      hypotheses to prove this.}
+  \end{itemize}
 \end{proof}
 
 \begin{lemma}
