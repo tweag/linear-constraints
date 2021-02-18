@@ -718,23 +718,6 @@ $[[1.(Q => C)]]$, since $[[pi.(1.(Q => C))]]$ is indeed equal to
 $[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
   true of writing $[[q]]$ in the the simple constraints.}
 
-\begin{lemma}
-  \label{lem:wanted:promote}
-  If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
-\end{lemma}
-\begin{proof}
-  By induction on the syntax of $[[C]]$
-  \begin{itemize}
-  \item If $[[C]]=[[Q]]$, then the result follows
-    from Lemma~\ref{lem:q:promotion}
-  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
-    proved the corresponding case in Lemma~\ref{lem:q:promotion}.
-  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
-    immediate, so we can assume without loss of generality that
-    $[[pi]]=[[omega]]$.\unsure{I'm not sure that I have enough
-      hypotheses to prove this.}
-  \end{itemize}
-\end{proof}
 
 \begin{lemma}
   \label{lem:inversion}
@@ -754,11 +737,7 @@ $[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
     \item $[[Q1 * Q2 |- C]]$
     \item $[[Q]] = [[pi.Q1]]$
     \end{itemize}
-  \item If $[[Q |- pi.C]]$ then there exists $[[Q']]$ such that
-    \begin{itemize}
-    \item $[[Q' |- C]]$
-    \item $[[Q]] = [[pi.Q']]$
-    \end{itemize}
+  \item
   \end{itemize}
 \end{lemma}
 \unsure{I think they correspond to the uniform proof
@@ -769,6 +748,40 @@ $[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
   same result.}
 
 
+\begin{lemma}
+  \label{lem:wanted:promote}
+  If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
+\end{lemma}
+\begin{proof}
+  By induction on the syntax of $[[C]]$
+  \begin{itemize}
+  \item If $[[C]]=[[Q]]$, then the result follows
+    from Lemma~\ref{lem:q:promotion}
+  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
+    proved the corresponding case in Lemma~\ref{lem:q:promotion},
+    using Lemma~\ref{lem:inversion}.
+  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
+    immediate, so we can assume without loss of generality that
+    $[[pi]]=[[omega]]$.\unsure{I'm not sure that I have enough
+      hypotheses to prove this.}
+  \item If $[[C]]=[[rho.(Q1 => C)]]$, then by
+    Lemma~\ref{lem:inversion}, there is a $[[Q']]$ such that
+    $[[Q]]=[[pi.Q']]$ and $[[Q'*Q1 |- C]]$. Applying
+    rule~\rref{C-Impl} with $[[pi.rho]]$, we get
+    $[[(pi.rho).Q' |- (pi.rho).(Q1 => C)]]$.
+
+    In other words: $[[pi.Q |- pi.(rho.(Q=>C))]]$ as expected.
+  \end{itemize}
+\end{proof}
+
+\begin{lemma}
+  \label{lem:wanted:demote}
+  If $[[Q |- pi.C]]$ then there exists $[[Q']]$ such that
+  \begin{itemize}
+  \item $[[Q' |- C]]$
+  \item $[[Q]] = [[pi.Q']]$
+  \end{itemize}
+\end{lemma}
 
 \newpage
 
