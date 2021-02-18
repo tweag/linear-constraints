@@ -502,6 +502,12 @@ exposition, to omit details of OutsideIn which do not interact with
 linear constraints. We shall point out such simplifications where they
 arise.
 
+\subsection{Multiplicities}
+\label{sec:multiplicities}
+
+\unsure{Multiplicities are $[[1]]$ or $[[omega]]$ (no
+  variable). Multiplication table. Probably addition table.}
+
 \subsection{Constraint entailment relation}
 \label{sec:constraint-domain}
 
@@ -530,8 +536,9 @@ omit them for simplicity.
 The constraint entailment relation must satisfy the following
 properties:
 
-\unsure{Do we need a rule for $!$ here? Can I prove associativity and
-  symmetry of the tensor product with this? Do I need to?}
+\unsure{Rules for scaling atoms here.}
+\unsure{Todo: we ignore scaling by $1$ most of the time.}
+\unsure{Todo: scaled atomic constraints}
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
@@ -549,6 +556,24 @@ properties:
 Another difference with OutsideIn is that we don't require the
 presence of equality constraints. We come back to the motivation for
 this simplification in Section~\ref{sec:constraint-generation}.
+
+Scaling is extended to all constraints:
+
+$$
+\left\{
+  \begin{array}{lcl}
+    [[pi.(Q1 * Q2)]] & = & [[pi.Q1 * pi.Q2]] \\
+    [[pi.(rho. Q)]]  & = & [[(pi.rho) . Q]]
+  \end{array}
+\right.
+$$
+\unsure{Rendering}
+\unsure{Explain that the commutation of scaling and tensor product is
+  an exotic feature of Linear Haskell. It does simplify the
+  presentation a bit here.}
+\unsure{Need: lemma extending the rules for scaling to the extended scaling.}
+
+Note that $[[1.Q]] = [[Q]]$.
 
 \newpage
 
@@ -624,11 +649,35 @@ Main differences:
   would abstract over the actual solver and clarify proofs.}
 \drules[C]{$[[Q |- C]]$}
   {Generalised constraint entailment}
-  {Dom,Tensor,With,Impl,Promotion}
+  {Dom,Tensor,With,Impl}
 \info{[Arnaud]: It's really more of a side remark, but there seems
   to be a connection with focusing here: if a combinator is
   ``asynchronous'' then it need not appear in $[[Q]]$ constraints
   whereas if the combinator is ``synchronous'', then it does.}
+
+Scaling is extended to all generated constraints:
+
+$$
+\left\{
+  \begin{array}{lcl}
+    [[pi.(C1 * C2)]] & = & [[pi.C1 * pi.C2]] \\
+    [[pi.(C1 & C2)]] & = & [[pi.C1 * pi.C2]] \\
+    [[pi.(rho.(Q => C))]] & = & [[(pi.rho).(Q => C)]]
+  \end{array}
+\right.
+$$
+
+Note that there is no ambiguity when writing $[[Q => C]]$ for
+$[[1.(Q => C)]]$, since $[[pi.(1.(Q => C))]]$ is indeed equal to
+$[[pi.(Q => C)]]$.
+
+\begin{lemma}
+  \label{lem:wanted:promote}
+  If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
+\end{lemma}
+\begin{proof}
+  todo
+\end{proof}
 
 \begin{lemma}
   \label{lem:inversion}
@@ -642,12 +691,17 @@ Main differences:
         one is quite the correct criterion. In that we may want an
         equivalence rather than an equality.}
     \end{itemize}
+  \item If $[[Q |- pi.(Q2 => C)]]$ then there exists $[[Q1]]$ such
+    that
+    \begin{itemize}
+    \item $[[Q1 * Q2 |- C]]$
+    \item $[[Q]] = [[pi.Q1]]$
+    \end{itemize}
   \item If $[[Q |- pi.C]]$ then there exists $[[Q']]$ such that
     \begin{itemize}
     \item $[[Q' |- C]]$
     \item $[[Q]] = [[pi.Q']]$
     \end{itemize}
-  \item If $[[Q |- Q' => C]]$ then $[[Q * Q' |- C]]$
   \end{itemize}
 \end{lemma}
 \unsure{I think they correspond to the uniform proof
@@ -656,6 +710,8 @@ Main differences:
   rule. There is a bit of complication here due to the domain-specific
   entailment but the decomposability requirement should give us the
   same result.}
+
+
 
 \newpage
 

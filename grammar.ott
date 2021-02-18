@@ -22,11 +22,13 @@ grammar
 %%  Constraints  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Q :: 'Ct_' ::= {{ com Constraints }}
+| q                  ::   :: Atom
 | Q1 * Q2            ::   :: Tensor
 | 1                  ::   :: Empty  {{tex \mathbf{1} }}
 | ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
 | pi . Q             :: M :: Scale  {{tex [[pi]]{⋅}[[Q]]}}
+| ( Q )              :: S :: Paren
 
 QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
 | Q                ::   :: GivenConstraint
@@ -42,6 +44,7 @@ C :: 'Ctg_' ::= {{ com Generated constraints}}
 | pi . C             :: M :: Scale  {{tex [[pi]]{⋅}[[C]]}}
 | && C               :: M :: BigWith
 | C [ theta ]        :: M :: Subst
+| ( C )              :: S :: Paren
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Types  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,9 +71,11 @@ ts {{ tex \overline{\tau} }}, us {{ tex \overline{\upsilon} }}, ss {{ tex \overl
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Multiplicities  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-pi {{ tex \pi }} :: 'Mult_' ::= {{ com Multiplicities }}
+pi {{ tex \pi }}, rho {{ tex \rho }} :: 'Mult_' ::= {{ com Multiplicities }}
   | 1                    ::   :: One
   | omega                ::   :: Many
+  | pi1 . pi2            :: M :: Mult
+  | ( pi )               :: S :: Paren
   % I'd like to avoid multiplicity variables if we can, as they are
   % not very relevant to our discussion
 
