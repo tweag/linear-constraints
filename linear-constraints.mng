@@ -737,7 +737,6 @@ $[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
     \item $[[Q1 * Q2 |- C]]$
     \item $[[Q]] = [[pi.Q1]]$
     \end{itemize}
-  \item
   \end{itemize}
 \end{lemma}
 \unsure{I think they correspond to the uniform proof
