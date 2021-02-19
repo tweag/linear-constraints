@@ -193,6 +193,8 @@ parsing
 Type_ExistsNested <= Type_Carry
 Ct_Tensor <= Ct_Unrestricted
 Ct_Tensor <= Ct_Scale
+Ct_Tensor <= Ct_Subst
 Ctg_Tensor <= Ctg_Unrestricted
 Ctg_Tensor <= Ctg_Scale
+Ctg_Tensor <= Ctg_Subst
 Ctx_Add <= Ctx_Scale

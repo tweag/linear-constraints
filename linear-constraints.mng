@@ -490,6 +490,11 @@ firstLine fp =
 \section{A qualified type system}
 
 \unsure{Some transition from example into the technique needed here.}
+\unsure{I [Arnaud] think that either the subsumption should be removed
+from the Var rule (using the Sub rule explicitly when needed), or, I
+should remove the Sub rule and use subsumption wherever relevant (in
+particular the Pack rule). Let's revisit this when the proofs are
+done.}
 
 The description of the type system in this section, as well as the
 type inference algorithm of Section~\ref{sec:type-inference}, are
@@ -722,7 +727,7 @@ $[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
 \begin{lemma}
   \label{lem:inversion}
   \begin{itemize}
-  \item If $[[Q |- C1*C2]]$ then there exists $[[Q1]]$ and
+  \item If $[[Q |- C1*C2]]$, then there exists $[[Q1]]$ and
     $[[Q2]]$ such that
     \begin{itemize}
     \item $[[Q1 |- C1]]$
@@ -731,7 +736,8 @@ $[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
         one is quite the correct criterion. In that we may want an
         equivalence rather than an equality.}
     \end{itemize}
-  \item If $[[Q |- pi.(Q2 => C)]]$ then there exists $[[Q1]]$ such
+  \item If $[[Q |- C1 & C2]]$, then $[[Q |- C1]]$ and $[[Q |- C2]]$.
+  \item If $[[Q |- pi.(Q2 => C)]]$, then there exists $[[Q1]]$ such
     that
     \begin{itemize}
     \item $[[Q1 * Q2 |- C]]$
@@ -766,7 +772,7 @@ $[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
   \item If $[[C]]=[[rho.(Q1 => C)]]$, then by
     Lemma~\ref{lem:inversion}, there is a $[[Q']]$ such that
     $[[Q]]=[[pi.Q']]$ and $[[Q'*Q1 |- C]]$. Applying
-    rule~\rref{C-Impl} with $[[pi.rho]]$, we get
+    rule~\rref*{C-Impl} with $[[pi.rho]]$, we get
     $[[(pi.rho).Q' |- (pi.rho).(Q1 => C)]]$.
 
     In other words: $[[pi.Q |- pi.(rho.(Q=>C))]]$ as expected.
@@ -839,8 +845,6 @@ presentation significantly.\unsure{This paragraph is more wordy than
   are using the pseudo-inferred type to generate constraint. In a real
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
-\unsure{The case rule should have constructors with fields with
-  varying multiplicities}
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
   App, Case, Unpack, Pack}
 
@@ -872,7 +876,8 @@ these constraints are solvable using $[[Q]]$ with no leftover,
   \unsure{The proof is a sketch}
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
-  \item[App] \info{Most of the linearity problems are here}
+  \item[App] \info{Most of the linearity problems are in the App
+      rule. Unpack is also relevant.}
     We have
     \begin{itemize}
     \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
@@ -892,7 +897,28 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     \item $[[Q2; G2 |- e2 : t2]]$
     \end{itemize}
     Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
-  \item[Unpack] We have
+  \item[Pack] We have
+    \begin{itemize}
+    \item $[[omega.G |-> pack e : exists as. t o= Q ~> omega.C * Q[ts/as] ]]$
+    \item $[[Q_g |- C * Q[us/as] ]]$
+    \item $[[G |-> e : t[us/as] ~> C]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
+    such that
+    \begin{itemize}
+    \item $[[Q_1 |- C]]$
+    \item $[[Q_2 |- Q[us/as] ]]$
+    \item $[[Q_g]] = [[omega.Q_1*Q_2]]$
+    \end{itemize}
+    Bu induction hypothesis
+    \begin{itemize}
+    \item $[[Q_1 ; G |- e : t[us/as] ]]$
+    \end{itemize}
+    So we have $[[Q_1 * Q[us/as] ; omega.G |- pack e : exists as. t o=
+    Q]]$. By rule~\rref*{E-Sub}, we conclude
+    $[[Q_g ; omega.G |- pack e : exists as. t o= Q]]$.
+  \item[Unpack] We have\unsure{Change $[[pi]]$ to $[[omega]]$ here and
+    in constraint generation rule}
     \begin{itemize}
     \item $[[pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q' => C2]]$
     \item $[[Q_g |- omega.C1 * Q' => C2]]$
@@ -911,9 +937,27 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
     \item $[[Q_2*Q ; G2 |- e2 : t]]$
     \end{itemize}
-    Therefore $[[Q_g ; pi.G1 + G2 |- unpack x = e1 in e2 : t]]$
-  \item[Case] \unsure{Arnaud: will I be able to avoid a $\aand$ constraint
-     or not? I'm guessing not.}
+    Therefore $[[Q_g ; pi.G1 + G2 |- unpack x = e1 in e2 : t]]$.
+  \item[Case] We have
+    \begin{itemize}
+    \item $[[pi.G + Sum Gi |-> case e of {alts} : t ~> pi.C * && Ci]]$
+    \item $[[Q_g |- pi.C * && Ci]]$
+    \item $[[G |-> e : T ss ~> C]]$
+    \item For each $i$, $[[Gi, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
+    \end{itemize}
+    By repeated uses of Lemma~\ref{lem:inversion}, there exist
+    $[[Q]]$, $[[Q']]$ such that
+    \begin{itemize}
+    \item $[[Q |- C]]$
+    \item For each $i$, $[[Q' |- Ci]]$
+    \item $[[Q_g]] = [[pi.Q * Q']]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item $[[Q; G |- e : T ss]]$
+    \item For each $i$, $[[Q';Gi, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
+    \end{itemize}
+    Therefore $[[Q_g ; pi.G + Sum Gi |- case e of {alts} : t]]$.
   \end{description}
 \end{proof}
 
