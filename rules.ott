@@ -119,8 +119,8 @@ G2 |-> e2 : t2 ~> C2
 G1 + pi.G2 |-> e1 e2 : t ~> C1 * pi.C2
 
 G |-> e : T ss ~> C
-Ki : forall as. usi -> T as
-Gi, <xi:_pi ui[ss/as]> |-> ei : t ~> Ci
+Ki : forall as. usi ->_pisi T as
+Gi, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci
 ------------------------------ :: Case
 pi.G + Sum Gi |-> case e of {alts} : t ~> pi.C * && Ci
 
