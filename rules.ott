@@ -72,7 +72,7 @@ Q ; G |- e : t[us/as]
 ------------------------- :: Pack
 omega.Q * Q1[us/as];omega.G |- pack e : exists as. t o= Q1
 
-omega.Q1;omega.G1 |- e1 : exists as. t1 o= Q
+Q1;G1 |- e1 : exists as. t1 o= Q
 freshness condition on as
 Q2 * Q;G2,x:_omega t1 |- e2 : t
 ------------------------------------------------- :: Unpack
