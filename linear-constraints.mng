@@ -645,6 +645,7 @@ that $[[G]]$ is referred to explicitly with variables, whereas $[[Q]]$
 is used implicitly in \rref{E-Var}.
 
 \unsure{We probably want the grammar somewhere}
+\unsure{Todo: explain what $[[x :_1 forall as. Q =o u \in G]]$ means}
 %
 \jp{It's very important to explain in detail that linear constraints
   (as linear values) can never escape to omega contexts.
@@ -795,7 +796,7 @@ $[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
 \label{sec:constraint-generation}
 
 See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{Todo: syntax to
-  select the $\pi$ in case, linear $\kunpack$ rule}
+  select the $\pi$ in case and let rules}
 
 In a full blown Haskell with linear constraints, there wouldn't be
 linear equality constraints.\jp{Seems to suggest that we have linear
@@ -870,9 +871,28 @@ these constraints are solvable using $[[Q]]$ with no leftover,
   $[[Q_g; G |- e : t]]$
 \end{lemma}
 \begin{proof}
-  \unsure{The proof is a sketch}
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
+  \item[Var] We have
+    \begin{itemize}
+    \item $[[x :_1 forall as. Q =o u \in G]]$
+    \item $[[G |-> x : u[ts/as] ~> Q[ts/as] ]]$
+    \item $[[Q_g |- Q[ts/as] ]]$
+    \end{itemize}
+    Therefore, by rule~\rref{E-Var}\unsure{and E-Sub if we
+      remove subsumption from the Var rule}, it follows
+    immediately that $[[Q_g ; G |- x : u[ts/as] ]]$
+  \item[Abs] We have
+    \begin{itemize}
+    \item $[[G |-> \x. e : t0 ->_pi t ~> C]]$
+    \item $[[Q_g |- C]]$
+    \item $[[G, x:_pi t0 |-> e : t ~> C]]$
+    \end{itemize}
+    By induction hypothesis we have
+    \begin{itemize}
+    \item $[[Q_g; G, x:_pi t0 |- e : t]]$
+    \end{itemize}
+    From which follows that $[[Q_g; G |- \x. e : t0 ->_pi t]]$.
   \item[App] \info{Most of the linearity problems are in the App
       rule. Unpack is also relevant.}
     We have
