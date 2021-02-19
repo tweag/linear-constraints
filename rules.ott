@@ -126,9 +126,9 @@ pi.G + D |-> case e of {alts} : t ~> pi.C * && Ci
 
 G1 |-> e1 : exists as. t1 o= Q1 ~> C1
 as fresh
-G2, x:_pi t1 |-> e2 : t ~> C2
+G2, x:_omega t1 |-> e2 : t ~> C2
 ------------------------------ :: Unpack
-pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q1 => C2
+G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q1 => C2
 
 G |-> e : t[us/as] ~> C
 ------------------------------ :: Pack

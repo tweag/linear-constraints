@@ -914,11 +914,10 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     So we have $[[Q_1 * Q[us/as] ; omega.G |- pack e : exists as. t o=
     Q]]$. By rule~\rref*{E-Sub}, we conclude
     $[[Q_g ; omega.G |- pack e : exists as. t o= Q]]$.
-  \item[Unpack] We have\unsure{Change $[[pi]]$ to $[[omega]]$ here and
-    in constraint generation rule}
+  \item[Unpack] We have
     \begin{itemize}
-    \item $[[pi.G1+G2 |-> unpack x = e1 in e2 : t ~> pi.C1 * Q' => C2]]$
-    \item $[[Q_g |- omega.C1 * Q' => C2]]$
+    \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q' => C2]]$
+    \item $[[Q_g |- C1 * Q' => C2]]$
     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
@@ -927,14 +926,14 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     \begin{itemize}
     \item $[[Q_1 |- C1]]$
     \item $[[Q_2 * Q' |- C2]]$
-    \item $[[Q_g]] = [[omega.Q1 * Q2]]$
+    \item $[[Q_g]] = [[Q1 * Q2]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
     \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
     \item $[[Q_2*Q ; G2 |- e2 : t]]$
     \end{itemize}
-    Therefore $[[Q_g ; pi.G1 + G2 |- unpack x = e1 in e2 : t]]$.
+    Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
   \item[Case] We have
     \begin{itemize}
     \item $[[pi.G + D |-> case e of {alts} : t ~> pi.C * && Ci]]$
