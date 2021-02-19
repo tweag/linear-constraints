@@ -857,14 +857,7 @@ presentation significantly.\unsure{This paragraph is more wordy than
 If we can type a term and generate constraints ($[[G |-> e : t ~> C]]$), and
 these constraints are solvable using $[[Q]]$ with no leftover,
 ($[[Q |-s C ~> 1;1]]$), then we can type it in the declarative system
-($[[Q;G |- e : t]]$).\unsure{TODO: rewrite now that we don't talk
-  about the solver here. In fact, do we have to bring the
-  simplifier here? Can we instead use the constraint entailment
-  relation and show separately that the simplifier is sound for
-  constraint entailment? [arnaud]: entailment doesn't understand
-  $[[C]]$ constraints. However, I agree with the sentiment, and I've
-  been considering introducing an extended entailment for $[[C]]$
-  constraints rather than deal with the more algorithmic system.}
+($[[Q;G |- e : t]]$).
 
 \begin{lemma}
   For all $[[Q_g]]$ if
@@ -877,7 +870,6 @@ these constraints are solvable using $[[Q]]$ with no leftover,
 \end{lemma}
 \begin{proof}
   \unsure{The proof is a sketch}
-  \unsure{The proof needs to be corrected for the fixed Lemma~\ref{lem:inversion}}
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
   \item[App] \info{Most of the linearity problems are here}
