@@ -105,7 +105,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 alt :: 'Alt_' ::= {{ com Case alternative }}
 | K xs -> e              ::   :: Alt
 
-alts {{ tex \overline{\ottmv{K}\ \overline{\ottmv{x} } \to \ottnt{e} } }}
+alts {{ tex \overline{\ottmv{K}\ \overline{\ottmv{x}_i } \to \ottnt{e}_i } }}
   :: 'Alts_' ::= {{ com Case alternatives }}
 | empty                  ::   :: None
 | alt                    ::   :: One
@@ -131,7 +131,7 @@ binding :: 'Binding_' ::= {{ com Context binding }}
 | x :_ pi t           ::    :: Bnd
   {{ tex [[x]]{:}_{[[pi]]}[[t]] }}
 
-G {{ tex \Gamma }} :: 'Ctx_' ::= {{ com Contexts }}
+G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | empty             ::   :: None
 | binding           ::   :: One
 | G1 , .... , Gi    ::   :: Many

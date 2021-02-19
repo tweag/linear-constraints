@@ -120,9 +120,9 @@ G1 + pi.G2 |-> e1 e2 : t ~> C1 * pi.C2
 
 G |-> e : T ss ~> C
 Ki : forall as. usi ->_pisi T as
-Gi, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci
+D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci
 ------------------------------ :: Case
-pi.G + Sum Gi |-> case e of {alts} : t ~> pi.C * && Ci
+pi.G + D |-> case e of {alts} : t ~> pi.C * && Ci
 
 G1 |-> e1 : exists as. t1 o= Q1 ~> C1
 as fresh

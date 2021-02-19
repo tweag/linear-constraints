@@ -848,9 +848,6 @@ presentation significantly.\unsure{This paragraph is more wordy than
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
   App, Case, Unpack, Pack}
 
-\jp{In the case rule, the sum is a bit confusing. It may just work with
-  linear haskell, but Morally it is a union (or with), perhaps this should be written so for symmetry with what happens with constraints?}
-\jp{In the case rule, the letter e is used twice; this is confusing.}
 \jp{In G-Unpack, the use of ⊃ is confusing (it's not a superset, but rather a linear implication?). }
 
 \newpage
@@ -940,7 +937,7 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     Therefore $[[Q_g ; pi.G1 + G2 |- unpack x = e1 in e2 : t]]$.
   \item[Case] We have
     \begin{itemize}
-    \item $[[pi.G + Sum Gi |-> case e of {alts} : t ~> pi.C * && Ci]]$
+    \item $[[pi.G + D |-> case e of {alts} : t ~> pi.C * && Ci]]$
     \item $[[Q_g |- pi.C * && Ci]]$
     \item $[[G |-> e : T ss ~> C]]$
     \item For each $i$, $[[Gi, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
@@ -957,7 +954,7 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     \item $[[Q; G |- e : T ss]]$
     \item For each $i$, $[[Q';Gi, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
     \end{itemize}
-    Therefore $[[Q_g ; pi.G + Sum Gi |- case e of {alts} : t]]$.
+    Therefore $[[Q_g ; pi.G + D |- case e of {alts} : t]]$.
   \end{description}
 \end{proof}
 
