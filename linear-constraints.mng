@@ -939,7 +939,7 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     \item $[[pi.G + D |-> case e of {alts} : t ~> pi.C * && Ci]]$
     \item $[[Q_g |- pi.C * && Ci]]$
     \item $[[G |-> e : T ss ~> C]]$
-    \item For each $i$, $[[Gi, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
+    \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
     \end{itemize}
     By repeated uses of Lemma~\ref{lem:inversion}, there exist
     $[[Q]]$, $[[Q']]$ such that
@@ -951,7 +951,7 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     By induction hypothesis
     \begin{itemize}
     \item $[[Q; G |- e : T ss]]$
-    \item For each $i$, $[[Q';Gi, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
+    \item For each $i$, $[[Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
     \end{itemize}
     Therefore $[[Q_g ; pi.G + D |- case e of {alts} : t]]$.
   \end{description}
