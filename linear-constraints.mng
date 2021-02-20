@@ -760,13 +760,33 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
     \end{itemize}
   \end{itemize}
 \end{lemma}
-\unsure{I think they correspond to the uniform proof
-  story from~\cite{hh-ll}, namely, any provable sequent with a
-  non-atomic right-hand side can be proved with a right introduction
-  rule. There is a bit of complication here due to the domain-specific
-  entailment but the decomposability requirement should give us the
-  same result.}
+\begin{proof}
+  The cases $[[Q |- C1 & C2]]$ and $[[Q |- pi.(Q2 => C)]]$ are
+  immediate, since there is only one rule (\rref*{C-With} and
+  \rref*{C-Impl} respectively) which can have them as their
+  conclusion.
 
+  For $[[Q |- C1 * C2]]$ we have two cases:
+  \begin{itemize}
+  \item either it is the conclusion of a \rref*{C-Tensor} rule, and
+    the result is immediate.
+  \item or it is the result of a \rref*{C-Dom} rule, in which case we
+    have $[[C1]]=[[Q1]]$, $[[C2]]=[[Q2]]$, and the result follows from
+    the definition of the entailment relation.
+  \end{itemize}
+
+  This proof may look very fragile. After all in a system with
+  quantified constraints~\cite{quantified-constraints}, such as the
+  current implementation of \textsc{ghc}, there are rules with
+  non-atomic conclusions which do not introduce a connective.
+
+  Proofs where each non-atomic goal is the conclusion of a
+  corresponding introduction rule has been called \emph{uniform}
+  in~\cite{hh-ll}. They prove for a fragment of linear logic which
+  includes quantified constraints and linear generalisations thereof,
+  that all provable sequent can be proved by a uniform proof. So this
+  lemma, is, in fact, quite robust.
+\end{proof}
 
 \begin{lemma}
   \label{lem:wanted:promote}
