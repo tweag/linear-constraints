@@ -564,6 +564,11 @@ $$
 Note that $[[1.Q]] = [[Q]]$ and that
 $[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
+We will often omit the scaling factor for linear atomic constraints
+and write $[[q]]$ for $[[1.q]]$. Note that there is no ambiguity as,
+if $[[pi.q]]$ is read as $[[pi.(1.q)]]$, then it does, indeed, equal
+$[[pi.q]]$.
+
 The constraint entailment relation must satisfy the following
 properties:
 
@@ -732,11 +737,9 @@ $$
 \right.
 $$
 
-Note that there is no ambiguity when writing $[[Q => C]]$ for
-$[[1.(Q => C)]]$, since $[[pi.(1.(Q => C))]]$ is indeed equal to
-$[[pi.(Q => C)]]$.\unsure{I'm making this remark here, but it's also
-  true of writing $[[q]]$ in the the simple constraints.}
-
+Like in Section~\ref{sec:constraint-domain}, we will typically drop
+the scaling factor for implication when it is $[[1]]$ and write $[[Q
+=> C]]$ for $[[1.(Q=>C)]]$.
 
 \begin{lemma}
   \label{lem:inversion}
