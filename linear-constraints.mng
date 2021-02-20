@@ -1106,10 +1106,14 @@ think) but the details don't matter terribly.
   
 }
 
-In order to establish the soundness of our language, we shall show how
-it desugars to a simpler core language: a mild variant of the $λ^q$
-calculus from the Linear Haskell article~\cite{LinearHaskell} which is
-describe in Figure~\ref{fig:core-typing-rules}.
+The semantics of our language is given by desugaring it into
+a simpler core language: a mild variant of the $λ^q$
+calculus from the Linear Haskell article~\cite{LinearHaskell}.
+
+\subsection{The core calculus}
+\label{sec:core-calculus}
+
+Our Core calculus is described in Figure~\ref{fig:core-typing-rules}.
 
 \begin{figure}
   \centering
@@ -1119,7 +1123,9 @@ describe in Figure~\ref{fig:core-typing-rules}.
   \label{fig:core-typing-rules}
 \end{figure}
 
-The differences with $λ^q$ are as follows
+The differences between Figure~\ref{fig:core-typing-rules} and $λ^q$
+from the Linear Haskell article~\cite{LinearHaskell}
+are as follows
 \begin{itemize}
 \item We don't have multiplicity polymorphism.
 \item We need, on the other hand, type polymorphism.
@@ -1133,26 +1139,115 @@ The differences with $λ^q$ are as follows
   Haskell as a family of \textsc{gadt}s.
 \end{itemize}
 
-In addition, we shall assume the existence of a data type
-$[[t1 * t2]]$ with sole constructor
-$[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$.
+In addition, we shall assume the existence of data types
+\begin{itemize}
+\item $[[t1 * t2]]$ with sole constructor
+  $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $(e1,
+  e2)$ for $(,) e1 e2$.
+\item $[[Ur t]]$ with sole constructor $[[ Ur : forall a. a ->_omega
+  Ur a]]$
+\end{itemize}
+\unsure{As I'm writing this I realise that there is no mention that
+  data constructors are treated as variables. It should probably be
+  somewhere in English, as well as in the definition of
+  $[[x :_1 forall as. u \in G]]$}
 
-\begin{theorem}[Desugaring]
-  If $[[G |-> e : t ~> C]]$ and $[[Q_g |-s C_w ~> Q_o ; Q_r]]$, then
-  there exists $[[G']]$, $[[e']]$, and $[[t']]$ such that $[[G' |- e' : t']]$
-\end{theorem}
+These are regular data types and constructors of the language, they
+are consumed with $\kcase$.
 
-\unsure{Todo: remove the following}
-Goal: describe transformations
-\begin{enumerate}
-\item Constraint generator + solver $\leadsto$ declarative
-  system\unsure{My [Arnaud's] guess is that the main difficulty, here,
-  will be to deal with $⊤$ and its effect at a distance}
-\item declarative system $\leadsto$ $λ^q$\info{Really, this is just
-    evidence passing style. If the declarative system is well written,
-    it will be quite direct.}
-\end{enumerate}
+\subsection{Infered constraints}
+\label{sec:ds:infered-constraints}
 
+Using Lemma~\ref{sec:constraint-generation-soundness} together with
+the correctness criterion\unsure{maybe tug this in a definition so
+  that referring to it is easier} of the solver from
+Section~\ref{sec:constraint-solver} we know that if
+$[[G |-> e : t ~> C]]$ and $[[Q_g |-s C_w ~> 1 ; Q_r]]$, then
+$[[Q_g * Q_r ; G |- e : t]]$. Furthermore, the proof of
+Lemma~\ref{sec:constraint-generation-soundness}, so it actually yields
+an algorithm which computes a derivation of
+$[[Q_g * Q_r ; G |- e : t]]$.
+
+It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
+Core Calculus. Let us dedicate the rest of this section to describe
+this last step.
+
+\subsection{From qualified to core}
+\label{sec:ds:from-qualified-core}
+
+In order to desugar derivations of the qualified system to the core
+calculus, we will use the classic technique known as evidence-passing
+style\footnote{This technique is also often called dictionary-passing
+  style because, in the case of type classes, evidences are
+  dictionaries, and because type classes were the original form of
+  constraints in Haskell.}
+
+To do so, we shall require some more material from
+constraints. Namely, we will assume a type $[[Ev(q)]]$ for each atomic
+constraint. It is extended to all constraints
+
+$$
+\left\{
+  \begin{array}{lcl}
+    [[Ev(1.q)]] & = & [[Ev(q)]] \\
+    [[Ev(omega.q)]] & = & [[Ur (Ev(q))]] \\
+    [[Ev(Q1 * Q2)]] & = & [[Ev(Q1) * Ev(Q2)]]
+  \end{array}
+\right.
+$$
+\unsure{Todo: Extend the syntax with the empty constraint, and the
+  corresponding unit type for evidence}
+
+Furthermore we shall require that for every $[[Q1]]$ and $[[Q2]]$
+such that $[[Q1 ||- Q2]]$, there is a (linear) function
+$[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
+
+With this we can desugar a type $[[t]]$ of the qualified system into
+a type $[[Ds(t)]]$ of the core calculus.\unsure{confusion type vs type
+  scheme aka polytype. Probably not a problem, but it should be
+  explained somewhere.}
+
+$$
+\left\{
+  \begin{array}{lcl}
+    [[Ds(forall as. Q =o t)]] & = & [[forall as. Ev(Q) ->_1 Ds(t)]] \\
+    [[Ds(t1 ->_pi t2)]] & = & [[Ds(t1) ->_pi Ds(t2)]] \\
+    [[Ds(exists as. t o= Q)]] & = & [[exists as. Ds(t) o- Ev(Q)]]
+  \end{array}
+\right.
+$$
+
+Let us finally build, given a derivation $[[Q;G |- e : t]]$, an
+expression $[[Ds(z;Q;G |- e : t)]]$, such that
+$[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for a distinguished
+variable $[[z]]$).
+
+\unsure{I need a device to convert an $[[Ev(omega.Q)]]$ into $[[Ur(Ev(Q))]]$.}
+\unsure{Explain how to read the recursive definition, because it's not
+  really obvious}.
+$$
+\left\{
+  \begin{array}{lcl}
+    [[ Ds(z;Q;G |- x : u[ts/as]) ]] & = & [[ x (Ev(Q ||- Q1[ts/as]) z) ]] \\
+    [[ Ds(z;Q;G |- \x.e : t1 ->_pi t2) ]] & = & [[ \x. Ds(z;Q;G,x:_pi t1
+                                              |- e : t2) ]] \\
+    [[ Ds(z;Q1*Q2; G1+G2 |- e1 e2 : t) ]]
+        & = & [[ case z of { (z', z'') -> Ds(z';Q1;G1 |- e1 : t1 ->_1 t)
+              Ds(z'';Q2;G2 |- e2 : t1) } ]] \\
+    [[ Ds(z;Q1*omega.Q2; G1+omega.G2 |- e1 e2 : t) ]]
+        & = & [[ case z of { (z', z'') -> case urify z'' of { Ur z'''
+              -> Ds(z';Q1;G1 |- e1 : t1 ->_omega t)
+              Ds(z''';Q2;G2 |- e2 : t1) }} ]]
+  \end{array}
+\right.
+$$
+
+\unsure{Probably todo: change the equality
+  $[[omega.q * omega.q]]=[[omega.q]]$ into logical equivalence. This
+  is used in a couple of place, I can think, in particular, of the
+  promotion of with change mutatis mutandis. I think that I want to do
+  the same for symmetry and associativity. Otherwise, defining
+  $[[Ev(Q)]]$ gets a bit messy.}
 
 \newpage
 
@@ -1563,4 +1658,5 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 
 \end{document}
 
-% LocalWords:  sequent typechecker idempotence polymorphism
+% LocalWords:  sequent typechecker idempotence polymorphism desugar
+% LocalWords:  desugaring

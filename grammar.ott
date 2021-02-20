@@ -5,7 +5,7 @@
 %%  Metavariables  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-metavar x,y ::= {{ com Term variables }}
+metavar x,y,z ::= {{ com Term variables }}
 metavar a,b  ::= {{ com Type variables }}
 metavar K  ::= {{ com Data constructors }}
 metavar T  ::= {{ com Type constructors }}
@@ -61,7 +61,11 @@ t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com 
 | ts1 ->_ pis t2           :: S :: Function  {{ tex [[ts1]] \to_{[[pis]]} [[t2]] }}
 | T ts                   ::   :: TyConApp
 | t [ theta ]            :: M :: Subst
+| ( t )                  :: S :: Paren
 % Desugared types (see also expressions)
+| Ds ( t )               :: M :: Desugared
+| Ev ( Q )               :: M :: Evidence
+| Ur t                   ::   :: Unrestricted
 | t1 * t2                ::   :: Prod
 | t1 o- t2               ::   :: DsCarry
 
@@ -106,16 +110,21 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | unpack x = e1 in e2    ::   :: Unpack
 | let x = e1 in e2       ::   :: Let
 | case e of { alts }     ::   :: Case
+| ( e )                  :: S :: Paren
 % Cheating a little by adding desugared expressions to the same grammar below.
 % This is not formally correct, but it should do.
-| Ds ( e )               :: M :: Desugar
-| Ev ( Q )               :: M :: Evidence
+| Ev ( Q1 ||- Q2 )       :: M :: Evidence
+| Ds ( z ; Ty )          :: M :: Desugar
+| Ur                     :: M :: UnrestrictedCon
+| urify                  :: M :: Urify
 | (,)                    ::   :: ProdCon
 | ( e1 , e2 )            :: M :: Prod
 | unpack (y, x) = e1 in e2    ::   :: UnpackProd
 
 alt :: 'Alt_' ::= {{ com Case alternative }}
-| K xs -> e              ::   :: Alt
+% We should consider making a category K, instead of using an expression everywhere a constructor is needed.
+| e0 xs -> e              ::   :: Alt
+| ( x1 , x2 ) -> e       ::   :: Prod
 
 alts {{ tex \overline{\ottmv{K}\ \overline{\ottmv{x}_i } \to \ottnt{e}_i } }}
   :: 'Alts_' ::= {{ com Case alternatives }}
