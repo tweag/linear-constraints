@@ -490,11 +490,6 @@ firstLine fp =
 \section{A qualified type system}
 
 \unsure{Some transition from example into the technique needed here.}
-\unsure{I [Arnaud] think that either the subsumption should be removed
-from the Var rule (using the Sub rule explicitly when needed), or, I
-should remove the Sub rule and use subsumption wherever relevant (in
-particular the Pack rule). Let's revisit this when the proofs are
-done.}
 
 The description of the type system in this section, as well as the
 type inference algorithm of Section~\ref{sec:type-inference}, are
@@ -538,6 +533,19 @@ Linear Haskell~\cite{LinearHaskell}~--~as such they don't have
 interesting interaction with the rest of the system, and we choose to
 omit them for simplicity.
 
+\unsure{Missing: detailed syntax}
+
+We consider constraints equal up to associativity and commutativity of
+tensor products, as well as idempotence of the unrestricted
+constraints. That is
+$$
+\begin{array}{l}
+  [[Q1 * Q2]] = [[Q2 * Q1]] \\
+  [[(Q1*Q2)*Q3]] = [[Q1*(Q2*Q3)]] \\
+  [[omega.q * omega.q]] = [[omega.q]]
+\end{array}
+$$
+
 Scaling is extended to all constraints:
 
 $$
@@ -553,7 +561,8 @@ $$
   an exotic feature of Linear Haskell. It does simplify the
   presentation a bit here.}
 
-Note that $[[1.Q]] = [[Q]]$.
+Note that $[[1.Q]] = [[Q]]$ and that
+$[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
 The constraint entailment relation must satisfy the following
 properties:
@@ -654,7 +663,11 @@ is used implicitly in \rref{E-Var}.
 %
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 
-See Figure~\ref{fig:typing-rules}.
+See Figure~\ref{fig:typing-rules}.\unsure{I [Arnaud] think that either
+  the subsumption should be removed from the Var rule (using the Sub
+  rule explicitly when needed), or, I should remove the Sub rule and
+  use subsumption wherever relevant (in particular the Pack
+  rule). Let's revisit this when the proofs are done.}
 
 Main differences:
 \begin{itemize}
@@ -1484,4 +1497,4 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 
 \end{document}
 
-% LocalWords:  sequent typechecker
+% LocalWords:  sequent typechecker idempotence
