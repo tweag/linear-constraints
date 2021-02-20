@@ -1137,6 +1137,12 @@ In addition, we shall assume the existence of a data type
 $[[t1 * t2]]$ with sole constructor
 $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$.
 
+\begin{theorem}[Desugaring]
+  If $[[G |-> e : t ~> C]]$ and $[[Q_g |-s C_w ~> Q_o ; Q_r]]$, then
+  there exists $[[G']]$, $[[e']]$, and $[[t']]$ such that $[[G' |- e' : t']]$
+\end{theorem}
+
+\unsure{Todo: remove the following}
 Goal: describe transformations
 \begin{enumerate}
 \item Constraint generator + solver $\leadsto$ declarative
