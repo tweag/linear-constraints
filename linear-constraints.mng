@@ -749,9 +749,7 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
     \begin{itemize}
     \item $[[Q1 |- C1]]$
     \item $[[Q2 |- C2]]$
-    \item $[[Q]] = [[Q1 * Q2]]$\unsure{I'm not sure this last
-        one is quite the correct criterion. In that we may want an
-        equivalence rather than an equality.}
+    \item $[[Q]] = [[Q1 * Q2]]$
     \end{itemize}
   \item If $[[Q |- C1 & C2]]$, then $[[Q |- C1]]$ and $[[Q |- C2]]$.
   \item If $[[Q |- pi.(Q2 => C)]]$, then there exists $[[Q1]]$ such
@@ -784,8 +782,14 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
     using Lemma~\ref{lem:inversion}.
   \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
     immediate, so we can assume without loss of generality that
-    $[[pi]]=[[omega]]$.\unsure{I'm not sure that I have enough
-      hypotheses to prove this.}
+    $[[pi]]=[[omega]]$, and, therefore, that $[[pi.C]] = [[pi.C1 *
+    pi.C2]]$.
+    By Lemma~\ref{lem:inversion}, we have that $[[Q|-C1]]$ and
+    $[[Q|-C2]]$; hence, by induction, $[[omega.Q |- omega.C1]]$ and
+    $[[omega.Q |- omega.C1]]$.
+    Then, by definition of the entailment relation, we have $[[omega.Q
+    * omega.Q |- omega.C1 * omega.C2]]$, which concludes,
+    since $[[omega.Q]] = [[omega.Q * omega.Q]]$.
   \item If $[[C]]=[[rho.(Q1 => C)]]$, then by
     Lemma~\ref{lem:inversion}, there is a $[[Q']]$ such that
     $[[Q]]=[[pi.Q']]$ and $[[Q'*Q1 |- C]]$. Applying
