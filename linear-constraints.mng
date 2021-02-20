@@ -126,6 +126,7 @@ import GHC.Base
   \newcommand{\lollycirc}{\raisebox{-0.2ex}{\scalebox{1.4}{$\circ$}}}
   \newcommand{\Lolly}{\mathop{=\!\!\!{\lollycirc}}}
   \newcommand{\RLolly}{\mathop{\lollycirc\!\!\!=}}
+  \newcommand{\rlolly}{\mathop{\reflectbox{$\multimap$}}}
   \newcommand{\subst}[2]{[#1]#2}
   \newcommand{\sby}[2]{#1 ↦ #2}
   \newcommand{\vdashi}{⊢_{\mathsf{i}}}
@@ -919,7 +920,7 @@ these constraints are solvable using $[[Q]]$ with no leftover,
     \item $[[G |-> x : u[ts/as] ~> Q[ts/as] ]]$
     \item $[[Q_g |- Q[ts/as] ]]$
     \end{itemize}
-    Therefore, by rule~\rref{E-Var}\unsure{and E-Sub if we
+    Therefore, by rule~\rref*{E-Var}\unsure{and E-Sub if we
       remove subsumption from the Var rule}, it follows
     immediately that $[[Q_g ; G |- x : u[ts/as] ]]$
   \item[Abs] We have
@@ -1105,6 +1106,37 @@ think) but the details don't matter terribly.
   
 }
 
+In order to establish the soundness of our language, we shall show how
+it desugars to a simpler core language: a mild variant of the $λ^q$
+calculus from the Linear Haskell article~\cite{LinearHaskell} which is
+describe in Figure~\ref{fig:core-typing-rules}.
+
+\begin{figure}
+  \centering
+  \drules[L]{$[[G |- e : t]]$}{Core language
+    typing}{Var,Abs,App,Pack,Unpack,Let,Case}
+  \caption{Qualified type system}
+  \label{fig:core-typing-rules}
+\end{figure}
+
+The differences with $λ^q$ are as follows
+\begin{itemize}
+\item We don't have multiplicity polymorphism.
+\item We need, on the other hand, type polymorphism.
+\item Polymorphism is implicit rather than explicit. This is not an
+  essential difference but it simplifies the presentation.
+\item We a $\kpack$ and $\kunpack$ pair of constructions, which
+  introduce existentially quantified types. Specifically type of the
+  form $[[exists as. t2 o- t1]]$: a pair of an unrestricted $[[t2]]$
+  and a linear $[[t1]]$. As the $\kpack$ and $\kunpack$ of
+  Section~\ref{sec:typing-rules}, these can be realised in regular
+  Haskell as a family of \textsc{gadt}s.
+\end{itemize}
+
+In addition, we shall assume the existence of a data type
+$[[t1 * t2]]$ with sole constructor
+$[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$.
+
 Goal: describe transformations
 \begin{enumerate}
 \item Constraint generator + solver $\leadsto$ declarative
@@ -1114,6 +1146,7 @@ Goal: describe transformations
     evidence passing style. If the declarative system is well written,
     it will be quite direct.}
 \end{enumerate}
+
 
 \newpage
 
@@ -1524,4 +1557,4 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 
 \end{document}
 
-% LocalWords:  sequent typechecker idempotence
+% LocalWords:  sequent typechecker idempotence polymorphism

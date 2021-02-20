@@ -5,8 +5,8 @@
 %%  Metavariables  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-metavar x  ::= {{ com Term variables }}
-metavar a  ::= {{ com Type variables }}
+metavar x,y ::= {{ com Term variables }}
+metavar a,b  ::= {{ com Type variables }}
 metavar K  ::= {{ com Data constructors }}
 metavar T  ::= {{ com Type constructors }}
 indexvar i, j ::=  {{ com Index variables }}
@@ -50,6 +50,7 @@ C :: 'Ctg_' ::= {{ com Generated constraints}}
 %%  Types  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com Types }}
+| a                      ::   :: Var
 | Q =o t                 ::   :: Qual
 | t o= Q                 ::   :: Carry
 | forall as . t          ::   :: ForallNested
@@ -60,6 +61,9 @@ t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com 
 | ts1 ->_ pis t2           :: S :: Function  {{ tex [[ts1]] \to_{[[pis]]} [[t2]] }}
 | T ts                   ::   :: TyConApp
 | t [ theta ]            :: M :: Subst
+% Desugared types (see also expressions)
+| t1 * t2                ::   :: Prod
+| t1 o- t2               ::   :: DsCarry
 
 ts {{ tex \overline{\tau} }}, us {{ tex \overline{\upsilon} }}, ss {{ tex \overline{\sigma} }}
   :: 'Types_' ::= {{ com List of types }}
@@ -95,12 +99,20 @@ theta {{ tex \theta }} :: 'Subst_' ::= {{ com Substitutions }}
 
 e :: 'Expr_' ::= {{ com Expressions }}
 | x                      ::   :: Var
+| K                      ::   :: DataCon
 | \ x . e                ::   :: Lam
 | e1 e2                  ::   :: App
 | pack e                 ::   :: Pack
 | unpack x = e1 in e2    ::   :: Unpack
 | let x = e1 in e2       ::   :: Let
 | case e of { alts }     ::   :: Case
+% Cheating a little by adding desugared expressions to the same grammar below.
+% This is not formally correct, but it should do.
+| Ds ( e )               :: M :: Desugar
+| Ev ( Q )               :: M :: Evidence
+| (,)                    ::   :: ProdCon
+| ( e1 , e2 )            :: M :: Prod
+| unpack (y, x) = e1 in e2    ::   :: UnpackProd
 
 alt :: 'Alt_' ::= {{ com Case alternative }}
 | K xs -> e              ::   :: Alt
@@ -123,6 +135,7 @@ as {{ tex \overline{\ottmv{a} } }} :: 'Tyvars_' ::=
 | empty                  ::   :: None
 | a                      ::   :: One
 | as1 , .... , asi       ::   :: Many
+| a1 .... ai             ::   :: ManyBinds
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Contexts  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,6 +153,10 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | pi . G            :: M :: Scale {{ tex [[pi]]{⋅}[[G]]}}
 | < binding >       :: M :: Repeat
   {{ tex \overline{[[binding]]} }}
+% Desugared contexts (see also expressions)
+| Evs ( Q )         :: M :: Evidence
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Terminals  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -160,6 +177,7 @@ terminals :: 'terminals_' ::=
 | exists      ::   :: Exists  {{ tex \exists }}
 | =o          ::   :: Lolli   {{ tex \Lolly }}
 | o=          ::   :: illoL   {{ tex \RLolly }}
+| o-          ::   :: illol   {{ tex \rlolly }}
 | \in         ::   :: In      {{ tex \in }}
 | \notin      ::   :: NotIn   {{ tex \notin }}
 | omega       ::   :: Many    {{ tex \omega }}
@@ -182,7 +200,7 @@ formula :: formula_ ::=
   {{ tex [[as]] \text{ fresh} }}
 | < formula >                     ::   :: Repeat
   {{ tex \overline{[[formula]]} }}
-| K : t                           ::   :: DataconTy
+| e : t                           ::   :: DataconTy
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Parsing rules  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -191,6 +209,7 @@ formula :: formula_ ::=
 parsing
 
 Type_ExistsNested <= Type_Carry
+Type_ExistsNested <= Type_DsCarry
 Ct_Tensor <= Ct_Unrestricted
 Ct_Tensor <= Ct_Scale
 Ct_Tensor <= Ct_Subst

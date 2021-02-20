@@ -146,3 +146,49 @@ Q_g |-s C_w ~> Q_o ; Q_r :: :: Solve :: 'S_' {{ com Constraint solving }}
 by
 
 % todo
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Desugared expressions  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+defns
+Core :: '' ::=
+
+defn
+G |- e : t :: :: Core :: 'L_' {{ com Core language }}
+by
+
+x :_1 forall as. u \in G
+------------------------- :: Var
+G |- x : u[ts/as]
+
+G, x:_pi t1 |- e : t2
+------------------------ :: Abs
+G |- \x.e : t1 ->_pi t2
+
+G1 |- e1 : t1 ->_pi t
+G2 |- e1 : t1
+------------------------- :: App
+G1 + pi.G2 |- e1 e2 : t
+
+G1 |- e1 : t1[us/as]
+G2 |- e2 : t2[us/as]
+------------------------------------------ :: Pack
+G1+omega.G2 |- pack (e1, e2) : exists as.t2 o- t1
+
+G1 |- e1 : exists as. t2 o- t1
+freshness condition on as
+G2,y:_1 t1,x:_omega t2 |- e2 : t
+------------------------------------ :: Unpack
+G1+G2 |- unpack (y,x) = e1 in e2 : t
+
+G1 |- e1 : t1
+G2, x:_pi t1 |- e2 : t
+----------------------------------- :: Let
+pi.G1 + G2 |- let x = e1 in e2 : t
+
+G1 |- e : T ts
+< Ki : forall as. usi ->_pisi T as >
+<G2, < xi :_(pi.pii) ui[ts/as] > |- ei : t >
+------------------------------------------------ :: Case
+pi.G1+G2 |- case e of { alts } : t
