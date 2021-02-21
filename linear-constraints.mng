@@ -1273,7 +1273,7 @@ $$
 \left\{
   \begin{array}{lcl}
     [[urify(Empty;e)]]& = & [[case e of {() -> Ur ()}]] \\
-    [[urify(Empty.q;e)]] & = & [[e]] \\
+    [[urify(1.q;e)]] & = & [[e]] \\
     [[urify(omega.q;e)]] & = & [[case e of {Ur x -> Ur (Ur x)}]] \\
     [[urify(Q1*Q2;e)]] & = & [[case e of {(urified(Q1;x), urified(Q2;y)) -> Ur (x,y)}]]
   \end{array}
