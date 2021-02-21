@@ -1226,6 +1226,9 @@ $$
 \right.
 $$
 
+We will often omit the $[[Q]]$ in $[[urify(Q;e)]]$, and write
+$[[urify(e)]]$ when it can be easily inferred from the context.
+
 With this we can desugar a type $[[t]]$ of the qualified system into
 a type $[[Ds(t)]]$ of the core calculus.\unsure{confusion type vs type
   scheme aka polytype. Probably not a problem, but it should be
@@ -1259,13 +1262,16 @@ $$
         & = & [[ case z of { (z', z'') -> Ds(z';Q1;G1 |- e1 : t1 ->_1 t)
               Ds(z'';Q2;G2 |- e2 : t1) } ]] \\
     [[ Ds(z;Q1*omega.Q2; G1+omega.G2 |- e1 e2 : t) ]]
-        & = & [[ case z of { (z', z'') -> case urify(z'') of { Ur z'''
+        & = & [[ case z of { (z', urified(z''))
               -> Ds(z';Q1;G1 |- e1 : t1 ->_omega t)
-              Ds(z''';Q2;G2 |- e2 : t1) }} ]] \\
+              Ds(z'';Q2;G2 |- e2 : t1) } ]] \\
     [[ Ds(z;omega.Q * Q1[us/as];omega.G |- pack e : exists as. t o=
     Q1)]]
-        & = & [[ case z of { (z', z'') -> case urify(z'') of {Ur z'''
-              -> pack (z'', Ds(z; Q ; G |- e : t[us/as]))}} ]]
+        & = & [[ case z of { (urified(z'), z'')
+              -> pack (z'', Ds(z'; Q ; G |- e : t[us/as]))} ]] \\
+    [[ Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t ]]
+        & = & [[ case z of { (z', z'') -> unpack (z''',x) =
+              Ds(z';Q1;G1 |- e1 : exists as. t1 o= Q) in let z'''' = (z'',z''') in Ds(z'''';Q2 * Q;G2,x:_omega t1 |- e2 : t) } ]]
 
   \end{array}
 \right.

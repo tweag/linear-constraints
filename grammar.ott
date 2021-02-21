@@ -121,7 +121,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | (,)                    ::   :: ProdCon
 | ( e1 , e2 )            :: M :: Prod
 | ()                     ::   :: UnitCon
-| unpack (y, x) = e1 in e2    ::   :: UnpackProd
+| unpack ( pat1 , pat2 ) = e1 in e2    ::   :: UnpackProd
 
 alt :: 'Alt_' ::= {{ com Case alternative }}
 | pat -> e              ::   :: Alt
