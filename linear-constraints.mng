@@ -936,7 +936,7 @@ presentation significantly.\unsure{This paragraph is more wordy than
 
 If we can type a term and generate constraints ($[[G |-> e : t ~> C]]$), and
 these constraints are solvable using $[[Q]]$ with no leftover,
-($[[Q |-s C ~> 1;1]]$), then we can type it in the declarative system
+($[[Q |-s C ~> Empty;Empty]]$), then we can type it in the declarative system
 ($[[Q;G |- e : t]]$).
 
 \begin{lemma}
@@ -1204,7 +1204,7 @@ Using Lemma~\ref{sec:constraint-generation-soundness} together with
 the correctness criterion\unsure{maybe tug this in a definition so
   that referring to it is easier} of the solver from
 Section~\ref{sec:constraint-solver} we know that if
-$[[G |-> e : t ~> C]]$ and $[[Q_g |-s C_w ~> 1 ; Q_r]]$, then
+$[[G |-> e : t ~> C]]$ and $[[Q_g |-s C_w ~> Empty ; Q_r]]$, then
 $[[Q_g * Q_r ; G |- e : t]]$.
 
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
@@ -1272,8 +1272,8 @@ Let's define $[[e : Ev(omega.Q)]]$:
 $$
 \left\{
   \begin{array}{lcl}
-    [[urify(1;e)]]& = & [[case e of {() -> Ur ()}]] \\
-    [[urify(1.q;e)]] & = & [[e]] \\
+    [[urify(Empty;e)]]& = & [[case e of {() -> Ur ()}]] \\
+    [[urify(Empty.q;e)]] & = & [[e]] \\
     [[urify(omega.q;e)]] & = & [[case e of {Ur x -> Ur (Ur x)}]] \\
     [[urify(Q1*Q2;e)]] & = & [[case e of {(urified(Q1;x), urified(Q2;y)) -> Ur (x,y)}]]
   \end{array}
