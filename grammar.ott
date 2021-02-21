@@ -139,6 +139,7 @@ alts {{ tex \overline{\ottmv{K}\ \overline{\ottmv{x}_i } \to \ottnt{e}_i } }}
   :: 'Alts_' ::= {{ com Case alternatives }}
 | empty                  ::   :: None
 | alt                    ::   :: One
+| < alt >                ::   :: Schema
 | alts1 ; .... ; altsi   ::   :: Many
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
