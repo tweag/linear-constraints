@@ -555,7 +555,7 @@ Section~\ref{sec:wanteds}. This is also the terminology used in
 Simple constraints are treated completely abstractly by the system; for
 inference it will have to come with a domain-specific solver, of which
 we only require that it adheres to the interface given in
-Section~\label{sec:simple-constraints}. For instance, in \textsc{ghc},
+Section~\ref{sec:constraint-solver}. For instance, in \textsc{ghc},
 the domain includes type classes the entailment relation describes
 instance resolution.
 
@@ -1238,6 +1238,26 @@ $$
 \unsure{Todo: Extend the syntax with the empty constraint, and the
   corresponding unit type for evidence}
 
+It ought to be noted that $[[Ev(Q)]]$ is not technically well
+defined. Indeed Section~\ref{sec:constraint-domain} defines the syntax
+as being quotiented by associativity and commutativity of the tensor
+product, and idempotence of unrestricted constraints. But core
+language data types (or Haskell's for that matter) are not so
+quotiented. So for the sake of defining $[[Ev(Q)]]$, we have to assume
+that a particular representative of the equivalence classes has been
+fixed.
+
+This is a bit imprecise. It's not actually hard to fix the
+imprecision: give a name to each atomic constraint, when tensoring two
+simple constraints together merge constraints with the same name. Much
+like we do for type context. This is actually essentially how
+\textsc{gch} deals with constraints today. It is also the mechanism
+that our prototype implementation (see
+Section~\ref{sec:implementation}) uses. However, we have preferred
+keeping this section a little imprecise, in order to save the rest of
+the article from the non-trivial extra tedium that the more precise
+presentation entails.
+
 Furthermore we shall require that for every $[[Q1]]$ and $[[Q2]]$
 such that $[[Q1 ||- Q2]]$, there is a (linear) function
 $[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
@@ -1286,7 +1306,7 @@ variable $[[z]]$).
 
 \unsure{I need a device to convert an $[[Ev(omega.Q)]]$ into $[[Ur(Ev(Q))]]$.}
 \unsure{Explain how to read the recursive definition, because it's not
-  really obvious}.
+  really obvious}
 $$
 \left\{
   \begin{array}{lcl}
@@ -1328,13 +1348,6 @@ $$
   \end{array}
 \right.
 $$
-
-\unsure{Probably todo: change the equality
-  $[[omega.q * omega.q]]=[[omega.q]]$ into logical equivalence. This
-  is used in a couple of place, I can think, in particular, of the
-  promotion of with change mutatis mutandis. I think that I want to do
-  the same for symmetry and associativity. Otherwise, defining
-  $[[Ev(Q)]]$ gets a bit messy.}
 
 It is straightforward by induction, to verify that, indeed,
 $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
@@ -1849,4 +1862,4 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 \end{document}
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
-% LocalWords:  desugaring
+% LocalWords:  desugaring ghc OutsideIn toplevel quotiented
