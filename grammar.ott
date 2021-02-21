@@ -116,15 +116,24 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | Ev ( Q1 ||- Q2 )       :: M :: Evidence
 | Ds ( z ; Ty )          :: M :: Desugar
 | Ur                     :: M :: UnrestrictedCon
-| urify                  :: M :: Urify
+| urify ( Q ; e )        :: M :: Urify  {{ tex \underline{[[e]]}_{[[Q]]} }}
+| urify ( e )            :: M :: UrifyShortened {{ tex \underline{[[e]]} }}
 | (,)                    ::   :: ProdCon
 | ( e1 , e2 )            :: M :: Prod
+| ()                     ::   :: UnitCon
 | unpack (y, x) = e1 in e2    ::   :: UnpackProd
 
 alt :: 'Alt_' ::= {{ com Case alternative }}
+| pat -> e              ::   :: Alt
+
+pat :: 'Pat_' ::= {{ com Patterns }}
 % We should consider making a category K, instead of using an expression everywhere a constructor is needed.
-| e0 xs -> e              ::   :: Alt
-| ( x1 , x2 ) -> e       ::   :: Prod
+| x                          ::   :: Var
+| e0 xs                      ::   :: Con
+| ()                         ::   :: Unit
+| ( pat1 , pat2 )            :: M :: Prod
+| urified ( Q ; pat )        :: M :: Urified  {{ tex \underline{[[pat]]}_{[[Q]]} }}
+| urified ( pat )            :: M :: UrifiedShortened  {{ tex \underline{[[pat]]} }}
 
 alts {{ tex \overline{\ottmv{K}\ \overline{\ottmv{x}_i } \to \ottnt{e}_i } }}
   :: 'Alts_' ::= {{ com Case alternatives }}
