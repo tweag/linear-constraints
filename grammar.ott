@@ -66,6 +66,7 @@ t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com 
 | Ds ( t )               :: M :: Desugared
 | Ev ( Q )               :: M :: Evidence
 | Ur t                   ::   :: Unrestricted
+| unit                   ::   :: Unit   {{ tex \mathbf{1} }}
 | t1 * t2                ::   :: Prod
 | t1 o- t2               ::   :: DsCarry
 

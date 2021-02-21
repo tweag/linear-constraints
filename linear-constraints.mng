@@ -1168,6 +1168,7 @@ In addition, we shall assume the existence of data types
 \item $[[t1 * t2]]$ with sole constructor
   $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $(e1,
   e2)$ for $(,) e1 e2$.
+\item $[[unit]]$ with sole constructor $[[() : unit]]$.
 \item $[[Ur t]]$ with sole constructor $[[ Ur : forall a. a ->_omega
   Ur a]]$
 \end{itemize}
@@ -1217,12 +1218,11 @@ $$
   \begin{array}{lcl}
     [[Ev(1.q)]] & = & [[Ev(q)]] \\
     [[Ev(omega.q)]] & = & [[Ur (Ev(q))]] \\
+    [[Ev(Empty)]] & = & [[unit]] \\
     [[Ev(Q1 * Q2)]] & = & [[Ev(Q1) * Ev(Q2)]]
   \end{array}
 \right.
 $$
-\unsure{Todo: Extend the syntax with the empty constraint, and the
-  corresponding unit type for evidence}
 
 It ought to be noted that $[[Ev(Q)]]$ is not technically well
 defined. Indeed Section~\ref{sec:constraint-domain} defines the syntax
