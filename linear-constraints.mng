@@ -1345,7 +1345,106 @@ announced.\unsure{a few more closing words would be welcome.}
 \section{Implementation}
 \label{sec:implementation}
 
-\unsure{Todo: discussion on the prototype implementation}
+We have implemented linear constraints on top GHC 9.1, a version that already
+ships with the LinearTypes extension. Function arrows (|->|) and context arrows
+(|=>|) share the same internal representation in the typechecker, differentiated
+only by a boolean flag. Thus, the LinearTypes implementation effort has already
+laid down the bureaucratic ground work of annotating these arrows with
+multiplicity information.
+
+The key changes affect constraint generation and constraint solving. Constraints
+are now annotated with a multiplicity, scaled according to the usage environment
+from which they arise.
+To illustrate these changes, let us consider the following API:
+
+\begin{code}
+class C
+
+useC :: C =>. Int
+\end{code}
+
+Now consider the following program, which we hope to reject:
+
+\begin{code}
+bad :: C =>. Bool -> Int
+bad x = if x then useC else 10
+\end{code}
+
+Traditionally, GHC would generate \emph{wanted} constraints from both branches
+of the if expression (here |C| from the ``true'' branch, and the trivial
+constraint from the ``false'' branch), then union these constraints and attempt
+to solve using the \emph{given} constraints (|C|). Then this program would be
+accepted, since |C| was used exactly once. However, as discussed in
+\ref{sec:constraint-generation}, the constraints of the individual branches of
+|if| (and more generally |case|) are combined using $[[&]]$. Intuitively, this
+means that for the whole function to use |C| once, both branches must use |C|
+exactly once. The shape of generated constraints thus need to follow the shape
+of the source program, and instead of representing constraints as sets, we need
+a tree of constraints. OutsideIn already includes implication constraints to
+handle GADT pattern matches, and we merely borrow these implication constraints
+to represent the tree structure.
+
+\unsure{I've been having some ott issues, so for now this is mainly written down
+as text} Implication constraints have a bag of \emph{given} constraints, and a
+bag of \emph{wanted} constraints, which themselves can be further implications.
+For |bad|, our implementation generates an implication with one copy of |C| as
+the given and a set of two implications |() => C| and |() => ()| as the wanteds,
+for the respective branches. Then we must be able to solve both branches by
+using up all linear constraints. To do this, we push the given |C| into the
+nested implications and proceed to attempt to solve |C => C| and |C => ()|.  The
+second implication's wanted is solvable without consuming the given, and thus an
+error is generated.
+
+Now consider the following program:
+
+\begin{code}
+bad2 :: C =>. Int
+bad2 = const 10 useC
+\end{code}
+
+where |const :: a ->. b -> a|. The constant function uses its first argument
+linearly, but it does not use its second argument, so the above program needs to
+be rejected. Once again, the LinearTypes effort has paved the way for us: in a
+function application, the argument's usage is scaled by the multiplicity of the
+function's arrow. Similarly, we just scale all wanted constraints that arise
+from an argument position. In fact, we only needed to modify the scaling
+function to also scale the emitted wanted constraints. The above program then
+gets rejected, because |C| is used $[[omega]]$ times.
+
+Finally, consider the following program
+
+\begin{code}
+bad3 :: C =>. (Int, Int)
+bad3 = (useC, useC)
+\end{code}
+
+Once again, this program is rejected, but here we slightly deviate from the
+strategy used in LinearTypes. The analogous program using LinearTypes is as follows:
+
+\begin{code}
+bad3' :: Int ->. (Int, Int)
+bad3' x = (x, x)
+\end{code}
+
+In this case, GHC counts the usage of |x| to be $[[omega]]$ and rejects the
+program. Instead of counting the usage up front, we modified the constraints
+solver to delete a linear given from the set of givens (what GHC calls the
+\emph{inert set}) when used to solve a linear wanted (of course linear givens
+can't be used to solve nonlinear wanteds). The rationale for this decision is to
+support the following program:
+
+\begin{code}
+good3 :: (C, C) =>. (Int, Int)
+good3 = (useC, useC)
+\end{code}
+
+That is, it is possible to have multiple copies of a given constraint. The order
+of resolution is non-deterministic, and it is up to the creator of the API to
+ensure that the runtime behaviour is confluent irrespective of the order of
+constraint resolution.
+\unsure{Linear constraints have no runtime payload, or even if they did, they
+would not be observable (safely) as dictionary methods use the dictionary in an
+unrestricted way.}
 
 \newpage
 
