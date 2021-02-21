@@ -612,10 +612,6 @@ $[[pi.q]]$.
 The constraint entailment relation must satisfy the following
 properties:
 
-\unsure{I'm probably using associativity and commutativity of the
-  tensor product under the hood. It should probably be assumed somehow.}
-\unsure{Todo: we ignore scaling by $1$ most of the time.}
-\unsure{Todo: scaled atomic constraints}
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
