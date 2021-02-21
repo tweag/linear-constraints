@@ -934,10 +934,8 @@ presentation significantly.\unsure{This paragraph is more wordy than
 \subsubsection{Soundness of constraint generation}
 \label{sec:constraint-generation-soundness}
 
-If we can type a term and generate constraints ($[[G |-> e : t ~> C]]$), and
-these constraints are solvable using $[[Q]]$ with no leftover,
-($[[Q |-s C ~> Empty;Empty]]$), then we can type it in the declarative system
-($[[Q;G |- e : t]]$).
+Let us now prove that every term whose generated wanted constraints
+are solvable can indeed be typed in the declarative type system.
 
 \begin{lemma}
   For all $[[Q_g]]$ if
@@ -1197,8 +1195,8 @@ the core calculus, we will allow ourselves to write nested
 patterns in case expressions. Desugaring nested patterns into atomic
 case expression is routine.
 
-\subsection{Infered constraints}
-\label{sec:ds:infered-constraints}
+\subsection{Inferred constraints}
+\label{sec:ds:inferred-constraints}
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
 the correctness criterion\unsure{maybe tug this in a definition so
