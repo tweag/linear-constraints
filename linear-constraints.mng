@@ -1166,8 +1166,8 @@ are as follows
 In addition, we shall assume the existence of data types
 \begin{itemize}
 \item $[[t1 * t2]]$ with sole constructor
-  $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $(e1,
-  e2)$ for $(,) e1 e2$.
+  $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $[[(e1,
+  e2)]]$ for $[[(,) e1 e2]]$.
 \item $[[unit]]$ with sole constructor $[[() : unit]]$.
 \item $[[Ur t]]$ with sole constructor $[[ Ur : forall a. a ->_omega
   Ur a]]$
