@@ -1345,7 +1345,7 @@ announced.\unsure{a few more closing words would be welcome.}
 \section{Implementation}
 \label{sec:implementation}
 
-We have implemented linear constraints on top GHC 9.1, a version that already
+We have implemented linear constraints on top of GHC 9.1, a version that already
 ships with the LinearTypes extension. Function arrows (|->|) and context arrows
 (|=>|) share the same internal representation in the typechecker, differentiated
 only by a boolean flag. Thus, the LinearTypes implementation effort has already
