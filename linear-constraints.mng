@@ -280,7 +280,8 @@ linear IO monad.
   once in the body of a definition.
 \item This system supports examples that have motivated the design of
   several resource-aware systems, such as ownership à la Rust, or
-  capabilities in the style of Mezzo\unsure{citation needed} or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
+  capabilities in the style of Mezzo~\cite{mezzo-permissions}
+  or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
   may serve as a way to unify these lines of research.\unsure{Speak of
   the Pony language? On the one hand Pony is a pretty cool piece of
   tech, on the other hand, I don't know enough to say something
@@ -328,8 +329,8 @@ typechecker automatically. And, indeed, compilers with \emph{ad hoc}
 specialised logic let me write essentially the traditional program but
 with the guarantee that if I forget to |closeFile|, I'll get a type
 error. This is most notably the case of the
-\textsc{ats}~\cite{AtsLinearViews}, and Mezzo
-languages\unsure{Citation needed}.\unsure{Both \textsc{ats} and Mezzo
+\textsc{ats}~\cite{AtsLinearViews}, and Mezzo~\cite{mezzo-permissions}
+languages.\unsure{Both \textsc{ats} and Mezzo
   are specialised in handling pointers-and-mutations, rather than
   file. So the sentence above is a little bit of a lie. Either
   rephrase to say that we can write programs of \emph{this type}, or
@@ -409,8 +410,8 @@ There are a few things to notice
   ()|. This |f| is a type-level name for the file which we are
   closing.
   Giving a name to function argument is the bread and butter of more
-  dependently typed languages such as \textsc{ats} or Liquid
-  Haskell\unsure{citation needed}. But Haskell doesn't have such a
+  dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
+  Haskell~\cite{liquid-haskell-abstract-refinement-types}. But Haskell doesn't have such a
   naming mechanism built in, so we have to make argument names
   explicit in types.
 \item Second, assuming that we have a single, linear, |Open f|
@@ -428,8 +429,8 @@ constraint.
 
 The fact that existential quantification generate new type-level names
 is a folklore observation. It's used crucially in the interface of the
-|ST| monad\unsure{citation needed} and of type-class
-reflection\unsure{citation needed} (in both of these cases, existential
+|ST| monad~\cite{st-monad} and of type-class
+reflection~\cite{type-class-reflection} (in both of these cases, existential
 quantification is encoded as a rank-2 universal quantificaton). We
 shall use it exactly this way: |openFile| uses an existential
 quantifier to generate the type-level name of the file
@@ -1623,7 +1624,7 @@ Something like
 \end{spec}
 
 But this is no longer $O(1)$ unless the compiler has special support
-(like |Coercible|~\cite{citation_needed}).
+(like |Coercible|~\cite{safe-coercions}).
 
 The crux of the issue is that mutable arrays and immutable arrays have
 distinct types, which me must convert.
