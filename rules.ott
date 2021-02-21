@@ -128,7 +128,7 @@ G1 |-> e1 : exists as. t1 o= Q1 ~> C1
 as fresh
 G2, x:_omega t1 |-> e2 : t ~> C2
 ------------------------------ :: Unpack
-G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q1 => C2
+G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * (Q1 => C2)
 
 G |-> e : t[us/as] ~> C
 ------------------------------ :: Pack

@@ -928,8 +928,6 @@ presentation significantly.\unsure{This paragraph is more wordy than
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
   App, Case, Unpack, Pack}
 
-\jp{In G-Unpack, the use of ⊃ is confusing (it's not a superset, but rather a linear implication?). }
-
 \newpage
 
 \subsubsection{Soundness of constraint generation}

@@ -39,7 +39,7 @@ C :: 'Ctg_' ::= {{ com Generated constraints}}
 | Q                  ::   :: Simple
 | C1 * C2            ::   :: Tensor
 | C1 & C2            ::   :: With
-| Q => C             ::   :: Impl  {{ tex [[Q]] ⊃ [[C]]}}
+| Q => C             ::   :: Impl  {{ tex [[Q]] \Lolly [[C]]}}
 | ! C                ::   :: Unrestricted
 | pi . C             :: M :: Scale  {{tex [[pi]]{⋅}[[C]]}}
 | && C               :: M :: BigWith
