@@ -1301,6 +1301,10 @@ $$
   the same for symmetry and associativity. Otherwise, defining
   $[[Ev(Q)]]$ gets a bit messy.}
 
+It is straightforward by induction, to verify that, indeed,
+$[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
+announced.\unsure{a few more closing words would be welcome.}
+
 \newpage
 
 \section{Implementation}
