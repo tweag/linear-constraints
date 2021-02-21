@@ -493,7 +493,7 @@ firstLine fp =
 \unsure{Some transition from example into the technique needed here.}
 
 The description of the type system in this section, as well as the
-type inference algorithm of Section~\ref{sec:type-inference}, are
+constraint inference algorithm of Section~\ref{sec:type-inference}, are
 strongly inspired by the presentation of
 OutsideIn~\cite{OutsideIn}. OutsideIn is a foundation of the type
 inference algorithm of \textsc{ghc}, the most popular Haskell
@@ -509,34 +509,43 @@ arise.
 \unsure{Multiplicities are $[[1]]$ or $[[omega]]$ (no
   variable). Multiplication table. Probably addition table.}
 
-\subsection{Constraint entailment relation}
+\subsection{Simple constraints}
 \label{sec:constraint-domain}
 
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
 
 Like OutsideIn (see~\cite[Section 3.2, in particular Figure
 3]{OutsideIn}), we parameterise the entire type system by a constraint
-domain. This domain is characterised by an entailment relation
-$[[Q1 ||- Q2]]$. The purpose of the constraint domain is to give a
-syntax and semantics to constraints, both of which are abstract in the
-type system. For instance, in \textsc{ghc}, the domain includes type
-classes the entailment relation describes instance resolution.
+domain\,--\,the $X$ in OutsideIn($X$). This domain is characterised by
+a set of \emph{atomic constraints} written $[[q]]$ and an entailment
+relation $[[Q1 ||- Q2]]$. These constraints are called \emph{simple
+  constraints} to distinguish them from the richer constraints of
+Section~\ref{sec:wanteds}. This is also the terminology used in
+\textsc{ghc}.
 
-For the sake of the examples of this article the domain need only be
-the simplest possible domain. The domain serves to support the rest of
-Haskell, or any future extension.
+Simple constraints are treated completely abstractly by the system; for
+inference it will have to come with a domain-specific solver, of which
+we only require that it adheres to the interface given in
+Section~\label{sec:simple-constraints}. For instance, in \textsc{ghc},
+the domain includes type classes the entailment relation describes
+instance resolution.
+
+For the sake of the examples of this article simple constraints need
+only be the simplest possible, whereby atomic constraints are treated
+as uninterpreted symbols. Being parameterised by the domain therefore
+only serves to support the rest of Haskell, or any future extension.
 
 OutsideIn introduces, as part of the constraint domain, a generalised
 kind of constraint $\mathcal{Q}$, which include toplevel axioms, such
-as type-class instance declaration declarations. Such toplevel axioms
-are never linear~--~just like toplevel definition are never linear in
-Linear Haskell~\cite{LinearHaskell}~--~as such they don't have
+as type-class instance declarations. Such toplevel axioms
+are never linear\,--\,just like toplevel definition are never linear in
+Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
 interesting interaction with the rest of the system, and we choose to
 omit them for simplicity.
 
 \unsure{Missing: detailed syntax}
 
-We consider constraints equal up to associativity and commutativity of
+We consider simple constraints equal up to associativity and commutativity of
 tensor products, as well as idempotence of the unrestricted
 constraints. That is
 $$
@@ -704,18 +713,18 @@ Main differences:
 
 \newpage
 
-\section{Type inference}
+\section{Constraint inference}
 \label{sec:type-inference}
-
-\unsure{Should we keep with the terminology type inference (here and
-  everywhere throughout the paper) considering that we assume that
-  types are inferred by someone else, but really just ``infer
-  constraints'' in some sense.}
 
 \unsure{Todo: transition}
 
-\subsection{Generated constraints}
+\subsection{Wanted constraints}
 \label{sec:wanteds}
+
+The constraint generated in Section~\ref{sec:constraint-generation}
+have a richer logical structure than the simple constraints. Let us
+follow \textsc{ghc}'s terminology and call these \emph{wanted
+constraints}: these are constraints which we \emph{want} to hold.
 
 \drules[C]{$[[Q |- C]]$}
   {Generalised constraint entailment}
@@ -725,7 +734,7 @@ Main differences:
   ``asynchronous'' then it need not appear in $[[Q]]$ constraints
   whereas if the combinator is ``synchronous'', then it does.}
 
-Scaling is extended to all generated constraints:
+Scaling is extended to all wanted constraints:
 
 $$
 \left\{
@@ -1057,10 +1066,10 @@ The key points are
 \end{itemize}
 
 We can do pretty much like in OutsideIn: split the constraint between
-flat constraints and non-flat constraints if we wish (but, this time,
-non-flat constraint include $\aand$! so there will be significantly
-more of them). Apply synchronous rules on non-flat constraint to retrieve flat
-constraint, call the simplifier on them.
+simple constraints and non-simple wanted constraints if we wish (but, this time,
+non-simple constraint include $\aand$! so there will be significantly
+more of them). Apply synchronous rules on non-simple constraints to retrieve simple
+constraints, call the simplifier on them.
 
 To be honest, we can even do one atomic constraint at a time, given
 that we have no equality, hence our wanted can't interact (I [Arnaud]
@@ -1168,9 +1177,6 @@ the correctness criterion\unsure{maybe tug this in a definition so
   that referring to it is easier} of the solver from
 Section~\ref{sec:constraint-solver} we know that if
 $[[G |-> e : t ~> C]]$ and $[[Q_g |-s C_w ~> 1 ; Q_r]]$, then
-$[[Q_g * Q_r ; G |- e : t]]$. Furthermore, the proof of
-Lemma~\ref{sec:constraint-generation-soundness}, so it actually yields
-an algorithm which computes a derivation of
 $[[Q_g * Q_r ; G |- e : t]]$.
 
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
@@ -1189,7 +1195,7 @@ style\footnote{This technique is also often called dictionary-passing
 
 To do so, we shall require some more material from
 constraints. Namely, we will assume a type $[[Ev(q)]]$ for each atomic
-constraint. It is extended to all constraints
+constraint. It is extended to all simple constraints
 
 $$
 \left\{
