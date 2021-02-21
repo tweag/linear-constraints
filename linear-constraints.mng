@@ -198,7 +198,7 @@ respect to the type system, and show how our changes can be integrated into
 
 \renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, and Spiwack}
 
-\section*{Introduction}
+\section{Introduction}
 \info{There  is an Appendix section with unorganised thoughts and
   examples.}
 
