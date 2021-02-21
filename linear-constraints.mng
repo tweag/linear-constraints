@@ -507,9 +507,6 @@ arise.
 \subsection{Multiplicities}
 \label{sec:multiplicities}
 
-\unsure{Multiplicities are $[[1]]$ or $[[omega]]$ (no
-  variable). Multiplication table. Probably addition table.}
-
 Like in Linear Haskell~\cite{LinearHaskell} we shall make use of a
 system of \emph{multiplicities}, which describe how linear functions
 can be. Linear Haskell is parametric in the system of
