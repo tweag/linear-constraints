@@ -79,9 +79,9 @@ Q2 * Q;G2,x:_omega t1 |- e2 : t
 Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t
 
 Q1;G1 |- e1 : t1
-Q2;G2,x:_pi t1 |- e2 : t
+Q2;G2,x:_pi Q1 =o t1 |- e2 : t
 --------------------------- :: Let
-pi.Q1 * Q2 ;pi.G1+G2 |- let x = e1 in e2 : t
+Q2 ;pi.G1+G2 |- let x = e1 in e2 : t
 
 Q1;G1 |- e : T ts
 < Ki : forall as. usi ->_pisi T as >
@@ -138,7 +138,7 @@ omega.G |-> pack e : exists as. t o= Q ~> omega.C * Q[us/as]
 G1 |-> e1 : t1 ~> C1
 G2, x:_pi Q1 =o t1 |-> e2 : t ~> C2
 ------------------------------ :: Let
-pi.G1+G2 |-> let x = e1 in e2 : t ~> C2 * pi.(Q1 => C1)
+pi.G1+G2 |-> let x = e1 in e2 : t ~> C2 * (Q1 => C1)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraint solver  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
