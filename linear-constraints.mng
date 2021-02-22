@@ -745,12 +745,13 @@ properties:
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
-    [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
-    [[Q ||- Q1 * Q2]] \text{ then there exists } [[Q']] \text{ and } [[Q'']]
+    [[Q * Empty ||- Q]] \text{ and } [[Q ||- Q*Empty ]] \\
+    \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
+    \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[Q']] \text{ and } [[Q'']]
     \text{ such that } [[Q]]=[[Q' * Q'']] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
-    [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
-    [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
-    [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
+    \text{if } [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
+    \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
+    \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
     that } [[Q]] = [[pi. Q']] \text{ and } [[Q' ||- rho . q]]
   \end{array}
 \end{displaymath}
