@@ -228,9 +228,9 @@ it. Linearity ensures that the file handle |f| is consumed at the end.
 Forgetting to call |closeFile f| would result in a type error since |f| would
 remain unused at the end of the function. Notice that |readLine| consumes the
 file handle, and returns a fresh |f| that shadows the previous version, to be
-used in further interactions with the file. The line's content is returned in an
-|Ur| wrapper (pronounced ``unrestricted'') to signify that it can be used
-arbitrary many times.
+used in further interactions with the file. The line's content is a bytestring
+|bs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
+signify that it can be used arbitrary many times.
 
 % We see that linear types introduce some noise on the |readLine| line:
 % we need to destruct an extra pair, and an extra |Ur| (called
