@@ -484,12 +484,12 @@ empty. This lets us give the following \textsc{api} to files:
 
 Haskell doesn't have such existential quantification, however each
 instance of such existential quantification can be encoded as a
-\textsc{gadt}. For instance |exists f. File f .<= Open f| can be
+\textsc{gadt}. For instance |exists h. Handle h .<= Open h| can be
 implemented as
 
 \begin{code}
-data NewFile where
-  Pack :: Open h =>. Handle h -> NewFile
+data PackHandle where
+  Pack :: Open h =>. Handle h -> PackHandle
 \end{code}
 
 Therefore, the existential types of this article are really a
@@ -1825,9 +1825,9 @@ To illustrate the practical necessity of the let generalisation strategy,
 consider the following file handling API:
 
 \begin{code}
-newFile :: IO (exists f. File f .<= Open f)
-writeFile :: Open f =>. File f -> String -> IO (() .<= Open f)
-closeFile :: Open f =>. File f -> IO ()
+newFile :: IO (exists h. Handle h .<= Open h)
+writeFile :: Open h =>. File h -> String -> IO (() .<= Open h)
+closeFile :: Open h =>. File h -> IO ()
 \end{code}
 
 The |newFile| function creates a file and returns a file handle |File f|,
@@ -1932,9 +1932,9 @@ want to actually ensure that |closeFile| gets \emph{executed}, so maybe a better
 interface would be
 
 \begin{code}
-newFile :: IO (exists f. File f .<= Open f)
-writeFile :: File f -> String -> IO (Open f =>. () .<= Open f)
-closeFile :: File f -> IO (Open f =>. ())
+newFile :: IO (exists h. Handle h .<= Open h)
+writeFile :: Handle h -> String -> IO (Open h =>. () .<= Open h)
+closeFile :: Handle h -> IO (Open h =>. ())
 \end{code}
 
 is there any other way to fix it? Maybe a linear constraint is only consumed in
