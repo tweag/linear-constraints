@@ -634,7 +634,7 @@ regular Haskell functions).
 
 $$
 \begin{array}{lcll}
-  [[pi]], [[rho]] & \bnfeq & [[1]] \bnfor [[omega]] & \text{multiplicities}
+  [[pi]], [[rho]] & \bnfeq & [[1]] \bnfor [[omega]] & \text{Multiplicities}
 \end{array}
 $$
 
@@ -676,7 +676,7 @@ Section~\ref{sec:wanteds}. This is also the terminology used in
 $$
 \begin{array}{lcll}
   [[Q]] & \bnfeq & [[pi.q]] \bnfor [[Q1*Q2]] \bnfor [[Empty]] &
-                                                                \text{simple constraints}
+                                                                \text{Simple constraints}
 \end{array}
 $$
 
@@ -828,7 +828,7 @@ is used implicitly in \rref{E-Var}.
     [[x]], [[y]] & \bnfeq & \ldots & \text{Expression variables} \\
     [[K]] & \bnfeq & \ldots & \text{Data constructors} \\
     [[s]] & \bnfeq & [[forall as. Q =o t]] & \text{Type schemes} \\
-    [[t]], [[u]] & \bnfeq & [[a]] \bnfor [[exists as. t]] \bnfor [[t1 ->_pi t2]]
+    [[t]], [[u]] & \bnfeq & [[a]] \bnfor [[exists as. t o= Q]] \bnfor [[t1 ->_pi t2]]
                             \bnfor [[T ts]] & \text{Types} \\
     [[G]], [[D]] & \bnfeq & [[empty]] \bnfor [[G, x:_pi s]] &
                                                               \text{Contexts} \\
@@ -900,15 +900,19 @@ Main differences:
 The constraint generated in Section~\ref{sec:constraint-generation}
 have a richer logical structure than the simple constraints. Let us
 follow \textsc{ghc}'s terminology and call these \emph{wanted
-constraints}: these are constraints which we \emph{want} to hold.
+  constraints}: these are constraints which we \emph{want} to hold.
 
+$$
+\begin{array}{lcll}
+  [[C]] & \bnfeq & [[Q]] \bnfor [[C1*C2]] \bnfor [[C1&C2]] \bnfor [[pi.(Q=>C)]]&
+                                                                \text{Wanted constraints}
+\end{array}
+$$
+
+\unsure{explanation about the scaling factor on implication constraints?}
 \drules[C]{$[[Q |- C]]$}
   {Generalised constraint entailment}
   {Dom,Tensor,With,Impl}
-\info{[Arnaud]: It's really more of a side remark, but there seems
-  to be a connection with focusing here: if a combinator is
-  ``asynchronous'' then it need not appear in $[[Q]]$ constraints
-  whereas if the combinator is ``synchronous'', then it does.}
 
 Scaling is extended to all wanted constraints:
 
@@ -1290,13 +1294,38 @@ calculus from the Linear Haskell article~\cite{LinearHaskell}.
 \subsection{The core calculus}
 \label{sec:core-calculus}
 
-Our Core calculus is described in Figure~\ref{fig:core-typing-rules}.
+Our Core calculus is described in Figure~\ref{fig:core-grammar}
+(grammar) and Figure~\ref{fig:core-typing-rules} (typing rules).
+
+\begin{figure}
+  \centering
+  $$
+  \begin{array}{lcll}
+    [[a]], [[b]] & \bnfeq & \ldots & \text{Type variables} \\
+    [[x]], [[y]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[K]] & \bnfeq & \ldots & \text{Data constructors} \\
+    [[s]] & \bnfeq & [[forall as. t]] & \text{Type schemes} \\
+    [[t]], [[u]] & \bnfeq & [[a]] \bnfor [[exists as. t o- u]] \bnfor [[t1 ->_pi t2]]
+                            \bnfor [[T ts]] & \text{Types} \\
+    [[G]], [[D]] & \bnfeq & [[empty]] \bnfor [[G, x:_pi s]] &
+                                                              \text{Contexts} \\
+    [[e]] & \bnfeq & [[x]] \bnfor [[K]] \bnfor [[\x. e]] \bnfor [[e1
+                     e2]] \bnfor [[pack (e1, e2)]] & \text{Expressions}\\
+                 &\bnfor & [[unpack (y,x)=e1 in
+                           e2]] \bnfor [[case e of { alts }]] &\\
+                 &\bnfor & [[let
+                           x=e1 in e2]] &
+  \end{array}
+  $$
+  \caption{Grammar of the core calculus}
+  \label{fig:core-grammar}
+\end{figure}
 
 \begin{figure}
   \centering
   \drules[L]{$[[G |- e : t]]$}{Core language
     typing}{Var,Abs,App,Pack,Unpack,Let,Case}
-  \caption{Qualified type system}
+  \caption{Core calculus type system}
   \label{fig:core-typing-rules}
 \end{figure}
 
