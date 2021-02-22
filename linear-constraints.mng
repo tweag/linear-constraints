@@ -1581,132 +1581,108 @@ This way, writing |ifQ q (unot q)| will no longer typecheck, as the call to
 modify it. Of course, it is still possible to write any \emph{other} qbit |r| in the
 body, creating an \emph{entagled} pair of qbits: |ifQ q (unot r)|.
 
-\subsection{Ownership and so on…}
+\section{Application: memory ownership}
 
-From the linear types paper:
+- Problem: explicit memory management with verified de-allocation proven by type-checking.
+  - no garbage collection or runtime cost associated with it
+  - yet no memory error
 
-\begin{spec}
-  newMArray    :: (MArray a ⊸ Unrestricted b) ⊸ Unrestricted b
-  writeMArray  :: MArray a ⊸ Int -> a -> MArray a
-  freeze       :: MArray a ⊸ Unrestricted (Array a)
-  readArray    :: Array a -> Int -> a
-\end{spec}
+- Approach: use a linear constraint (Own n). A program which has an
+Own n contstraint is responsible to deallocate the memory area(s)
+associated with n.
+The relation between references and capabilities is mediated with
+an existential type variable (of kind Token for legibility here, but
+we can let Token = Type with no loss of expressivity.)
 
-In |writeArray|: we insert an unrestricted element |a ->|. Otherwise
-we could do a linear type taboo:
+Because of linearity, this constraint must be
+discharged exactly once, so it is guaranteed that the memory is
+deallocated correctly.
 
-\begin{spec}
-unrestrict :: a ⊸ Unrestricted a
-unrestrict x = case unrestrictArray x of
-  Unrestricted arr -> readArray 0
 
-unrestrictArray :: a ⊸ Unrestricted (Array a)
-unrestrictArray x = newArray $ \marr ->
-  freeze $
-  writeMArray 0 x marr
-\end{spec} % emacs <- syntax highlighting bug
-
-This is not ok if I want to make a multidimensional array (say an
-|MArray (MArray a)|), which I would later freeze.
-
-How could freeze look like for that use-case?
-
-Something like
-
-\begin{spec}
-  freeze :: MArray a ⊸ (a ⊸ Unrestricted b) -> Unrestricted (Array b)
-\end{spec}
-
-But this is no longer $O(1)$ unless the compiler has special support
-(like |Coercible|~\cite{safe-coercions}).
-
-The crux of the issue is that mutable arrays and immutable arrays have
-distinct types, which me must convert.
-
-Contrast with Rust, where there is a single type \verb+Vector+, and
-freezing is simply
-\verb+fn (vect : Vector<a>) : Rc<Vector<a>> -> { Rc<vect> }+ (check
-syntax).
-
-With linear constraints:
-
-\begin{spec}
--- Each reference has 3 linear capabilities associated with it. References can be freely copied, but the capabilities are controlled linearly.
-
--- The relation between references and capabilities is mediated with an existential type variable (of kind Token for legibility here, but we can let Token = Type with no loss of expressivity.)
+In fact, we will be using three linear constraints, one for ownership, one for reading and one for writing:
 
 kind Token
 class Read (n :: Token)    -- read capability
 class Write (n :: Token)   -- write capability
 class Own (n :: Token)     -- move, free,
 
-type O n = (Read n, Write n, Own n) -- but we cannot move unless no one has kept a reference, so really all 3 capabilities are needed. We never use Own alone, always O.
 
-type RW n = (Read n, Write n) -- likewise, one cannot be writing unless we also have read access (so that a reader does not see changes happening while it is reading)
 
-type Reference = Token -> Type -- kind of types which are associated to capabilities via tokens (so ``references'')
+This will allow programs to read or write to a memory reference
+without necessarily owning it.
 
-AtomRef a :: Reference
+type RW n = (Read n, Write n)
+
+one cannot be writing unless we also have read access (so that a
+reader does not see changes happening while it is reading)
+
+
+type O n = (Read n, Write n, Own n)
+
+we cannot deallocate if any part of the program as kept a
+reference, so really all 3 capabilities are needed. We never use Own
+alone, always O.
+
+With this in place, we can provide an API for ownable references.
 
 data AtomRef (a :: Type) (n :: Token)
 
-writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
-readRef :: (Read n) =>. AtomRef a n -> a .<= Read n
-dealloc :: O n =>. AtomRef a n -> ()
+Type of references to a pure type a with ownership token n.
+
 newRef :: (forall n. O n =>. AtomRef a n -> Unrestricted b) ⊸ Unrestricted b
-aliasRef :: forall n. (RW n, O p) =>. AtomRef a n -> AtomRef a p -> () .<= RW n
 
--- Polymorphic aliasing
-aliasRef' :: forall n. (RW n, O p, KnownRef a) =>. a n -> a p -> () .<= RW n
+locally allocate a unique reference, available in a continuation.
+- explain unrestricted trick.
+- This is necessary to ensure that O n does not escape inside an arbitrary value of type B, O n must be consumed.
+- case analysis on Unrestricted means that evaluation order is forced: when we have 'b' in scope we can perform the allocation and execute the continuation until it produces Unrestricted b.
 
+Read a reference. Read constraint is demanded, and immediately released.
+
+writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
+
+Write a reference. RW constraint is demanded, and immediately
+released. Note that the primitive does not need to explicitly declare
+effects in terms of a monad or another effect-tracking device: because
+the RW constraint is linear, passing it suffices to ensure proper
+sequencing of effects.
+
+freeRef :: O n =>. AtomRef a n -> ()
+
+Here the ownership is consumed.
+
+freezeRef :: O n =>. AtomRef a n -> Unrestricted a
+
+
+
+Another aspect of borrowing systems is that ownership can be
+relinquished by writing a reference in a datastructure owned by some
+other part of the program. To illustrate this aspect, we can use arrays of references.
+
+kind Reference = Token -> Type -- kind of types which are associated to capabilities via tokens (so ``references'')
 
 data PArray (a :: Reference) (n :: Token)
   -- This an array of References: is an array of boxed stuff. Are all
   -- references inside it are associated with the same token.
 
-PArray a :: Reference
+> newPArray    :: (forall n. O n =>. PArray a n -> Unrestricted b) ⊸ Unrestricted b
 
--- type Array a = Frozen (PArray a)
--- data Frozen a where
---   Freezed :: Read n => a n -> Frozen a
--- data Reading a where
---   Read :: Read n =>. a n -> Reading a
--- data Borrowed a where
---   Borrow :: RW n =>. a n -> Borrowed a
--- data Owned (a :: * -> *) where
---   Move :: O n =>. a n -> Owned a
+as above.
 
-newPArray    :: (forall n. O n =>. PArray a n -> Unrestricted b) ⊸ Unrestricted b
--- Create a new array with the 3 capabilities available (|O n|).
+> readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
 
--- Wrong:
--- writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> Owned a .<= RW n
-  -- Relinquishes the ownership of the |a p| argument. Returns
-  -- ownership of the old value.
-  -- iiuc: The reference p is moved inside the array (if we'd make a copy we don't need the O p capability). So we make a new token for it (existentially quantified by Owned).
-  -- ? With this interface it seems that the owner will be able to freeze the array, but the reference will survive. So it seems that there is a bug here.
+returns a reference (which we have read access to)
 
-writePArrayAlt  :: (RW n, O p) =>. PArray a n -> Int -> a p -> () .<= (RW n)
--- here the ownership of |a p| is absorbed by n.
--- Operational semantics: move the p *reference* inside n.
+> writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> (() .<= RW n)
 
-readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
--- OK
-
-borrowPArrayElement     :: RW n =>. Parray a n -> Int -> (Borrowed a             ⊸ Unrestricted b         ) ⊸ Unrestricted b .<= RW n
-borrowPArrayElementAlt  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ Unrestricted b .<= RW p) ⊸ Unrestricted b .<= RW n
-borrowPArrayElementAlt' :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ k              .<= RW p) ⊸              k .<= RW n -- continuation won't be called from an unrestricted context because the initial RW n constraint is unique and linear.
-
-borrowPArrayElement is the only way to access an element in read-write
-
--- freeze       :: O n =>. PArray a n -> Array a
-freeze       :: O n =>. PArray a n -> Array a
--- OK
+here the ownership of |a p| is absorbed in n.
+Operational semantics: move the p *reference* inside n.
 
 
-readArray :: Array a -> Int -> Frozen a
-readArray (Freezed arr) i = Freezed (readPArray arr i)
-\end{spec}
+> lendPArrayElement  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ (k .<= RW p)) ⊸ (k .<= RW n)
+
+|lendPArrayElement a i k| Lends read-write access to an element i of a, to a continuation k. (In Rust
+terminology, the continuation ``borrows'' an element of the array).
+|RW n| and |RW p| are never simultaneously available.
 
 \section{$\klet$ should be generalised}
 
