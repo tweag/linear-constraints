@@ -264,22 +264,28 @@ without extra help?
 In this paper, we answer this question affirmatively, and introduce \emph{linear
 constraints}, an extension of Haskell's type class mechanism to be aware of
 linearity. This way, resource consumption is tracked without explicitly having
-to thread the tokens through the program. With this extension, the final version
-of |firstLine| is exactly the same as the traditional version above,
-except that the type |IOL| is used instead of |IO| indicating that this
-is working within the linear IO monad.
-%if False
+to thread the tokens through the program.
+%if True
+With this extension, the final version of |firstLine| is almost the same as the
+traditional version above, with a few minor modifications:
 \begin{code}
 firstLine :: FilePath -> IOL Bytestring
 firstLine fp =
-  do  {  f <- openFile fp
-      ;  bs <- readLine f
+  do  {  pack f <- openFile fp
+      ;  pack bs <- readLine f
       ;  closeFile f
       ;  return bs }
 \end{code}
-
-Note the only change from the unsafe version is that this version runs in the
-linear IO monad.
+The only changes from the unsafe version are that this version runs in the linear IO monad,
+and explicit |pack| annotations are used to indicate the variables that require
+special treatment.
+\unsure{We should decide what to do with |pack|.}
+In fact, with the right preamble, even the |pack| annotations can be dropped.
+%else
+With this extension, the final version
+of |firstLine| is exactly the same as the traditional version above,
+except that the type |IOL| is used instead of |IO| indicating that this
+is working within the linear IO monad.
 %endif
 
 \paragraph{Our contributions are as follows}
@@ -471,17 +477,8 @@ introduced by a data constructor, which we write |pack|.
 
 When pattern-matching on a |pack| all the existentially quantified
 names are introduced in scope and all the returned constraints are
-made available. With all these ingredients, we can indeed write, as
-promised in the introduction
-\begin{code}
-firstLine :: FilePath -> IOL Bytestring
-firstLine fp =
-  do  { pack f <- openFile fp
-      ; pack bs <- readLine f
-      ; closeFile f
-      ; return bs }
-\end{code}
-\unsure{Deduplicate with the version in the introduction to avoid desync?}
+made available. With all these ingredients we can indeed write
+the example given in the introduction.
 
 \unsure {Explain that existentially quantified type always have an
   implicit unrestricted at their core.}
