@@ -319,32 +319,39 @@ is working within the linear IO monad.
 
 \section{Motivation}
 
+The goal of this paper is to introduce linear constraints as a mechanism for
+ergonomically using linear types in Haskell.  Of course, in order to understand
+this work, it helps to understand how linear types work.  In this section, we
+will sketch out some of the basics of how linear types work in Haskell, and then
+give a number of examples that motivate our extension into linear constraints.
+\unsure{We probably want a quick introduction to linear types to at least fix notation.}
 
-\csongor{I moved the more detailed stuff from the introduction here for now. We
-have more space here to elaborate the problem statement}
 % This extra noise is the consequence of the fact that, as far as a
 % linear type system is concerned, |f| is expended after |readLine
 % f|. But, of course, we typically want to do more with a file that
 % reading just one line of it, so the linear |readLine| is given the type.
 
+\subsection{Linear Types}
+ 
+The example in the previous section made use of |readLine|, which has the following type:
 \begin{code}
   readLine :: File ⊸ IOL (File, Unrestricted ByteString)
 \end{code}
 \unsure{Probably we want the entire \textsc{api} for this
   example. Also, we will probably start with the \textsc{api}, as part
   of the general linear types introduction only to
-  demonstrate its limitation here.}
-
-It appears to return a new file, but really, it returns a new name for
+  demonstrate its limitation here.}%
+This appears to return a new file, but really, it returns a new name for
 the same file. It really is these names which can only be used once,
 the file handle itself continues to exist until |closeFile| is called.
 
-This is a bit of a bother, though. Why do I have to manage a bunch of
-names to help a compiler count? Surely this can be handled by the
-typechecker automatically. And, indeed, compilers with \emph{ad hoc}
-specialised logic let me write essentially the traditional program but
-with the guarantee that if I forget to |closeFile|, I'll get a type
-error. This is most notably the case of the
+From the perspective of the programmer, this is unwanted boilerplate.
+Why do we have to manage a bunch of names to help a compiler count? Surely this
+can be handled by the typechecker automatically. And, indeed, compilers with \emph{ad hoc}
+specialised logic allow us to write essentially the traditional program but
+with the guarantee that if we forget to |closeFile|, then we will
+get a type error.
+This is most notably the case of the
 \textsc{ats}~\cite{AtsLinearViews}, and Mezzo~\cite{mezzo-permissions}
 languages.\unsure{Both \textsc{ats} and Mezzo
   are specialised in handling pointers-and-mutations, rather than
@@ -360,15 +367,6 @@ languages.\unsure{Both \textsc{ats} and Mezzo
 In this article we introduce a generic extension to Linear Haskell,
 which lets the typechecker handle the counting. With this extension
 |firstLine| would be written as:
-\unsure{probably display |pack| in bold in Haskell code}
-\begin{code}
-firstLine :: FilePath -> IOL Bytestring
-firstLine fp =
-  do  { pack f <- openFile fp
-      ; pack bs <- readLine f
-      ; closeFile f
-      ; return bs }
-\end{code}
 
 There is a bit of boilerplate left, but it doesn't involve managing
 names to please the compiler. This considerably lowers the cost of
@@ -379,7 +377,7 @@ using a linear-type based abstraction.\unsure{I'm trying to get at the
   revisit the introduction.}
 
 
-\section{What it looks like}
+\subsection{What It Looks Like}
 \label{sec:what-it-looks-like}
 
 Consider the Haskell function |show|
@@ -488,9 +486,7 @@ the example given in the introduction.
   to the idea of typestate than the pedestrian encoding in regular
   linear types.}
 
-\newpage
-
-\section{Examples}
+\subsection{Motivating Examples}
 \label{sec:examples}
 
 To get a sense of how the features we introduce should behave, let's look at some simple examples.
@@ -500,7 +496,7 @@ are now annotated with a multiplicity, scaled according to the usage environment
 from which they arise.
 
 
-\subsection{Dithering}
+\subsubsection{Dithering}
 To illustrate these changes, let us consider the following API:
 
 \begin{code}
@@ -546,7 +542,7 @@ constraints as sets, we need a tree of constraints. OutsideIn already includes
 implication constraints to handle GADT pattern matches, and we merely borrow
 these implication constraints to represent the tree structure.
 
-\subsection{Neglecting}
+\subsubsection{Neglecting}
 
 
 Now consider the following program:
@@ -569,7 +565,7 @@ the emitted wanted constraints. The above program then gets rejected, because
 |C| is used $[[omega]]$ times.
 
 
-\subsection{Overusing}
+\subsubsection{Overusing}
 
 Finally, consider the following program:
 \begin{code}
