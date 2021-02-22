@@ -389,15 +389,15 @@ show :: Show a => a -> String
 \end{code}
 
 In addition to the function arrow |->|, common to all functional
-programming language, it features a fat arrow |=>|. Everything to the
+programming languages, it features a fat arrow |=>|. Everything to the
 left of a fat arrow is called a \emph{constraint}. Here |Show a| is a
 type-class constraint, but there are other kinds of constraints such
-as equality constraint or implicit parameter constraints.
+as equality constraints or implicit parameter constraints.
 
-What is crucial, for our purpose, is that constraints are handled
-implicitly by the typechecker. That is, if we want to |show| an
-integer, we'd write |show 42|, the typechecker would handle proving
-that |Show Int| without intervention from the programmer.
+What is crucial, for our purpose, is that constraints are handled implicitly by
+the typechecker. That is, if we want to |show| an integer we would write |show
+42|, and the typechecker would handle proving that |Show Int| without
+intervention from the programmer.
 
 In order to manage linearity implicitly, this article introduces a
 linear fat arrow |=>.|, much like Linear Haskell introduced a linear
@@ -408,8 +408,9 @@ arrow \emph{linear constraints}.  \unsure{I'm jumping to
   presumably re-write) the paragraphs below, they will probably flow a
   little bit better once the right principles are firmly established.}
 
-In the introduction we wanted to use linearity to make sure that a
-file was closed and not used after. That is, we need to track in types
+In the introduction we wanted to use linearity to make sure that
+once a file is closed it can no longer be used.
+That is, we need to track in types
 whether the file open or not. We can use a linear constraint |Open f|
 to represent that a file is, indeed, open. We can write the type of
 |closeFile|:
@@ -420,7 +421,7 @@ closeFile :: Open f =>. File f -> IOL ()
 
 There are a few things to notice
 \begin{itemize}
-\item First, there is this type variable |f| which didn't exist in
+\item First, there is this type variable |f| which did not exist in
   previous representation. In the representation of the Linear Haskell
   paper, for instance, |closeFile| had type |closeFile :: File ->. IOL
   ()|. This |f| is a type-level name for the file which we are
@@ -432,8 +433,8 @@ There are a few things to notice
   explicit in types.
 \item Second, assuming that we have a single, linear, |Open f|
   available, then after |closeFile| there will not be any |Open f|
-  left to use, therefore we won't be able to close the file
-  twice. Which is precisely what we were trying to achieve.
+  left to use, thus preventing the file from being closed
+  twice. This is precisely what we were trying to achieve.
 \end{itemize}
 
 This still leaves questions open: where does |f| come from? where does
