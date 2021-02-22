@@ -979,38 +979,32 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
 See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{Todo: syntax to
   select the $\pi$ in case and let rules}
 
-In a full blown Haskell with linear constraints, there wouldn't be
-linear equality constraints.\jp{Seems to suggest that we have linear
-  equality constraints here? [Arnaud]: my poor phrasing, I meant to
-  imply that we didn't have any equality constraints at all.}
-That is, $a \sim b$\unsure{this notation
-  hasn't been introduced, so if it makes the cut explain where it
-  comes from} wouldn't appear to the left of a linear fat arrow. It's
-not that linear equalities don't make sense, see for
-instance~\cite{shulman2018linear} for a system which takes linear
-equality seriously. However, the usual unification algorithms are
-unsound for linear equalities, because they will gladly use the same
-equality many times (or none-at-all). Haskell could, by some arbitrary
-mean, reject equality constraints to the left of a linear fat arrow,
-or it could simply refuse to do any solving with such equalities.
+The main workhorse of GHC's typechecker is its constraints solver, based on the
+OutsedIn~\cite{OutsideIn} algorithm. In order to support the wide range of
+features modern Haskell boasts, the constraint solver is responsible not only
+for type class constraint resolution, but also for type inference in the more
+traditional sense. That is, the constraint solver deals with equality
+constraints and does unification. Doing so allows seamless integration of e.g.
+GADTs with their local equality assumptions and type families with their
+top-level equality axioms.
 
-While it is possible that a future version of Haskell includes linear
-equality constraints, automatic resolution of linear equality
-constraints is beyond the scope of this article. Nor is it needed,
-or even useful, for our use cases.
-%
-Thus, in general, no linear constraint can be used in, or influence in
-any way, the unification of type meta variables to types.  As a
-consequence, linear
-%
-constraints are fully orthogonal to type inference. Therefore, the
-syntax-directed constraint generation system presented in this section
-can legitimately assume that type inference is solved elsewhere;
-contrary to~\cite{OutsideIn}, where type inference is mixed with
-constraint generation. This separation of concern simplifies the
-presentation significantly.\unsure{This paragraph is more wordy than
-  it is clear, so let's not take it as an actual proposal for the
-  explanation, I [Arnaud] merely wanted to record my thoughts}
+Our current focus is much more narrow than a general typechecking algorithm for
+all of GHC's features. Firstly, our system doesn't have equality
+constraints, and even when integrated into GHC, we do not allow equality
+constraints to be assumed linearly. This is because traditional unification
+algorithms are unsound for linear equalities as they will gladly reuse the same
+equality many times (or none at all). (For a system that takes linear equality
+seriously, see e.g.~\cite{shulman2018linear})
+Secondly, we do not support multiplicity polymorphism in constraint arrows. That
+is, the multiplicity of a constraint is always known to be either linear or
+unrestricted in the empty context. This way, no equality constraints can interfere
+with constraint resolution.
+
+As a consequence of these two restrictions (no linear equalities and no
+multiplicity polymorphic constraints), type inference and (linear) class
+constraint resolution are completely orthogonal. Therefore, the syntax-directed
+constraint generation system presented in this section can legitimately assume
+that type inference is solved elsewhere, greatly simplifying the presentation.
 
 \unsure{Todo: the rule for a constraint-generalising signatureless
   let}
