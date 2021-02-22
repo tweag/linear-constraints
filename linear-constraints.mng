@@ -572,7 +572,7 @@ only serves to support the rest of Haskell, or any future extension.
 OutsideIn introduces, as part of the constraint domain, a generalised
 kind of constraint $\mathcal{Q}$, which include toplevel axioms, such
 as type-class instance declarations. Such toplevel axioms
-are never linear\,--\,just like toplevel definition are never linear in
+are never linear\,--\,just like how toplevel definitions are never linear in
 Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
 interesting interaction with the rest of the system, and we choose to
 omit them for simplicity.
@@ -583,10 +583,10 @@ We consider simple constraints equal up to associativity and commutativity of
 tensor products, as well as idempotence of the unrestricted
 constraints. That is
 $$
-\begin{array}{l}
-  [[Q1 * Q2]] = [[Q2 * Q1]] \\
-  [[(Q1*Q2)*Q3]] = [[Q1*(Q2*Q3)]] \\
-  [[omega.q * omega.q]] = [[omega.q]]
+\begin{array}{rcl}
+  [[Q1 * Q2]] & = & [[Q2 * Q1]] \\
+  [[(Q1*Q2)*Q3]] & = & [[Q1*(Q2*Q3)]] \\
+  [[omega.q * omega.q]] & = & [[omega.q]]
 \end{array}
 $$
 
