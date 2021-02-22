@@ -202,7 +202,7 @@ respect to the type system, and show how our changes can be integrated into
 \info{There  is an Appendix section with unorganised thoughts and
   examples.}
 
-Linear type systems have seen somewhat of a renessaince in recent years in
+Linear type systems have seen somewhat of a renaissance in recent years in
 various mainstream programming communities. Rust's ownership system guarantees
 memory safety for systems programmers, Haskell's linear types give functional
 programmers safe APIs for low-level mutable data structures, and even
@@ -215,17 +215,18 @@ the Linear Haskell article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO 
 \begin{code}
 firstLine :: FilePath -> IOL Bytestring
 firstLine fp =
-  do  { f <- openFile fp
-      ; (f, Ur bs) <- readLine f
-      ; closeFile f
-      ; return bs }
+  do  {  f <- openFile fp
+      ;  (f, Ur bs) <- readLine f
+      ;  closeFile f
+      ;  return bs }
 \end{code} This simple function opens a file, reads its first line, then closes
 it. Linearity ensures that the file handle |f| is consumed at the end.
 Forgetting to call |closeFile f| would result in a type error since |f| would
-remain unused at the end of the function. Notice that `readLine` consumes the
-file handle, and returns a fresh one, to be used in further interactions with
-the file. The line's content is returned in an |Ur| wrapper (pronounced
-``unrestricted'') to signify that it can be used arbitrary many times.
+remain unused at the end of the function. Notice that |readLine| consumes the
+file handle, and returns a fresh |f| that shadows the previous version, to be
+used in further interactions with the file. The line's content is returned in an
+|Ur| wrapper (pronounced ``unrestricted'') to signify that it can be used
+arbitrary many times.
 
 % We see that linear types introduce some noise on the |readLine| line:
 % we need to destruct an extra pair, and an extra |Ur| (called
@@ -234,23 +235,23 @@ the file. The line's content is returned in an |Ur| wrapper (pronounced
 %   program. This makes the extra safety afforded by linear types too
 %   rarely worth it.}
 
-Compare this function with the traditional, non-linear version:
+Compare this function with the traditional non-linear version:
 \begin{code}
 firstLine :: FilePath -> IO Bytestring
 firstLine fp =
-  do  { f <- openFile fp
-      ; bs <- readLine f
-      ; closeFile f
-      ; return bs }
+  do  {  f <- openFile fp
+      ;  bs <- readLine f
+      ;  closeFile f
+      ;  return bs }
 \end{code}
 
 This version is less safe, because the type system does not keep track of the
-file handle, so the programmer must. But it is also simpler: apparently, in the
-linear version, we traded clarity for safety. Since the file handle is now an
-expendable resource, the type system must know at all times where it is being
-consumed, so the file handle must be passed around manually, culminating in
-extra noise. Worse, the larger the program gets, the more additional bookkeeping
-this requires.
+file handle, so the programmer must be careful to do this. But it is also
+simpler: apparently, in the linear version, we traded clarity for safety. Since
+the file handle is now an expendable resource, the type system must know at all
+times where it is being consumed, so the file handle must be passed around
+manually, culminating in extra noise. Worse, the larger the program gets, the
+more additional bookkeeping this requires.
 
 But reading the non-linear version, it is perfectly clear where the
 handle is used, and ultimately, consumed. Could the compiler not figure this out
@@ -259,18 +260,23 @@ without extra help?
 In this paper, we answer this question affirmatively, and introduce \emph{linear
 constraints}, an extension of Haskell's type class mechanism to be aware of
 linearity. This way, resource consumption is tracked without explicitly having
-to thread the tokens through the program. The final version of |firstLine| is thus:
+to thread the tokens through the program. With this extension, the final version
+of |firstLine| is exactly the same as the traditional version above,
+except that the type |IOL| is used instead of |IO| indicating that this
+is working within the linear IO monad.
+%if False
 \begin{code}
 firstLine :: FilePath -> IOL Bytestring
 firstLine fp =
-  do  { f <- openFile fp
-      ; bs <- readLine f
-      ; closeFile f
-      ; return bs }
+  do  {  f <- openFile fp
+      ;  bs <- readLine f
+      ;  closeFile f
+      ;  return bs }
 \end{code}
 
 Note the only change from the unsafe version is that this version runs in the
 linear IO monad.
+%endif
 
 \paragraph{Our contributions are as follows}
 
