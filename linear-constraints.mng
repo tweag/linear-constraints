@@ -1022,7 +1022,7 @@ that type inference is solved elsewhere, greatly simplifying the presentation.
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
-  App, Case, Unpack, Pack}
+  App, Case, Unpack, Pack, Let}
 
 \newpage
 
