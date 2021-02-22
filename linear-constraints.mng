@@ -1211,10 +1211,6 @@ think) but the details don't matter terribly.
 \section{Desugaring}
 \label{sec:desugaring}
 
-\info{The plan is to give the operational semantics in the form
-  of a desugaring to the core calculus of the Linear Haskell paper.}
-
-
 \info{
   On unicity of tokens:
 
