@@ -203,6 +203,7 @@ terminals :: 'terminals_' ::=
 | \notin      ::   :: NotIn   {{ tex \notin }}
 | omega       ::   :: Many    {{ tex \omega }}
 | Sum         ::   :: BigSum  {{ tex \sum }}
+| empty       ::   :: emptyseq {{ tex ∙ }} % alternative ϵ
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

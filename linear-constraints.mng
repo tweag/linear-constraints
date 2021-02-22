@@ -146,7 +146,12 @@ import GHC.Base
   \newcommand{\kin}{\keyword{in}}
   \newcommand{\kof}{\keyword{of}}
 
+  % defining grammars
+  \newcommand{\bnfeq}{\mathrel{{:}{:}{=}}}
+  \newcommand{\bnfor}{\mathrel{\mid}}
+
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
+
 \acmConference[WOODSTOCK'97]{ACM Woodstock conference}{July 1997}{El
   Paso, Texas USA} 
 \acmYear{1997}
@@ -228,9 +233,9 @@ it. Linearity ensures that the file handle |f| is consumed at the end.
 Forgetting to call |closeFile f| would result in a type error since |f| would
 remain unused at the end of the function. Notice that |readLine| consumes the
 file handle, and returns a fresh |f| that shadows the previous version, to be
-used in further interactions with the file. The line's content is returned in an
-|Ur| wrapper (pronounced ``unrestricted'') to signify that it can be used
-arbitrary many times.
+used in further interactions with the file. The line's content is a bytestring
+|bs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
+signify that it can be used arbitrary many times.
 
 % We see that linear types introduce some noise on the |readLine| line:
 % we need to destruct an extra pair, and an extra |Ur| (called
@@ -627,6 +632,12 @@ only the simplest system of multiplicity: that composed of only
 $[[1]]$ (representing linear functions) and $[[omega]]$ (representing
 regular Haskell functions).
 
+$$
+\begin{array}{lcll}
+  [[pi]], [[rho]] & \bnfeq & [[1]] \bnfor [[omega]] & \text{Multiplicities}
+\end{array}
+$$
+
 We will need to add and multiply constraints. Here are the definitions
 of these operations.
 
@@ -662,14 +673,24 @@ relation $[[Q1 ||- Q2]]$. These constraints are called \emph{simple
 Section~\ref{sec:wanteds}. This is also the terminology used in
 \textsc{ghc}.
 
+$$
+\begin{array}{lcll}
+  [[Q]] & \bnfeq & [[pi.q]] \bnfor [[Q1*Q2]] \bnfor [[Empty]] &
+                                                                \text{Simple constraints}
+\end{array}
+$$
+
+The multiplicity in front of atomic constraints is the \emph{scaling
+  factor}. It indicates whether the constraint is to be used linearly
+($[[1]]$) or without restriction ($[[omega]]$).
+
 Simple constraints are treated completely abstractly by the system; for
-inference it will have to come with a domain-specific solver, of which
+inference we will need a domain-specific solver, of which
 we only require that it adheres to the interface given in
 Section~\ref{sec:constraint-solver}. For instance, in \textsc{ghc},
 the domain includes type classes the entailment relation describes
 instance resolution.
-
-For the sake of the examples of this article simple constraints need
+For the sake of the examples of Section~\ref{sec:examples}, simple constraints need
 only be the simplest possible, whereby atomic constraints are treated
 as uninterpreted symbols. Being parameterised by the domain therefore
 only serves to support the rest of Haskell, or any future extension.
@@ -788,7 +809,7 @@ this simplification in Section~\ref{sec:constraint-generation}.
 \subsection{Typing rules}
 \label{sec:typing-rules}
 
-Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system is
+Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system (Figure~\ref{fig:declarative:grammar})is
 presented as a \emph{qualified type system} in the style first introduced
 by~\cite{QualifiedTypes}. Such a qualified type system introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
@@ -799,8 +820,32 @@ desugaring in Section~\ref{sec:desugaring}; the main difference is
 that $[[G]]$ is referred to explicitly with variables, whereas $[[Q]]$
 is used implicitly in \rref{E-Var}.
 
-\unsure{We probably want the grammar somewhere}
+\begin{figure}
+  \centering
+  $$
+  \begin{array}{lcll}
+    [[a]], [[b]] & \bnfeq & \ldots & \text{Type variables} \\
+    [[x]], [[y]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[K]] & \bnfeq & \ldots & \text{Data constructors} \\
+    [[s]] & \bnfeq & [[forall as. Q =o t]] & \text{Type schemes} \\
+    [[t]], [[u]] & \bnfeq & [[a]] \bnfor [[exists as. t o= Q]] \bnfor [[t1 ->_pi t2]]
+                            \bnfor [[T ts]] & \text{Types} \\
+    [[G]], [[D]] & \bnfeq & [[empty]] \bnfor [[G, x:_pi s]] &
+                                                              \text{Contexts} \\
+    [[e]] & \bnfeq & [[x]] \bnfor [[K]] \bnfor [[\x. e]] \bnfor [[e1
+                     e2]] \bnfor [[pack e]] & \text{Expressions}\\
+                 &\bnfor & [[unpack x=e1 in
+                     e2]] \bnfor [[case e of { alts }]] &\\
+                 &\bnfor & [[let
+                     x=e1 in e2]] &
+  \end{array}
+  $$
+  \caption{Grammar of the qualified type system}
+  \label{fig:declarative:grammar}
+\end{figure}
+
 \unsure{Todo: explain what $[[x :_1 forall as. Q =o u \in G]]$ means}
+\unsure{Explain what summing contexts means}
 %
 \jp{It's very important to explain in detail that linear constraints
   (as linear values) can never escape to omega contexts.
@@ -855,15 +900,19 @@ Main differences:
 The constraint generated in Section~\ref{sec:constraint-generation}
 have a richer logical structure than the simple constraints. Let us
 follow \textsc{ghc}'s terminology and call these \emph{wanted
-constraints}: these are constraints which we \emph{want} to hold.
+  constraints}: these are constraints which we \emph{want} to hold.
 
+$$
+\begin{array}{lcll}
+  [[C]] & \bnfeq & [[Q]] \bnfor [[C1*C2]] \bnfor [[C1&C2]] \bnfor [[pi.(Q=>C)]]&
+                                                                \text{Wanted constraints}
+\end{array}
+$$
+
+\unsure{explanation about the scaling factor on implication constraints?}
 \drules[C]{$[[Q |- C]]$}
   {Generalised constraint entailment}
   {Dom,Tensor,With,Impl}
-\info{[Arnaud]: It's really more of a side remark, but there seems
-  to be a connection with focusing here: if a combinator is
-  ``asynchronous'' then it need not appear in $[[Q]]$ constraints
-  whereas if the combinator is ``synchronous'', then it does.}
 
 Scaling is extended to all wanted constraints:
 
@@ -1239,13 +1288,38 @@ calculus from the Linear Haskell article~\cite{LinearHaskell}.
 \subsection{The core calculus}
 \label{sec:core-calculus}
 
-Our Core calculus is described in Figure~\ref{fig:core-typing-rules}.
+Our Core calculus is described in Figure~\ref{fig:core-grammar}
+(grammar) and Figure~\ref{fig:core-typing-rules} (typing rules).
+
+\begin{figure}
+  \centering
+  $$
+  \begin{array}{lcll}
+    [[a]], [[b]] & \bnfeq & \ldots & \text{Type variables} \\
+    [[x]], [[y]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[K]] & \bnfeq & \ldots & \text{Data constructors} \\
+    [[s]] & \bnfeq & [[forall as. t]] & \text{Type schemes} \\
+    [[t]], [[u]] & \bnfeq & [[a]] \bnfor [[exists as. t o- u]] \bnfor [[t1 ->_pi t2]]
+                            \bnfor [[T ts]] & \text{Types} \\
+    [[G]], [[D]] & \bnfeq & [[empty]] \bnfor [[G, x:_pi s]] &
+                                                              \text{Contexts} \\
+    [[e]] & \bnfeq & [[x]] \bnfor [[K]] \bnfor [[\x. e]] \bnfor [[e1
+                     e2]] \bnfor [[pack (e1, e2)]] & \text{Expressions}\\
+                 &\bnfor & [[unpack (y,x)=e1 in
+                           e2]] \bnfor [[case e of { alts }]] &\\
+                 &\bnfor & [[let
+                           x=e1 in e2]] &
+  \end{array}
+  $$
+  \caption{Grammar of the core calculus}
+  \label{fig:core-grammar}
+\end{figure}
 
 \begin{figure}
   \centering
   \drules[L]{$[[G |- e : t]]$}{Core language
     typing}{Var,Abs,App,Pack,Unpack,Let,Case}
-  \caption{Qualified type system}
+  \caption{Core calculus type system}
   \label{fig:core-typing-rules}
 \end{figure}
 
