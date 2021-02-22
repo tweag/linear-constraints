@@ -146,7 +146,12 @@ import GHC.Base
   \newcommand{\kin}{\keyword{in}}
   \newcommand{\kof}{\keyword{of}}
 
+  % defining grammars
+  \newcommand{\bnfeq}{\mathrel{{:}{:}{=}}}
+  \newcommand{\bnfor}{\mathrel{\mid}}
+
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
+
 \acmConference[WOODSTOCK'97]{ACM Woodstock conference}{July 1997}{El
   Paso, Texas USA} 
 \acmYear{1997}
@@ -627,6 +632,12 @@ only the simplest system of multiplicity: that composed of only
 $[[1]]$ (representing linear functions) and $[[omega]]$ (representing
 regular Haskell functions).
 
+$$
+\begin{array}{lcll}
+  [[pi]], [[rho]] & \bnfeq & [[1]] \bnfor [[omega]] & \text{multiplicities}
+\end{array}
+$$
+
 We will need to add and multiply constraints. Here are the definitions
 of these operations.
 
@@ -662,14 +673,24 @@ relation $[[Q1 ||- Q2]]$. These constraints are called \emph{simple
 Section~\ref{sec:wanteds}. This is also the terminology used in
 \textsc{ghc}.
 
+$$
+\begin{array}{lcll}
+  [[Q]] & \bnfeq & [[pi.q]] \bnfor [[Q1*Q2]] \bnfor [[Empty]] &
+                                                                \text{simple constraints}
+\end{array}
+$$
+
+The multiplicity in front of atomic constraints is the \emph{scaling
+  factor}. It indicates whether the constraint is to be used linearly
+($[[1]]$) or without restriction ($[[omega]]$).
+
 Simple constraints are treated completely abstractly by the system; for
-inference it will have to come with a domain-specific solver, of which
+inference we will need a domain-specific solver, of which
 we only require that it adheres to the interface given in
 Section~\ref{sec:constraint-solver}. For instance, in \textsc{ghc},
 the domain includes type classes the entailment relation describes
 instance resolution.
-
-For the sake of the examples of this article simple constraints need
+For the sake of the examples of Section~\ref{sec:examples}, simple constraints need
 only be the simplest possible, whereby atomic constraints are treated
 as uninterpreted symbols. Being parameterised by the domain therefore
 only serves to support the rest of Haskell, or any future extension.
@@ -799,8 +820,32 @@ desugaring in Section~\ref{sec:desugaring}; the main difference is
 that $[[G]]$ is referred to explicitly with variables, whereas $[[Q]]$
 is used implicitly in \rref{E-Var}.
 
-\unsure{We probably want the grammar somewhere}
+\begin{figure}
+  \centering
+  $$
+  \begin{array}{lcll}
+    [[a]], [[b]] & \bnfeq & \ldots & \text{Type variables} \\
+    [[x]], [[y]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[K]] & \bnfeq & \ldots & \text{Data constructors} \\
+    [[s]] & \bnfeq & [[forall as. Q =o t]] & \text{Type schemes} \\
+    [[t]], [[u]] & \bnfeq & [[a]] \bnfor [[exists as. t]] \bnfor [[t1 ->_pi t2]]
+                            \bnfor [[T ts]] & \text{Types} \\
+    [[G]], [[D]] & \bnfeq & [[empty]] \bnfor [[G, x:_pi s]] &
+                                                              \text{Contexts} \\
+    [[e]] & \bnfeq & [[x]] \bnfor [[K]] \bnfor [[\x. e]] \bnfor [[e1
+                     e2]] \bnfor [[pack e]] & \text{Expressions}\\
+                 &\bnfor & [[unpack x=e1 in
+                     e2]] \bnfor [[case e of { alts }]] &\\
+                 &\bnfor & [[let
+                     x=e1 in e2]] &
+  \end{array}
+  $$
+  \caption{Grammar of the qualified type system}
+  \label{fig:declarative:grammar}
+\end{figure}
+
 \unsure{Todo: explain what $[[x :_1 forall as. Q =o u \in G]]$ means}
+\unsure{Explain what summing contexts means}
 %
 \jp{It's very important to explain in detail that linear constraints
   (as linear values) can never escape to omega contexts.
