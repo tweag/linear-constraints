@@ -74,6 +74,10 @@ import GHC.Base
 %format exists = "\exists"
 %format forall = "\forall"
 %format pack = "\kpack"
+%
+%format a1
+%format a_n
+%format an = a_n
 %endif
 
 %%%%%%%%%%%%%%%%% /lhs2tex %%%%%%%%%%%%%%%%%
@@ -429,8 +433,7 @@ There are a few things to notice
 This still leaves questions open: where does |f| come from? where does
 |Open f| come from? what are the types of |openFile| and |readLine|?
 The answers to these three question rely on the same device: we
-introduce a type construction |exists a1 ... an. t .<= Q|\unsure{Todo:
-  render the indices as actual indices}, where |Q| is some (linear)
+introduce a type construction |exists a1 ... an. t .<= Q|, where |Q| is some (linear)
 constraint.
 
 The fact that existential quantification generate new type-level names
