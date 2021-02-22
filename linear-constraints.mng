@@ -24,6 +24,7 @@ import GHC.Base
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{xcolor}
+\usepackage{subcaption}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks,
@@ -325,11 +326,10 @@ is working within the linear IO monad.
 \section{Motivation}
 
 The goal of this paper is to introduce linear constraints as a mechanism for
-ergonomically using linear types in Haskell.  Of course, in order to understand
+ergonomically using linear types in Haskell.  Of course, in order to appreciate
 this work, it helps to understand how linear types work.  In this section, we
 will sketch out some of the basics of how linear types work in Haskell, and then
 give a number of examples that motivate our extension into linear constraints.
-\unsure{We probably want a quick introduction to linear types to at least fix notation.}
 
 % This extra noise is the consequence of the fact that, as far as a
 % linear type system is concerned, |f| is expended after |readLine
@@ -337,18 +337,39 @@ give a number of examples that motivate our extension into linear constraints.
 % reading just one line of it, so the linear |readLine| is given the type.
 
 \subsection{Linear Types}
- 
-The example in the previous section made use of |readLine|, which has the following type:
+
+\begin{figure}%
+  \centering
+  \begin{subfigure}{.3\linewidth}%
+    \noindent%
 \begin{code}
-  readLine :: File ⊸ IOL (File, Unrestricted ByteString)
+openFile   :: FilePath -> IOL Handle
+readLine   :: Handle ⊸ IOL (Handle, String)
+closeFile  :: Handle ⊸ IOL ()
 \end{code}
-\unsure{Probably we want the entire \textsc{api} for this
-  example. Also, we will probably start with the \textsc{api}, as part
-  of the general linear types introduction only to
-  demonstrate its limitation here.}%
+\caption{Linear Types}
+\label{fig:linear-interface}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}{.52\linewidth}
+\begin{code}
+openFile   :: FilePath -> IOL (exists f. File f .<= Open f)
+readLine   :: Open f =>. File f -> IOL (() .<= Open f)
+closeFile  :: Open f =>. File f -> IOL ()
+\end{code}
+\caption{Linear Constraints}
+\label{fig:constraints-interface}
+  \end{subfigure}
+\caption{Interfaces for file manipulation}
+\end{figure}
+
+\unsure{TODO: We probably want a quick introduction to linear types to at least fix notation.}
+ 
+The example in the previous section made use of |readLine|, whose type is given in \autoref{fig:linear-interface}.
 This appears to return a new file, but really, it returns a new name for
 the same file. It really is these names which can only be used once,
 the file handle itself continues to exist until |closeFile| is called.
+\unsure{TODO: introduce |->.| in preparation for the informal introduction to lienar constraints.}
 
 From the perspective of the programmer, this is unwanted boilerplate.
 Why do we have to manage a bunch of names to help a compiler count? Surely this
@@ -370,8 +391,8 @@ languages.\unsure{Both \textsc{ats} and Mezzo
   abstraction is built user-side. \textsc{Ats}'s views are closest to
   what we are doing, though seems to only be geared towards pointers.}
 In this article we introduce a generic extension to Linear Haskell,
-which lets the typechecker handle the counting. With this extension
-|firstLine| would be written as:
+which lets the typechecker handle the counting
+
 
 There is a bit of boilerplate left, but it doesn't involve managing
 names to please the compiler. This considerably lowers the cost of
@@ -382,17 +403,17 @@ using a linear-type based abstraction.\unsure{I'm trying to get at the
   revisit the introduction.}
 
 
-\subsection{What It Looks Like}
+\subsection{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
 
-Consider the Haskell function |show|
 
+Consider the Haskell function |show|:
 \begin{code}
 show :: Show a => a -> String
 \end{code}
-
 In addition to the function arrow |->|, common to all functional
-programming languages, it features a fat arrow |=>|. Everything to the
+programming languages, the tyep of this function features a fat arrow |=>|.
+Everything to the
 left of a fat arrow is called a \emph{constraint}. Here |Show a| is a
 type-class constraint, but there are other kinds of constraints such
 as equality constraints or implicit parameter constraints.
@@ -401,6 +422,8 @@ What is crucial, for our purpose, is that constraints are handled implicitly by
 the typechecker. That is, if we want to |show| an integer we would write |show
 42|, and the typechecker would handle proving that |Show Int| without
 intervention from the programmer.
+Thus, constraints are a convenient mechanism that allow the compiler
+to automatically fill in implicit arguments.
 
 In order to manage linearity implicitly, this article introduces a
 linear fat arrow |=>.|, much like Linear Haskell introduced a linear
@@ -458,11 +481,6 @@ which we understand as being returned by functions. We will freely
 omit the |exists a1 ... an.| or |.<= Q| parts when they are
 empty. This lets us give the following \textsc{api} to files:
 
-\begin{code}
-openFile :: FilePath -> IOL (exists f. File f .<= Open f)
-readLine :: Open f =>. File f -> IOL (() .<= Open f)
-closeFile :: Open f =>. File f -> IOL ()
-\end{code}
 
 Haskell doesn't have such existential quantification, however each
 instance of such existential quantification can be encoded as a
@@ -491,24 +509,57 @@ the example given in the introduction.
   to the idea of typestate than the pedestrian encoding in regular
   linear types.}
 
+
+In Linear Haskell~\cite{LinearHaskell}
+
+\begin{spec}
+readTwoLines path = do
+  h0 <- openFile path
+  (h1, line1) <- readLine h0
+  (h2, line2) <- readLine h1
+  close h2
+\end{spec}
+API:
+With linear constraints, API:
+\begin{spec}
+openFile  :: FilePath -> IOL (Handle h .<= Open h)
+close     :: Open h =>. Handle h -> IOL ()
+readLine  :: Open h =>. Handle h -> IOL (String .<= Open h)
+\end{spec}
+The example become (remark: not the do-notation for the |IO| monad):
+\begin{spec}
+readTwoLines path = do
+  h <- openFile path
+  line1 <- readLine h
+  line2 <- readLine h
+  close h
+\end{spec}
+
+It looks exactly the same as without linear types. But you still get
+an error for double-free and use-after-free usages.
+
+
+
+
+
+
+
+
 \subsection{Motivating Examples}
 \label{sec:examples}
 
-To get a sense of how the features we introduce should behave, let's look at some simple examples.
-
-The key changes affect constraint generation and constraint solving. Constraints
-are now annotated with a multiplicity, scaled according to the usage environment
-from which they arise.
-
-
-\subsubsection{Dithering}
-To illustrate these changes, let us consider the following API:
-
+To get a sense of how the features we introduce should behave, let's look at
+some simple examples.  In what follows, we will be using a class |C| that is
+used to introduce a linear constraint that indicates when |useC| must be used.
 \begin{code}
 class C
 
 useC :: C =>. Int
 \end{code}
+The type of |useC| indicates that it consumes a linear resource |C| exactly once.
+
+\subsubsection{Dithering}
+
 
 Now consider the following program, which we hope to reject:
 \begin{code}
@@ -516,15 +567,17 @@ dithering :: C =>. Bool -> Int
 dithering x = if x then useC else 10
 \end{code}
 The problem with |dithering| is that it does not commit properly to how much
-resource it requires: one branch will use the resource in |C| whereas the other
-does not.
+resource it requires: the branch where |x| holds will use the resource in |C|
+since it evaluates to |useC| whereas the other does not.
+However, 
 
 Unfortunately, if |C| is treated as an ordinary constraint then this program
 would be accepted by GHC.  Traditionally, GHC would generate \emph{wanted}
 constraints from both branches of the if expression (here |C| from the ``true''
 branch, and the trivial constraint from the ``false'' branch), then union these
-constraints and attempt to solve using the \emph{given} constraints (|C|).  Then
-this program would be accepted, since |C| was used exactly once.
+constraints and attempt to solve using the \emph{given} constraints (which is
+just |C| from the signature of |dithering|).  Then this program would be
+accepted, since it seems that |C| is used exactly once.
 
 \unsure{I've been having some ott issues, so for now this is mainly written down
 as text} Implication constraints have a bag of \emph{given} constraints, and a
@@ -1546,7 +1599,9 @@ only by a boolean flag. Thus, the LinearTypes implementation effort has already
 laid down the bureaucratic ground work of annotating these arrows with
 multiplicity information.
 
-
+The key changes affect constraint generation and constraint solving. Constraints
+are now annotated with a multiplicity, scaled according to the usage environment
+from which they arise.
 
 
 
@@ -1586,41 +1641,6 @@ io_a >>= f = IOL $ \rw -> case runIOL io_a rw of
 % $ emacs
 
 \section{Arnaud's motivating examples}
-
-\subsection{Linear IO without the hassle (file handles)}
-
-In Linear Haskell~\cite{LinearHaskell}
-
-\begin{spec}
-readTwoLines path = do
-  h0 <- openFile path
-  (h1, line1) <- readLine h0
-  (h2, line2) <- readLine h1
-  close h2
-\end{spec}
-API:
-\begin{spec}
-openFile  :: FilePath -> IOL Handle
-close     :: Handle ⊸ IOL ()
-readLine  :: Handle ⊸ IOL (Handle, String)
-\end{spec}
-With linear constraints, API:
-\begin{spec}
-openFile  :: FilePath -> IOL (Handle h .<= Open h)
-close     :: Open h =>. Handle h -> IOL ()
-readLine  :: Open h =>. Handle h -> IOL (String .<= Open h)
-\end{spec}
-The example become (remark: not the do-notation for the |IO| monad):
-\begin{spec}
-readTwoLines path = do
-  h <- openFile path
-  line1 <- readLine h
-  line2 <- readLine h
-  close h
-\end{spec}
-
-It looks exactly the same as without linear types. But you still get
-an error for double-free and use-after-free usages.
 
 \subsection{Quantum IO Monad}
 
