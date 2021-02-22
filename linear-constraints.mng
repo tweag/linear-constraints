@@ -223,19 +223,19 @@ dependently typed programmers can now use linear types with Idris 2.
 To get a sense of the power of linear types, consider the following example from
 the Linear Haskell article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO monad}:
 \begin{code}
-firstLine :: FilePath -> IOL Bytestring
+firstLine :: FilePath -> IOL String
 firstLine fp =
   do  {  f <- openFile fp
-      ;  (f, Ur bs) <- readLine f
+      ;  (f, Ur xs) <- readLine f
       ;  closeFile f
-      ;  return bs }
+      ;  return xs }
 \end{code} This simple function opens a file, reads its first line, then closes
 it. Linearity ensures that the file handle |f| is consumed at the end.
 Forgetting to call |closeFile f| would result in a type error since |f| would
 remain unused at the end of the function. Notice that |readLine| consumes the
 file handle, and returns a fresh |f| that shadows the previous version, to be
-used in further interactions with the file. The line's content is a bytestring
-|bs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
+used in further interactions with the file. The line's content is a string
+|xs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
 signify that it can be used arbitrary many times.
 
 % We see that linear types introduce some noise on the |readLine| line:
@@ -247,12 +247,12 @@ signify that it can be used arbitrary many times.
 
 Compare this function with the traditional non-linear version:
 \begin{code}
-firstLine :: FilePath -> IO Bytestring
+firstLine :: FilePath -> IO String
 firstLine fp =
   do  {  f <- openFile fp
-      ;  bs <- readLine f
+      ;  xs <- readLine f
       ;  closeFile f
-      ;  return bs }
+      ;  return xs }
 \end{code}
 
 This version is less safe, because the type system does not keep track of the
@@ -275,12 +275,12 @@ to thread the tokens through the program.
 With this extension, the final version of |firstLine| is almost the same as the
 traditional version above, with a few minor modifications:
 \begin{code}
-firstLine :: FilePath -> IOL Bytestring
+firstLine :: FilePath -> IOL String
 firstLine fp =
   do  {  pack f <- openFile fp
-      ;  pack bs <- readLine f
+      ;  pack xs <- readLine f
       ;  closeFile f
-      ;  return bs }
+      ;  return xs }
 \end{code}
 The only changes from the unsafe version are that this version runs in the linear IO monad,
 and explicit |pack| annotations are used to indicate the variables that require
