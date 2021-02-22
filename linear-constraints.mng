@@ -809,7 +809,7 @@ this simplification in Section~\ref{sec:constraint-generation}.
 \subsection{Typing rules}
 \label{sec:typing-rules}
 
-Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system is
+Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system (Figure~\ref{fig:declarative:grammar})is
 presented as a \emph{qualified type system} in the style first introduced
 by~\cite{QualifiedTypes}. Such a qualified type system introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
