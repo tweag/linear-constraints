@@ -353,9 +353,9 @@ closeFile  :: Handle ⊸ IOL ()
   \hfill
   \begin{subfigure}{.52\linewidth}
 \begin{code}
-openFile   :: FilePath -> IOL (exists f. File f .<= Open f)
-readLine   :: Open f =>. File f -> IOL (() .<= Open f)
-closeFile  :: Open f =>. File f -> IOL ()
+openFile   :: FilePath -> IOL (exists h. Handle h .<= Open h)
+readLine   :: Open h =>. Handle h -> IOL (String .<= Open h)
+closeFile  :: Open h =>. Handle h -> IOL ()
 \end{code}
 \caption{Linear Constraints}
 \label{fig:constraints-interface}
@@ -442,7 +442,7 @@ to represent that a file is, indeed, open. We can write the type of
 |closeFile|:
 
 \begin{code}
-closeFile :: Open f =>. File f -> IOL ()
+closeFile :: Open h =>. Handle h -> IOL ()
 \end{code}
 
 There are a few things to notice
@@ -489,7 +489,7 @@ implemented as
 
 \begin{code}
 data NewFile where
-  Pack :: Open f =>. File f -> NewFile
+  Pack :: Open h =>. Handle h -> NewFile
 \end{code}
 
 Therefore, the existential types of this article are really a
@@ -509,9 +509,13 @@ the example given in the introduction.
   to the idea of typestate than the pedestrian encoding in regular
   linear types.}
 
+\unsure{Explain why the following is unsound:}
+\begin{spec}
+openFile  :: FilePath -> IOL (Handle h .<= Open h)
+\end{spec}
 
-In Linear Haskell~\cite{LinearHaskell}
 
+Another example to consider:
 \begin{spec}
 readTwoLines path = do
   h0 <- openFile path
@@ -519,13 +523,8 @@ readTwoLines path = do
   (h2, line2) <- readLine h1
   close h2
 \end{spec}
-API:
 With linear constraints, API:
-\begin{spec}
-openFile  :: FilePath -> IOL (Handle h .<= Open h)
-close     :: Open h =>. Handle h -> IOL ()
-readLine  :: Open h =>. Handle h -> IOL (String .<= Open h)
-\end{spec}
+
 The example become (remark: not the do-notation for the |IO| monad):
 \begin{spec}
 readTwoLines path = do
