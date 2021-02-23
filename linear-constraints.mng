@@ -337,6 +337,7 @@ give a number of examples that motivate our extension into linear constraints.
 % reading just one line of it, so the linear |readLine| is given the type.
 
 \subsection{Linear Types}
+\label{sec:linear-types}
 
 \begin{figure}%
   \centering
@@ -618,6 +619,42 @@ constraint resolution.
 would not be observable (safely) as dictionary methods use the dictionary in an
 unrestricted way.}
 
+\subsection{Linear IO}
+\label{sec:linear-io}
+
+The file handling example discussed in Sections~\ref{sec:linear-types}
+and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
+There are two main modifications compared to the traditional |IO|. Firstly, the
+type of the monadic operations |>>=| and |return| are changed so that they
+consume their arguments linearly. In the case of |>>=|, its argument also must
+be a linear function:
+
+\begin{code}
+(>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b
+return :: a ->. IOL a
+\end{code}
+
+The reason bind needs to be linear is that, as explained in the previous
+section, a linear constraint can only be used in a linear context. For the following
+program to typecheck, bind must be linear:
+
+\begin{code}
+readTwo ::  Open f =>. Handle h -> IOL ((String, String) .<= Open h)
+readTwo h =
+  readLine h >>= \case
+    Pack l1 -> readLine >>= \case
+    Pack l2 -> return (Pack (l1, l2))
+\end{code}
+
+Otherwise the first argument of the first bind would not be able to consume the
+|Open f| constraint.
+
+The astute reader will notice that since |>>=|'s function argument is a linear
+function, all the values bound must be used exactly once. But our intention is
+to treat only the constraints linearly, but use the values in an unrestricted
+fashion. To this end, |Pack| is actually unrestricted in the value it holds, and
+only linear in the constraints. This means that in |readTwo|, we could decide to
+read an additional line, but maybe not return the result from the function.
 
 \newpage
 
