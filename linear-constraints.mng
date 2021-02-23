@@ -559,7 +559,7 @@ class C
 
 useC :: C =>. Int
 \end{code}
-The type of |useC| indicates that it consumes a linear resource |C| exactly once.
+The type of |useC| indicates that it consumes its linear resource |C| exactly once.
 
 \subsubsection{Dithering}
 
@@ -574,25 +574,27 @@ since it evaluates to |useC| whereas the other does not.
 
 \subsubsection{Neglecting}
 
-Now consider the following program:
+Now consider the type of the linear version of |const|:
+\begin{spec}
+const :: a ->. b -> a
+\end{spec}
+This function uses its first argument linearly, and ignores the second.
+
+One way to improperly use the linear |const| is by neglecting a linear variable:
 \begin{code}
 neglecting :: C =>. Int
 neglecting = const 10 useC
 \end{code}
-where |const :: a ->. b -> a|.
-
 The problem with |neglecting| is that although |useC| is mentioned in this program,
-it is never evaluated, and so |C| is never consumed.
+it is never evaluated because |const| does not use its second argument.
+The constraint |C| is never consumed so this program ought to be rejected.
 
-The constant function uses its first argument linearly, but it does not use its
-second argument, so the above program needs to be rejected. The rule is that a
-linear constraint is only consumed in a linear context. For example,
-
+The rule is that a linear constraint is only consumed in a linear context. For
+example,
 \begin{code}
 notNeglecting :: C =>. Int
 notNeglecting = const useC 10
 \end{code}
-
 is accepted, because the |C| constraint is passed on to |useC| which itself
 appears as an argument to a linear function (whose result is consumed linearly).
 
