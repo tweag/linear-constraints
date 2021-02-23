@@ -1284,9 +1284,7 @@ predicates. These predicates arise from user programs, and the constraint solver
 attempts to solve them. At its essence, OutsideIn's constraint solver is a
 procedure that takes a set of \emph{given} constraints (the logical
 assumptions), and generates a proof of some \emph{wanted} constraint using the
-\emph{given}s. In case the wanteds can not be solved completely, the solver
-returns a set of \emph{residual} constraints: these are the remaining
-subproblems to solve.
+\emph{given}s.
 
 Adding linearity requires treating constraints as consumable resources, and this
 points at the key change we need to make to OutsideIn's solver judgement. In
@@ -1295,21 +1293,39 @@ addition to returning a set of unsolved constraints, our solver returns a set of
 the solution of the wanted, and can be thought of as the output set of
 constraints. The solver judgement thus takes the following form:
 
-$[[Q_g |-s C ~> Q_o ; Q_r]]$
+\csongor{Maybe we can remove the residuals here to simplify further. GHC uses
+them to quantify over the wanteds that couldn't be solved from the top-level
+givens when inferring the type of a top-level function. However, in our case we
+don't do inference anyway. }
 
-There are two simplifications compared to OutsideIn's solver. Firstly, as
+$[[Q_g |-s C ~> Q_o]]$
+
+There are three simplifications compared to OutsideIn's solver. Firstly, as
 explained in Section~\ref{sec:constraint-generation}, our solver does not need
 to do unification, so we do not return a substitution in the solver judgement.
-Secondly, we do not handle top-level assumptions, as the meaning of a globally
-unique constraint is unclear.
+Secondly, we do not handle top-level assumptions, as the meaning of a linear
+constraint in the global set of givens is unclear.  Finally, in case the wanteds
+can not be solved completely, OutsideIn also returns a set of \emph{residual}
+constraints: these are the remaining subproblems to solve. This set of residual
+constraints is simply quantified over in the type of top-level function
+definitions that don't have signatures. The residuals are essentially all of the
+wanteds that arise from the program that couldn't be solved from the global
+givens. In our solver we omit these residual constraints, because we do not do
+inference and assume that all top-level functions will have signatures. Even if
+we did do inference, since there are no global linear constraints, the residual
+set would be identical to the wanted (modulo rewriting rules from the constraint
+domain).
+
+It is important to reiterate this distinction: OutsideIn's residual constraints
+are the ones that remain to be solved from the goal, while our output
+constraints here are the ones that have not been consumed during solving.
+
 
 \begin{definition}
 \label{def:solver-soundness}
-A pair of $[[Q_o]]$ and $[[Q_r]]$ are sound solutions for $[[C]]$ under some given
-constraint $[[Q_g]]$ when $[[Q_g * Q_r |- C * Q_o]]$. That is, assuming the
-residual constraint is indeed sufficient to show that $[[C]]$ holds together
-with $[[Q_o]]$.
-In addition, there exists some $[[Q']]$ such that $[[Q_g |- Q' * Q_o]]$.
+$[[Q_o]]$ is a sound solution for $[[C]]$ under some given
+constraint $[[Q_g]]$ when $[[Q_g  |- C * Q_o]]$.
+\end{definition}
 Note that $[[Q_o]]⊆[[Q_g]]$ is not necessarily true as the entailment relation
 $[[||-]]$ of the constraint domain potentially admits additional rewriting rules
 that the solver uses to transform constraints as it proceeds (which is indeed
@@ -1477,8 +1493,8 @@ case expression is routine.
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
 Definition~\ref{def:solver-soundness} we know that if
-$[[G |-> e : t ~> C]]$ and $[[Q_g |-s C~> Empty ; Q_r]]$, then
-$[[Q_g * Q_r ; G |- e : t]]$.
+$[[G |-> e : t ~> C]]$ and $[[Q_g |-s C~> Empty ]]$, then
+$[[Q_g ; G |- e : t]]$.
 
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
 Core Calculus. Let us dedicate the rest of this section to describe

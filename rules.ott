@@ -148,7 +148,7 @@ defns
 Solve :: '' ::=
 
 defn
-Q_g |-s C_w ~> Q_o ; Q_r :: :: Solve :: 'S_' {{ com Constraint solving }}
+Q_g |-s C_w ~> Q_o :: :: Solve :: 'S_' {{ com Constraint solving }}
 by
 
 % todo
