@@ -608,8 +608,8 @@ overusing = (useC, useC)
 Naturally, this is program is rejected as it uses |C| twice. However, the
 following version is accepted:
 \begin{code}
-notNeglecting :: (C, C) =>. (Int, Int)
-notNeglecting = (useC, useC)
+notOverusing :: (C, C) =>. (Int, Int)
+notOverusing = (useC, useC)
 \end{code}
 That is, it is possible to have multiple copies of a given constraint. The order
 of resolution is non-deterministic, and it is up to the creator of the API to
