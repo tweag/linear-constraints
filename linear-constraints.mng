@@ -1303,7 +1303,9 @@ to do unification, so we do not return a substitution in the solver judgement.
 Secondly, we do not handle top-level assumptions, as the meaning of a globally
 unique constraint is unclear.
 
-Some $[[Q_o]]$ and $[[Q_r]]$ are sound solutions for $[[C]]$ under some given
+\begin{definition}
+\label{def:solver-soundness}
+A pair of $[[Q_o]]$ and $[[Q_r]]$ are sound solutions for $[[C]]$ under some given
 constraint $[[Q_g]]$ when $[[Q_g * Q_r |- C * Q_o]]$. That is, assuming the
 residual constraint is indeed sufficient to show that $[[C]]$ holds together
 with $[[Q_o]]$.
@@ -1474,10 +1476,8 @@ case expression is routine.
 \label{sec:ds:inferred-constraints}
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
-the correctness criterion\unsure{maybe tug this in a definition so
-  that referring to it is easier} of the solver from
-Section~\ref{sec:constraint-solver} we know that if
-$[[G |-> e : t ~> C]]$ and $[[Q_g |-s C_w ~> Empty ; Q_r]]$, then
+Definition~\ref{def:solver-soundness} we know that if
+$[[G |-> e : t ~> C]]$ and $[[Q_g |-s C~> Empty ; Q_r]]$, then
 $[[Q_g * Q_r ; G |- e : t]]$.
 
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
