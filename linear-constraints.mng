@@ -419,7 +419,7 @@ Consider the Haskell function |show|:
 show :: Show a => a -> String
 \end{code}
 In addition to the function arrow |->|, common to all functional
-programming languages, the tyep of this function features a fat arrow |=>|.
+programming languages, the type of this function features a fat arrow |=>|.
 Everything to the
 left of a fat arrow is called a \emph{constraint}. Here |Show a| is a
 type-class constraint, but there are other kinds of constraints such
@@ -646,9 +646,9 @@ program to typecheck, bind must be linear:
 \begin{code}
 readTwo ::  Open h =>. Handle h -> IOL ((String, String) .<= Open h)
 readTwo h =
-  readLine h >>= \case Pack xs ->
-  readLine h >>= \case Pack ys ->
-  return (Pack (xs, ys))
+  readLine h >>= \case pack xs ->
+  readLine h >>= \case pack ys ->
+  return (pack (xs, ys))
 \end{code}
 If it were not linear, the first argument |readLine h| of the first bind would
 not be able to consume the |Open h| constraint.
@@ -656,7 +656,7 @@ not be able to consume the |Open h| constraint.
 The astute reader will notice that since |>>=|'s function argument is a linear
 function, all the values bound must be used exactly once. But our intention is
 to treat only the constraints linearly, but use the values in an unrestricted
-fashion. To this end, |Pack| is actually unrestricted in the value it holds, and
+fashion. To this end, |pack| is actually unrestricted in the value it holds, and
 only linear in the constraints. This means that in |readTwo|, we could decide to
 read an additional line, but maybe not return the result from the function.
 
@@ -758,8 +758,6 @@ are never linear\,--\,just like how toplevel definitions are never linear in
 Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
 interesting interaction with the rest of the system, and we choose to
 omit them for simplicity.
-
-\unsure{Missing: detailed syntax}
 
 We consider simple constraints equal up to associativity and commutativity of
 tensor products, as well as idempotence of the unrestricted
@@ -1349,17 +1347,16 @@ in a way which implies goal oriented proof search, but it can be adapted
 
 The key points are
 \begin{itemize}
-\item Each rule return the remaining, unused (linear) hypotheses: the
+\item Each rule returns the remaining, unused (linear) hypotheses: the
   \emph{leftovers}.
 \item To deal with $⊤$, remember that you've encountered a $⊤$ in a
   different branch. And let you spend any leftover back into a
   previous $⊤$
 \item In~\cite{resource-management-for-ll-proof-search}, there is a
-  third input context ($Ξ$), which represents a context which need to
-  be used, and cannot be returned as leftovers. However, this is used
-  to fail earlier in backtracking branches which are doomed to
-  fail. It doesn't apply to our backtrackingless
-  setting\unsure{[Arnaud]: I think.}
+  third input context ($Ξ$), which represents a context which needs to be used,
+  and cannot be returned as leftovers. However, this is used to fail earlier in
+  backtracking branches that are doomed to fail. This does not apply to our
+  setting since we have no backtracking.\unsure{[Arnaud]: I think.}
 \end{itemize}
 
 \begin{figure}
@@ -1860,12 +1857,12 @@ data AtomRef (a :: Type) (n :: Token)
 
 Type of references to a pure type a with ownership token n.
 
-newRef :: (forall n. O n =>. AtomRef a n -> Unrestricted b) ⊸ Unrestricted b
+newRef :: (forall n. O n =>. AtomRef a n -> Ur b) ⊸ Ur b
 
 locally allocate a unique reference, available in a continuation.
 - explain unrestricted trick.
 - This is necessary to ensure that O n does not escape inside an arbitrary value of type B, O n must be consumed.
-- case analysis on Unrestricted means that evaluation order is forced: when we have 'b' in scope we can perform the allocation and execute the continuation until it produces Unrestricted b.
+- case analysis on Ur means that evaluation order is forced: when we have 'b' in scope we can perform the allocation and execute the continuation until it produces Ur b.
 
 Read a reference. Read constraint is demanded, and immediately released.
 
@@ -1881,7 +1878,7 @@ freeRef :: O n =>. AtomRef a n -> ()
 
 Here the ownership is consumed.
 
-freezeRef :: O n =>. AtomRef a n -> Unrestricted a
+freezeRef :: O n =>. AtomRef a n -> Ur a
 
 
 
@@ -1895,7 +1892,7 @@ data PArray (a :: Reference) (n :: Token)
   -- This an array of References: is an array of boxed stuff. Are all
   -- references inside it are associated with the same token.
 
-> newPArray    :: (forall n. O n =>. PArray a n -> Unrestricted b) ⊸ Unrestricted b
+> newPArray    :: (forall n. O n =>. PArray a n -> Ur b) ⊸ Ur b
 
 as above.
 
