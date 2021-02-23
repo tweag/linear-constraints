@@ -646,9 +646,9 @@ program to typecheck, bind must be linear:
 \begin{code}
 readTwo ::  Open h =>. Handle h -> IOL ((String, String) .<= Open h)
 readTwo h =
-  readLine h >>= \case Pack xs ->
-  readLine h >>= \case Pack ys ->
-  return (Pack (xs, ys))
+  readLine h >>= \case pack xs ->
+  readLine h >>= \case pack ys ->
+  return (pack (xs, ys))
 \end{code}
 If it were not linear, the first argument |readLine h| of the first bind would
 not be able to consume the |Open h| constraint.
@@ -656,7 +656,7 @@ not be able to consume the |Open h| constraint.
 The astute reader will notice that since |>>=|'s function argument is a linear
 function, all the values bound must be used exactly once. But our intention is
 to treat only the constraints linearly, but use the values in an unrestricted
-fashion. To this end, |Pack| is actually unrestricted in the value it holds, and
+fashion. To this end, |pack| is actually unrestricted in the value it holds, and
 only linear in the constraints. This means that in |readTwo|, we could decide to
 read an additional line, but maybe not return the result from the function.
 
