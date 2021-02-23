@@ -209,6 +209,7 @@ respect to the type system, and show how our changes can be integrated into
 \renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, and Spiwack}
 
 \section{Introduction}
+\label{sec:introduction}
 \info{There  is an Appendix section with unorganised thoughts and
   examples.}
 
@@ -220,8 +221,10 @@ dependently typed programmers can now use linear types with Idris 2.
 
 \csongor{Say something about ergonomics to set up the next part}
 
-To get a sense of the power of linear types, consider the following example from
-the Linear Haskell article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO monad}:
+The essence of linear types is careful tracking of the usage of resources. To
+get a sense of their power, consider the following example from
+the Linear Haskell article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO
+monad}:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =
@@ -229,7 +232,9 @@ firstLine fp =
       ;  (f, Ur xs) <- readLine f
       ;  closeFile f
       ;  return xs }
-\end{code} This simple function opens a file, reads its first line, then closes
+\end{code}
+
+This simple function opens a file, reads its first line, then closes
 it. Linearity ensures that the file handle |f| is consumed at the end.
 Forgetting to call |closeFile f| would result in a type error since |f| would
 remain unused at the end of the function. Notice that |readLine| consumes the
@@ -268,9 +273,10 @@ handle is used, and ultimately, consumed. Could the compiler not figure this out
 without extra help?
 
 In this paper, we answer this question affirmatively, and introduce \emph{linear
-constraints}, an extension of Haskell's type class mechanism to be aware of
-linearity. This way, resource consumption is tracked without explicitly having
-to thread the tokens through the program.
+  constraints}, a feature for tracking implicit arguments linearly.
+Whe show how linear constraints can be implemented as an extension of Haskell's
+type class mechanism.  This way, resource consumption is tracked without
+explicitly having to thread the tokens through the program.
 %if True
 With this extension, the final version of |firstLine| is almost the same as the
 traditional version above, with a few minor modifications:
@@ -1607,7 +1613,7 @@ Nesting of constraints in GHC is done via implication constraints, which hold a
 set of \emph{given} constraints and a set of \emph{wanted} constraints. The
 givens can (and for linear constraints, must) be used to solve the wanteds. We
 modified implication constraints to hold a set of sets of wanteds, to represent
-$[[*]]$ and $[[&]]$.
+multiplicative conjuctions ($[[*]]$) and additive conjuctions ($[[&]]$).
 
 When solving $[[C_1 * C_2]]$ (such as for two arguments of a function), the
 constraint solver first solves $[[C_1]]$ using all of the givens, and records
