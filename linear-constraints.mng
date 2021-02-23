@@ -486,12 +486,11 @@ Haskell doesn't have such existential quantification, however each
 instance of such existential quantification can be encoded as a
 \textsc{gadt}. For instance |exists h. Handle h .<= Open h| can be
 implemented as
-
+\unsure{We could use a |Proxy| instead. |Pack :: c a =>. Proxy a -> Pack c|, where |c :: * -> Constraint|}
 \begin{code}
 data PackHandle where
   Pack :: Open h =>. Handle h -> PackHandle
 \end{code}
-
 Therefore, the existential types of this article are really a
 convenience for the sake of exposition\unsure{Though, see the
   existential type paper}. Correspondingly, existential types are
