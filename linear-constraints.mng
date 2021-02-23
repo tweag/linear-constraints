@@ -1347,17 +1347,16 @@ in a way which implies goal oriented proof search, but it can be adapted
 
 The key points are
 \begin{itemize}
-\item Each rule return the remaining, unused (linear) hypotheses: the
+\item Each rule returns the remaining, unused (linear) hypotheses: the
   \emph{leftovers}.
 \item To deal with $⊤$, remember that you've encountered a $⊤$ in a
   different branch. And let you spend any leftover back into a
   previous $⊤$
 \item In~\cite{resource-management-for-ll-proof-search}, there is a
-  third input context ($Ξ$), which represents a context which need to
-  be used, and cannot be returned as leftovers. However, this is used
-  to fail earlier in backtracking branches which are doomed to
-  fail. It doesn't apply to our backtrackingless
-  setting\unsure{[Arnaud]: I think.}
+  third input context ($Ξ$), which represents a context which needs to be used,
+  and cannot be returned as leftovers. However, this is used to fail earlier in
+  backtracking branches that are doomed to fail. This does not apply to our
+  setting since we have no backtracking.\unsure{[Arnaud]: I think.}
 \end{itemize}
 
 % We can do pretty much like in OutsideIn: split the constraint between
