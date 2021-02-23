@@ -759,8 +759,6 @@ Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
 interesting interaction with the rest of the system, and we choose to
 omit them for simplicity.
 
-\unsure{Missing: detailed syntax}
-
 We consider simple constraints equal up to associativity and commutativity of
 tensor products, as well as idempotence of the unrestricted
 constraints. That is
