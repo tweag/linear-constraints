@@ -1293,12 +1293,13 @@ addition to returning a set of unsolved constraints, our solver returns a set of
 the solution of the wanted, and can be thought of as the output set of
 constraints. The solver judgement thus takes the following form:
 
-\csongor{Maybe we can remove the residuals here to simplify further. GHC uses
-them to quantify over the wanteds that couldn't be solved from the top-level
-givens when inferring the type of a top-level function. However, in our case we
-don't do inference anyway. }
-
 $[[Q_g |-s C ~> Q_o]]$
+
+\csongor{Gah. It will be more convenient to track the linear context separately
+from the unrestricted context. That, or I define a function on contexts that
+removes an element, and do cases on the multiplicities (actually this is how the
+implementation works). But it would be cleaner to simply have two contexts. I'm not sure
+how to convince ott that this is a good idea. Will try again tomorrow.}
 
 There are three simplifications compared to OutsideIn's solver. Firstly, as
 explained in Section~\ref{sec:constraint-generation}, our solver does not need
@@ -1319,7 +1320,6 @@ domain).
 It is important to reiterate this distinction: OutsideIn's residual constraints
 are the ones that remain to be solved from the goal, while our output
 constraints here are the ones that have not been consumed during solving.
-
 
 \begin{definition}
 \label{def:solver-soundness}
@@ -1361,6 +1361,13 @@ The key points are
   fail. It doesn't apply to our backtrackingless
   setting\unsure{[Arnaud]: I think.}
 \end{itemize}
+
+\begin{figure}
+  \centering
+  \drules[S]{$[[Q_g |-s C_w ~> Q_o ]]$}{Constraint solving typing}{Mult, Add}
+  \caption{Constraint solver}
+  \label{fig:constraint-solver}
+\end{figure}
 
 % We can do pretty much like in OutsideIn: split the constraint between
 % simple constraints and non-simple wanted constraints if we wish (but, this time,
