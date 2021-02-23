@@ -1853,12 +1853,12 @@ data AtomRef (a :: Type) (n :: Token)
 
 Type of references to a pure type a with ownership token n.
 
-newRef :: (forall n. O n =>. AtomRef a n -> Unrestricted b) ⊸ Unrestricted b
+newRef :: (forall n. O n =>. AtomRef a n -> Ur b) ⊸ Ur b
 
 locally allocate a unique reference, available in a continuation.
 - explain unrestricted trick.
 - This is necessary to ensure that O n does not escape inside an arbitrary value of type B, O n must be consumed.
-- case analysis on Unrestricted means that evaluation order is forced: when we have 'b' in scope we can perform the allocation and execute the continuation until it produces Unrestricted b.
+- case analysis on Ur means that evaluation order is forced: when we have 'b' in scope we can perform the allocation and execute the continuation until it produces Ur b.
 
 Read a reference. Read constraint is demanded, and immediately released.
 
@@ -1874,7 +1874,7 @@ freeRef :: O n =>. AtomRef a n -> ()
 
 Here the ownership is consumed.
 
-freezeRef :: O n =>. AtomRef a n -> Unrestricted a
+freezeRef :: O n =>. AtomRef a n -> Ur a
 
 
 
@@ -1888,7 +1888,7 @@ data PArray (a :: Reference) (n :: Token)
   -- This an array of References: is an array of boxed stuff. Are all
   -- references inside it are associated with the same token.
 
-> newPArray    :: (forall n. O n =>. PArray a n -> Unrestricted b) ⊸ Unrestricted b
+> newPArray    :: (forall n. O n =>. PArray a n -> Ur b) ⊸ Ur b
 
 as above.
 
