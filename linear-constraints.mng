@@ -1277,24 +1277,57 @@ not sure what to do with it, so the below might not be quite right.}
 
 \subsection{Constraint solver}
 \label{sec:constraint-solver}
-$[[Q_g |-s C ~> Q_o;Q_r]]$
 
-Correctness property: $[[Q_g * Q_r |- C * Q_o]]$.\unsure{We would
-  typically have $[[Q_o]]⊆[[Q_g]]$, but does it matter? Actually, I'm
-  [Arnaud] tempted to posit that this wouldn't always hold for
-  GHC. Indeed, GHC rewrites givens, therefore, $[[Q_o]]$ may have
-  extra formula or rewritten formulas which are not actually in
-  $[[Q_g]]$.}
+Haskell's constraint language can be thought of as a logic programming language.
+Type classes encode predicates and type class instances add clauses to the
+predicates. These predicates arise from user programs, and the constraint solver
+attempts to solve them. At its essence, OutsideIn's constraint solver is a
+procedure that takes a set of \emph{given} constraints (the logical
+assumptions), and generates a proof of some \emph{wanted} constraint using the
+\emph{given}s. In case the wanteds can not be solved completely, the solver
+returns a set of \emph{residual} constraints: these are the remaining
+subproblems to solve.
 
-Various recipes are given
-by~\textcite{resource-management-for-ll-proof-search}.
-\info{The first presentation of returning output context that I could
-  find is~\cite{hh-ll}, but I
-  find~\cite{resource-management-for-ll-proof-search} more
-  informative.}
-These recipes are phrased in a way which implies goal oriented
-proof search, but they can be adapted \emph{mutatis mutandis} to GHC's
-backtrackingless rewrite-based search.
+Adding linearity requires treating constraints as consumable resources, and this
+points at the key change we need to make to OutsideIn's solver judgement. In
+addition to returning a set of unsolved constraints, our solver returns a set of
+\emph{output} constraints: these are the constraints that were not consumed in
+the solution of the wanted, and can be thought of as the output set of
+constraints. The solver judgement thus takes the following form:
+
+$[[Q_g |-s C ~> Q_o ; Q_r]]$
+
+There are two simplifications compared to OutsideIn's solver. Firstly, as
+explained in Section~\ref{sec:constraint-generation}, our solver does not need
+to do unification, so we do not return a substitution in the solver judgement.
+Secondly, we do not handle top-level assumptions, as the meaning of a globally
+unique constraint is unclear.
+
+Some $[[Q_o]]$ and $[[Q_r]]$ are sound solutions for $[[C]]$ under some given
+constraint $[[Q_g]]$ when $[[Q_g * Q_r |- C * Q_o]]$. That is, assuming the
+residual constraint is indeed sufficient to show that $[[C]]$ holds together
+with $[[Q_o]]$.
+In addition, there exists some $[[Q']]$ such that $[[Q_g |- Q' * Q_o]]$.
+Note that $[[Q_o]]⊆[[Q_g]]$ is not necessarily true as the entailment relation
+$[[||-]]$ of the constraint domain potentially admits additional rewriting rules
+that the solver uses to transform constraints as it proceeds (which is indeed
+the case with e.g. type families).
+
+A major simplifying design feature of OutsideIn compared to more general proof
+search algorithms is that it always produces a \emph{guess-free} solution, which
+amounts to not doing backtracking during search.  \unsure{refer to
+ambiguity section, which I'm about to write.}
+
+Following this exposition of the constraint language, we use a linear proof
+search algorithm based on the recipe given
+by~\textcite{resource-management-for-ll-proof-search}.  This recipe is phrased
+in a way which implies goal oriented proof search, but it can be adapted
+\emph{mutatis mutandis} to GHC's backtrackingless rewrite-based search.
+
+% \info{The first presentation of returning output context that I could
+%   find is~\cite{hh-ll}, but I
+%   find~\cite{resource-management-for-ll-proof-search} more
+%   informative.}
 
 The key points are
 \begin{itemize}
@@ -1311,15 +1344,15 @@ The key points are
   setting\unsure{[Arnaud]: I think.}
 \end{itemize}
 
-We can do pretty much like in OutsideIn: split the constraint between
-simple constraints and non-simple wanted constraints if we wish (but, this time,
-non-simple constraint include $\aand$! so there will be significantly
-more of them). Apply synchronous rules on non-simple constraints to retrieve simple
-constraints, call the simplifier on them.
+% We can do pretty much like in OutsideIn: split the constraint between
+% simple constraints and non-simple wanted constraints if we wish (but, this time,
+% non-simple constraint include $\aand$! so there will be significantly
+% more of them). Apply synchronous rules on non-simple constraints to retrieve simple
+% constraints, call the simplifier on them.
 
-To be honest, we can even do one atomic constraint at a time, given
-that we have no equality, hence our wanted can't interact (I [Arnaud]
-think) but the details don't matter terribly.
+% To be honest, we can even do one atomic constraint at a time, given
+% that we have no equality, hence our wanted can't interact (I [Arnaud]
+% think) but the details don't matter terribly.
 
 \newpage
 
