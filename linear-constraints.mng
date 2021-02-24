@@ -712,23 +712,27 @@ read an additional line, but maybe not return the result from the function.
 
 \section{A qualified type system}
 
-\unsure{Some transition from example into the technique needed here.}
+Let us now describe the technical material which lets us support the
+examples of Section~\ref{sec:examples}. The presentation in this
+section, as well as Section~\ref{sec:type-inference}, strongly mirror
+the presentation of OutsideIn~\cite{OutsideIn}. OutsideIn is a
+foundation of the type inference algorithm of \textsc{ghc}, the most
+popular Haskell compiler where Linear Haskell~\cite{LinearHaskell} is being
+implemented\footnote{A version of Linear Haskell has been released as
+  part of version 9.0.1 of \textsc{ghc}}, as such we chose to frame
+this presentation in terms of OutsideIn. By using such a
+framing, we intend to highlight the concrete changes required to
+\textsc{ghc}, or similar compilers, to support linear constraints.
 
-The description of the type system in this section, as well as the
-constraint inference algorithm of Section~\ref{sec:type-inference}, are
-strongly inspired by the presentation of
-OutsideIn~\cite{OutsideIn}. OutsideIn is a foundation of the type
-inference algorithm of \textsc{ghc}, the most popular Haskell
-compiler, as such we decided to frame this presentation as an
-extension of OutsideIn. We have chosen, for the sake of clarity of the
-exposition, to omit details of OutsideIn which do not interact with
+However, we have chosen, for the sake of clarity of the exposition, to
+omit details of OutsideIn which do not interact meaningfully with
 linear constraints. We shall point out such simplifications where they
 arise.
 
 \subsection{Multiplicities}
 \label{sec:multiplicities}
 
-Like in Linear Haskell~\cite{LinearHaskell} we shall make use of a
+Like in Linear Haskell~\cite{LinearHaskell} we make use of a
 system of \emph{multiplicities}, which describe how linear functions
 can be. Linear Haskell is parametric in the system of
 multiplicities. For the sake of this article, however, we will use
@@ -742,8 +746,12 @@ $$
 \end{array}
 $$
 
-We will need to add and multiply constraints. Here are the definitions
-of these operations.
+\noindent
+The idea of multiplicity goes back, for instance,
+to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
+  semiring}. The power of multiplicity is that they can encode the
+so-called structural rules of linear logic with only semiring
+operations (that is, addition and multiplication).
 
 $$
 \left\{
@@ -766,16 +774,24 @@ $$
 \subsection{Simple constraints}
 \label{sec:constraint-domain}
 
-\info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
-
-Like OutsideIn (see~\cite[Section 3.2, in particular Figure
-3]{OutsideIn}), we parameterise the entire type system by a constraint
+Following OutsideIn (see~\cite[Section 3.2, in particular Figure
+3]{OutsideIn}), we parameterise our entire type system by a constraint
 domain\,--\,the $X$ in OutsideIn($X$). This domain is characterised by
 a set of \emph{atomic constraints} written $[[q]]$ and an entailment
 relation $[[Q1 ||- Q2]]$. Let us adopt \textsc{ghc}'s terminology and
 call these \emph{simple
   constraints} to distinguish them from the richer constraints of
 Section~\ref{sec:wanteds}.
+
+For instance, in \textsc{ghc},
+the domain includes type classes the entailment relation describes
+instance resolution.
+For the sake of the examples of Section~\ref{sec:examples}, simple constraints need
+only be the simplest possible, whereby atomic constraints are treated
+as uninterpreted symbols. Being parameterised by the domain therefore
+only serves to support the rest of Haskell, or any future extension.
+
+\info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
 
 $$
 \begin{array}{lcll}
@@ -788,16 +804,12 @@ The multiplicity in front of atomic constraints is the \emph{scaling
   factor}. It indicates whether the constraint is to be used linearly
 ($[[1]]$) or without restriction ($[[omega]]$).
 
-Simple constraints are treated completely abstractly by the system; for
-inference we will need a domain-specific solver, of which
+Simple constraints are treated completely abstractly by our system
+(just like they are in OutsideIn). For
+inference, in Section~\ref{sec:type-inference}, we will need a domain-specific solver, of which
 we only require that it adheres to the interface given in
-Section~\ref{sec:constraint-solver}. For instance, in \textsc{ghc},
-the domain includes type classes the entailment relation describes
-instance resolution.
-For the sake of the examples of Section~\ref{sec:examples}, simple constraints need
-only be the simplest possible, whereby atomic constraints are treated
-as uninterpreted symbols. Being parameterised by the domain therefore
-only serves to support the rest of Haskell, or any future extension.
+Section~\ref{sec:constraint-solver}. But for the sake of this section,
+we only need that the domain be equipped with the entailment relation.
 
 OutsideIn introduces, as part of the constraint domain, a generalised
 kind of constraint $\mathcal{Q}$, which include toplevel axioms, such
@@ -814,10 +826,12 @@ $$
 \begin{array}{rcl}
   [[Q1 * Q2]] & = & [[Q2 * Q1]] \\
   [[(Q1*Q2)*Q3]] & = & [[Q1*(Q2*Q3)]] \\
-  [[omega.q * omega.q]] & = & [[omega.q]]
+  [[omega.q * omega.q]] & = & [[omega.q]] \\
+  [[Q * Empty]] & = & [[Q]]
 \end{array}
 $$
 
+\noindent
 Scaling is extended to all constraints:
 
 $$
@@ -833,7 +847,8 @@ $$
   an exotic feature of Linear Haskell. It does simplify the
   presentation a bit here.}
 
-Note that $[[1.Q]] = [[Q]]$ and that
+\noindent
+The rule that $[[omega.(Q1 * Q2)]]$. Note that $[[1.Q]] = [[Q]]$ and that
 $[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
 We will often omit the scaling factor for linear atomic constraints
@@ -847,10 +862,9 @@ properties:
 \begin{displaymath}
   \begin{array}{l}
     [[Q ||- Q]] \\
-    [[Q * Empty ||- Q]] \text{ and } [[Q ||- Q*Empty ]] \\
     \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
     \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[Q']] \text{ and } [[Q'']]
-    \text{ such that } [[Q]]=[[Q' * Q'']] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
+      \text{ such that } [[Q]]=[[Q' * Q'']] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
     \text{if } [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
     \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
     \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such

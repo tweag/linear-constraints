@@ -84,7 +84,7 @@ pi {{ tex \pi }}, rho {{ tex \rho }} :: 'Mult_' ::= {{ com Multiplicities }}
   | 1                    ::   :: One
   | omega                ::   :: Many
   | pi1 . pi2            :: M :: Mult  {{ tex [[pi1]]{⋅}[[pi2]] }}
-  | pi1 + pi2            :: M :: Add   {{ tex [[pi1]]{⋅}[[pi2]] }}
+  | pi1 + pi2            :: M :: Add
   | ( pi )               :: S :: Paren
   % I'd like to avoid multiplicity variables if we can, as they are
   % not very relevant to our discussion
