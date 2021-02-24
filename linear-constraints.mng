@@ -778,10 +778,10 @@ Following OutsideIn (see~\cite[Section 3.2, in particular Figure
 3]{OutsideIn}), we parameterise our entire type system by a constraint
 domain\,--\,the $X$ in OutsideIn($X$). This domain is characterised by
 a set of \emph{atomic constraints} written $[[q]]$ and an entailment
-relation $[[Q1 ||- Q2]]$. Let us adopt \textsc{ghc}'s terminology and
-call these \emph{simple
-  constraints} to distinguish them from the richer constraints of
-Section~\ref{sec:wanteds}.
+relation $[[Q1 ||- Q2]]$, with properties specified in
+Definition~\ref{def:entailment-relation}. Let us adopt \textsc{ghc}'s
+terminology and call these \emph{simple constraints} to distinguish
+them from the richer constraints of Section~\ref{sec:wanteds}.
 
 For instance, in \textsc{ghc},
 the domain includes type classes the entailment relation describes
@@ -816,12 +816,12 @@ kind of constraint $\mathcal{Q}$, which include toplevel axioms, such
 as type-class instance declarations. Such toplevel axioms
 are never linear\,--\,just like how toplevel definitions are never linear in
 Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
-interesting interaction with the rest of the system, and we choose to
+interesting interactions with the rest of the system, and we choose to
 omit them for simplicity.
 
-We consider simple constraints equal up to associativity and commutativity of
-tensor products, as well as idempotence of the unrestricted
-constraints. That is
+We consider simple constraints to equal up to associativity and
+commutativity of tensor products, as well as idempotence of the
+unrestricted constraints. That is
 $$
 \begin{array}{rcl}
   [[Q1 * Q2]] & = & [[Q2 * Q1]] \\
@@ -837,18 +837,21 @@ Scaling is extended to all constraints:
 $$
 \left\{
   \begin{array}{lcl}
+    [[pi.Empty]] & = & [[Empty]]\\
     [[pi.(Q1 * Q2)]] & = & [[pi.Q1 * pi.Q2]] \\
     [[pi.(rho. Q)]]  & = & [[(pi.rho) . Q]]
   \end{array}
 \right.
 $$
 \unsure{Rendering}
-\unsure{Explain that the commutation of scaling and tensor product is
-  an exotic feature of Linear Haskell. It does simplify the
-  presentation a bit here.}
 
 \noindent
-The rule that $[[omega.(Q1 * Q2)]]$. Note that $[[1.Q]] = [[Q]]$ and that
+The rule that $[[omega.(Q1 * Q2)]] = [[omega.Q1 * omega.Q2]]$ is not a
+typical feature of linear logic; Linear Haskell, however, introduces
+the corresponding type isomorphism for the sake of polymorphism, this
+article isn't concerned with polymorphism, yet this equality does make
+the overall presentation a bit simpler, so let's not deny ourselves
+this little pleasure. Note, in particular, that $[[1.Q]] = [[Q]]$ and
 $[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
 We will often omit the scaling factor for linear atomic constraints
@@ -856,25 +859,33 @@ and write $[[q]]$ for $[[1.q]]$. Note that there is no ambiguity as,
 if $[[pi.q]]$ is read as $[[pi.(1.q)]]$, then it does, indeed, equal
 $[[pi.q]]$.
 
-The constraint entailment relation must satisfy the following
-properties:
-
-\begin{displaymath}
-  \begin{array}{l}
-    [[Q ||- Q]] \\
-    \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
-    \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[Q']] \text{ and } [[Q'']]
+\begin{definition}[Requirements for the entailment relation]\label{def:entailment-relation}
+  The constraint entailment relation must satisfy the following
+  properties:
+  $$
+    \begin{array}{l}
+      [[Q ||- Q]] \\
+      \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
+      \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[Q']] \text{ and } [[Q'']]
       \text{ such that } [[Q]]=[[Q' * Q'']] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
-    \text{if } [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
-    \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
-    \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
-    that } [[Q]] = [[pi. Q']] \text{ and } [[Q' ||- rho . q]]
-  \end{array}
-\end{displaymath}
+      \text{if } [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
+      \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
+      \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
+      that } [[Q]] = [[pi. Q']] \text{ and } [[Q' ||- rho . q]]
+    \end{array}
+  $$
+  \noindent
+  Apart from linearity, the main difference with OutsideIn is that we
+  don't require the presence of equality constraints. We come back to
+  the motivation for this simplification in
+  Section~\ref{sec:constraint-generation}.
+\end{definition}
 
-Another difference with OutsideIn is that we don't require the
-presence of equality constraints. We come back to the motivation for
-this simplification in Section~\ref{sec:constraint-generation}.
+An important feature of simple constraints is that, while scaling
+syntactically happens at the level of atomic constraints, the property
+of scaling stated in Definition~\ref{def:entailment-relation} extend
+to scaling of arbitrary constraints, as we prove in the two following
+lemmas.
 
 \begin{lemma}
   \label{lem:q:promotion}
