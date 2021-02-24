@@ -1239,21 +1239,21 @@ not sure what to do with it, so the below might not be quite right.}
   \item[LetSig] We have
     \begin{itemize}
     \item $[[pi.G1+G2 |-> let x : forall as. Q =o t1 = e1 in e2 : t ~>
-      C2 * pi.(Q1 => C1)]]$
-    \item $[[Q_g |- C2 * pi.(Q1 => C1)]]$
+      C2 * pi.(Q => C1)]]$
+    \item $[[Q_g |- C2 * pi.(Q => C1)]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q2]]$, $[[Q3]]$ such
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such
     that
     \begin{itemize}
     \item $[[Q2 |- C2]]$
-    \item $[[Q3*Q1 |- C]]$
-    \item $[[Q_g]] = [[Q2*pi.Q3]]$
+    \item $[[Q1*Q |- C]]$
+    \item $[[Q_g]] = [[pi.Q1*Q2]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q3*Q1;G1 |- e1 : t1]]$
+    \item $[[Q1*Q;G1 |- e1 : t1]]$
     \item $[[Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
     \end{itemize}
     Hence $[[Q_g; pi.G1+G2 |- let x : forall as. Q =o t1 = e1 in e2 : t]]$
