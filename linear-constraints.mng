@@ -653,6 +653,7 @@ is accepted, because the |C| constraint is passed on to |useC| which itself
 appears as an argument to a linear function (whose result is consumed linearly).
 
 \subsubsection{Overusing}
+\label{sec:overusing}
 
 Finally, consider the following program:
 \begin{code}
@@ -944,16 +945,13 @@ lemmas.
 \subsection{Typing rules}
 \label{sec:typing-rules}
 
-Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system (Figure~\ref{fig:declarative:grammar}) is
-presented as a \emph{qualified type system} in the style first introduced
-by~\cite{QualifiedTypes}. Such a qualified type system introduces a
-judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
-type context, and $[[Q]]$ is a constraint from the domain of
-Section~\ref{sec:constraint-domain}. For the most part $[[Q]]$ behaves
-much like with $[[G]]$, which will be instrumental for
-desugaring in Section~\ref{sec:desugaring}; the main difference is
-that $[[G]]$ is referred to explicitly with variables, whereas $[[Q]]$
-is used implicitly in \rref{E-Var}.
+With this material in place, we can present our type system. The
+grammar is given in Figure~\ref{fig:declarative:grammar}, and the
+typing rules in Figure~\ref{fig:typing-rules}.\unsure{I [Arnaud] think that either
+  the subsumption should be removed from the Var rule (using the Sub
+  rule explicitly when needed), or, I should remove the Sub rule and
+  use subsumption wherever relevant (in particular the Pack
+  rule). Let's revisit this when the proofs are done.}
 
 \begin{figure}
   \centering
@@ -979,37 +977,6 @@ is used implicitly in \rref{E-Var}.
   \label{fig:declarative:grammar}
 \end{figure}
 
-\unsure{Todo: explain what $[[x :_1 forall as. Q =o u \in G]]$ means}
-\unsure{Explain what summing contexts means}
-%
-\jp{It's very important to explain in detail that linear constraints
-  (as linear values) can never escape to omega contexts.
-}
-
-%
-\info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
-
-See Figure~\ref{fig:typing-rules}.\unsure{I [Arnaud] think that either
-  the subsumption should be removed from the Var rule (using the Sub
-  rule explicitly when needed), or, I should remove the Sub rule and
-  use subsumption wherever relevant (in particular the Pack
-  rule). Let's revisit this when the proofs are done.}
-
-Main differences:
-\begin{itemize}
-\item Linearity as in the Linear Haskell paper
-\item $\kcase$ doesn't have \textsc{gadt}s
-\item Existential packs are our only \textsc{gadt}. They have a single
-  constructor, pattern-matched over by $\kunpack$.
-
-  (Consequently, we encode linear constraints inside data types as
-  existential pack type.)\unsure{We may need a comment on the fact
-    that $\kunpack$ doesn't have a $\pi$ index. There would be nothing
-    wrong with it, I imagine, it's just a little bit useless.}
-\item Explicit subsumption rule \rref*{E-Sub}
-\end{itemize}
-\improvement{We also want let with a signature. For the sake of completeness}
-
 \begin{figure}
   \centering
   \drules[E]{$[[Q;G |- e : t]]$}{Expression
@@ -1018,9 +985,82 @@ Main differences:
   \label{fig:typing-rules}
 \end{figure}
 
+Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system of Figure~\ref{fig:typing-rules} is
+a \emph{qualified type system} in the style first introduced
+by~\cite{QualifiedTypes}. Such a qualified type system introduces a
+judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
+type context, and $[[Q]]$ is a simple constraint as in
+Section~\ref{sec:constraint-domain}. For the most part $[[Q]]$ behaves
+much like $[[G]]$, which will be instrumental for
+desugaring in Section~\ref{sec:desugaring}; the main difference is
+that $[[G]]$ is addressed explicitly with variables, whereas $[[Q]]$
+is used implicitly in \rref{E-Var}.
+
+The type system of Figure~\ref{fig:typing-rules} is purely
+declarative: it doesn't have any algorithmic properties. We will see
+how to infer constraints in Section~\ref{sec:type-inference}. Yet,
+this system is our ground truth: a system with a simple enough
+definition that programmers can reason about typing. Another
+thing of notice is that we will not attempt to give a dynamic
+semantics to this language: instead we will give it meaning via
+desugaring to a simpler core language in Section~\ref{sec:desugaring}.
+
+The main differences with OutsideIn, either for simplification, or for
+linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
+\begin{itemize}
+\item The type system has linear functions (written $[[a ->_1 b]]$ in
+  Figure~\ref{fig:typing-rules}). It is not necessarily obvious why:
+  after all we seem to be mostly concerned about linearity in
+  constraints, maybe it's all we need and we can forgo linear
+  functions. But we are not that lucky. Actually, just to define the
+  bind combinator for the |IOL| monad from
+  Section~\ref{sec:introduction}, we need linear arrows: |(>>=) :: IOL
+  a ->. (a ->. IOL b) ->. IOL b|.
+
+  So, linear arrows really can't be escaped. What's more, even moving
+  away from |IOL|, the linearity of arrows interact in interesting
+  ways with linear constraints. Consider $[[f : a ->_omega b]]$ and
+  $[[x : q =o a]]$, then calling $[[f x]]$ would actually use $[[q]]$
+  many times! That is, it must be impossible to derive
+  $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$,
+  otherwise we could make, for instance, the |overusing| function from
+  Section~\ref{sec:overusing}. You can check that this indeed doesn't
+  type check, as the scaling of $[[Q2]]$ in \rref{E-App} ensures that
+  the constraint would be $[[omega.q]]$ instead. On the other hand,
+  it's perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
+  =o a |- f x : b]]$ when $[[f]]$ is a linear function.
+\item Data types are not \textsc{gadt}s. Instead they are plain data
+  types. This serves to considerably simplify the \rref*{E-Case}
+  rule. This is another case of simplifying away the bits of OutsideIn
+  which don't meaningfully impact the system. It would be
+  straightforward, yet tedious, to extend data types to full
+  \textsc{gadt}s.
+\item On the other hand, we have the type $[[exists as. t o= Q]]$, as
+  introduced in Section~\ref{sec:what-it-looks-like}, together with
+  the $\kpack$ and $\kpack$ constructions. This mostly acts as a
+  \textsc{gadt} with a single constructor. A specificity of
+  $[[exists as. t o= Q]]$, as we touched upon in
+  Section~\ref{sec:what-it-looks-like}, is that the $[[t]]$ component
+  is always unrestricted (as can be seen in rules~\rref*{E-Pack} and
+  \rref*{E-Unpack}). This is in no way an essential property, rather,
+  it is a convenience for the sake of exposition, as all the
+  existential types that we need for our examples are of this kind.
+\item A more minor difference with OutsideIn is that we have an
+  explicit \rref*{E-Sub} rule, while OutsideIn uses simple constraint
+  entailment directly in the relevant rules. The \rref*{E-Sub} rule
+  will be a device in the proof of soundness of inference in
+  Section~\ref{sec:constraint-solver}. There are other ways to achieve
+  the same result, such as proving the \rref*{E-Sub} rule is
+  admissible in the type system. But having it explicit is simpler,
+  and otherwise just as good.
+\end{itemize}
+
+\unsure{Todo: explain what $[[x :_1 forall as. Q =o u \in G]]$ means}
+\unsure{Explain what summing contexts means}
+%
+%
 \info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
-
 
 \newpage
 
@@ -2280,4 +2320,5 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 \end{document}
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
-% LocalWords:  desugaring ghc OutsideIn toplevel quotiented
+% LocalWords:  desugaring ghc OutsideIn toplevel quotiented gadt
+% LocalWords:  combinator
