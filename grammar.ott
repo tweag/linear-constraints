@@ -173,8 +173,8 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | G1 + G2           :: M :: Add
 | Sum G2            :: M :: BigSum
 | pi . G            :: M :: Scale {{ tex [[pi]]{⋅}[[G]]}}
-| < binding >       :: M :: Repeat
-  {{ tex \overline{[[binding]]} }}
+| < binding >       :: M :: Repeat  {{ tex \overline{[[binding]]} }}
+| ( G )             :: S :: Paren
 % Desugared contexts (see also expressions)
 | Evs ( Q )         :: M :: Evidence
 
@@ -225,7 +225,6 @@ formula :: formula_ ::=
   {{ tex [[formula]] \ottlinebreakhack }}
   % See ottalt, sec. 1.1
 | formula1 .... formulai          ::   :: dots
-| binding \in G                   ::   :: in_G
 | freshness condition on as       ::   :: freshness
   {{ tex \text{freshness condition on } [[as]] }}
 | as fresh                        ::   :: fresh
