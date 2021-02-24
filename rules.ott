@@ -78,10 +78,16 @@ Q2 * Q;G2,x:_omega t1 |- e2 : t
 ------------------------------------------------- :: Unpack
 Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t
 
-Q1;G1 |- e1 : t1
-Q2;G2,x:_pi Q1 =o t1 |- e2 : t
+Q1*Q;G1 |- e1 : t1
+Q2;G2,x:_pi Q =o t1 |- e2 : t
 --------------------------- :: Let
-Q2 ;pi.G1+G2 |- let x = e1 in e2 : t
+pi.Q1*Q2 ;pi.G1+G2 |- let x = e1 in e2 : t
+
+Q1*Q;G1 |- e1 : t1
+as fresh
+Q2;G2,x:_pi forall as.Q =o t1 |- e2 : t
+--------------------------- :: LetSig
+Q2 ;pi.G1+G2 |- let x : forall as.Q =o t1 = e1 in e2 : t
 
 Q1;G1 |- e : T ts
 < Ki : forall as. usi ->_pisi T as >
@@ -136,9 +142,21 @@ omega.G |-> pack e : exists as. t o= Q ~> omega.C * Q[us/as]
 
 
 G1 |-> e1 : t1 ~> C1
-G2, x:_pi Q1 =o t1 |-> e2 : t ~> C2
+G2, x:_pi t1 |-> e2 : t ~> C2
 ------------------------------ :: Let
-pi.G1+G2 |-> let x = e1 in e2 : t ~> C2 * (Q1 => C1)
+pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.C1 * C2
+
+G1 |-> e1 : t1 ~> C1
+Q_r * Q |- C1
+G2, x:_pi t1 |-> e2 : t ~> C2
+------------------------------ :: LetGen
+pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.Q_r * C2
+
+G1 |-> e1 : t1 ~> C1
+as fresh
+G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2
+------------------------------ :: LetSig
+pi.G1+G2 |-> let x : forall as. Q =o t1 = e1 in e2 : t ~> C2 * pi.(Q => C1)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraint solver  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -219,9 +237,9 @@ G2,y:_1 t1,x:_omega t2 |- e2 : t
 G1+G2 |- unpack (y,x) = e1 in e2 : t
 
 G1 |- e1 : t1
-G2, x:_pi t1 |- e2 : t
+G2, x:_pi s |- e2 : t
 ----------------------------------- :: Let
-pi.G1 + G2 |- let x = e1 in e2 : t
+pi.G1 + G2 |- let x : s = e1 in e2 : t
 
 G1 |- e : T ts
 < Ki : forall as. usi ->_pisi T as >

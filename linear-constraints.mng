@@ -370,13 +370,61 @@ closeFile  :: Open h =>. Handle h -> IOL ()
 \caption{Interfaces for file manipulation}
 \end{figure}
 
-\unsure{TODO: We probably want a quick introduction to linear types to at least fix notation.}
- 
+Linear Haskell~\cite{LinearHaskell} adds a new type of functions,
+dubbed linear functions and written |a ⊸ b|, to Haskell\footnote{The linear function
+  type and its notation come from linear
+  logic~\cite{girard-linear-logic}, to which the phrase \emph{linear
+    types} refers. All the various design of linear typing in the
+  literature amount to adding such a linear function type, but details
+  can vary wildly. See~\cite[Section 6]{LinearHaskell} for an analysis
+  of alternative approaches.}. A linear function consumes its
+  argument exactly once, more precisely:
+
+\begin{quote}
+\emph{Meaning of the linear arrow}:
+|f :: s ⊸ t| guarantees that if |(f u)| is consumed exactly once,
+then the argument |u| is consumed exactly once.
+\end{quote}
+To make sense of this statement we need to know what ``consumed exactly once'' means.
+Our definition is based on the type of the value concerned:
+\begin{definition}[Consume exactly once]~ \label{def:consume}
+\begin{itemize}
+\item To consume a value of atomic base type (like |Int| or |Handle|) exactly once, just evaluate it.
+\item To consume a function value exactly once, apply it to one argument, and consume its result exactly once.
+\item To consume a pair exactly once, pattern-match on it, and consume each component exactly once.
+\item In general, to consume a value of an algebraic datatype exactly once, pattern-match on it,
+  and consume all its linear components exactly once.
+\end{itemize}
+\end{definition}
+\noindent
+This definition is enough to allow programmers to reason about the
+typing of their functions.
+%
+Note that a linear arrow specifies \emph{how the function uses its argument}. It does not
+restrict \emph{the arguments to which the function can be applied}.
+In particular, a linear function cannot assume that it is given the
+unique pointer to its argument.  For example, if |f :: s ⊸ t|, then\
+this is fine:
+\begin{code}
+g :: s -> t
+g x = f x
+\end{code}
+The type of |g| makes no particular guarantees about the way in which it uses |x|;
+in particular, |g| can pass that argument to |f|.
+
 The example in the previous section made use of |readLine|, whose type is given in \autoref{fig:linear-interface}.
 This appears to return a new file, but really, it returns a new name for
-the same file. It really is these names which can only be used once,
-the file handle itself continues to exist until |closeFile| is called.
-\unsure{TODO: introduce |->.| in preparation for the informal introduction to lienar constraints.}
+the same file. The trick is that there is only ever one of
+these names in scope at any given time, and this one name must be
+consumed exactly once. In other words, the name is a linear
+variable. It can, therefore, only be consumed by linear
+functions. This is why the type of |readLine| is a linear function;
+and it is also why it must return a new name for the file: passing the
+name to |readLine| consumes the name and we don't want |readLine|
+to close the file. Ultimately, we will have to call |closeFile| to
+consume the name without creating a new one (remember: we need to consume
+the name \emph{exactly} once, not at most once). The type system
+ensures that we do so exactly once.
 
 From the perspective of the programmer, this is unwanted boilerplate.
 Why do we have to manage a bunch of names to help a compiler count? Surely this
@@ -472,7 +520,7 @@ There are a few things to notice
 
 This still leaves questions open: where does |f| come from? where does
 |Open f| come from? what are the types of |openFile| and |readLine|?
-The answers to these three question rely on the same device: we
+The answers to these three questions rely on the same device: we
 introduce a type construction |exists a1 ... an. t .<= Q|, where |Q| is some (linear)
 constraint.
 
@@ -724,10 +772,10 @@ Like OutsideIn (see~\cite[Section 3.2, in particular Figure
 3]{OutsideIn}), we parameterise the entire type system by a constraint
 domain\,--\,the $X$ in OutsideIn($X$). This domain is characterised by
 a set of \emph{atomic constraints} written $[[q]]$ and an entailment
-relation $[[Q1 ||- Q2]]$. These constraints are called \emph{simple
+relation $[[Q1 ||- Q2]]$. Let us adopt \textsc{ghc}'s terminology and
+call these \emph{simple
   constraints} to distinguish them from the richer constraints of
-Section~\ref{sec:wanteds}. This is also the terminology used in
-\textsc{ghc}.
+Section~\ref{sec:wanteds}.
 
 $$
 \begin{array}{lcll}
@@ -864,7 +912,7 @@ this simplification in Section~\ref{sec:constraint-generation}.
 \subsection{Typing rules}
 \label{sec:typing-rules}
 
-Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system (Figure~\ref{fig:declarative:grammar})is
+Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system (Figure~\ref{fig:declarative:grammar}) is
 presented as a \emph{qualified type system} in the style first introduced
 by~\cite{QualifiedTypes}. Such a qualified type system introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
@@ -892,7 +940,7 @@ is used implicitly in \rref{E-Var}.
                  &\bnfor & [[unpack x=e1 in
                      e2]] \bnfor [[case e of { alts }]] &\\
                  &\bnfor & [[let
-                     x=e1 in e2]] &
+                     x=e1 in e2]] \bnfor [[let x : s = e1 in e2]] &
   \end{array}
   $$
   \caption{Grammar of the qualified type system}
@@ -933,7 +981,7 @@ Main differences:
 \begin{figure}
   \centering
   \drules[E]{$[[Q;G |- e : t]]$}{Expression
-    typing}{Var,Abs,App,Pack,Unpack,Let,Case,Sub}
+    typing}{Var,Abs,App,Pack,Unpack,Let,LetSig,Case,Sub}
   \caption{Qualified type system}
   \label{fig:typing-rules}
 \end{figure}
@@ -1126,7 +1174,7 @@ that type inference is solved elsewhere, greatly simplifying the presentation.
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
-  App, Case, Unpack, Pack, Let}
+  App, Case, Unpack, Pack, Let, LetSig}
 
 \newpage
 
@@ -1170,23 +1218,45 @@ are solvable can indeed be typed in the declarative type system.
     From which follows that $[[Q_g; G |- \x. e : t0 ->_pi t]]$.
   \item[Let] We have
     \begin{itemize}
-    \item $[[pi.G1+G2 |-> let x = e1 in e2 : t ~> C2 * (Q' => C1)]]$
-    \item $[[Q_g |- C2 * (Q1 => C1)]]$
-    \item $[[G2, x:_pi Q1 =o t1 |-> e2 : t ~> C2]]$
+    \item $[[pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.C1 * C2]]$
+    \item $[[Q_g |- pi.C1 * C2]]$
+    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \end{itemize}
-    \unsure{From inversion of implication we get that additional constraint. I'm
-not sure what to do with it, so the below might not be quite right.}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q_2]]$ such that
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$ and $[[Q_2]]$ such that
     \begin{itemize}
+    \item $[[Q_1 |- C1]]$
     \item $[[Q_2 |- C2]]$
+    \item $[[Q_g]] = [[pi.Q_1 * Q_2]]$
     \end{itemize}
     By induction hypothesis we have
     \begin{itemize}
     \item $[[Q_1 ; G1 |- e1 : t1]]$
-    \item $[[Q_2; G2, x:_pi  Q1 =o t1 |- e1 : t1]]$
+    \item $[[Q_2; G2, x:_pi  t1 |- e1 : t1]]$
     \end{itemize}
-    From which follows that $[[Q_2; pi.G1+G2 |- let x = e1 in e2 : t]]$.
+    From which follows that $[[Q_g; pi.G1+G2 |- let x = e1 in e2 :
+    t]]$.
+  \item[LetSig] We have
+    \begin{itemize}
+    \item $[[pi.G1+G2 |-> let x : forall as. Q =o t1 = e1 in e2 : t ~>
+      C2 * pi.(Q => C1)]]$
+    \item $[[Q_g |- C2 * pi.(Q => C1)]]$
+    \item $[[G1 |-> e1 : t1 ~> C1]]$
+    \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such
+    that
+    \begin{itemize}
+    \item $[[Q2 |- C2]]$
+    \item $[[Q1*Q |- C]]$
+    \item $[[Q_g]] = [[pi.Q1*Q2]]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item $[[Q1*Q;G1 |- e1 : t1]]$
+    \item $[[Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
+    \end{itemize}
+    Hence $[[Q_g; pi.G1+G2 |- let x : forall as. Q =o t1 = e1 in e2 : t]]$
   \item[App] \info{Most of the linearity problems are in the App
       rule. Unpack is also relevant.}
     We have
@@ -1499,7 +1569,7 @@ Our Core calculus is described in Figure~\ref{fig:core-grammar}
                  &\bnfor & [[unpack (y,x)=e1 in
                            e2]] \bnfor [[case e of { alts }]] &\\
                  &\bnfor & [[let
-                           x=e1 in e2]] &
+                           x=e1 in e2]] \bnfor [[let x : s = e1 in e2]] &
   \end{array}
   $$
   \caption{Grammar of the core calculus}
@@ -1680,10 +1750,16 @@ $$
               (z2,z') in Ds(z2';Q2 * Q;G2,x:_omega t1 |- e2 : t)
               } ]] \\
     [[ Ds(z;Q1 * Q2 ;G1+G2 |- let x = e1 in e2 : t) ]]
-        & = & [[ case z of { (z1, z2) -> let x = Ds(z1;Q1;G1 |- e1 :
+        & = & [[ case z of { (z1, z2) -> let x : Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
               t1) in Ds(z2;Q2;G2,x:_1 t1 |- e2 : t)} ]] \\
     [[ Ds(z;omega.Q1 * Q2 ;omega.G1+G2 |- let x = e1 in e2 : t) ]]
-        & = & [[ case z of { (urified(z1), z2) -> let x = Ds(z1;Q1;G1 |- e1 :
+        & = & [[ case z of { (urified(z1), z2) -> let x : Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
+              t1) in Ds(z2;Q2;G2,x:_omega t1 |- e2 : t)} ]] \\
+    [[ Ds(z;Q1 * Q2 ;G1+G2 |- let x : forall as. Q =o t1 = e1 in e2 : t) ]]
+        & = & [[ case z of { (z1, z2) -> let x : forall as. Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
+              t1) in Ds(z2;Q2;G2,x:_1 forall as. Q =o t1 |- e2 : t)} ]] \\
+    [[ Ds(z;omega.Q1 * Q2 ;omega.G1+G2 |- let x : forall as. Q =o t1 = e1 in e2 : t) ]]
+        & = & [[ case z of { (urified(z1), z2) -> let x : forall as. Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
               t1) in Ds(z2;Q2;G2,x:_omega t1 |- e2 : t)} ]] \\
     [[ Ds(z;omega.Q1*Q2;omega.G1+G2 |- case e of { alts } : t) ]]
         & = & [[ case z of { (urified(z1), z2) -> case Ds(z1;Q1;G1 |-
