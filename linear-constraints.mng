@@ -1501,7 +1501,7 @@ constraints.
 
 We point out a case of ambiguity that leads to the incompleteness of our solver.
 When solving a linear wanted and there are both linear and unrestricted givens
-that match the wanted, there are two choices to make: we can pick the
+that match the wanted, there is a choice to make: we can pick the
 unrestricted to solve the wanted, or we can consume the linear one.
 We resolve this ambiguity by failing in the case of such constraints.
 The~\rref*{S-AtomOneL} rule only applies when the unrestricted context doesn't

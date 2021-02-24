@@ -177,9 +177,9 @@ omega.q \notin UCtx
 -------------------------------- :: AtomOneL
 UCtx ; LCtx1 , q , LCtx2 |-s q ~> LCtx1 , LCtx2
 
-q \notin LCtx1
+q \notin LCtx
 -------------------------------- :: AtomOneU
-UCtx , omega.q ; LCtx1 |-s q ~> LCtx1
+UCtx , omega.q ; LCtx |-s q ~> LCtx
 
 
 UCtx ; LCtx_i |-s C1 ~> LCtx_o  UCtx ; LCtx_i |-s C2 ~> LCtx_o
