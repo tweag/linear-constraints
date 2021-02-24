@@ -912,7 +912,7 @@ this simplification in Section~\ref{sec:constraint-generation}.
 \subsection{Typing rules}
 \label{sec:typing-rules}
 
-Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system (Figure~\ref{fig:declarative:grammar})is
+Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system (Figure~\ref{fig:declarative:grammar}) is
 presented as a \emph{qualified type system} in the style first introduced
 by~\cite{QualifiedTypes}. Such a qualified type system introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
@@ -1218,7 +1218,7 @@ are solvable can indeed be typed in the declarative type system.
     From which follows that $[[Q_g; G |- \x. e : t0 ->_pi t]]$.
   \item[Let] We have
     \begin{itemize}
-    \item $[[pi.G1+G2 |-> let x = e1 in e2 : t ~> C2 * (Q' => C1)]]$
+    \item $[[pi.G1+G2 |-> let x = e1 in e2 : t ~> C2 * (Q1 => C1)]]$
     \item $[[Q_g |- C2 * (Q1 => C1)]]$
     \item $[[G2, x:_pi Q1 =o t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
