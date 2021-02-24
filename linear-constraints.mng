@@ -1507,7 +1507,7 @@ We resolve this ambiguity by failing in the case of such constraints.
 The~\rref*{S-AtomOneL} rule only applies when the unrestricted context doesn't
 provide a matching given, and the~\rref{S-AtomOneU} rule only applies when
 linear context doesn't provide one. No rule applies when both contexts provide a
-matching wanted, thus the program fails.
+matching given, thus the program fails.
 
 This choice eliminates guesses from the procedure, but it makes constraint
 resolution incomplete.  Consider the following (contrived) API:
