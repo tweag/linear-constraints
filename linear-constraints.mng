@@ -1811,100 +1811,139 @@ body, creating an \emph{entagled} pair of qbits: |ifQ q (unot r)|.
 
 \section{Application: memory ownership}
 
-- Problem: explicit memory management with verified de-allocation proven by type-checking.
-  - no garbage collection or runtime cost associated with it
-  - yet no memory error
+In Haskell, memory deallocation is normally the responsibility of a
+garbage collector. However, garbage collection comes with runtime
+costs which not all applications can afford: one must then resort to
+explict memory allocation and deallocation. However this task is error
+prone: one can easily forget a deallocation (causing a memory leak) or
+deallocate several times (corrupting data).
 
-- Approach: use a linear constraint (Own n). A program which has an
-Own n contstraint is responsible to deallocate the memory area(s)
-associated with n.
-The relation between references and capabilities is mediated with
-an existential type variable (of kind Token for legibility here, but
-we can let Token = Type with no loss of expressivity.)
+With linear constraints, it is possible to use the type system to
+enforce correct deallocation of memory.  The approach is to use a
+linear constraint to represent \emph{ownership} of a memory location,
+i.e. the responsibility to deallocate it. We use a linear constraint
+|(Own n)|, such that a program which has an |Own n| contstraint in
+context is responsible to deallocate the memory area(s) associated
+with a memory locations |n|.  Because of linearity, this constraint
+must be discharged exactly once, so it is guaranteed that the memory
+is deallocated correctly.
 
-Because of linearity, this constraint must be
-discharged exactly once, so it is guaranteed that the memory is
-deallocated correctly.
+In the above |n| is a type variable (of a special kind |Location|)
+which represent a memory location or a set thereof. Locations mediate
+the relationship between references and ownership constraints.
 
-
-In fact, we will be using three linear constraints, one for ownership, one for reading and one for writing:
-
-kind Token
-class Read (n :: Token)    -- read capability
-class Write (n :: Token)   -- write capability
-class Own (n :: Token)     -- move, free,
-
-
-
-This will allow programs to read or write to a memory reference
-without necessarily owning it.
-
-type RW n = (Read n, Write n)
-
-one cannot be writing unless we also have read access (so that a
-reader does not see changes happening while it is reading)
+In fact, we will be using three linear constraints, one for ownership,
+one for reading and one for writing:
 
 
-type O n = (Read n, Write n, Own n)
-
-we cannot deallocate if any part of the program as kept a
-reference, so really all 3 capabilities are needed. We never use Own
-alone, always O.
-
-With this in place, we can provide an API for ownable references.
-
-data AtomRef (a :: Type) (n :: Token)
-
-Type of references to a pure type a with ownership token n.
-
-newRef :: (forall n. O n =>. AtomRef a n -> Ur b) ⊸ Ur b
-
-locally allocate a unique reference, available in a continuation.
-- explain unrestricted trick.
-- This is necessary to ensure that O n does not escape inside an arbitrary value of type B, O n must be consumed.
-- case analysis on Ur means that evaluation order is forced: when we have 'b' in scope we can perform the allocation and execute the continuation until it produces Ur b.
-
-Read a reference. Read constraint is demanded, and immediately released.
-
-writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
-
-Write a reference. RW constraint is demanded, and immediately
-released. Note that the primitive does not need to explicitly declare
-effects in terms of a monad or another effect-tracking device: because
-the RW constraint is linear, passing it suffices to ensure proper
-sequencing of effects.
-
-freeRef :: O n =>. AtomRef a n -> ()
-
-Here the ownership is consumed.
-
-freezeRef :: O n =>. AtomRef a n -> Ur a
+> class Read (n :: Location)    -- read capability
+> class Write (n :: Location)   -- write capability
+> class Own (n :: Location)
 
 
+Thanks to this extended set of constraints, programs are able to read
+or write to a memory reference without necessarily owning it. However,
+one cannot be writing unless we also have read access, so that a
+reader does not experience changes to a location while it is
+reading. This way we can additionally enforce consistency per memory
+location. Therefore we will systematically use the |RW| set of
+constraints, defined below, instead of |Read|.
 
-Another aspect of borrowing systems is that ownership can be
-relinquished by writing a reference in a datastructure owned by some
-other part of the program. To illustrate this aspect, we can use arrays of references.
+> type RW n = (Read n, Write n)
 
-kind Reference = Token -> Type -- kind of types which are associated to capabilities via tokens (so ``references'')
+Likewise, one cannot deallocate a location if any part of the program
+is keeping a read or write reference to it, so all 3 capabilities are
+needed for true ownership. Thus We never use |Own| alone, but |O|,
+defined thus:
 
-data PArray (a :: Reference) (n :: Token)
-  -- This an array of References: is an array of boxed stuff. Are all
-  -- references inside it are associated with the same token.
+> type O n = (Read n, Write n, Own n)
+
+With these components in place, we can provide an API for ownable
+references.
+
+> data AtomRef (a :: Type) (n :: Location)
+
+The type |AtomRef| is a type of references to a pure type |a| with
+location |n|. Allocation of a reference can be done using the
+following function.
+
+> newRef :: (forall n. O n =>. AtomRef a n -> Ur b) ⊸ Ur b
+
+The reference available in a continuation, which returns an
+unrestricted value.  Indeed, if we would allow returning any type |b|
+then the |O n| constraint could be embedded in |b|, and therefore
+escape the scope of the continuation. This would become a problematic
+because newRef can be used in an unrestricted context, and thus
+|newRef| could not be implemented by allocating an explicitly-managed
+reference. In contrast with our API no linear constraint can escape
+from the scope of the continuation, whose execution is forced at the
+point where case analysis of the returned |Ur b| value is done.
+
+To read a reference, a simple |Read| constraint is demanded, and
+immediately released. Writing is handled similarly.
+
+> readRef :: (Read n) =>. AtomRef a n -> a .<= Read n
+> writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
+
+Note that the above primitives do not need to explicitly declare
+effects in terms of a monad or another higher-order effect-tracking
+device: because the |RW n| constraint is linear, passing it suffices
+to ensure proper sequencing of effects concerning location |n|.
+Deallocation consumes all linear constraints associated with |O n|.
+
+> freeRef :: O n =>. AtomRef a n -> ()
+
+As an alternative to read followed by free, one could transfer control
+of the memory location to the garbage collector. This operation is
+sometimes called ``freezing'':
+
+> freezeRef :: O n =>. AtomRef a n -> Ur a
+
+
+Another aspect of our system is that ownership can be relinquished, by
+writing a reference in a datastructure owned by some other part of the
+program. To illustrate this aspect, we can use arrays of references:
+if one puts a reference in an array, the owner of the array becomes
+responsible to deallocate this reference together with the array.
+
+
+> data PArray (a :: Location -> Type) (n :: Location)
+
+We make our the type |PArray a n| polymorphic in the reference type of
+elements, |a|. A sublety is that the kind of |a| is |Location ->
+Type|. This way we can easily enforce that every reference in the
+array refer to the same location |n|. Both types |AtomRef a| and
+|PArray a| inhabit this kind, and therefore one can allocate, and
+manipulate arrays of arrays with this API.
+
+Allocation of |PArrays| proceeds from the same logic as
+that of simple references:
 
 > newPArray    :: (forall n. O n =>. PArray a n -> Ur b) ⊸ Ur b
 
-as above.
+Reading at a given index returns a \emph{reference} to the element in question:
 
 > readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
 
-returns a reference (which we have read access to)
+It can be noted that the returned reference remains in the same
+location as the array, |readPArray| needs not be implemented by copy.
+As advertised, writing a reference in an array gives up ownership.
 
 > writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> (() .<= RW n)
 
-here the ownership of |a p| is absorbed in n.
-Operational semantics: move the p *reference* inside n.
+More precisely, the ownership of the location |p| is absorbed in that
+of |n|. Therefore, the associated operational semantics is to move the
+reference inside the array (and potentially deallocate the memory
+previously pointed to by the old reference at that index.)
 
+TODO: uh oh. Can't one read an element x[i] from an array x which one
+owns, and then write this reference to y. Then the *whole array* x
+will be considered owned by y? It seems to me then that reading must
+unlink the element from the array temporarily (implementing a kind of
+separation logic):
+> readPArray' :: RW n =>. PArray a n -> Int -> a p .<= (O p, RW n)
+with the interpretation of writing ``null'' to the array.
+But this replaces lending/borrowing below:
 
 > lendPArrayElement  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ (k .<= RW p)) ⊸ (k .<= RW n)
 
