@@ -933,7 +933,7 @@ lemmas.
     $[[Q'' ||- Q2'']]$.
     It follows that $[[Q1]] = [[pi.(Q' * Q'')]]$ and
     $[[Q' * Q'' ||- Q2]]$.
-  \item If $[[Q2]]=[[Empty]]$, then, by
+  \item If $[[Q2]]=[[Empty]]$, then, since $[[pi.Empty]]=[[Empty]]$, by
     Definition~\ref{def:entailment-relation}, $[[Q1]]=[[Empty]]$ and
     the result is immediate.
   \end{itemize}
