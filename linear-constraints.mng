@@ -868,6 +868,7 @@ $[[pi.q]]$.
       \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
       \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[Q']] \text{ and } [[Q'']]
       \text{ such that } [[Q]]=[[Q' * Q'']] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
+      \text{if } [[Q ||- Empty]] \text{ then } [[Q]]=[[Empty]] \\
       \text{if } [[Q1 ||- Q1]] \text{ and } [[Q2 ||- Q2]] \text{ then } [[Q1 * Q2 ||- Q1 * Q2]] \\
       \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
       \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
@@ -892,11 +893,11 @@ lemmas.
   If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
 \end{lemma}
 \begin{proof}
-  By induction on the syntax of $[[Q2]]$:
+  Let us prove this lemma by induction on the syntax of $[[Q2]]$:
   \begin{itemize}
   \item If $[[Q2]] = [[rho.q]]$, then $[[pi.Q1 ||- (pi.rho).q]]$ holds by
-    hypothesis.
-  \item If $[[Q2]] = [[Q2' * Q2'']]$, then, by hypothesis, we know that
+    Definition~\ref{def:entailment-relation}.
+  \item If $[[Q2]] = [[Q2' * Q2'']]$, then, by Definition~\ref{def:entailment-relation}, we know that
     $[[Q1]] = [[Q1' * Q1'']]$ for some $[[Q1']]$ and $[[Q1'']]$, and
     that
     $[[Q1' ||- Q2']]$ and $[[Q1'' ||- Q2'']]$. By induction hypothesis,
