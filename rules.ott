@@ -144,7 +144,7 @@ omega.G |-> pack e : exists as. t o= Q ~> omega.C * Q[us/as]
 G1 |-> e1 : t1 ~> C1
 G2, x:_pi t1 |-> e2 : t ~> C2
 ------------------------------ :: Let
-pi.G1+G2 |-> let x = e1 in e2 : t ~> C1 * C2
+pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.C1 * C2
 
 G1 |-> e1 : t1 ~> C1
 as fresh
