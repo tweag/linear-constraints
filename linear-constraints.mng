@@ -1218,23 +1218,23 @@ are solvable can indeed be typed in the declarative type system.
     From which follows that $[[Q_g; G |- \x. e : t0 ->_pi t]]$.
   \item[Let] We have
     \begin{itemize}
-    \item $[[pi.G1+G2 |-> let x = e1 in e2 : t ~> C2 * (Q1 => C1)]]$
-    \item $[[Q_g |- C2 * (Q1 => C1)]]$
-    \item $[[G2, x:_pi Q1 =o t1 |-> e2 : t ~> C2]]$
+    \item $[[pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.C1 * C2]]$
+    \item $[[Q_g |- pi.C1 * C2]]$
+    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \end{itemize}
-    \unsure{From inversion of implication we get that additional constraint. I'm
-not sure what to do with it, so the below might not be quite right.}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q_2]]$ such that
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$ and $[[Q_2]]$ such that
     \begin{itemize}
+    \item $[[Q_1 |- C1]]$
     \item $[[Q_2 |- C2]]$
+    \item $[[Q_g]] = [[pi.Q_1 * Q_2]]$
     \end{itemize}
     By induction hypothesis we have
     \begin{itemize}
     \item $[[Q_1 ; G1 |- e1 : t1]]$
-    \item $[[Q_2; G2, x:_pi  Q1 =o t1 |- e1 : t1]]$
+    \item $[[Q_2; G2, x:_pi  t1 |- e1 : t1]]$
     \end{itemize}
-    From which follows that $[[Q_2; pi.G1+G2 |- let x = e1 in e2 :
+    From which follows that $[[Q_g; pi.G1+G2 |- let x = e1 in e2 :
     t]]$.
   \item[LetSig] We have
     \begin{itemize}
