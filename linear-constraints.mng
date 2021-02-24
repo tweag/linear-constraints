@@ -772,10 +772,10 @@ Like OutsideIn (see~\cite[Section 3.2, in particular Figure
 3]{OutsideIn}), we parameterise the entire type system by a constraint
 domain\,--\,the $X$ in OutsideIn($X$). This domain is characterised by
 a set of \emph{atomic constraints} written $[[q]]$ and an entailment
-relation $[[Q1 ||- Q2]]$. These constraints are called \emph{simple
+relation $[[Q1 ||- Q2]]$. Let us adopt \textsc{ghc}'s terminology and
+call these \emph{simple
   constraints} to distinguish them from the richer constraints of
-Section~\ref{sec:wanteds}. This is also the terminology used in
-\textsc{ghc}.
+Section~\ref{sec:wanteds}.
 
 $$
 \begin{array}{lcll}
