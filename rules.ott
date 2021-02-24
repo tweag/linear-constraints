@@ -147,6 +147,12 @@ G2, x:_pi t1 |-> e2 : t ~> C2
 pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.C1 * C2
 
 G1 |-> e1 : t1 ~> C1
+Q_r * Q |- C1
+G2, x:_pi t1 |-> e2 : t ~> C2
+------------------------------ :: LetGen
+pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.Q_r * C2
+
+G1 |-> e1 : t1 ~> C1
 as fresh
 G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2
 ------------------------------ :: LetSig
