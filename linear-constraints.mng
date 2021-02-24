@@ -1921,12 +1921,13 @@ that of simple references:
 
 > newPArray    :: (forall n. O n =>. PArray a n -> Ur b) ⊸ Ur b
 
-Reading at a given index returns a \emph{reference} to the element in question:
+%% Reading at a given index returns a \emph{reference} to the element in question:
 
-> readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
+%% > readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
 
-It can be noted that the returned reference remains in the same
-location as the array, |readPArray| needs not be implemented by copy.
+%% It can be noted that the returned reference remains in the same
+%% location as the array, |readPArray| needs not be implemented by copy.
+
 As advertised, writing a reference in an array gives up ownership.
 
 > writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> (() .<= RW n)
@@ -1936,20 +1937,34 @@ of |n|. Therefore, the associated operational semantics is to move the
 reference inside the array (and potentially deallocate the memory
 previously pointed to by the old reference at that index.)
 
-TODO: uh oh. Can't one read an element x[i] from an array x which one
-owns, and then write this reference to y. Then the *whole array* x
-will be considered owned by y? It seems to me then that reading must
-unlink the element from the array temporarily (implementing a kind of
-separation logic):
-> readPArray' :: RW n =>. PArray a n -> Int -> a p .<= (O p, RW n)
-with the interpretation of writing ``null'' to the array.
-But this replaces lending/borrowing below:
+Accessing elements of the arrays can be done using the following function):
 
 > lendPArrayElement  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ (k .<= RW p)) ⊸ (k .<= RW n)
 
-|lendPArrayElement a i k| Lends read-write access to an element i of a, to a continuation k. (In Rust
-terminology, the continuation ``borrows'' an element of the array).
-|RW n| and |RW p| are never simultaneously available.
+|lendPArrayElement a i k| Lends read-write access to an element i of
+a, to a continuation k. (In Rust terminology, the continuation
+``borrows'' an element of the array.). Note that, with this API, |RW
+n| and |RW p| are never simultaneously available. This is very
+important; indeed the following function, extracting a reference,
+could not be implemented soundly:
+
+> extractElementWrong  :: RW n =>. Parray a n -> Int -> (a p .<= (RW n, RW p))
+
+Indeed, when called from a context where the program owns the
+allocated array, it can immediately deallocate it, even though the (RW
+p) access to the element remains available. For the same reason,
+gaining read access to an element needs to be done using a
+continuation API as well:
+
+> lendPArrayElementRead  :: Read n =>. Parray a n -> Int -> (forall p. Read p =>. a p ⊸ (k .<= Read p)) ⊸ (k .<= Read n)
+
+For ownership, it is however possible to use a direct API:
+
+> extractElementWrong  :: O n =>. Parray a n -> Int -> (a p .<= (O n, O p))
+
+Here, operationally the element can be overwritten with ``null'', and
+so the owner of the array is no longer owning it.
+
 
 \section{$\klet$ should be generalised}
 
