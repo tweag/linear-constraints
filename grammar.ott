@@ -111,6 +111,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | pack e                 ::   :: Pack
 | unpack x = e1 in e2    ::   :: Unpack
 | let x = e1 in e2       ::   :: Let
+| let x : s = e1 in e2  ::   :: LetSig
 | case e of { alts }     ::   :: Case
 | ( e )                  :: S :: Paren
 % Cheating a little by adding desugared expressions to the same grammar below.

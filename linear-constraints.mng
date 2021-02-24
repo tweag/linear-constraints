@@ -940,7 +940,7 @@ is used implicitly in \rref{E-Var}.
                  &\bnfor & [[unpack x=e1 in
                      e2]] \bnfor [[case e of { alts }]] &\\
                  &\bnfor & [[let
-                     x=e1 in e2]] &
+                     x=e1 in e2]] \bnfor [[let x : s = e1 in e2]] &
   \end{array}
   $$
   \caption{Grammar of the qualified type system}
@@ -981,7 +981,7 @@ Main differences:
 \begin{figure}
   \centering
   \drules[E]{$[[Q;G |- e : t]]$}{Expression
-    typing}{Var,Abs,App,Pack,Unpack,Let,Case,Sub}
+    typing}{Var,Abs,App,Pack,Unpack,Let,LetSig,Case,Sub}
   \caption{Qualified type system}
   \label{fig:typing-rules}
 \end{figure}
@@ -1174,7 +1174,7 @@ that type inference is solved elsewhere, greatly simplifying the presentation.
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
-  App, Case, Unpack, Pack, Let}
+  App, Case, Unpack, Pack, Let, LetSig}
 
 \newpage
 
@@ -1487,7 +1487,7 @@ Our Core calculus is described in Figure~\ref{fig:core-grammar}
                  &\bnfor & [[unpack (y,x)=e1 in
                            e2]] \bnfor [[case e of { alts }]] &\\
                  &\bnfor & [[let
-                           x=e1 in e2]] &
+                           x=e1 in e2]] \bnfor [[let x : s = e1 in e2]] &
   \end{array}
   $$
   \caption{Grammar of the core calculus}
