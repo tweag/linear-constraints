@@ -177,6 +177,15 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 % Desugared contexts (see also expressions)
 | Evs ( Q )         :: M :: Evidence
 
+LCtx {{ tex \Theta }} :: 'LinCtx_' ::= {{ com Linear contexts }}
+| empty             ::   :: None
+| Q                 ::   :: Atom
+| LCtx1 , .... , LCtxi :: :: Many
+
+UCtx {{ tex \Phi }} :: 'UrCtx_' ::= {{ com Unrestricted contexts }}
+| empty                :: :: None
+| pi . Q               :: M :: Atom {{tex [[pi]]{⋅}[[Q]]}}
+| UCtx1 , .... , UCtxi :: :: Many
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -223,6 +232,9 @@ formula :: formula_ ::=
 | < formula >                     ::   :: Repeat
   {{ tex \overline{[[formula]]} }}
 | e : t                           ::   :: DataconTy
+| Q \notin LCtx                   ::   :: notin_LCtx
+| Q \notin UCtx                   ::   :: notin_UCtx
+| LCtx1 ⊆ LCtx2                   ::   :: subcontext
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Parsing rules  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

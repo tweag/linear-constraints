@@ -1291,33 +1291,43 @@ addition to returning a set of unsolved constraints, our solver returns a set of
 the solution of the wanted, and can be thought of as the output set of
 constraints. The solver judgement thus takes the following form:
 
-$[[Q_g |-s C ~> Q_o]]$
+$[[ UCtx ; LCtx_i |-s C ~> LCtx_o]]$
 
-\csongor{Gah. It will be more convenient to track the linear context separately
-from the unrestricted context. That, or I define a function on contexts that
-removes an element, and do cases on the multiplicities (actually this is how the
-implementation works). But it would be cleaner to simply have two contexts. I'm not sure
-how to convince ott that this is a good idea. Will try again tomorrow.}
+The solver will be called with a particular given constraint, potentially a
+multiplicative conjunction of several (scaled) atomic constraints. The judgement
+takes in two contexts: $[[UCtx]]$, which holds all the unrestricted constraints
+(scaled by $[[omega]]$) and $[[LCtx_i]]$, which holds all the linear
+constraints. Due to the associativity and commutativity properties of $[[*]]$ we
+can always factor any given constraint into such a pair of contexts. The
+additive context $[[UCtx]]$ is an unordered set of constraints, while the
+multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists of
+constraints. When initially calling the solver, the order doesn't matter, but it
+is important to keep track of this order during solving implication constraints.
+We will return to this point in the relevant section.
 
-There are three simplifications compared to OutsideIn's solver. Firstly, as
-explained in Section~\ref{sec:constraint-generation}, our solver does not need
-to do unification, so we do not return a substitution in the solver judgement.
-Secondly, we do not handle top-level assumptions, as the meaning of a linear
-constraint in the global set of givens is unclear.  Finally, in case the wanteds
-can not be solved completely, OutsideIn also returns a set of \emph{residual}
-constraints: these are the remaining subproblems to solve. This set of residual
-constraints is simply quantified over in the type of top-level function
-definitions that don't have signatures. The residuals are essentially all of the
-wanteds that arise from the program that couldn't be solved from the global
-givens. In our solver we omit these residual constraints, because we do not do
-inference and assume that all top-level functions will have signatures. Even if
-we did do inference, since there are no global linear constraints, the residual
-set would be identical to the wanted (modulo rewriting rules from the constraint
-domain).
+There are three simplifications compared to OutsideIn's solver:
 
-It is important to reiterate this distinction: OutsideIn's residual constraints
-are the ones that remain to be solved from the goal, while our output
-constraints here are the ones that have not been consumed during solving.
+\begin{itemize}
+  \item As explained in Section~\ref{sec:constraint-generation}, our solver does
+not need to do unification, so we do not return a substitution in the solver
+judgement.
+  \item We do not handle top-level assumptions, as the meaning of a linear
+constraint in the global set of givens is unclear.
+  \item In case the wanteds can not be solved completely, OutsideIn also returns
+a set of \emph{residual} constraints: these are the remaining subproblems to
+solve. This set of residual constraints is simply quantified over in the type of
+top-level function definitions that don't have signatures. The residuals are
+essentially all of the wanteds that arise from the program that couldn't be
+solved from the global givens. In our solver we omit these residual constraints,
+because we do not do inference and assume that all top-level functions will have
+signatures. Even if we did do inference, since there are no global linear
+constraints, the residual set would be identical to the wanted (modulo rewriting
+rules from the constraint domain). It is important to reiterate this
+distinction: OutsideIn's residual constraints are the ones that remain to be
+solved from the goal, while our output constraints here are the ones that have
+not been consumed during solving.
+\end{itemize}
+
 
 \begin{definition}
 \label{def:solver-soundness}
@@ -1328,11 +1338,14 @@ Note that $[[Q_o]]⊆[[Q_g]]$ is not necessarily true as the entailment relation
 $[[||-]]$ of the constraint domain potentially admits additional rewriting rules
 that the solver uses to transform constraints as it proceeds (which is indeed
 the case with e.g. type families).
+\csongor{Where should these entailments go? Maybe in the atom rules? They talk
+about atoms, so they are not quite of the right shape. Maybe we can  assume that
+all of these rules are applied somewhere else?}
 
 A major simplifying design feature of OutsideIn compared to more general proof
 search algorithms is that it always produces a \emph{guess-free} solution, which
-amounts to not doing backtracking during search.  \unsure{refer to
-ambiguity section, which I'm about to write.}
+amounts to not doing backtracking during search. There is, however, a source of
+ambiguity in our system, which we discuss in \ref{sec:ambiguity}.
 
 Following this exposition of the constraint language, we use a linear proof
 search algorithm based on the recipe given
@@ -1340,41 +1353,88 @@ by~\textcite{resource-management-for-ll-proof-search}.  This recipe is phrased
 in a way which implies goal oriented proof search, but it can be adapted
 \emph{mutatis mutandis} to GHC's backtrackingless rewrite-based search.
 
-% \info{The first presentation of returning output context that I could
-%   find is~\cite{hh-ll}, but I
-%   find~\cite{resource-management-for-ll-proof-search} more
-%   informative.}
-
-The key points are
-\begin{itemize}
-\item Each rule returns the remaining, unused (linear) hypotheses: the
-  \emph{leftovers}.
-\item To deal with $⊤$, remember that you've encountered a $⊤$ in a
-  different branch. And let you spend any leftover back into a
-  previous $⊤$
-\item In~\cite{resource-management-for-ll-proof-search}, there is a
-  third input context ($Ξ$), which represents a context which needs to be used,
-  and cannot be returned as leftovers. However, this is used to fail earlier in
-  backtracking branches that are doomed to fail. This does not apply to our
-  setting since we have no backtracking.\unsure{[Arnaud]: I think.}
-\end{itemize}
+\subsubsection{The solver}
 
 \begin{figure}
   \centering
-  \drules[S]{$[[Q_g |-s C_w ~> Q_o ]]$}{Constraint solving typing}{Mult, Add}
+  \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{AtomMany,
+AtomOneU, AtomOneL, Mult, Add, ImplMany, ImplOne}
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
 
-% We can do pretty much like in OutsideIn: split the constraint between
-% simple constraints and non-simple wanted constraints if we wish (but, this time,
-% non-simple constraint include $\aand$! so there will be significantly
-% more of them). Apply synchronous rules on non-simple constraints to retrieve simple
-% constraints, call the simplifier on them.
+Figure~\ref{fig:constraint-solver} presents the rules of the constraint solver.
 
-% To be honest, we can even do one atomic constraint at a time, given
-% that we have no equality, hence our wanted can't interact (I [Arnaud]
-% think) but the details don't matter terribly.
+\begin{itemize}
+  \item The~\rref*{S-AtomMany},~\rref*{S-AtomOneL}, and~\rref*{S-AtomOneU}
+rules handle solving atomic constraints from the givens. Linear wanteds can be
+solved from either unrestricted givens (\rref*{S-AtomOneU}) or linear givens
+(\rref*{S-AtomOneL}). When solved from the linear givens, we make sure to use
+the most recently added one in the context so that implications are sure to
+consume their own assumptions first before starting to consume the outer ones.
+We discuss the other side conditions in~\ref{sec:ambiguity}.
+  \item The~\rref*{S-Mult} rule first proceeds by solving one side of a
+conjunction first, then passing the output constraint to the other side. Note
+that the unrestricted context is shared between both sides.
+  \item The~\rref*{S-Add} rule handles additive conjunction. Here, the linear
+constraints are also shared between the branches (since additive conjunction is
+generated from case expressions, only one of them is actually going to be
+executed). Note that both branches must consume exactly the same amount of
+resources.
+  \item Implications are handled by~\rref*{S-ImplOne} and~\rref*{S-ImplMany},
+for solving linear and unrestricted wanted implications respectively. When
+solving a linear implication, we add the assumption to the linear context, and
+proceed with solving the conclusion. The side condition requires that the output
+context is a subset of the input context: this is to ensure that the
+implication actually consumes its assumption and doesn't leak it to the ambient
+context. That the right one will be consumed is ensured by the~\rref*{AtomOneL}
+rule. Solving unrestricted implications only allows the conclusion of the
+implication to be solved using its assumption, but none of the other linear
+constraints.
+
+\end{itemize}
+
+\subsubsection{Ambiguity}
+\label{sec:ambiguity}
+
+We point out a case of ambiguity that leads to the incompleteness of our solver.
+When solving a linear wanted and there are both linear and unrestricted givens
+that match the wanted, there are two choices to make: we can pick the
+unrestricted to solve the wanted, or we can consume the linear one.
+We resolve this ambiguity by failing in the case of such constraints.
+The~\rref*{S-AtomOneL} rule only applies when the unrestricted context doesn't
+provide a matching given, and the~\rref{S-AtomOneU} rule only applies when
+linear context doesn't provide one. No rule applies when both contexts provide a
+matching wanted, thus the program fails.
+
+This choice eliminates guesses from the procedure, but it makes constraint
+resolution incomplete.  Consider the following (contrived) API:
+
+\begin{code}
+class C
+
+giveC :: (C => Int) -> Int
+useC :: C =>. Int
+\end{code}
+
+|giveC| gives an unrestricted copy of |C| to some continuation, while |useC|
+uses |C| linearly. Now consider a consumer of this API:
+
+\begin{code}
+bad :: C =>. (Int, Int)
+bad = (giveC useC, useC)
+\end{code}
+
+Here, using the outlined strategy, the first component of the tuple will happily
+consume the linear |C| from the context (ignoring the unrestricted |C| it gets
+from |giveC|), and the second component will fail as there is no longer any |C|s
+available for it to use. We might have succeeded had we gone right-to-left
+instead, but that amounts to making a guess! To make sure we do not guess, such
+programs are rejected.
+
+\csongor{Maybe we could propose to do limited backtracking? If we do, we might
+want to do the pruning optimisation in the $[[&]]$ rule. If we don't, I will add
+some text explaining why we don't need to do the optimisation}
 
 \newpage
 
@@ -1497,8 +1557,8 @@ case expression is routine.
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
 Definition~\ref{def:solver-soundness} we know that if
-$[[G |-> e : t ~> C]]$ and $[[Q_g |-s C~> Empty ]]$, then
-$[[Q_g ; G |- e : t]]$.
+$[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C~> empty ]]$, then
+$[[Q_g ; G |- e : t]]$ for $[[Q_g]] = [[UCtx]] [[*]] [[LCtx]]$
 
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
 Core Calculus. Let us dedicate the rest of this section to describe

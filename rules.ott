@@ -148,16 +148,38 @@ defns
 Solve :: '' ::=
 
 defn
-Q_g |-s C_w ~> Q_o :: :: Solve :: 'S_' {{ com Constraint solving }}
+UCtx ; LCtx |-s C_w ~> LCtx_o :: :: Solve :: 'S_' {{ com Constraint solving }}
 by
 
-Q_g |-s C1 ~> Q_o  Q_g |-s C2 ~> Q_o
------------------------------------------------------ :: Add
-Q_g |-s C1 & C2 ~> Q_o
+-------------------------------- :: AtomMany
+UCtx , omega.q ; LCtx |-s omega.q ~> LCtx
 
-Q_g |-s C1 ~> Q_o'  Q_o' |-s C2 ~> Q_o
------------------------------------------ :: Mult
-Q_g |-s C1 * C2 ~> Q_o
+q \notin LCtx2
+omega.q \notin UCtx
+-------------------------------- :: AtomOneL
+UCtx ; LCtx1 , q , LCtx2 |-s q ~> LCtx1 , LCtx2
+
+q \notin LCtx1
+-------------------------------- :: AtomOneU
+UCtx , omega.q ; LCtx1 |-s q ~> LCtx1
+
+
+UCtx ; LCtx_i |-s C1 ~> LCtx_o  UCtx ; LCtx_i |-s C2 ~> LCtx_o
+--------------------------------------------------------------- :: Add
+UCtx ; LCtx_i |-s C1 & C2 ~> LCtx_o
+
+UCtx ; LCtx_i |-s C1 ~> LCtx_o'  UCtx ; LCtx_o' |-s C2 ~> LCtx_o
+------------------------------------------------------------- :: Mult
+UCtx ; LCtx_i |-s C1 * C2 ~> LCtx_o
+
+UCtx ; LCtx_i , Q |-s C ~> LCtx_o
+LCtx_o ⊆ LCtx_i
+---------------------------------------------- :: ImplOne
+UCtx ; LCtx_i |-s Q => C ~> LCtx_o
+
+UCtx ; Q |-s C ~> empty
+---------------------------------------------- :: ImplMany
+UCtx ; LCtx_i |-s omega.(Q => C) ~> LCtx_i
 
 % todo
 
