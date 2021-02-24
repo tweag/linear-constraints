@@ -232,6 +232,7 @@ formula :: formula_ ::=
 | < formula >                     ::   :: Repeat
   {{ tex \overline{[[formula]]} }}
 | e : t                           ::   :: DataconTy
+| x \notin G                      ::   :: NotInCtx
 | Q \notin LCtx                   ::   :: notin_LCtx
 | Q \notin UCtx                   ::   :: notin_UCtx
 | LCtx1 ⊆ LCtx2                   ::   :: subcontext

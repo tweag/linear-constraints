@@ -981,6 +981,7 @@ typing rules in Figure~\ref{fig:typing-rules}.\unsure{I [Arnaud] think that eith
   \centering
   \drules[In]{$[[x :_1 s \in G]]$}{Context membership}{Var,Weaken}
   \drules[S]{$[[pi . G]]$}{Context scaling}{Empty,Binding}
+  \drules[A]{$[[G1 + G2]]$}{Context addition}{Binding,Absent,Empty}
   \drules[E]{$[[Q;G |- e : t]]$}{Expression
     typing}{Var,Abs,App,Pack,Unpack,Let,LetSig,Case,Sub}
   \caption{Qualified type system}
@@ -1056,9 +1057,6 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   admissible in the type system. But having it explicit is simpler,
   and otherwise just as good.
 \end{itemize}
-
-\unsure{Explain what summing contexts means}
-%
 %
 \info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
