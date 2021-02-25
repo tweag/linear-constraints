@@ -744,6 +744,7 @@ read an additional line, but maybe not return the result from the function.
 
 
 \section{A qualified type system}
+\label{sec:qualified-type-system}
 
 Let us now describe the technical material which lets us support the
 examples of Section~\ref{sec:examples}. The presentation in this
@@ -1368,36 +1369,93 @@ entailment relation.
 \subsection{Constraint generation}
 \label{sec:constraint-generation}
 
+The process of inferring constraints is split in two parts: generating
+constraints, which we do in this section, then solving them in
+Section~\ref{sec:constraint-solver}. To generate constraints we
+introduce a judgement $[[G |-> e : t ~> C]]$ (defined in
+Figure~\ref{fig:constraint-generation}). It is intended that $[[C]]$
+is understood as an output of this judgement. The definition $[[G |->
+e : t ~> C]]$ is syntax directed, so it can directly be read as an
+algorithm, taking as input a term $[[e]]$ (together with some type
+inference oracle, as discussed above) and returning a wanted
+constraint $[[C]]$.
+
 \info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
 \unsure{Todo: syntax to
   select the $\pi$ in case and let rules}
 
 \unsure{The case rule, for an empty case, implies the existence of the
   typically annoying $⊤$. We will have to confront this.}
-\unsure{We probably want the freshness condition on the $\kunpack$
-  rule, though these variables are universal variables, not
-  existentials.}
 \info{Not caring about inferences simplifies $\kpack$ quite a bit, we
   are using the pseudo-inferred type to generate constraint. In a real
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
-\drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
-  App, Case, Unpack, Pack, Let, LetSig}
+\begin{figure}
+  \centering
+  \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
+    App, Case, Unpack, Pack, Let, LetSig}
 
+  \caption{Constraint generation}
+  \label{fig:constraint-generation}
+\end{figure}
 
-\subsubsection{Soundness of constraint generation}
+The rules of Figure~\ref{fig:constraint-generation} are a mostly
+unsurprising translation of the rules of Figure~\ref{fig:typing-rules}
+in the style of OutsideIn~\cite[Section 5.4]{OutsideIn}, the operation
+on typing contexts, in particular are the same as in
+Figure~\ref{fig:typing-rules}, and are not repeated here. Still, a few
+remarks are in order
+\begin{itemize}
+\item The most conspicuous difference is that, as we explained in
+  Section~\ref{sec:wanteds}, where OutsideIn uses a single kind of
+  conjunctions, the \rref*{E-Case} rule needs two. OutsideIn
+  accumulates constraints across branches, whereas we need to make
+  sure that each branch of a $\kcase$-expression consumes the same
+  constraints.
+
+  This is easily understood in terms of the file example of
+  Section~\ref{sec:introduction}: if you close a file in one branch of
+  a $\kcase$, you better close it in the other branches too!
+  Otherwise, you'll end up, after the case in a state where it is
+  unknown, to the type system, whether the file is open or close.
+
+  Why we don't have to make this distinction in an intuitionistic
+  system like the original OutsideIn is somewhat elucidated by the
+  fact that $[[omega.(C1&C2)]] = [[omega.C1 * omega.C2]]$. In other
+  words, in a purely unrestricted context, linear constraints don't
+  need two kinds of conjunctions either.
+\item Just like OutsideIn, the introduction of constraints local to a
+  premise in the rules of Figure~\ref{fig:typing-rules} corresponds to
+  emitting an implicational constraint in
+  Figure~\ref{fig:constraint-generation}.
+\item However, the \rref*{G-Let} rule doesn't have an implicational
+  constraint corresponding to the local constraint of \rref{E-Let}:
+  like in OutsideIn~\cite[Section 4.2]{OutsideIn}, a $\klet$ without a
+  signature is not generalised. That being said, while not
+  generalising is the easiest choice, here, it is not clear that it is
+  the best in the presence of linear constraint, as we discuss in
+  Section~\ref{sec:let-generalisation}
+\item As we've observed throughout this section, not including type
+  inference in the constraint generation algorithm significantly
+  simplifies the presentation. There is no particular difficulty
+  involved, however, in combining type inference and linear
+  constraint; keeping in mind that equality constraints should never
+  be linear.
+\end{itemize}
+
+% I [aspiwack] removed a section which I felt wasn't relevant. Leaving
+% the label to avoid dead links.
 \label{sec:constraint-generation-soundness}
 
-Let us now prove that every term whose generated wanted constraints
-are solvable can indeed be typed in the declarative type system.
+The crucial property of the constraint-generation algorithm is that,
+if the generated constraint is solvable, then we can indeed type the
+term in the qualified type system of
+Section~\ref{sec:qualified-type-system}. That is, we are not defining
+a new type system but indeed an inference algorithm for the qualified
+type system.
 
-\begin{lemma}
-  For all $[[Q_g]]$ if
-  \begin{itemize}
-  \item $[[G |-> e : t ~> C]]$
-  \item $[[Q_g |- C]]$
-  \end{itemize}
-  then
+\begin{lemma}[Soundness of constraint generation]
+  For all $[[Q_g]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
 \end{lemma}
 \begin{proof}
@@ -1991,6 +2049,7 @@ announced.\unsure{a few more closing words would be welcome.}
 \csongor{intro}
 
 \subsection{let generalisation}
+\label{sec:let-generalisation}
 
 \textsc{ghc} has famously taken the stance that ``let should not be
 generalised''~\cite[Section 4.2]{OutsideIn}. Indeed, users of modern Haskell features know
@@ -2410,4 +2469,4 @@ so the owner of the array is no longer owning it.
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
 % LocalWords:  desugaring ghc OutsideIn toplevel quotiented gadt
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
-% LocalWords:  sequents
+% LocalWords:  sequents implicational
