@@ -238,7 +238,7 @@ respect to the type system, and show how our changes can be integrated into
 
 \maketitle
 
-\renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, and Spiwack}
+\renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, Spiwack, Wu}
 
 \section{Introduction}
 \label{sec:introduction}
