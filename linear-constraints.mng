@@ -2429,7 +2429,7 @@ point where case analysis of the returned |Ur b| value is done.
 To read a reference, a simple |Read| constraint is demanded, and
 immediately released. Writing is handled similarly.
 
-> readRef :: (Read n) =>. AtomRef a n -> a .<= Read n
+> readRef :: (Read n) =>. AtomRef a n -> Ur a .<= Read n
 > writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
 
 Note that the above primitives do not need to explicitly declare
@@ -2486,7 +2486,7 @@ previously pointed to by the old reference at that index.)
 
 Accessing elements of the arrays can be done using the following function):
 
-> lendPArrayElement  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p ⊸ (k .<= RW p)) ⊸ (k .<= RW n)
+> lendPArrayElement  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p -> (k .<= RW p)) ⊸ (k .<= RW n)
 
 |lendPArrayElement a i k| Lends read-write access to an element i of
 a, to a continuation k. (In Rust terminology, the continuation
@@ -2495,7 +2495,7 @@ n| and |RW p| are never simultaneously available. This is very
 important; indeed the following function, extracting a reference,
 could not be implemented soundly:
 
-> extractElementWrong  :: RW n =>. Parray a n -> Int -> (a p .<= (RW n, RW p))
+> extractElementWrong  :: RW n =>. Parray a n -> Int -> (Ur (a p) .<= (RW n, RW p))
 
 Indeed, when called from a context where the program owns the
 allocated array, it can immediately deallocate it, even though the (RW
@@ -2503,11 +2503,11 @@ p) access to the element remains available. For the same reason,
 gaining read access to an element needs to be done using a
 continuation API as well:
 
-> lendPArrayElementRead  :: Read n =>. Parray a n -> Int -> (forall p. Read p =>. a p ⊸ (k .<= Read p)) ⊸ (k .<= Read n)
+> lendPArrayElementRead  :: Read n =>. Parray a n -> Int -> (forall p. Read p =>. a p -> (k .<= Read p)) ⊸ (k .<= Read n)
 
 For ownership, it is however possible to use a direct API:
 
-> extractElementWrong  :: O n =>. Parray a n -> Int -> (a p .<= (O n, O p))
+> extractElementO  :: O n =>. Parray a n -> Int -> (Ur (a p) .<= (O n, O p))
 
 Here, operationally the element can be overwritten with ``null'', and
 so the owner of the array is no longer owning it.
