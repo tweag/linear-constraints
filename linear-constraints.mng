@@ -1942,13 +1942,13 @@ constraints mentioning the now-monomorphic variables, since if a constraint is
 solvable in the ambient context, then the very same constraint will be solvable
 in the let binding too and vice versa. However, the situation changes in the
 presence of linear constraints.
-It is this segment of the design space that we pay special attention to: we do not
-quantify over type variables or unrestricted constraints, but we \emph{do}
-quantify over linear constraints.
+It is this segment of the design space that we pay special attention to: can we
+quantify over \emph{only} linear constraints, but not type variables or
+unrestricted constraints?
 
-Let us revisit the |firstLine| example from
-Section~\ref{sec:introduction}, but this time, instead of executing |closeFile|
-directly, we assign it to a variable in a let binding:
+To understand the implications of generalisation, let us revisit the |firstLine|
+example from Section~\ref{sec:introduction}, but this time, instead of executing
+|closeFile| directly, we assign it to a variable in a let binding:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =
@@ -1960,8 +1960,8 @@ firstLine fp =
 This program clearly leaves the file open, and indeed our system rejects it. To
 understand why, let us investigate the type of |closer|. Since we do not
 generalise over type variables, it will mention the existentially bound variable
-|h0| that was introduced by |openFile|. But we do generalise over the linear
-constraint, so the type is |closer :: Open h0 =>. IOL ()|. We can see that the
+|h0| that was introduced by |openFile|. If we generalise over the linear
+constraint, the type becomes |closer :: Open h0 =>. IOL ()|. We can see that the
 binding did not consume the constraint, and instead takes it as an argument. In
 order to fix this program, we simply call
 |closer|:
@@ -1996,10 +1996,29 @@ of writing, Linear Haskell has no syntax for linear lets}, and the proposed
 generalisation strategy leads to consistent behaviour irrespective of the
 flavour of the let.
 
-To summarise, our system generalises over linear constraints in let bindings,
-but keeps the existing behaviour of OutsideIn for type variables and
-unrestricted constraints (which include all equality constraints). This strategy
-is a conservative extension of~\textsc{ghc}'s generalisation strategy.
+Our declarative system in Section~\ref{sec:typing-rules} includes a generalising
+rule for lets without signatures (rule~\rref*{E-Let})), but for the sake of
+simplicity, our constraint generation rules do no generalisation
+(rule~\rref*{G-Let}). In order to handle generalisation, we could include
+the~\rref*{G-LetGen} rule.
+
+\drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{LetGen}
+
+We elected not to include this rule, as the way it stands, it is
+non-deterministic.  It requires finding some $[[Q_r]]$ and $[[Q]]$ that together
+entail the generated $[[C1]]$. It could be made deterministic by calling the
+solver as an oracle to deliver these constraints. In order to keep the
+presentation simple, we decided not to incur this dependency on the solver in
+the constraint generation procedure.
+
+To summarise, generalising over linear constraints in let bindings,  but keeping
+the existing behaviour of OutsideIn for type variables and unrestricted
+constraints (which include all equality constraints) leads to a conservative
+extension of~\textsc{ghc}'s generalisation strategy. This strategy does not
+affect soundness in any way, but is an improvement in user experience.
+Since~\textsc{ghc}'s architecture is set up in a way that can already call the
+solver during constraint generation, we do generalisation in our prototype
+implementation.
 
 \section{Implementation}
 \label{sec:implementation}
