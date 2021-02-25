@@ -17,7 +17,7 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,review,natbib=false]{acmart}
+\documentclass[acmsmall,review,natbib=false,anonymous]{acmart}
 
 \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 \bibliography{bibliography}
@@ -153,12 +153,10 @@ import GHC.Base
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
-\acmConference[WOODSTOCK'97]{ACM Woodstock conference}{July 1997}{El
-  Paso, Texas USA} 
-\acmYear{1997}
-\copyrightyear{2016}
-
-\acmPrice{15.00}
+\acmConference[ICFP'21]{ICFP}{2021}{} 
+\acmYear{2021}
+\copyrightyear{2021}
+\setcopyright{none}
 
 \begin{document}
 
@@ -192,6 +190,40 @@ import GHC.Base
   \country{France}
 }
 \email{arnaud.spiwack@@tweag.io}
+\author{Nicolas Wu}
+\affiliation{
+  \institution{Imperial College London}
+  \city{London}
+  \country{United Kingdom}
+}
+\email{n.wu@@imperial.ac.uk}
+
+\keywords{GHC, Haskell, laziness, linear logic, linear types,
+  constraints, inference}
+
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10011007.10011006.10011008.10011024</concept_id>
+       <concept_desc>Software and its engineering~Language features</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10011007.10011006.10011008.10011009.10011012</concept_id>
+       <concept_desc>Software and its engineering~Functional languages</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10011007.10011006.10011039</concept_id>
+       <concept_desc>Software and its engineering~Formal language definitions</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~Language features}
+\ccsdesc[300]{Software and its engineering~Functional languages}
+\ccsdesc[300]{Software and its engineering~Formal language definitions}
 
 \begin{abstract}
 This paper presents \emph{linear constraints}, a language feature that improves
@@ -206,7 +238,7 @@ respect to the type system, and show how our changes can be integrated into
 
 \maketitle
 
-\renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, and Spiwack}
+\renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, Spiwack, Wu}
 
 \section{Introduction}
 \label{sec:introduction}
@@ -250,7 +282,7 @@ signify that it can be used arbitrary many times.
 %   program. This makes the extra safety afforded by linear types too
 %   rarely worth it.}
 
-Compare this function with the traditional non-linear version:
+Compare this function with one would write in a non-linear language:
 \begin{code}
 firstLine :: FilePath -> IO String
 firstLine fp =
@@ -260,26 +292,29 @@ firstLine fp =
       ;  return xs }
 \end{code}
 
-This version is less safe, because the type system does not keep track of the
-file handle, so the programmer must be careful to do this. But it is also
-simpler: apparently, in the linear version, we traded clarity for safety. Since
-the file handle is now an expendable resource, the type system must know at all
+This style is less safe, because the type system does not keep track of the
+file handle, and the programmer risks forgetting doing it. But it is also
+simpler: apparently, using a linear language means trading clarity for safety. When
+the file handle is an expendable resource, the type system must know at all
 times where it is being consumed, so the file handle must be passed around
-manually, culminating in extra noise. Worse, the larger the program gets, the
-more additional bookkeeping this requires.
+manually, resulting in extra noise. 
 
-But reading the non-linear version, it is perfectly clear where the
-handle is used, and ultimately, consumed. Could the compiler not figure this out
-without extra help?
+% Worse, the larger the program gets, the more additional bookkeeping this requires. % this is vaccuous, perhaps something else is meant?
 
-In this paper, we answer this question affirmatively, and introduce \emph{linear
-  constraints}, a feature for tracking implicit arguments linearly.
-Whe show how linear constraints can be implemented as an extension of Haskell's
-type class mechanism.  This way, resource consumption is tracked without
-explicitly having to thread the tokens through the program.
+But even when reading the non-linear version, it is clear where the
+handle is used, and ultimately, consumed. Could the compiler not
+figure this out without extra help?
+
+In this paper, we answer this question affirmatively, and introduce
+\emph{linear constraints}. Like class constraints, linear constraints
+are passed around implicity by the compiler. Like linear arguments,
+they can be used to track resources.  arguments. This way, resource
+consumption is tracked without explicitly having to thread the tokens
+through the program. We show how linear constraints can be implemented
+as an extension of Haskell's type class mechanism.
 %if True
-With this extension, the final version of |firstLine| is almost the same as the
-traditional version above, with a few minor modifications:
+With this extension, the final version of |firstLine| is almost the
+same as the traditional version above, with a few minor modifications:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =
@@ -292,7 +327,7 @@ The only changes from the unsafe version are that this version runs in the linea
 and explicit |pack| annotations are used to indicate the variables that require
 special treatment.
 \unsure{We should decide what to do with |pack|.}
-In fact, with the right preamble, even the |pack| annotations can be dropped.
+In fact, with the right preamble, even the |pack| annotations can be dropped.\jp{Requires a forward reference.}
 %else
 With this extension, the final version
 of |firstLine| is exactly the same as the traditional version above,
@@ -370,7 +405,7 @@ closeFile  :: Open h =>. Handle h -> IOL ()
 \end{figure}
 
 Linear Haskell~\cite{LinearHaskell} adds a new type of functions,
-dubbed linear functions and written |a ⊸ b|, to Haskell\footnote{The linear function
+dubbed \emph{linear functions}, and written |a ⊸ b| in Haskell\footnote{The linear function
   type and its notation come from linear
   logic~\cite{girard-linear-logic}, to which the phrase \emph{linear
     types} refers. All the various design of linear typing in the
@@ -381,8 +416,9 @@ dubbed linear functions and written |a ⊸ b|, to Haskell\footnote{The linear fu
 
 \begin{quote}
 \emph{Meaning of the linear arrow}:
-|f :: s ⊸ t| guarantees that if |(f u)| is consumed exactly once,
+|f :: a ⊸ b| guarantees that if |(f u)| is consumed exactly once,
 then the argument |u| is consumed exactly once.
+\unsure{NW: do we really need to say ``consumed exactly once'' every time? How about just ``consumed'' and explain this is exactly once by default the first time?}
 \end{quote}
 To make sense of this statement we need to know what ``consumed exactly once'' means.
 Our definition is based on the type of the value concerned:
@@ -402,16 +438,16 @@ typing of their functions.
 Note that a linear arrow specifies \emph{how the function uses its argument}. It does not
 restrict \emph{the arguments to which the function can be applied}.
 In particular, a linear function cannot assume that it is given the
-unique pointer to its argument.  For example, if |f :: s ⊸ t|, then\
-this is fine:
+unique pointer to its argument.  For example, if |f :: a ⊸ b|, then
+the following is fine:
 \begin{code}
-g :: s -> t
+g :: a -> b
 g x = f x
 \end{code}
 The type of |g| makes no particular guarantees about the way in which it uses |x|;
 in particular, |g| can pass that argument to |f|.
 
-The example in the previous section made use of |readLine|, whose type is given in \autoref{fig:linear-interface}.
+The example in the previous section made use of |readLine :: Handle ->. IOL (Handle, String)|.
 This appears to return a new file, but really, it returns a new name for
 the same file. The trick is that there is only ever one of
 these names in scope at any given time, and this one name must be
@@ -445,9 +481,7 @@ languages.\unsure{Both \textsc{ats} and Mezzo
   abstraction is built user-side. \textsc{Ats}'s views are closest to
   what we are doing, though seems to only be geared towards pointers.}
 In this article we introduce a generic extension to Linear Haskell,
-which lets the typechecker handle the counting
-
-
+which lets the typechecker handle the counting.
 There is a bit of boilerplate left, but it doesn't involve managing
 names to please the compiler. This considerably lowers the cost of
 using a linear-type based abstraction.\unsure{I'm trying to get at the
@@ -491,7 +525,7 @@ arrow \emph{linear constraints}.  \unsure{I'm jumping to
 In the introduction we wanted to use linearity to make sure that
 once a file is closed it can no longer be used.
 That is, we need to track in types
-whether the file open or not. We can use a linear constraint |Open f|
+whether the file open or not. We can use a linear constraint |Open h|
 to represent that a file is, indeed, open. We can write the type of
 |closeFile|:
 
@@ -499,26 +533,26 @@ to represent that a file is, indeed, open. We can write the type of
 closeFile :: Open h =>. Handle h -> IOL ()
 \end{code}
 
-There are a few things to notice
+There are a few things to notice:
 \begin{itemize}
-\item First, there is this type variable |f| which did not exist in
+\item First, there is this type variable |h| which did not exist in
   previous representation. In the representation of the Linear Haskell
   paper, for instance, |closeFile| had type |closeFile :: File ->. IOL
-  ()|. This |f| is a type-level name for the file which we are
+  ()|. This |h| is a type-level name for the file which we are
   closing.
   Giving a name to function argument is the bread and butter of more
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
   Haskell~\cite{liquid-haskell-abstract-refinement-types}. But Haskell doesn't have such a
   naming mechanism built in, so we have to make argument names
   explicit in types.
-\item Second, assuming that we have a single, linear, |Open f|
-  available, then after |closeFile| there will not be any |Open f|
+\item Second, assuming that we have a single, linear, |Open h|
+  available, then after |closeFile| there will not be any |Open h|
   left to use, thus preventing the file from being closed
   twice. This is precisely what we were trying to achieve.
 \end{itemize}
 
-This still leaves questions open: where does |f| come from? where does
-|Open f| come from? what are the types of |openFile| and |readLine|?
+This still leaves questions open: where does |h| come from? where does
+|Open h| come from? what are the types of |openFile| and |readLine|?
 The answers to these three questions rely on the same device: we
 introduce a type construction |exists a1 ... an. t .<= Q|, where |Q| is some (linear)
 constraint.
@@ -536,10 +570,9 @@ omit the |exists a1 ... an.| or |.<= Q| parts when they are
 empty. This lets us give the following \textsc{api} to files:
 
 
-Haskell doesn't have such existential quantification, however each
-instance of such existential quantification can be encoded as a
-\textsc{gadt}. For instance |exists h. Handle h .<= Open h| can be
-implemented as
+Haskell doesn't have existential quantification, however it can
+be encoded as a \textsc{gadt}. For instance |exists h. Handle h .<= Open h| can
+be implemented as
 \unsure{We could use a |Proxy| instead. |Pack :: c a =>. Proxy a -> Pack c|, where |c :: * -> Constraint|}
 \begin{code}
 data PackHandle where
@@ -548,7 +581,7 @@ data PackHandle where
 Therefore, the existential types of this article are really a
 convenience for the sake of exposition\unsure{Though, see the
   existential type paper}. Correspondingly, existential types are
-introduced by a data constructor, which we write |pack|.
+introduced by a data constructor, which we write as |pack|.
 
 When pattern-matching on a |pack| all the existentially quantified
 names are introduced in scope and all the returned constraints are
@@ -562,12 +595,15 @@ the example given in the introduction.
   to the idea of typestate than the pedestrian encoding in regular
   linear types.}
 
-\unsure{Explain why the following is unsound:}
+\unsure{NW: I have hidden the unsound |openFile| example ... we can discuss it if we have too much space.}
+%if False
 \begin{spec}
 openFile  :: FilePath -> IOL (Handle h .<= Open h)
 \end{spec}
+%endif
 
-
+%if False
+%NW: This example seems redundant
 Another example to consider:
 \begin{spec}
 readTwoLines path = do
@@ -589,6 +625,7 @@ readTwoLines path = do
 
 It looks exactly the same as without linear types. But you still get
 an error for double-free and use-after-free usages.
+%endif
 
 
 
@@ -623,7 +660,7 @@ dithering x = if x then useC else 10
 \end{code}
 The problem with |dithering| is that it does not commit properly to how much
 resource it requires: the branch where |x| holds will use the resource in |C|
-since it evaluates to |useC| whereas the other does not.
+whereas the other does not.
 
 \subsubsection{Neglecting}
 
@@ -710,6 +747,7 @@ read an additional line, but maybe not return the result from the function.
 
 
 \section{A qualified type system}
+\label{sec:qualified-type-system}
 
 Let us now describe the technical material which lets us support the
 examples of Section~\ref{sec:examples}. The presentation in this
@@ -811,9 +849,9 @@ Section~\ref{sec:constraint-solver}. But for the sake of this section,
 we only need that the domain be equipped with the entailment relation.
 
 OutsideIn introduces, as part of the constraint domain, a generalised
-kind of constraint $\mathcal{Q}$, which include toplevel axioms, such
-as type-class instance declarations. Such toplevel axioms
-are never linear\,--\,just like how toplevel definitions are never linear in
+kind of constraint $\mathcal{Q}$, which include top-level axioms, such
+as type-class instance declarations. Such top-level axioms
+are never linear\,--\,just like how top-level definitions are never linear in
 Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
 interesting interactions with the rest of the system, and we choose to
 omit them for simplicity.
@@ -1031,6 +1069,12 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   the constraint would be $[[omega.q]]$ instead. On the other hand,
   it's perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
   =o a |- f x : b]]$ when $[[f]]$ is a linear function.
+\item In the \rref*{E-Let} rule we added support for local
+  assumptions. This gives us the possibility to generalise a subset of
+  the constraints needed by $[[e1]]$. The inference algorithm of
+  Section~\ref{sec:type-inference} will not make use of this
+  possibility, but we will revisit it in
+  Section~\ref{sec:let-generalisation}.
 \item Data types are not \textsc{gadt}s. Instead they are plain data
   types. This serves to considerably simplify the \rref*{E-Case}
   rule. This is another case of simplifying away the bits of OutsideIn
@@ -1328,36 +1372,93 @@ entailment relation.
 \subsection{Constraint generation}
 \label{sec:constraint-generation}
 
+The process of inferring constraints is split in two parts: generating
+constraints, which we do in this section, then solving them in
+Section~\ref{sec:constraint-solver}. To generate constraints we
+introduce a judgement $[[G |-> e : t ~> C]]$ (defined in
+Figure~\ref{fig:constraint-generation}). It is intended that $[[C]]$
+is understood as an output of this judgement. The definition $[[G |->
+e : t ~> C]]$ is syntax directed, so it can directly be read as an
+algorithm, taking as input a term $[[e]]$ (together with some type
+inference oracle, as discussed above) and returning a wanted
+constraint $[[C]]$.
+
 \info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
 \unsure{Todo: syntax to
   select the $\pi$ in case and let rules}
 
 \unsure{The case rule, for an empty case, implies the existence of the
   typically annoying $⊤$. We will have to confront this.}
-\unsure{We probably want the freshness condition on the $\kunpack$
-  rule, though these variables are universal variables, not
-  existentials.}
 \info{Not caring about inferences simplifies $\kpack$ quite a bit, we
   are using the pseudo-inferred type to generate constraint. In a real
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
-\drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
-  App, Case, Unpack, Pack, Let, LetSig}
+\begin{figure}
+  \centering
+  \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
+    App, Case, Unpack, Pack, Let, LetSig}
 
+  \caption{Constraint generation}
+  \label{fig:constraint-generation}
+\end{figure}
 
-\subsubsection{Soundness of constraint generation}
+The rules of Figure~\ref{fig:constraint-generation} are a mostly
+unsurprising translation of the rules of Figure~\ref{fig:typing-rules}
+in the style of OutsideIn~\cite[Section 5.4]{OutsideIn}, the operation
+on typing contexts, in particular are the same as in
+Figure~\ref{fig:typing-rules}, and are not repeated here. Still, a few
+remarks are in order
+\begin{itemize}
+\item The most conspicuous difference is that, as we explained in
+  Section~\ref{sec:wanteds}, where OutsideIn uses a single kind of
+  conjunctions, the \rref*{E-Case} rule needs two. OutsideIn
+  accumulates constraints across branches, whereas we need to make
+  sure that each branch of a $\kcase$-expression consumes the same
+  constraints.
+
+  This is easily understood in terms of the file example of
+  Section~\ref{sec:introduction}: if you close a file in one branch of
+  a $\kcase$, you better close it in the other branches too!
+  Otherwise, you'll end up, after the case in a state where it is
+  unknown, to the type system, whether the file is open or close.
+
+  Why we don't have to make this distinction in an intuitionistic
+  system like the original OutsideIn is somewhat elucidated by the
+  fact that $[[omega.(C1&C2)]] = [[omega.C1 * omega.C2]]$. In other
+  words, in a purely unrestricted context, linear constraints don't
+  need two kinds of conjunctions either.
+\item Just like OutsideIn, the introduction of constraints local to a
+  premise in the rules of Figure~\ref{fig:typing-rules} corresponds to
+  emitting an implicational constraint in
+  Figure~\ref{fig:constraint-generation}.
+\item However, the \rref*{G-Let} rule doesn't have an implicational
+  constraint corresponding to the local constraint of \rref{E-Let}:
+  like in OutsideIn~\cite[Section 4.2]{OutsideIn}, a $\klet$ without a
+  signature is not generalised. That being said, while not
+  generalising is the easiest choice, here, it is not clear that it is
+  the best in the presence of linear constraint, as we discuss in
+  Section~\ref{sec:let-generalisation}
+\item As we've observed throughout this section, not including type
+  inference in the constraint generation algorithm significantly
+  simplifies the presentation. There is no particular difficulty
+  involved, however, in combining type inference and linear
+  constraint; keeping in mind that equality constraints should never
+  be linear.
+\end{itemize}
+
+% I [aspiwack] removed a section which I felt wasn't relevant. Leaving
+% the label to avoid dead links.
 \label{sec:constraint-generation-soundness}
 
-Let us now prove that every term whose generated wanted constraints
-are solvable can indeed be typed in the declarative type system.
+The crucial property of the constraint-generation algorithm is that,
+if the generated constraint is solvable, then we can indeed type the
+term in the qualified type system of
+Section~\ref{sec:qualified-type-system}. That is, we are not defining
+a new type system but indeed an inference algorithm for the qualified
+type system.
 
-\begin{lemma}
-  For all $[[Q_g]]$ if
-  \begin{itemize}
-  \item $[[G |-> e : t ~> C]]$
-  \item $[[Q_g |- C]]$
-  \end{itemize}
-  then
+\begin{lemma}[Soundness of constraint generation]
+  For all $[[Q_g]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
 \end{lemma}
 \begin{proof}
@@ -1515,7 +1616,8 @@ are solvable can indeed be typed in the declarative type system.
 Haskell's constraint language can be thought of as a logic programming language.
 Type classes encode predicates and type class instances add clauses to the
 predicates. These predicates arise from user programs, and the constraint solver
-attempts to solve them. At its essence, OutsideIn's constraint solver is a
+attempts to solve them. At its essence, OutsideIn's constraint
+solver~\cite[Section 5.5]{OutsideIn} is a
 procedure that takes a set of \emph{given} constraints (the logical
 assumptions), and generates a proof of some \emph{wanted} constraint using the
 \emph{given}s.
@@ -1535,11 +1637,12 @@ takes in two contexts: $[[UCtx]]$, which holds all the unrestricted constraints
 (scaled by $[[omega]]$) and $[[LCtx_i]]$, which holds all the linear
 constraints. Due to the associativity and commutativity properties of $[[*]]$ we
 can always factor any given constraint into such a pair of contexts. The
-additive context $[[UCtx]]$ is an unordered set of constraints, while the
+unrestricted context $[[UCtx]]$ is an unordered set of constraints, while the
 multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists of
 constraints. When initially calling the solver, the order doesn't matter, but it
 is important to keep track of this order during solving implication constraints.
-We will return to this point in the relevant section.
+We will return to this point in the relevant section.\unsure{Which
+  section is this?}
 
 There are three simplifications compared to OutsideIn's solver:
 
@@ -1547,21 +1650,24 @@ There are three simplifications compared to OutsideIn's solver:
   \item As explained in Section~\ref{sec:constraint-generation}, our solver does
 not need to do unification, so we do not return a substitution in the solver
 judgement.
-  \item We do not handle top-level assumptions, as the meaning of a linear
-constraint in the global set of givens is unclear.
+\item As discussed in Section~\ref{sec:constraint-domain}, we do not
+  handle top-level assumptions, as the meaning of a linear constraint
+  in the global set of givens is unclear.
   \item In case the wanteds can not be solved completely, OutsideIn also returns
 a set of \emph{residual} constraints: these are the remaining subproblems to
 solve. This set of residual constraints is simply quantified over in the type of
 top-level function definitions that don't have signatures. The residuals are
 essentially all of the wanteds that arise from the program that couldn't be
 solved from the global givens. In our solver we omit these residual constraints,
-because we do not do inference and assume that all top-level functions will have
-signatures. Even if we did do inference, since there are no global linear
-constraints, the residual set would be identical to the wanted (modulo rewriting
-rules from the constraint domain). It is important to reiterate this
-distinction: OutsideIn's residual constraints are the ones that remain to be
-solved from the goal, while our output constraints here are the ones that have
-not been consumed during solving.
+because we never infer a type scheme for a let without a signature.
+
+It is important to reiterate this
+distinction: OutsideIn's residual constraints are constraints from the
+goal that remain to be
+solved, while our output constraints $[[LCtx_o]]$ are constraints from
+the hypotheses that have yet to be used. OutsideIn's residuals are a
+tool for type inference, while our output constraints are an internal
+device for the solver.
 \end{itemize}
 
 
@@ -1956,6 +2062,7 @@ announced.\unsure{a few more closing words would be welcome.}
 \csongor{intro}
 
 \subsection{let generalisation}
+\label{sec:let-generalisation}
 
 \textsc{ghc} has famously taken the stance that ``let should not be
 generalised''~\cite[Section 4.2]{OutsideIn}. Indeed, users of modern Haskell features know
@@ -2373,6 +2480,6 @@ so the owner of the array is no longer owning it.
 \end{document}
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
-% LocalWords:  desugaring ghc OutsideIn toplevel quotiented gadt
+% LocalWords:  desugaring ghc OutsideIn quotiented gadt
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
-% LocalWords:  sequents
+% LocalWords:  sequents implicational
