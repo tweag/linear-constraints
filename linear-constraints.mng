@@ -889,7 +889,7 @@ of scaling stated in Definition~\ref{def:entailment-relation} extend
 to scaling of arbitrary constraints, as we prove in the two following
 lemmas.
 
-\begin{lemma}
+\begin{lemma}[Promotion]
   \label{lem:q:promotion}
   If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
 \end{lemma}
@@ -912,7 +912,7 @@ lemmas.
   \end{itemize}
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}[Inversion of promotion]
   \label{lem:q:scaling-inversion}
   If $[[Q1 ||- pi.Q2]]$, then there exists $[[Q1']]$ such that
   $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- Q2]]$
@@ -1180,16 +1180,40 @@ $$
 \right.
 $$
 
+\noindent
 Like in Section~\ref{sec:constraint-domain}, we will typically drop
 the scaling factor for implication when it is $[[1]]$ and write $[[Q
 => C]]$ for $[[1.(Q=>C)]]$.
 
+The meaning of wanted constraints is given by the following,
+inductive, entailment relation. This is a technical difference with
+OutsideIn where the meaning of wanteds is given directly by the
+constraint solver, whereas our solver
+(Section~\ref{sec:constraint-solver}) has to be proved correct with
+respect to this entailment relation. We found that, in the case of
+linear logic, having this extra entailment relation made proofs much
+simpler.
+
 \drules[C]{$[[Q |- C]]$}
-  {Generalised constraint entailment}
+  {Wanted-constraint entailment}
   {Dom,Tensor,With,Impl}
 
-\begin{lemma}
+\noindent
+Note that it's always a simple constraint entails a wanted: we
+generate wanted constraints, but programs only mention simple
+constraints, and the left-hand side does come from the program. It is
+possible to relax the syntax of the left-hand some,
+though~\cite{quantified-constraints}, which current \textsc{ghc} does.
+
+Before we move on to constraint generation proper, let us prove a few
+technical, yet essential, lemmas about the wanted-constraint
+entailment relation.
+
+\begin{lemma}[Inversion]
   \label{lem:inversion}
+  The inference rules of $[[Q |- C]]$ can be right bottom-up as well
+  as top-down. As was is required of $[[Q1 |- Q2]]$ in
+  Definition~\ref{def:entailment-relation}. That is
   \begin{itemize}
   \item If $[[Q |- C1*C2]]$, then there exists $[[Q1]]$ and
     $[[Q2]]$ such that
@@ -1229,13 +1253,13 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
 
   Proofs where each non-atomic goal is the conclusion of a
   corresponding introduction rule has been called \emph{uniform}
-  in~\cite{hh-ll}. They prove for a fragment of linear logic which
-  includes quantified constraints and linear generalisations thereof,
-  that all provable sequent can be proved by a uniform proof. So this
-  lemma, is, in fact, quite robust.
+  in~\cite{hh-ll}. They prove for a fragment of linear
+  logic\,--\,which includes quantified constraints and linear
+  generalisations thereof\,--\,that all provable sequents can be proved
+  by a uniform proof. So this lemma, is, in fact, quite robust.
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}[Promotion]
   \label{lem:wanted:promote}
   If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
 \end{lemma}
@@ -1267,13 +1291,10 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
   \end{itemize}
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}[Inversion of promotion]
   \label{lem:wanted:demote}
   If $[[Q |- pi.C]]$ then there exists $[[Q']]$ such that
-  \begin{itemize}
-  \item $[[Q' |- C]]$
-  \item $[[Q]] = [[pi.Q']]$
-  \end{itemize}
+  $[[Q' |- C]]$ and $[[Q]] = [[pi.Q']]$
 \end{lemma}
 
 \newpage
@@ -2372,3 +2393,4 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
 % LocalWords:  desugaring ghc OutsideIn toplevel quotiented gadt
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
+% LocalWords:  sequents
