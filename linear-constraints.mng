@@ -1163,9 +1163,11 @@ $[[C1]]$ and $[[C2]]$ were branches in a $\kcase$-expression. Not
 coincidentally, $[[C1&C2]]$ will be used to generate constraints for
 $\kcase$-expressions.
 
-\unsure{explanation about the scaling factor on implication constraints?}
-
-Scaling is extended to all wanted constraints:
+The final difference is the scaling factor on implication. It is, in
+fact, a mere technicality: there is no law of linear logic which would
+let us simplify $[[omega.(Q => C)]]$. Yet, we will, next, extend
+scaling to all wanted constraints, so we need to ``store'' the scaling
+factor of implications
 
 $$
 \left\{
