@@ -1618,15 +1618,20 @@ generated from case expressions, only one of them is actually going to be
 executed). Note that both branches must consume exactly the same amount of
 resources.
   \item Implications are handled by~\rref*{S-ImplOne} and~\rref*{S-ImplMany},
-for solving linear and unrestricted wanted implications respectively. When
-solving a linear implication, we add the assumption to the linear context, and
-proceed with solving the conclusion. The side condition requires that the output
-context is a subset of the input context: this is to ensure that the
-implication actually consumes its assumption and doesn't leak it to the ambient
-context. That the right one will be consumed is ensured by the~\rref*{AtomOneL}
-rule. Solving unrestricted implications only allows the conclusion of the
-implication to be solved using its assumption, but none of the other linear
-constraints.
+for solving linear and unrestricted wanted implications respectively. In
+both cases, the assumption of the implication is split to the unrestricted
+$[[omega . Q1]]$ and the linear $[[Q2]]$ parts (this can be done deterministically).
+When solving a linear implication, we add the assumptions to their respective context, and
+proceed with solving the conclusion. Importantly, the linear assumptions are
+added to the front of the list. The side condition requires that the output
+context is a subset of the input context: this is to ensure that the implication
+actually consumes its assumption and doesn't leak it to the ambient context.
+That the correct one will be consumed is ensured by the~\rref*{AtomOneL} rule.
+Solving unrestricted implications only allows the conclusion of the implication
+to be solved using its own linear assumption, but none of the other linear
+constraints. This is because unrestricted implications only use their own
+assumption linearly, but use everything from the ambient context $[[omega]]$
+times.
 
 \end{itemize}
 
