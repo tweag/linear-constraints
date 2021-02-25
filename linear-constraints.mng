@@ -1613,7 +1613,8 @@ type system.
 Haskell's constraint language can be thought of as a logic programming language.
 Type classes encode predicates and type class instances add clauses to the
 predicates. These predicates arise from user programs, and the constraint solver
-attempts to solve them. At its essence, OutsideIn's constraint solver is a
+attempts to solve them. At its essence, OutsideIn's constraint
+solver~\cite[Section 5.5]{OutsideIn} is a
 procedure that takes a set of \emph{given} constraints (the logical
 assumptions), and generates a proof of some \emph{wanted} constraint using the
 \emph{given}s.
@@ -1637,7 +1638,8 @@ additive context $[[UCtx]]$ is an unordered set of constraints, while the
 multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists of
 constraints. When initially calling the solver, the order doesn't matter, but it
 is important to keep track of this order during solving implication constraints.
-We will return to this point in the relevant section.
+We will return to this point in the relevant section.\unsure{Which
+  section is this?}
 
 There are three simplifications compared to OutsideIn's solver:
 
@@ -1645,21 +1647,24 @@ There are three simplifications compared to OutsideIn's solver:
   \item As explained in Section~\ref{sec:constraint-generation}, our solver does
 not need to do unification, so we do not return a substitution in the solver
 judgement.
-  \item We do not handle top-level assumptions, as the meaning of a linear
-constraint in the global set of givens is unclear.
+\item As discussed in Section~\ref{sec:constraint-domain}, we do not
+  handle top-level assumptions, as the meaning of a linear constraint
+  in the global set of givens is unclear.
   \item In case the wanteds can not be solved completely, OutsideIn also returns
 a set of \emph{residual} constraints: these are the remaining subproblems to
 solve. This set of residual constraints is simply quantified over in the type of
 top-level function definitions that don't have signatures. The residuals are
 essentially all of the wanteds that arise from the program that couldn't be
 solved from the global givens. In our solver we omit these residual constraints,
-because we do not do inference and assume that all top-level functions will have
-signatures. Even if we did do inference, since there are no global linear
-constraints, the residual set would be identical to the wanted (modulo rewriting
-rules from the constraint domain). It is important to reiterate this
-distinction: OutsideIn's residual constraints are the ones that remain to be
-solved from the goal, while our output constraints here are the ones that have
-not been consumed during solving.
+because we never infer a type scheme for a let without a signature.
+
+It is important to reiterate this
+distinction: OutsideIn's residual constraints are constraints from the
+goal that remain to be
+solved, while our output constraints $[[LCtx_o]]$ are constraints from
+the hypotheses that have yet to be used. OutsideIn's residuals are a
+tool for type inference, while our output constraints are an internal
+device for the solver.
 \end{itemize}
 
 
