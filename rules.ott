@@ -217,7 +217,7 @@ by
 
 UCtx ; LCtx_i |-simp pi.q ~> LCtx_o
 ---------------------------------------------- :: Simple
-UCtx ; LCtx_i |-s pi.q ~> LCtx
+UCtx ; LCtx_i |-s pi.q ~> LCtx_o
 
 UCtx ; LCtx_i |-s C1 ~> LCtx_o  UCtx ; LCtx_i |-s C2 ~> LCtx_o
 --------------------------------------------------------------- :: Add
