@@ -2237,26 +2237,36 @@ the same name and thus have two copies of, say, a variable |x|.
 
 \appendix
 
-\section{Preamble from Csongor}
-
-\begin{spec}
-data a .<= c where
-  Pack :: c =>. a -> a .<= c
-data IOL c a = IOL {runIOL :: RealWorld -> (RealWorld, a .<= c)}
-\end{spec}
-
-If we bake the constraint into |IOL|, then we need to change \emph{both} |c| and |a|:
-\begin{spec}
-(>>=) :: IOL c a -> (c =>. a -> IOL d b) -> IOL d b
-io_a >>= f = IOL $ \rw -> case runIOL io_a rw of
-                            (rw', Pack a) -> runIOL (f a) rw'
-\end{spec}
-
 % $ emacs
 
 \section{Arnaud's motivating examples}
 
 \subsection{Quantum IO Monad}
+
+\begin{figure}%
+  \centering
+  \begin{subfigure}{.4\linewidth}%
+    \centering
+    \noindent%
+\begin{code}
+QIO :: * -> *
+mkQbit :: Bool -> QIO Qbit
+applyU :: U -> QIO ()
+\end{code}
+  \end{subfigure}
+  \begin{subfigure}{.4\linewidth}
+    \centering
+    \noindent%
+\begin{code}
+U :: *
+instance Monoid U
+unot :: QBit -> U
+ifQ :: QBit -> U -> U
+\end{code}
+  \end{subfigure}
+\caption{Quantum IO API (subset)}
+\label{fig:qio-interface}
+\end{figure}
 
 To showcase another area where deploying linear constraints seems promising, let
 us review the quantum computational model. At the fundamental level, the
@@ -2271,22 +2281,26 @@ high-level abstractions that can be compiled down to a realisable quantum
 circuit, as many common operators, such as the logical OR, are not expressible
 in a quantum machine due to their loss of information.
 
-In \cite{altenkirch2010quantum} the authors describe an encoding of quantum
-computation in the Quantum IO (QIO) monad, which can effectively simulate
-probabilistic quantum operations by sampling a probability distribution. The
-framework supplies a DSL, |U|, for reversible computations. This DSL includes,
-for example |unot :: Qbit -> U|, which reverses negates a quantum bit (qbit), and |ifQ
-:: Qbit -> U -> U| which runs a reversible computation when the supplied quantum
-bit is in the true state. Qbits can be initialised using the |mkQbit ::
-Bool -> QIO Qbit| operation, and reversible computations can be executed on the
-state of the machine using |applyU :: U -> QIO ()|.
+In \cite{altenkirch2010quantum} the authors describe the Quantum IO (QIO) monad,
+an encoding of quantum computation which can effectively simulate probabilistic
+quantum operations by sampling a probability distribution. The framework
+supplies a DSL, |U|, for reversible computations.
 
-These seemingly simple combinators already expose a shortcoming of the API: it
-is possible to express irreversible computations: given some |q :: Qbit|, |ifQ q
-(unot q)| sets |q|'s value to false. Indeed, the QIO monad enforces a semantic
-side condition that the conditional variable must not be modified in the body.
-This condition is enforced by the simulator by throwing a runtime error when
-such updates are attempted.
+Figure~\ref{fig:qio-interface} displays a subset of this API.
+Qbits can be initialised in the |QIO| monad using |mkQbit|, and reversible
+computations can be executed on the state of the machine using |applyU :: U ->
+QIO ()|. The latter function is the action of the |U| monoid on the machine
+state, which is initialised as an $n$-dimensional vector of qbits, and the
+transformations are $n$-dimensional unitary matrices. Such transformations are
+built using various combinators, including |unot|, which negates a qbit, and
+|ifQ|, which does a conditional operation depending on the value of a qbit.
+
+These simple combinators already expose a shortcoming of the API: it is possible
+to express irreversible computations: given some |q :: Qbit|, |ifQ q (unot q)|
+sets |q|'s value to false no matter what it was before. Indeed, the QIO monad
+enforces a semantic side condition that the conditional variable must not be
+modified in the body.  This condition is enforced by the simulator by throwing a
+runtime error when such updates are attempted.
 
 A better solution would be to catch the error before even attempting to execute
 the program! Using linear constraints, we can provide a safe API for expressing
@@ -2294,27 +2308,51 @@ reversible computations.
 
 The strategy is to modify the QIO API to keep track of having write access to a
 qbit. Initialising a qbit provides write access to the qbit.
-
 \begin{code}
+class Write q
 mkQbit :: Bool -> exists u. QIO (Qbit q) .<= Write q
 \end{code}
-
 Then, we modify |unot| to require write access to the qbit.
-
 \begin{code}
 unot :: Write q =>. Qbit q -> U .<= Write q
 \end{code}
-
-Finally, |ifQ| consumes write access.
-
+A naive attempt would be to change |ifQ| so that it consumes the write access
 \begin{code}
 ifQ :: Write q =>. Qbit q -> U -> U .<= Write q
 \end{code}
+Now |ifQ q (unot q)| will not typecheck, but neither will any other |ifQ q (unot
+r)|, since the second argument to |ifQ| has type |U|, while |unot r| has type |U
+.<= Write r|. It is important to support |ifQ q (unot r)|, as this is the chief
+way of creating an \emph{entangled} pair of qbits.
+What's more troubling is that the following still typechecks:
+\begin{code}
+case unot q of
+  Pack n -> ifQ q n
+\end{code}
+Which is not sensible. Another issue is that setting up |ifQ| to consume the
+write capability would disallow nested conditionals for the same variable, viz.
+|ifQ q (ifQ q ...)|. Regardless of whether this is a sensible to do, it is
+certainly something that the original API supports, and realisable on a quantum
+circuit.
 
-This way, writing |ifQ q (unot q)| will no longer typecheck, as the call to
-|ifQ| has consumed the write access to |q|, thus the body will not be able to
-modify it. Of course, it is still possible to write any \emph{other} qbit |r| in the
-body, creating an \emph{entagled} pair of qbits: |ifQ q (unot r)|.
+To fix all of these issues, we will introduce a new capability, as follows:
+\begin{code}
+class ReadOnly q
+
+lendQbit :: Write q =>. Qbit q -> (forall p. ReadOnly p => Qbit p -> r .<= c) ->. r .<= (Write q, c)
+\end{code}
+
+\begin{code}
+ifQ :: ReadOnly q => Qbit q -> (U .<= c) ->. U .<= c
+\end{code}
+
+
+\begin{code}
+entangle :: (Write q, Write r) =>. Qbit q -> Qbit r -> U .<= (Writer q, Write r)
+entangle q r
+  = lendQbit q $ \p ->
+      ifQ p (unot r)
+\end{code}
 
 \section{Application: memory ownership}
 
