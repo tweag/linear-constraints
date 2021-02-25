@@ -236,14 +236,14 @@ UCtx ; LCtx_i |-s C1 ~> LCtx_o'  UCtx ; LCtx_o' |-s C2 ~> LCtx_o
 ------------------------------------------------------------- :: Mult
 UCtx ; LCtx_i |-s C1 * C2 ~> LCtx_o
 
-UCtx ; LCtx_i , Q |-s C ~> LCtx_o
+UCtx , omega.Q1 ; LCtx_i , Q2 |-s C ~> LCtx_o
 LCtx_o ⊆ LCtx_i
 ---------------------------------------------- :: ImplOne
-UCtx ; LCtx_i |-s Q => C ~> LCtx_o
+UCtx ; LCtx_i |-s (omega.Q1 * Q2) => C ~> LCtx_o
 
-UCtx ; Q |-s C ~> empty
+UCtx, omega.Q1 ; Q2 |-s C ~> empty
 ---------------------------------------------- :: ImplMany
-UCtx ; LCtx_i |-s omega.(Q => C) ~> LCtx_i
+UCtx ; LCtx_i |-s omega . ((omega . Q1 * Q2) => C) ~> LCtx_i
 
 % todo
 
