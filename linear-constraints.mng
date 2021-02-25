@@ -367,8 +367,8 @@ is working within the linear IO monad.
 
 The goal of this paper is to introduce linear constraints as a mechanism for
 ergonomically using linear types in Haskell.  Of course, in order to appreciate
-this work, it helps to understand how linear types work.  In this section, we
-will sketch out some of the basics of how linear types work in Haskell, and then
+this work, it helps to understand how linear types work.\jp{condescending}  In this section, we
+sketch out some of the basics of how linear types work in Haskell, and then
 give a number of examples that motivate our extension into linear constraints.
 
 % This extra noise is the consequence of the fact that, as far as a
@@ -405,7 +405,7 @@ closeFile  :: Open h =>. Handle h -> IOL ()
 \end{figure}
 
 Linear Haskell~\cite{LinearHaskell} adds a new type of functions,
-dubbed \emph{linear functions}, and written |a ⊸ b| in Haskell\footnote{The linear function
+dubbed \emph{linear functions}, and written |a ⊸ b|\footnote{The linear function
   type and its notation come from linear
   logic~\cite{girard-linear-logic}, to which the phrase \emph{linear
     types} refers. All the various design of linear typing in the
@@ -433,7 +433,7 @@ Our definition is based on the type of the value concerned:
 \end{definition}
 \noindent
 This definition is enough to allow programmers to reason about the
-typing of their functions.
+typing of their functions.\jp{Vaccuous. Is it meant to deduce the resource aspect behaviour of functions from the type?}
 %
 Note that a linear arrow specifies \emph{how the function uses its argument}. It does not
 restrict \emph{the arguments to which the function can be applied}.
@@ -447,7 +447,7 @@ g x = f x
 The type of |g| makes no particular guarantees about the way in which it uses |x|;
 in particular, |g| can pass that argument to |f|.
 
-The example in the previous section made use of |readLine :: Handle ->. IOL (Handle, String)|.
+The example in the previous section makes use of |readLine :: Handle ->. IOL (Handle, String)|.
 This appears to return a new file, but really, it returns a new name for
 the same file. The trick is that there is only ever one of
 these names in scope at any given time, and this one name must be
