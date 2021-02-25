@@ -215,18 +215,6 @@ defn
 UCtx ; LCtx |-s C_w ~> LCtx_o :: :: Solve :: 'S_' {{ com Constraint solving }}
 by
 
--------------------------------- :: AtomMany
-UCtx , omega.q ; LCtx |-s omega.q ~> LCtx
-
-q \notin LCtx2
-omega.q \notin UCtx
--------------------------------- :: AtomOneL
-UCtx ; LCtx1 , q , LCtx2 |-s q ~> LCtx1 , LCtx2
-
-q \notin LCtx
--------------------------------- :: AtomOneU
-UCtx , omega.q ; LCtx |-s q ~> LCtx
-
 UCtx ; LCtx_i |-simp pi.q ~> LCtx_o
 ---------------------------------------------- :: Simple
 UCtx ; LCtx_i |-s pi.q ~> LCtx
@@ -251,6 +239,19 @@ UCtx ; LCtx_i |-s omega . ((omega . Q1 * Q2) => C) ~> LCtx_i
 defn
 UCtx ; LCtx |-simp Q_w ~> LCtx_o :: :: SolveSimple :: 'Simp_' {{ com Simple constraint solving }}
 by
+
+-------------------------------- :: AtomMany
+UCtx , omega.q ; LCtx |-simp omega.q ~> LCtx
+
+q \notin LCtx2
+omega.q \notin UCtx
+-------------------------------- :: AtomOneL
+UCtx ; LCtx1 , q , LCtx2 |-simp q ~> LCtx1 , LCtx2
+
+q \notin LCtx
+-------------------------------- :: AtomOneU
+UCtx , omega.q ; LCtx |-simp q ~> LCtx
+
 % todo
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
