@@ -17,7 +17,7 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,review,natbib=false]{acmart}
+\documentclass[acmsmall,review,natbib=false,anonymous]{acmart}
 
 \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 \bibliography{bibliography}
@@ -153,12 +153,10 @@ import GHC.Base
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
-\acmConference[WOODSTOCK'97]{ACM Woodstock conference}{July 1997}{El
-  Paso, Texas USA} 
-\acmYear{1997}
-\copyrightyear{2016}
-
-\acmPrice{15.00}
+\acmConference[ICFP'21]{ICFP}{2021}{} 
+\acmYear{2021}
+\copyrightyear{2021}
+\setcopyright{none}
 
 \begin{document}
 
@@ -192,6 +190,13 @@ import GHC.Base
   \country{France}
 }
 \email{arnaud.spiwack@@tweag.io}
+\author{Nicolas Wu}
+\affiliation{
+  \institution{Imperial College London}
+  \city{London}
+  \country{United Kingdom}
+}
+\email{n.wu@@imperial.ac.uk}
 
 \begin{abstract}
 This paper presents \emph{linear constraints}, a language feature that improves
