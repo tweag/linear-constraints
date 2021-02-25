@@ -448,9 +448,9 @@ The type of |g| makes no particular guarantees about the way in which it uses |x
 in particular, |g| can pass that argument to |f|.
 
 The example in the previous section makes use of |readLine :: Handle ->. IOL (Handle, String)|.
-This appears to return a new file, but really, it returns a new name for
+This appears to return a new file\jp{Handle? (handles are already 'names' for files)}, but really, it returns a new name for
 the same file. The trick is that there is only ever one of
-these names in scope at any given time, and this one name must be
+these names in scope at any given time, and this one name\jp{This paragraph is making a confusion between scoping and consumption. 'consume exactly once' is defined for values, not names.} must be
 consumed exactly once. In other words, the name is a linear
 variable. It can, therefore, only be consumed by linear
 functions. This is why the type of |readLine| is a linear function;
