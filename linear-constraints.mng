@@ -1173,15 +1173,14 @@ generated in Section~\ref{sec:constraint-generation} have a richer
 logical structure than the simple constraints. Let us follow
 \textsc{ghc}'s terminology and call these \emph{wanted constraints}:
 they are constraints which we \emph{want} to hold.
-
+%
 $$
 \begin{array}{lcll}
   [[C]] & \bnfeq & [[Q]] \bnfor [[C1*C2]] \bnfor [[C1&C2]] \bnfor [[pi.(Q=>C)]]&
                                                                 \text{Wanted constraints}
 \end{array}
 $$
-
-\noindent
+%
 The wanteds for linear constraints differ a little from the wanteds of
 OutsideIn. First, and most trivially, the implication constraint is a
 linear implication, rather than an intuitionistic implication. Another
