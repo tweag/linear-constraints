@@ -282,7 +282,7 @@ signify that it can be used arbitrary many times.
 %   program. This makes the extra safety afforded by linear types too
 %   rarely worth it.}
 
-Compare this function with the traditional non-linear version:
+Compare this function with one would write in a non-linear language:
 \begin{code}
 firstLine :: FilePath -> IO String
 firstLine fp =
@@ -292,8 +292,8 @@ firstLine fp =
       ;  return xs }
 \end{code}
 
-This version is less safe, because the type system does not keep track of the
-file handle, so the programmer must be careful to do this. But it is also
+This style is less safe, because the type system does not keep track of the
+file handle, and the programmer risks forgetting doing it. But it is also
 simpler: apparently, in the linear version, we traded clarity for safety. Since
 the file handle is now an expendable resource, the type system must know at all
 times where it is being consumed, so the file handle must be passed around
