@@ -846,9 +846,9 @@ Section~\ref{sec:constraint-solver}. But for the sake of this section,
 we only need that the domain be equipped with the entailment relation.
 
 OutsideIn introduces, as part of the constraint domain, a generalised
-kind of constraint $\mathcal{Q}$, which include toplevel axioms, such
-as type-class instance declarations. Such toplevel axioms
-are never linear\,--\,just like how toplevel definitions are never linear in
+kind of constraint $\mathcal{Q}$, which include top-level axioms, such
+as type-class instance declarations. Such top-level axioms
+are never linear\,--\,just like how top-level definitions are never linear in
 Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
 interesting interactions with the rest of the system, and we choose to
 omit them for simplicity.
@@ -2472,6 +2472,6 @@ so the owner of the array is no longer owning it.
 \end{document}
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
-% LocalWords:  desugaring ghc OutsideIn toplevel quotiented gadt
+% LocalWords:  desugaring ghc OutsideIn quotiented gadt
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
 % LocalWords:  sequents implicational
