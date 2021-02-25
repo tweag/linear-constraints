@@ -1063,6 +1063,12 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   the constraint would be $[[omega.q]]$ instead. On the other hand,
   it's perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
   =o a |- f x : b]]$ when $[[f]]$ is a linear function.
+\item In the \rref*{E-Let} rule we added support for local
+  assumptions. This gives us the possibility to generalise a subset of
+  the constraints needed by $[[e1]]$. The inference algorithm of
+  Section~\ref{sec:type-inference} will not make use of this
+  possibility, but we will revisit it in
+  Section~\ref{sec:let-generalisation}.
 \item Data types are not \textsc{gadt}s. Instead they are plain data
   types. This serves to considerably simplify the \rref*{E-Case}
   rule. This is another case of simplifying away the bits of OutsideIn
