@@ -880,7 +880,7 @@ $[[pi.q]]$.
   Apart from linearity, the main difference with OutsideIn is that we
   don't require the presence of equality constraints. We come back to
   the motivation for this simplification in
-  Section~\ref{sec:constraint-generation}.
+  Section~\ref{sec:type-inference}.
 \end{definition}
 
 An important feature of simple constraints is that, while scaling
@@ -1066,7 +1066,59 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
 \section{Constraint inference}
 \label{sec:type-inference}
 
-\unsure{Todo: transition}
+Of course, the entire point of linear constraints is the promise that
+the compiler can handle these constraints for the
+programmer. Otherwise linear constraints are just plain Linear
+Haskell~\cite{LinearHaskell} with an extra set of sigils.
+
+In this section, we are still following OutsideIn~\cite[Section
+5]{OutsideIn}. We make, however, an important simplification: we infer
+constraints, but not types. That is the types in the syntax-directed
+constraint generation algorithm of
+Section~\ref{sec:constraint-generation}, types are still declarative
+rather than algorithmic. You can think of types as being inferred by
+an external oracle.
+
+In OutsideIn\,--\,and in \textsc{ghc}\,--\, on the other hand, in order to support the wide range of
+features that modern Haskell boasts, the constraint solver is responsible not only
+for type class constraint resolution, but also for type inference in the more
+traditional sense. That is, the constraint solver deals with equality
+constraints and does unification. Doing so allows seamless integration of \emph{e.g.}
+\textsc{gadt}s with their local equality assumptions and type families with their
+top-level equality axioms.
+
+Not dealing with type inference greatly simplifies the presentation,
+as will be evident in the rest of the section. We can make this
+simplification for two reasons:
+\begin{itemize}
+\item Our system doesn't have equality constraints, and even when
+  integrated into GHC, we do not allow equality constraints to be
+  linear. This is because traditional unification algorithms are
+  unsound for linear equalities as they will gladly reuse the same
+  equality many times (or none at all). Linear equalities make sense
+  (see \emph{e.g.}~\cite{shulman2018linear}, which puts linear
+  equalities to great use), but they don't seem to lend themselves to
+  automation.
+\item We do not support, or intend to support, multiplicity
+  polymorphism in constraint arrows. That is, the multiplicity of a
+  constraint is always syntactically known to be either linear or
+  unrestricted. This way, no equality constraints can interfere with
+  constraint resolution.\unsure{I [arnaud] think absence of
+    polymorphism and the fact that it's not super useful because of
+    the much more first-order nature of constraints (polymorphism is
+    mostly useful for higher-order functions). Should be explained in
+    the multiplicity section}
+\end{itemize}
+
+Our current focus is much more narrow than a general typechecking algorithm for
+all of GHC's features.
+Secondly,
+As a consequence of these two restrictions (no linear equalities and no
+multiplicity polymorphic constraints), type inference and (linear) class
+constraint resolution are completely orthogonal. Therefore, the syntax-directed
+constraint generation system presented in this section can legitimately assume
+that type inference is solved elsewhere, greatly simplifying the presentation.
+
 
 \subsection{Wanted constraints}
 \label{sec:wanteds}
@@ -1199,42 +1251,10 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
 \subsection{Constraint generation}
 \label{sec:constraint-generation}
 
-See Fig.13, p39 of OutsideIn~\cite{OutsideIn} \unsure{Todo: syntax to
+\info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
+\unsure{Todo: syntax to
   select the $\pi$ in case and let rules}
 
-The main workhorse of GHC's typechecker is its constraints solver, based on the
-OutsedIn~\cite{OutsideIn} algorithm. In order to support the wide range of
-features modern Haskell boasts, the constraint solver is responsible not only
-for type class constraint resolution, but also for type inference in the more
-traditional sense. That is, the constraint solver deals with equality
-constraints and does unification. Doing so allows seamless integration of e.g.
-GADTs with their local equality assumptions and type families with their
-top-level equality axioms.
-
-Our current focus is much more narrow than a general typechecking algorithm for
-all of GHC's features. Firstly, our system doesn't have equality
-constraints, and even when integrated into GHC, we do not allow equality
-constraints to be assumed linearly. This is because traditional unification
-algorithms are unsound for linear equalities as they will gladly reuse the same
-equality many times (or none at all). (For a system that takes linear equality
-seriously, see e.g.~\cite{shulman2018linear})
-Secondly, we do not support multiplicity polymorphism in constraint arrows. That
-is, the multiplicity of a constraint is always known to be either linear or
-unrestricted in the empty context. This way, no equality constraints can interfere
-with constraint resolution.
-
-As a consequence of these two restrictions (no linear equalities and no
-multiplicity polymorphic constraints), type inference and (linear) class
-constraint resolution are completely orthogonal. Therefore, the syntax-directed
-constraint generation system presented in this section can legitimately assume
-that type inference is solved elsewhere, greatly simplifying the presentation.
-
-\unsure{Todo: the rule for a constraint-generalising signatureless
-  let}
-\improvement{We also want let with a signature. There are two rules in
-  OutsideIn: when the signature is monomorphic, and when it's
-  polymorphic. Maybe we don't care about this distinction all that
-  much.}
 \unsure{The case rule, for an empty case, implies the existence of the
   typically annoying $⊤$. We will have to confront this.}
 \unsure{We probably want the freshness condition on the $\kunpack$
@@ -2320,4 +2340,4 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
 % LocalWords:  desugaring ghc OutsideIn toplevel quotiented gadt
-% LocalWords:  combinator
+% LocalWords:  combinator sigils equalities
