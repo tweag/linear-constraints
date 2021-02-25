@@ -1931,8 +1931,8 @@ announced.\unsure{a few more closing words would be welcome.}
 
 \subsection{let generalisation}
 
-\textsc{ghc} has famously declared that ``let should not be
-generalised''~\cite{OutsideIn}. Indeed, users of modern Haskell features know
+\textsc{ghc} has famously taken the stance that ``let should not be
+generalised''~\cite[Section 4.2]{OutsideIn}. Indeed, users of modern Haskell features know
 that their let-bound expressions get monomorphic types unless annotated by hand.
 This decision was mainly guided by concerns around inferring type variables,
 which has become much harder in the presence of local equality assumptions (that
