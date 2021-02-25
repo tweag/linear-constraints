@@ -889,7 +889,7 @@ of scaling stated in Definition~\ref{def:entailment-relation} extend
 to scaling of arbitrary constraints, as we prove in the two following
 lemmas.
 
-\begin{lemma}
+\begin{lemma}[Promotion]
   \label{lem:q:promotion}
   If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
 \end{lemma}
@@ -912,7 +912,7 @@ lemmas.
   \end{itemize}
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}[Inversion of promotion]
   \label{lem:q:scaling-inversion}
   If $[[Q1 ||- pi.Q2]]$, then there exists $[[Q1']]$ such that
   $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- Q2]]$
@@ -1123,10 +1123,11 @@ that type inference is solved elsewhere, greatly simplifying the presentation.
 \subsection{Wanted constraints}
 \label{sec:wanteds}
 
-The constraint generated in Section~\ref{sec:constraint-generation}
-have a richer logical structure than the simple constraints. Let us
-follow \textsc{ghc}'s terminology and call these \emph{wanted
-  constraints}: these are constraints which we \emph{want} to hold.
+Like OutsideIn~\cite[Figure~11, page~37]{OutsideIn}, the constraint
+generated in Section~\ref{sec:constraint-generation} have a richer
+logical structure than the simple constraints. Let us follow
+\textsc{ghc}'s terminology and call these \emph{wanted constraints}:
+they are constraints which we \emph{want} to hold.
 
 $$
 \begin{array}{lcll}
@@ -1135,12 +1136,38 @@ $$
 \end{array}
 $$
 
-\unsure{explanation about the scaling factor on implication constraints?}
-\drules[C]{$[[Q |- C]]$}
-  {Generalised constraint entailment}
-  {Dom,Tensor,With,Impl}
+\noindent
+The wanteds for linear constraints differ a little from the wanteds of
+OutsideIn. First, and most trivially, the implication constraint is a
+linear implication, rather than an intuitionistic implication. Another
+superficial difference is that our wanteds don't need existential
+quantification, this is one of the benefits that not doing type
+inference affords. Existential quantification, in OutsideIn,
+constrains which variables can be unified with which; but we are not
+doing any unification.
 
-Scaling is extended to all wanted constraints:
+The more interesting difference is the presence of this extra
+$[[C1 & C2]]$ (read $[[C1]]$ \emph{with} $[[C2]]$). This is a
+connective from linear logic: a remarkable feature of linear logic is
+that every connective from classical or intuitionistic logic tends to
+appear in two flavours in linear logic. Where $[[C1*C2]]$ is the
+\emph{multiplicative} conjunction, $[[C1&C2]]$ is the \emph{additive}
+conjunction. Both connectives are conjunctions, but they differ rather
+dramatically in meaning: $[[C1*C2]]$ consumes both the (linear)
+assumptions consumed by $[[C1]]$ and that consumed by $[[C2]]$. On the
+other hand in $[[C1&C2]]$, both $[[C1]]$ and $[[C2]]$ \emph{must}
+consume the same assumptions, and $[[C1 & C2]]$ will consume the same
+assumptions once. The intuition, here, is that in $[[C1 & C2]]$, only
+one of $[[C1]]$ or $[[C2]]$ will be eventually used. Much like if
+$[[C1]]$ and $[[C2]]$ were branches in a $\kcase$-expression. Not
+coincidentally, $[[C1&C2]]$ will be used to generate constraints for
+$\kcase$-expressions.
+
+The final difference is the scaling factor on implication. It is, in
+fact, a mere technicality: there is no law of linear logic which would
+let us simplify $[[omega.(Q => C)]]$. Yet, we will, next, extend
+scaling to all wanted constraints, so we need to ``store'' the scaling
+factor of implications
 
 $$
 \left\{
@@ -1153,12 +1180,40 @@ $$
 \right.
 $$
 
+\noindent
 Like in Section~\ref{sec:constraint-domain}, we will typically drop
 the scaling factor for implication when it is $[[1]]$ and write $[[Q
 => C]]$ for $[[1.(Q=>C)]]$.
 
-\begin{lemma}
+The meaning of wanted constraints is given by the following,
+inductive, entailment relation. This is a technical difference with
+OutsideIn where the meaning of wanteds is given directly by the
+constraint solver, whereas our solver
+(Section~\ref{sec:constraint-solver}) has to be proved correct with
+respect to this entailment relation. We found that, in the case of
+linear logic, having this extra entailment relation made proofs much
+simpler.
+
+\drules[C]{$[[Q |- C]]$}
+  {Wanted-constraint entailment}
+  {Dom,Tensor,With,Impl}
+
+\noindent
+Note that it's always a simple constraint entails a wanted: we
+generate wanted constraints, but programs only mention simple
+constraints, and the left-hand side does come from the program. It is
+possible to relax the syntax of the left-hand some,
+though~\cite{quantified-constraints}, which current \textsc{ghc} does.
+
+Before we move on to constraint generation proper, let us prove a few
+technical, yet essential, lemmas about the wanted-constraint
+entailment relation.
+
+\begin{lemma}[Inversion]
   \label{lem:inversion}
+  The inference rules of $[[Q |- C]]$ can be right bottom-up as well
+  as top-down. As was is required of $[[Q1 |- Q2]]$ in
+  Definition~\ref{def:entailment-relation}. That is
   \begin{itemize}
   \item If $[[Q |- C1*C2]]$, then there exists $[[Q1]]$ and
     $[[Q2]]$ such that
@@ -1198,13 +1253,13 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
 
   Proofs where each non-atomic goal is the conclusion of a
   corresponding introduction rule has been called \emph{uniform}
-  in~\cite{hh-ll}. They prove for a fragment of linear logic which
-  includes quantified constraints and linear generalisations thereof,
-  that all provable sequent can be proved by a uniform proof. So this
-  lemma, is, in fact, quite robust.
+  in~\cite{hh-ll}. They prove for a fragment of linear
+  logic\,--\,which includes quantified constraints and linear
+  generalisations thereof\,--\,that all provable sequents can be proved
+  by a uniform proof. So this lemma, is, in fact, quite robust.
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}[Promotion]
   \label{lem:wanted:promote}
   If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
 \end{lemma}
@@ -1236,13 +1291,10 @@ the scaling factor for implication when it is $[[1]]$ and write $[[Q
   \end{itemize}
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}[Inversion of promotion]
   \label{lem:wanted:demote}
   If $[[Q |- pi.C]]$ then there exists $[[Q']]$ such that
-  \begin{itemize}
-  \item $[[Q' |- C]]$
-  \item $[[Q]] = [[pi.Q']]$
-  \end{itemize}
+  $[[Q' |- C]]$ and $[[Q]] = [[pi.Q']]$
 \end{lemma}
 
 \newpage
@@ -2279,4 +2331,5 @@ so the owner of the array is no longer owning it.
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
 % LocalWords:  desugaring ghc OutsideIn toplevel quotiented gadt
-% LocalWords:  combinator sigils equalities
+% LocalWords:  combinator sigils equalities wanteds intuitionistic
+% LocalWords:  sequents
