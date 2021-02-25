@@ -770,26 +770,18 @@ arise.
 \label{sec:multiplicities}
 
 Like in Linear Haskell~\cite{LinearHaskell} we make use of a
-system of \emph{multiplicities}, which describe how linear functions
-can be. Linear Haskell is parametric in the system of
-multiplicities. For the sake of this article, however, we will use
-only the simplest system of multiplicity: that composed of only
-$[[1]]$ (representing linear functions) and $[[omega]]$ (representing
+system of \emph{multiplicities}, which describe how
+many times a function consumes its input.  Linear Haskell is parametric in the
+system of multiplicities. However, in this article, we will use only the
+simplest system of multiplicity: that composed of only $[[1]]$ (representing
+linear functions) and $[[omega]]$ (representing
 regular Haskell functions).
-
 $$
 \begin{array}{lcll}
   [[pi]], [[rho]] & \bnfeq & [[1]] \bnfor [[omega]] & \text{Multiplicities}
 \end{array}
 $$
-
-\noindent
-The idea of multiplicity goes back, for instance,
-to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
-  semiring}. The power of multiplicity is that they can encode the
-so-called structural rules of linear logic with only semiring
-operations (that is, addition and multiplication).
-
+\begin{minipage}[t]{0.4\linewidth}
 $$
 \left\{
   \begin{array}{lcl}
@@ -797,7 +789,8 @@ $$
   \end{array}
 \right.
 $$
-
+\end{minipage}
+\begin{minipage}[t]{0.4\linewidth}
 $$
 \left\{
   \begin{array}{lcl}
@@ -807,6 +800,16 @@ $$
   \end{array}
 \right.
 $$
+\end{minipage}
+\smallskip
+
+\noindent
+The idea of multiplicity goes back, for instance,
+to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
+  semiring}. The power of multiplicity is that they can encode the
+so-called structural rules of linear logic with only semiring
+operations (that is, addition and multiplication).
+
 
 \subsection{Simple constraints}
 \label{sec:constraint-domain}
@@ -837,7 +840,7 @@ $$
 \end{array}
 $$
 
-The multiplicity in front of atomic constraints is the \emph{scaling
+The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
   factor}. It indicates whether the constraint is to be used linearly
 ($[[1]]$) or without restriction ($[[omega]]$).
 
@@ -887,7 +890,7 @@ The rule that $[[omega.(Q1 * Q2)]] = [[omega.Q1 * omega.Q2]]$ is not a
 typical feature of linear logic; Linear Haskell, however, introduces
 the corresponding type isomorphism for the sake of polymorphism, this
 article isn't concerned with polymorphism, yet this equality does make
-the overall presentation a bit simpler, so let's not deny ourselves
+the overall presentation a bit simpler, so we do not deny ourselves
 this little pleasure. Note, in particular, that $[[1.Q]] = [[Q]]$ and
 $[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
@@ -911,7 +914,7 @@ $[[pi.q]]$.
       \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
       that } [[Q]] = [[pi. Q']] \text{ and } [[Q' ||- rho . q]] \\
       \text{if } [[Q1 ||- Q2]] \text{ then } [[omega.Q1 ||- Q2]] \\
-      \text{if } [[Q1 ||- Q2]] \text{ then } [[omega.Q' * Q1 ||- Q2]]
+      \text{if } [[Q1 ||- Q2]] \text{ then for all } [[Q']], [[omega.Q' * Q1 ||- Q2]]
     \end{array}
   $$
   \noindent
