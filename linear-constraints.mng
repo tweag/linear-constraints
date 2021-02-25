@@ -1123,10 +1123,11 @@ that type inference is solved elsewhere, greatly simplifying the presentation.
 \subsection{Wanted constraints}
 \label{sec:wanteds}
 
-The constraint generated in Section~\ref{sec:constraint-generation}
-have a richer logical structure than the simple constraints. Let us
-follow \textsc{ghc}'s terminology and call these \emph{wanted
-  constraints}: these are constraints which we \emph{want} to hold.
+Like OutsideIn~\cite[Figure~11, page~37]{OutsideIn}, the constraint
+generated in Section~\ref{sec:constraint-generation} have a richer
+logical structure than the simple constraints. Let us follow
+\textsc{ghc}'s terminology and call these \emph{wanted constraints}:
+they are constraints which we \emph{want} to hold.
 
 $$
 \begin{array}{lcll}
@@ -1135,10 +1136,34 @@ $$
 \end{array}
 $$
 
+\noindent
+The wanteds for linear constraints differ a little from the wanteds of
+OutsideIn. First, and most trivially, the implication constraint is a
+linear implication, rather than an intuitionistic implication. Another
+superficial difference is that our wanteds don't need existential
+quantification, this is one of the benefits that not doing type
+inference affords. Existential quantification, in OutsideIn,
+constrains which variables can be unified with which; but we are not
+doing any unification.
+
+The more interesting difference is the presence of this extra
+$[[C1 & C2]]$ (read $[[C1]]$ \emph{with} $[[C2]]$). This is a
+connective from linear logic: a remarkable feature of linear logic is
+that every connective from classical or intuitionistic logic tends to
+appear in two flavours in linear logic. Where $[[C1*C2]]$ is the
+\emph{multiplicative} conjunction, $[[C1&C2]]$ is the \emph{additive}
+conjunction. Both connectives are conjunctions, but they differ rather
+dramatically in meaning: $[[C1*C2]]$ consumes both the (linear)
+assumptions consumed by $[[C1]]$ and that consumed by $[[C2]]$. On the
+other hand in $[[C1&C2]]$, both $[[C1]]$ and $[[C2]]$ \emph{must}
+consume the same assumptions, and $[[C1 & C2]]$ will consume the same
+assumptions once. The intuition, here, is that in $[[C1 & C2]]$, only
+one of $[[C1]]$ or $[[C2]]$ will be eventually used. Much like if
+$[[C1]]$ and $[[C2]]$ were branches in a $\kcase$-expression. Not
+coincidentally, $[[C1&C2]]$ will be used to generate constraints for
+$\kcase$-expressions.
+
 \unsure{explanation about the scaling factor on implication constraints?}
-\drules[C]{$[[Q |- C]]$}
-  {Generalised constraint entailment}
-  {Dom,Tensor,With,Impl}
 
 Scaling is extended to all wanted constraints:
 
@@ -1156,6 +1181,10 @@ $$
 Like in Section~\ref{sec:constraint-domain}, we will typically drop
 the scaling factor for implication when it is $[[1]]$ and write $[[Q
 => C]]$ for $[[1.(Q=>C)]]$.
+
+\drules[C]{$[[Q |- C]]$}
+  {Generalised constraint entailment}
+  {Dom,Tensor,With,Impl}
 
 \begin{lemma}
   \label{lem:inversion}
@@ -2340,4 +2369,4 @@ an application to a linear function?\info{Arnaud: yes! consuming a
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
 % LocalWords:  desugaring ghc OutsideIn toplevel quotiented gadt
-% LocalWords:  combinator sigils equalities
+% LocalWords:  combinator sigils equalities wanteds intuitionistic
