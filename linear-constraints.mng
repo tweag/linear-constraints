@@ -351,12 +351,12 @@ is working within the linear IO monad.
   smart about it.}\unsure{Should we speak of typestate here?}
 \item A typechecking algorithm, based on a combination
   of~\cite{OutsideIn}
-  and~\cite{resource-management-for-ll-proof-search}, that respects
+  and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point incomprehensible without jumping to the ref section and having knowledge of those papers.}, that respects
   the multiplicity of assumptions. We prove that this algorithm is
   sound and complete with respect to our type system.\unsure{Can we
     have a concrete completeness result?}
 \item Our algorithm additionally desugars expressions in our qualified
-  type system into a core language (directly inspired
+  type system into a core language (directly inspired \jp{Isn't it more closely related than that? A variant of? A close cousin?}
   by Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
   prove that the output of desugaring is well-typed in the core
   language.
@@ -367,8 +367,8 @@ is working within the linear IO monad.
 
 The goal of this paper is to introduce linear constraints as a mechanism for
 ergonomically using linear types in Haskell.  Of course, in order to appreciate
-this work, it helps to understand how linear types work.  In this section, we
-will sketch out some of the basics of how linear types work in Haskell, and then
+this work, it helps to understand how linear types work.\jp{condescending}  In this section, we
+sketch out some of the basics of how linear types work in Haskell, and then
 give a number of examples that motivate our extension into linear constraints.
 
 % This extra noise is the consequence of the fact that, as far as a
@@ -405,7 +405,7 @@ closeFile  :: Open h =>. Handle h -> IOL ()
 \end{figure}
 
 Linear Haskell~\cite{LinearHaskell} adds a new type of functions,
-dubbed \emph{linear functions}, and written |a ⊸ b| in Haskell\footnote{The linear function
+dubbed \emph{linear functions}, and written |a ⊸ b|\footnote{The linear function
   type and its notation come from linear
   logic~\cite{girard-linear-logic}, to which the phrase \emph{linear
     types} refers. All the various design of linear typing in the
@@ -433,7 +433,7 @@ Our definition is based on the type of the value concerned:
 \end{definition}
 \noindent
 This definition is enough to allow programmers to reason about the
-typing of their functions.
+typing of their functions.\jp{Vaccuous. Is it meant to deduce the resource aspect behaviour of functions from the type?}
 %
 Note that a linear arrow specifies \emph{how the function uses its argument}. It does not
 restrict \emph{the arguments to which the function can be applied}.
@@ -447,7 +447,7 @@ g x = f x
 The type of |g| makes no particular guarantees about the way in which it uses |x|;
 in particular, |g| can pass that argument to |f|.
 
-The example in the previous section made use of |readLine :: Handle ->. IOL (Handle, String)|.
+The example in the previous section makes use of |readLine :: Handle ->. IOL (Handle, String)|.
 This appears to return a new file, but really, it returns a new name for
 the same file. The trick is that there is only ever one of
 these names in scope at any given time, and this one name must be
@@ -770,26 +770,18 @@ arise.
 \label{sec:multiplicities}
 
 Like in Linear Haskell~\cite{LinearHaskell} we make use of a
-system of \emph{multiplicities}, which describe how linear functions
-can be. Linear Haskell is parametric in the system of
-multiplicities. For the sake of this article, however, we will use
-only the simplest system of multiplicity: that composed of only
-$[[1]]$ (representing linear functions) and $[[omega]]$ (representing
+system of \emph{multiplicities}, which describe how
+many times a function consumes its input.  Linear Haskell is parametric in the
+system of multiplicities. However, in this article, we will use only the
+simplest system of multiplicity: that composed of only $[[1]]$ (representing
+linear functions) and $[[omega]]$ (representing
 regular Haskell functions).
-
 $$
 \begin{array}{lcll}
   [[pi]], [[rho]] & \bnfeq & [[1]] \bnfor [[omega]] & \text{Multiplicities}
 \end{array}
 $$
-
-\noindent
-The idea of multiplicity goes back, for instance,
-to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
-  semiring}. The power of multiplicity is that they can encode the
-so-called structural rules of linear logic with only semiring
-operations (that is, addition and multiplication).
-
+\begin{minipage}[t]{0.4\linewidth}
 $$
 \left\{
   \begin{array}{lcl}
@@ -797,7 +789,8 @@ $$
   \end{array}
 \right.
 $$
-
+\end{minipage}
+\begin{minipage}[t]{0.4\linewidth}
 $$
 \left\{
   \begin{array}{lcl}
@@ -807,6 +800,16 @@ $$
   \end{array}
 \right.
 $$
+\end{minipage}
+\smallskip
+
+\noindent
+The idea of multiplicity goes back, for instance,
+to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
+  semiring}. The power of multiplicity is that they can encode the
+so-called structural rules of linear logic with only semiring
+operations (that is, addition and multiplication).
+
 
 \subsection{Simple constraints}
 \label{sec:constraint-domain}
@@ -837,7 +840,7 @@ $$
 \end{array}
 $$
 
-The multiplicity in front of atomic constraints is the \emph{scaling
+The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
   factor}. It indicates whether the constraint is to be used linearly
 ($[[1]]$) or without restriction ($[[omega]]$).
 
@@ -887,7 +890,7 @@ The rule that $[[omega.(Q1 * Q2)]] = [[omega.Q1 * omega.Q2]]$ is not a
 typical feature of linear logic; Linear Haskell, however, introduces
 the corresponding type isomorphism for the sake of polymorphism, this
 article isn't concerned with polymorphism, yet this equality does make
-the overall presentation a bit simpler, so let's not deny ourselves
+the overall presentation a bit simpler, so we do not deny ourselves
 this little pleasure. Note, in particular, that $[[1.Q]] = [[Q]]$ and
 $[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
@@ -911,7 +914,7 @@ $[[pi.q]]$.
       \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
       that } [[Q]] = [[pi. Q']] \text{ and } [[Q' ||- rho . q]] \\
       \text{if } [[Q1 ||- Q2]] \text{ then } [[omega.Q1 ||- Q2]] \\
-      \text{if } [[Q1 ||- Q2]] \text{ then } [[omega.Q' * Q1 ||- Q2]]
+      \text{if } [[Q1 ||- Q2]] \text{ then for all } [[Q']], [[omega.Q' * Q1 ||- Q2]]
     \end{array}
   $$
   \noindent
