@@ -351,12 +351,12 @@ is working within the linear IO monad.
   smart about it.}\unsure{Should we speak of typestate here?}
 \item A typechecking algorithm, based on a combination
   of~\cite{OutsideIn}
-  and~\cite{resource-management-for-ll-proof-search}, that respects
+  and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point incomprehensible without jumping to the ref section and having knowledge of those papers.}, that respects
   the multiplicity of assumptions. We prove that this algorithm is
   sound and complete with respect to our type system.\unsure{Can we
     have a concrete completeness result?}
 \item Our algorithm additionally desugars expressions in our qualified
-  type system into a core language (directly inspired
+  type system into a core language (directly inspired \jp{Isn't it more closely related than that? A variant of? A close cousin?}
   by Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
   prove that the output of desugaring is well-typed in the core
   language.
