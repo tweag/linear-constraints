@@ -294,24 +294,27 @@ firstLine fp =
 
 This style is less safe, because the type system does not keep track of the
 file handle, and the programmer risks forgetting doing it. But it is also
-simpler: apparently, in the linear version, we traded clarity for safety. Since
-the file handle is now an expendable resource, the type system must know at all
+simpler: apparently, using a linear language means trading clarity for safety. When
+the file handle is an expendable resource, the type system must know at all
 times where it is being consumed, so the file handle must be passed around
-manually, culminating in extra noise. Worse, the larger the program gets, the
-more additional bookkeeping this requires.
+manually, resulting in extra noise. 
 
-But reading the non-linear version, it is perfectly clear where the
-handle is used, and ultimately, consumed. Could the compiler not figure this out
-without extra help?
+% Worse, the larger the program gets, the more additional bookkeeping this requires. % this is vaccuous, perhaps something else is meant?
 
-In this paper, we answer this question affirmatively, and introduce \emph{linear
-  constraints}, a feature for tracking implicit arguments linearly.
-Whe show how linear constraints can be implemented as an extension of Haskell's
-type class mechanism.  This way, resource consumption is tracked without
-explicitly having to thread the tokens through the program.
+But even when reading the non-linear version, it is clear where the
+handle is used, and ultimately, consumed. Could the compiler not
+figure this out without extra help?
+
+In this paper, we answer this question affirmatively, and introduce
+\emph{linear constraints}. Like class constraints, linear constraints
+are passed around implicity by the compiler. Like linear arguments,
+they can be used to track resources.  arguments. This way, resource
+consumption is tracked without explicitly having to thread the tokens
+through the program. We show how linear constraints can be implemented
+as an extension of Haskell's type class mechanism.
 %if True
-With this extension, the final version of |firstLine| is almost the same as the
-traditional version above, with a few minor modifications:
+With this extension, the final version of |firstLine| is almost the
+same as the traditional version above, with a few minor modifications:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =
@@ -324,7 +327,7 @@ The only changes from the unsafe version are that this version runs in the linea
 and explicit |pack| annotations are used to indicate the variables that require
 special treatment.
 \unsure{We should decide what to do with |pack|.}
-In fact, with the right preamble, even the |pack| annotations can be dropped.
+In fact, with the right preamble, even the |pack| annotations can be dropped.\jp{Requires a forward reference.}
 %else
 With this extension, the final version
 of |firstLine| is exactly the same as the traditional version above,
