@@ -1634,7 +1634,7 @@ takes in two contexts: $[[UCtx]]$, which holds all the unrestricted constraints
 (scaled by $[[omega]]$) and $[[LCtx_i]]$, which holds all the linear
 constraints. Due to the associativity and commutativity properties of $[[*]]$ we
 can always factor any given constraint into such a pair of contexts. The
-additive context $[[UCtx]]$ is an unordered set of constraints, while the
+unrestricted context $[[UCtx]]$ is an unordered set of constraints, while the
 multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists of
 constraints. When initially calling the solver, the order doesn't matter, but it
 is important to keep track of this order during solving implication constraints.
