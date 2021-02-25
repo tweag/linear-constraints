@@ -136,6 +136,7 @@ import GHC.Base
   \newcommand{\sby}[2]{#1 ↦ #2}
   \newcommand{\vdashi}{⊢_{\mathsf{i}}}
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
+  \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{simp}}}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
@@ -1706,8 +1707,7 @@ in a way which implies goal oriented proof search, but it can be adapted
 
 \begin{figure}
   \centering
-  \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{AtomMany,
-AtomOneU, AtomOneL, Mult, Add, ImplMany, ImplOne}
+  \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Simple, Mult, Add, ImplMany, ImplOne}
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}

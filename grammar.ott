@@ -200,6 +200,7 @@ terminals :: 'terminals_' ::=
 | |-          ::   :: entails {{ tex \vdash }}
 | |->         ::   :: infer {{ tex \vdashi }}
 | |-s         ::   :: solve {{ tex \vdashs }}
+| |-simp      ::   :: solve_simples {{ tex \vdashsimp }}
 | ||-         ::   :: Entails {{ tex \Vdash }}
 | ~>          ::   :: generates {{ tex \leadsto }}
 | \           ::   :: Lambda  {{ tex \lambda }}
