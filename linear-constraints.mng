@@ -900,8 +900,16 @@ if $[[pi.q]]$ is read as $[[pi.(1.q)]]$, then it does, indeed, equal
 $[[pi.q]]$.
 
 \begin{definition}[Requirements for the entailment relation]\label{def:entailment-relation}
-  The constraint entailment relation must satisfy the following
-  properties:
+  The constraint entailment relation must satisfy the properties
+  in \autoref{fig:entailment-relation}.
+\end{definition}
+Apart from linearity, the main difference with OutsideIn is that we
+don't require the presence of equality constraints. We come back to
+the motivation for this simplification in
+Section~\ref{sec:type-inference}.
+
+  
+\begin{figure}
   $$
     \begin{array}{l}
       [[Q ||- Q]] \\
@@ -917,12 +925,9 @@ $[[pi.q]]$.
       \text{if } [[Q1 ||- Q2]] \text{ then for all } [[Q']], [[omega.Q' * Q1 ||- Q2]]
     \end{array}
   $$
-  \noindent
-  Apart from linearity, the main difference with OutsideIn is that we
-  don't require the presence of equality constraints. We come back to
-  the motivation for this simplification in
-  Section~\ref{sec:type-inference}.
-\end{definition}
+\caption{Requirements for the entailent relation $[[Q ||- Q]]$}
+\label{fig:entailment-relation}
+\end{figure}
 
 An important feature of simple constraints is that, while scaling
 syntactically happens at the level of atomic constraints, the properties
