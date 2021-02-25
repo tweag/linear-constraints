@@ -327,7 +327,6 @@ is working within the linear IO monad.
   language.
 \end{itemize}
 
-\newpage
 
 \section{Motivation}
 
@@ -709,7 +708,6 @@ fashion. To this end, |pack| is actually unrestricted in the value it holds, and
 only linear in the constraints. This means that in |readTwo|, we could decide to
 read an additional line, but maybe not return the result from the function.
 
-\newpage
 
 \section{A qualified type system}
 
@@ -942,7 +940,6 @@ lemmas.
   \end{itemize}
 \end{proof}
 
-\newpage
 
 \subsection{Typing rules}
 \label{sec:typing-rules}
@@ -1063,7 +1060,6 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
 \info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
 
-\newpage
 
 \section{Constraint inference}
 \label{sec:type-inference}
@@ -1327,7 +1323,6 @@ entailment relation.
   \end{itemize}
 \end{proof}
 
-\newpage
 
 
 \subsection{Constraint generation}
@@ -1349,7 +1344,6 @@ entailment relation.
 \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
   App, Case, Unpack, Pack, Let, LetSig}
 
-\newpage
 
 \subsubsection{Soundness of constraint generation}
 \label{sec:constraint-generation-soundness}
@@ -1514,7 +1508,6 @@ are solvable can indeed be typed in the declarative type system.
   \end{description}
 \end{proof}
 
-\newpage
 
 \subsection{Constraint solver}
 \label{sec:constraint-solver}
@@ -1679,7 +1672,6 @@ programs are rejected.
 want to do the pruning optimisation in the $[[&]]$ rule. If we don't, I will add
 some text explaining why we don't need to do the optimisation}
 
-\newpage
 
 \section{Desugaring}
 \label{sec:desugaring}
@@ -1952,7 +1944,6 @@ It is straightforward by induction, to verify that, indeed,
 $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
 announced.\unsure{a few more closing words would be welcome.}
 
-\newpage
 
 \section{Design decisions}
 \label{sec:design-decisions}
@@ -2119,7 +2110,6 @@ two = (useC, useC)
 Which has no term-level analogue, since it is not possible to call two variables
 the same name and thus have two copies of, say, a variable |x|.
 
-\newpage
 
 \section{Extensions}
 \begin{itemize}
@@ -2371,7 +2361,6 @@ Here, operationally the element can be overwritten with ``null'', and
 so the owner of the array is no longer owning it.
 
 
-\newpage
 
 
 \printbibliography
