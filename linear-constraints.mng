@@ -824,7 +824,7 @@ Following OutsideIn (see~\cite[Section 3.2, in particular Figure
 domain\,--\,the $X$ in OutsideIn($X$). Such a domain is characterised by
 a set of \emph{atomic constraints} written $[[q]]$ and an entailment
 relation $[[Q1 ||- Q2]]$, with properties specified in
-Fig~\ref{fig:entailment-relation}. Let us adopt \textsc{ghc}'s
+Figure~\ref{fig:entailment-relation}. Let us adopt \textsc{ghc}'s
 terminology and call these \emph{simple constraints} to distinguish
 them from the richer constraints of Section~\ref{sec:wanteds}.
 
@@ -936,7 +936,7 @@ Section~\ref{sec:type-inference}.
 
 An important feature of simple constraints is that, while scaling
 syntactically happens at the level of atomic constraints, the properties
-of scaling stated in Fig~\ref{fig:entailment-relation} extend
+of scaling stated in Figure~\ref{fig:entailment-relation} extend
 to scaling of arbitrary constraints, as we prove in the two following
 lemmas.
 
