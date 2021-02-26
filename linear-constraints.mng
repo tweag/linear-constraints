@@ -1056,7 +1056,7 @@ this system is our ground truth: a system with a simple enough
 definition that programmers can reason about typing. Another
 thing of notice is that we will not attempt to give a dynamic
 semantics to this language: instead we will give it meaning via
-desugaring to a simpler core language in Section~\ref{sec:desugaring}.
+desugaring to a simpler core language in Section~\ref{sec:desugaring}.\jp{Does this core language have a dynamic (operational?) semantics? if so then we do give an operational semantics, albeit indirectly.}
 
 The main differences with OutsideIn, either for simplification, or for
 linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
@@ -1065,7 +1065,7 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   Figure~\ref{fig:typing-rules}). It is not necessarily obvious why:
   after all we seem to be mostly concerned about linearity in
   constraints, maybe it's all we need and we can forgo linear
-  functions. But we are not that lucky. Actually, just to define the
+  functions. But we are not that lucky.\jp{Since we have designed this language, we can hardly speak of luck. We have inflicted this burden upon ourselves.} Actually, just to define the
   bind combinator for the |IOL| monad from
   Section~\ref{sec:introduction}, we need linear arrows: |(>>=) :: IOL
   a ->. (a ->. IOL b) ->. IOL b|.
@@ -1077,8 +1077,8 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   many times! That is, it must be impossible to derive
   $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$,
   otherwise we could make, for instance, the |overusing| function from
-  Section~\ref{sec:overusing}. You can check that this indeed doesn't
-  type check, as the scaling of $[[Q2]]$ in \rref{E-App} ensures that
+  Section~\ref{sec:overusing}. You can check that this\jp{f x ?} indeed doesn't
+  type check, because the scaling of $[[Q2]]$ in \rref{E-App} ensures that
   the constraint would be $[[omega.q]]$ instead. On the other hand,
   it's perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
   =o a |- f x : b]]$ when $[[f]]$ is a linear function.
@@ -1096,7 +1096,7 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   \textsc{gadt}s.
 \item On the other hand, we have the type $[[exists as. t o= Q]]$, as
   introduced in Section~\ref{sec:what-it-looks-like}, together with
-  the $\kpack$ and $\kpack$ constructions. This mostly acts as a
+  the $\kpack$ and $\kpack$ constructions\jp{Duplication. Sounds like a renaming gone wrong}. This mostly acts as a
   \textsc{gadt} with a single constructor. A specificity of
   $[[exists as. t o= Q]]$, as we touched upon in
   Section~\ref{sec:what-it-looks-like}, is that the $[[t]]$ component
@@ -1109,7 +1109,7 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   entailment directly in the relevant rules. The \rref*{E-Sub} rule
   will be a device in the proof of soundness of inference in
   Section~\ref{sec:constraint-solver}. There are other ways to achieve
-  the same result, such as proving the \rref*{E-Sub} rule is
+  the same result, such as proving that the \rref*{E-Sub} rule is
   admissible in the type system. But having it explicit is simpler,
   and otherwise just as good.
 \end{itemize}
@@ -1124,13 +1124,13 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
 Of course, the entire point of linear constraints is the promise that
 the compiler can handle these constraints for the
 programmer. Otherwise linear constraints are just plain Linear
-Haskell~\cite{LinearHaskell} with an extra set of sigils.
+Haskell~\cite{LinearHaskell} with an extra set of sigils.\jp{Please avoid archaic/literary language/cultural references, especially if it is at the same time metaphorical.}
 
 In this section, we are still following OutsideIn~\cite[Section
 5]{OutsideIn}. We make, however, an important simplification: we infer
 constraints, but not types. That is the types in the syntax-directed
 constraint generation algorithm of
-Section~\ref{sec:constraint-generation}, types are still declarative
+Section~\ref{sec:constraint-generation}, typing rules are still declarative
 rather than algorithmic. You can think of types as being inferred by
 an external oracle.
 
