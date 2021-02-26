@@ -1981,12 +1981,12 @@ bad :: C =>. (Int, Int)
 bad = (giveC useC, useC)
 \end{code}
 
-It is possible to give a type derivation to |bad| in the qualified
-type system of Section~\ref{sec:qualified-type-system}. In fact, the
-constraint assignment is unambiguous: the left-most |useC| must use
-the linear |C|, while the right-most must use the unrestricted
-|C|. This assignment, however, would require of the constraint solver
-to make a guess. So in the spirit of OutsideIn, |bad| is rejected.
+It is possible to give a type derivation to |bad| in the qualified type system
+of Section~\ref{sec:qualified-type-system}. In fact, the constraint assignment
+is unambiguous: the left-most |useC| must use the unrestricted |C|, while the
+right-most must use the linear |C|. This assignment, however, would require of
+the constraint solver to make a guess when solving the left-most |useC|. So in
+the spirit of OutsideIn, |bad| is rejected.
 
 \section{Desugaring}
 \label{sec:desugaring}
