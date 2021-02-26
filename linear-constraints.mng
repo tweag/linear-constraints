@@ -1546,7 +1546,7 @@ entailment relation.
 \subsection{Constraint generation}
 \label{sec:constraint-generation}
 
-The process of inferring constraints is split in two parts: generating
+The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
 Section~\ref{sec:constraint-solver}. To generate constraints we
 introduce a judgement $[[G |-> e : t ~> C]]$ (defined in
@@ -1812,7 +1812,7 @@ multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists of
 constraints.
 
 Linearity requires treating constraints as consumable resources. This
-is what $[[LCtx_o]]$ is for: it is the list of the hypothesis of
+is what $[[LCtx_o]]$ is for: it is the list of the hypotheses of
 $[[LCtx_i]]$ which haven't been consumed to prove $[[Q_w]]$. As
 suggested by the notation, it is an output of the algorithm.
 
