@@ -2104,58 +2104,55 @@ of term variables, we simply needed to modify the scaling funcion to capture all
 the generated constraints and re-emit a scaled version of them -- a fairly local
 change.
 
-Nesting of constraints in GHC is done via implication constraints, which hold a
-set of \emph{given} constraints and a set of \emph{wanted} constraints. The
-givens can (and for linear constraints, must) be used to solve the wanteds. We
-modified implication constraints to hold a set of sets of wanteds, to represent
-multiplicative conjuctions ($[[*]]$) and additive conjuctions ($[[&]]$).
+The constraint solver maintains a set of givens, called the \emph{inert} set,
+which corresponds to the $[[UCtx]]$ and $[[LCtx]]$ contexts in our solver
+judgements in Section~\ref{sec:constraint-solver}. A property of the inert set
+is that no pairwise interactions between the constraints contained in it can
+happen. These interactions are dictated by the constraint domain. For example,
+equality constraints interact with other constraints by applying a substitution.
 
-When solving $[[C_1 * C_2]]$ (such as for two arguments of a function), the
-constraint solver first solves $[[C_1]]$ using all of the givens, and records
-the ones that have been used and the ones that haven't. Then the residual givens
-are fed into the solution of $[[C_2]]$.  GHC stores the given constraints in a
-set (called the \emph{inert} set), which we modified to store a set of lists
-instead: for each constraint $[[C]]$ we have a list of givens, in the order they
-were bound (which can happen by opening several |Pack| constructors in nested
-scopes for example), and the solver uses the most
-recent one first.
+The treatment of implication constraints is of particular interest.
+Implications, by their nature, introduce assumptions which do not necessarily
+hold in the outer context, therefore recording these assumptions in the inert
+set is a destructive operation. To ensure proper scoping, GHC creates a fresh
+copy of the inert set for each nested implication it solves, so these
+destructive operations do not leak out. We modify the inert set so that for each
+constraint stored in it, the level (or depth) of the impliaction is recorded
+alongside it. Each interaction with nested assumptions (which might give rise to
+additional derived givens) is recorded at the appropriate level and
+multiplicity (decomposing a constraint tuple into its constituent parts is done
+by the simplifier, which must now record the multiplicities of the components).
 
-When solving $[[C_1 & C_2]]$ (such as the two branches of an if expression),
-we feed the same givens to both $[[C_1]]$ and $[[C_2]]$, and at the end
-check that the residuals agree.
+Atomic wanteds are then by finding a matching given in the inert set (or
+a top-level given, which is not relevant to linear constraints). When a linear
+given is used to solve a linear wanted, our prototype removes the given from the
+inert set so it can not be used again. Before, the inert set only held a single
+copy of each given, but now it must hold multiple copies of linear givens,
+together with their implication level. When solving an atomic wanted, the
+matching given with the largest implication level (i.e. the innermost given) is
+selected, as per the rule~\rref*{Simp-AtomOneL} rule.
 
-When a given constraint from the inert set is used to solve a particular wanted,
-the given is removed from the inerts. In addition, unlike regular constraints,
-linear constraints are never solved from top-level givens (like type class
-instance declarations).
+When an implication is finally solved, we must check that every linear
+constraint introduced in this implication was consumed, which is done by
+checking that the level of every linear constraint in the inert set is less than
+the implication.
 
-Finally, we check that each top-level implication constraint can be solved by
-consuming all of the linear givens. If any residuals remain, an error is
-generated.
+When a linear equality constraint is encountered, it is automatically promoted
+to an unrestricted one and handled accordingly. This may happen in many
+different scenarios, as the entailment relation of GHC's constraint domain does
+produce many equalities, thus we need to ensure they are turned into
+unrestricted before interacting with the inert set. GHC core already represents
+the equality constraint as a boxed type, so we can simply modify it to store an
+unrestricted payload.
 
-This strategy is different from how GHC handles linear values. There, the
-compiler first computes the usage count for a particular variable, then decides
-to accept or reject if this matches the declaration. Recall the program
-from~\ref{sec:examples}:
-
-\begin{code}
-overusing' :: Int ->. (Int, Int)
-overusing' x = (x, x)
-\end{code}
-
-In this case, the usage of |x| is counted to be $[[omega]]$ and the program is
-rejected. Linear constraints are not counted in the same way, instead, they are
-expended from a set of givens during constraint solving as explained above. The
-rationale is that we can accept the following program:
-
-\begin{code}
-two :: (C, C) =>. (Int, Int)
-two = (useC, useC)
-\end{code}
-
-Which has no term-level analogue, since it is not possible to call two variables
-the same name and thus have two copies of, say, a variable |x|.
-
+As constraint solving proceeds, the compiler pipeline constructs a term in the
+intrinsically typed core language System FC, also known as GHC Core
+(\unsure{cite some FC paper}).  In Core, type class constraints are turned into
+explicit evidences (see Section~\ref{sec:desugaring}). Thanks to being fully
+annotated, Core has decidable typechecking which is very useful in sanity
+checking modifications to the compiler. Thus, the soundness of our
+implementation is verified by the Core typechecker, which already supports
+linearity, once again, thanks to Linear Haskell.
 
 \section{Discussion}
 \label{sec:design-decisions}
