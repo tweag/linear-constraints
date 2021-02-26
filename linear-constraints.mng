@@ -641,8 +641,8 @@ an error for double-free and use-after-free usages.
 \label{sec:examples}
 
 To get a sense of how the features we introduce should behave, let's look at
-some simple examples. Treating constraints as expendable resources allows use to
-reject certain classes of ill-behaved programs. Thus, the following examples show
+some simple examples. Using constraints to represent expendable resources allows the typechecker to
+reject certain classes of ill-behaved programs. Accordingly, the following examples show
 the different reasons a program might be rejected.
 
 In what follows, we will be using a class |C| that is consumed by the |useC|
@@ -680,7 +680,7 @@ neglecting = const 10 useC
 \end{code}
 The problem with |neglecting| is that although |useC| is mentioned in this program,
 it is never evaluated because |const| does not use its second argument.
-The constraint |C| is never consumed so this program ought to be rejected.
+The constraint |C| is never consumed so this program ought to be rejected.\jp{Rather, it is consumed ω times. Not sure how this fits the exposition. Maybe this example needs moving somewhere else. What follow suggests a funny definition of consumed, where ``consumed ω times'' is a special case of ``not consumed''. That's confusing to me. But I can accept it if it made very explicit. As it stands it seems implicit, or only defined by examples.}
 
 The rule is that a linear constraint is only consumed in a linear context. For
 example,
@@ -699,37 +699,39 @@ Finally, consider the following program:
 overusing :: C =>. (Int, Int)
 overusing = (useC, useC)
 \end{code}
-Naturally, this is program is rejected as it uses |C| twice. However, the
+Naturally, this is program is rejected, because it uses |C| twice. However, the
 following version is accepted:
 \begin{code}
 notOverusing :: (C, C) =>. (Int, Int)
 notOverusing = (useC, useC)
 \end{code}
-That is, it is possible to have multiple copies of a given constraint. The order
-of resolution is non-deterministic, and it is up to the creator of the API to
-ensure that the runtime behaviour is confluent irrespective of the order of
-constraint resolution.
-\unsure{Linear constraints have no runtime payload, or even if they did, they
-would not be observable (safely) as dictionary methods use the dictionary in an
-unrestricted way.}
+That is, it is possible to have multiple copies of a given
+constraint. We design our system so that the order of resolution is
+non-deterministic. This corresponds to the assumption that all
+instances of a linear constraint are equivalent. Consequently, if an
+API use linear constraints, it needs to be designed to ensure that the
+runtime behaviour is not dependent on the order of constraint
+resolution.  \unsure{Linear constraints have no runtime payload, or
+  even if they did, they would not be observable (safely) as
+  dictionary methods use the dictionary in an unrestricted way.}
 
 \subsection{Linear IO}
 \label{sec:linear-io}
 
-The file handling example discussed in Sections~\ref{sec:linear-types}
+The file handling example discussed in sections~\ref{sec:linear-types}
 and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
 There are two main modifications compared to the traditional |IO|. Firstly, the
-type of the monadic operations |>>=| and |return| are changed so that they
-consume their arguments linearly. In the case of |>>=|, its argument also must
-be a linear function:
-
+type of the monadic operations |>>=| and |return| are changed to
+use linear arrows. 
+% In the case of |>>=|, its argument also must be a linear function: \jp{I could not tell what this was saying which was not already said. Commented out.}
+%
 \begin{code}
 (>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b
 return :: a ->. IOL a
 \end{code}
-
+%
 The reason bind needs to be linear is that, as explained in the previous
-section, a linear constraint can only be used in a linear context. For the following
+section, a linear constraint can only be used\jp{used or consumed?} in a linear context. For the following
 program to typecheck, bind must be linear:
 \begin{code}
 readTwo ::  Open h =>. Handle h -> IOL ((String, String) .<= Open h)
@@ -741,12 +743,12 @@ readTwo h =
 If it were not linear, the first argument |readLine h| of the first bind would
 not be able to consume the |Open h| constraint.
 
-The astute reader will notice that since |>>=|'s function argument is a linear
+The astute reader might notice that because |>>=|'s function argument is a linear
 function, all the values bound must be used exactly once. But our intention is
 to treat only the constraints linearly, but use the values in an unrestricted
-fashion. To this end, |pack| is actually unrestricted in the value it holds, and
+fashion.\jp{To many \emph{but}s, I don't know what is meant.} To this end, |pack| is actually unrestricted in the value it holds, and
 only linear in the constraints. This means that in |readTwo|, we could decide to
-read an additional line, but maybe not return the result from the function.
+read an additional line, but maybe not return the result from the function.\jp{Confused.}
 
 
 \section{A qualified type system}
