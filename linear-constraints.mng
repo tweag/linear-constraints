@@ -1469,7 +1469,7 @@ Section~\ref{sec:qualified-type-system}. That is, we are not defining
 a new type system but indeed an inference algorithm for the qualified
 type system.
 
-\begin{lemma}[Soundness of constraint generation]
+\begin{lemma}[Soundness of constraint generation]\label{lem:generation-soundness}
   For all $[[Q_g]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
 \end{lemma}
@@ -1625,36 +1625,36 @@ type system.
 \subsection{Constraint solver}
 \label{sec:constraint-solver}
 
-Haskell's constraint language can be thought of as a logic programming language.
-Type classes encode predicates and type class instances add clauses to the
-predicates. These predicates arise from user programs, and the constraint solver
-attempts to solve them. At its essence, OutsideIn's constraint
-solver~\cite[Section 5.5]{OutsideIn} is a
-procedure that takes a set of \emph{given} constraints (the logical
-assumptions), and generates a proof of some \emph{wanted} constraint using the
-\emph{given}s.
+In Section~\ref{sec:constraint-generation}, from an expression $[[e]]$
+we've gathered wanted
+constraints $[[C]]$, and, by Lemma~\ref{lem:generation-soundness} we
+need $[[Empty |- C]]$ to hold, for $[[e]]$ to be typeable in the qualified type
+system of Section~\ref{sec:qualified-type-system}. In this section,
+let us build a \emph{constraint solver} whose purpose it is to prove
+that, indeed $[[Empty |- C]]$ holds.
 
-Adding linearity requires treating constraints as consumable resources, and this
-points at the key change we need to make to OutsideIn's solver judgement. In
-addition to returning a set of unsolved constraints, our solver returns a set of
-\emph{output} constraints: these are the constraints that were not consumed in
-the solution of the wanted, and can be thought of as the output set of
-constraints. The solver judgement thus takes the following form:
+Like OutsideIn~\cite[Section 5.5]{OutsideIn}, we will need a
+domain-specific \emph{simple-constraint solver} to be the algorithmic
+counterpart of the abstract entailment relation of
+Section~\ref{sec:constraint-domain}. The simple-constraint solver is
+represented by the following judgement
 
-$[[ UCtx ; LCtx_i |-s C ~> LCtx_o]]$
+$[[ UCtx ; LCtx_i |-simp Q_w ~> LCtx_o]]$
 
-The solver will be called with a particular given constraint, potentially a
-multiplicative conjunction of several (scaled) atomic constraints. The judgement
-takes in two contexts: $[[UCtx]]$, which holds all the unrestricted constraints
+The judgement
+takes in two contexts: $[[UCtx]]$, which holds all the unrestricted
+atomic constraints
 (scaled by $[[omega]]$) and $[[LCtx_i]]$, which holds all the linear
-constraints. Due to the associativity and commutativity properties of $[[*]]$ we
-can always factor any given constraint into such a pair of contexts. The
+atomic constraints. Due to the associativity and commutativity properties of $[[*]]$ we
+can always factor any simple constraint into such a pair of contexts. The
 unrestricted context $[[UCtx]]$ is an unordered set of constraints, while the
 multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists of
-constraints. When initially calling the solver, the order doesn't matter, but it
-is important to keep track of this order during solving implication constraints.
-We will return to this point in the relevant section.\unsure{Which
-  section is this?}
+constraints.
+
+Linearity requires treating constraints as consumable resources. This
+is what $[[LCtx_o]]$ is for: it is the list of the hypothesis of
+$[[LCtx_i]]$ which haven't been consumed to prove $[[Q_w]]$. As
+suggested by the notation, it is an output of the algorithm.
 
 There are three simplifications compared to OutsideIn's solver:
 
@@ -1662,9 +1662,8 @@ There are three simplifications compared to OutsideIn's solver:
   \item As explained in Section~\ref{sec:constraint-generation}, our solver does
 not need to do unification, so we do not return a substitution in the solver
 judgement.
-\item As discussed in Section~\ref{sec:constraint-domain}, we do not
-  handle top-level assumptions, as the meaning of a linear constraint
-  in the global set of givens is unclear.
+\item As discussed in Section~\ref{sec:constraint-domain}, we omit
+  top-level constraints, for the sake of simplification.
   \item In case the wanteds can not be solved completely, OutsideIn also returns
 a set of \emph{residual} constraints: these are the remaining subproblems to
 solve. This set of residual constraints is simply quantified over in the type of
@@ -1683,31 +1682,19 @@ device for the solver.
 \end{itemize}
 
 
-\begin{definition}
-\label{def:solver-soundness}
-$[[Q_o]]$ is a sound solution for $[[C]]$ under some given
-constraint $[[Q_g]]$ when $[[Q_g  |- C * Q_o]]$.
+\begin{definition}[Simple constraint solver]
+\label{def:solver-soundness} The simple constraint solver must verify
+that whenever $[[UCtx ; LCtx_i |-simp Q_w ~> LCtx_o]]$, we have
+$[[LCtx_o]]\subseteq [[LCtx_i]]$ and $[[ctx(UCtx) * ctx(LCtx_i) ||- Q_w * ctx(LCtx_o)]]$.
 \end{definition}
-Note that $[[Q_o]]⊆[[Q_g]]$ is not necessarily true as the entailment relation
-$[[||-]]$ of the constraint domain potentially admits additional rewriting rules
-that the solver uses to transform constraints as it proceeds (which is indeed
-the case with e.g. type families).
-\csongor{Where should these entailments go? Maybe in the atom rules? They talk
-about atoms, so they are not quite of the right shape. Maybe we can  assume that
-all of these rules are applied somewhere else?}
 
-A major simplifying design feature of OutsideIn compared to more general proof
-search algorithms is that it always produces a \emph{guess-free} solution, which
-amounts to not doing backtracking during search. There is, however, a source of
-ambiguity in our system, which we discuss in \ref{sec:ambiguity}.
+\subsubsection{The solver}
 
 Following this exposition of the constraint language, we use a linear proof
 search algorithm based on the recipe given
 by~\textcite{resource-management-for-ll-proof-search}.  This recipe is phrased
 in a way which implies goal oriented proof search, but it can be adapted
 \emph{mutatis mutandis} to GHC's backtrackingless rewrite-based search.
-
-\subsubsection{The solver}
 
 \begin{figure}
   \centering
@@ -1754,6 +1741,12 @@ times.
 
 \subsubsection{Ambiguity}
 \label{sec:ambiguity}
+
+A major simplifying design feature of OutsideIn compared to more general proof
+search algorithms is that it always produces a \emph{guess-free} solution, which
+amounts to not doing backtracking during search. There is, however, a source of
+ambiguity in our system, which we discuss in
+\ref{sec:ambiguity}.\unsure{Moved here, rephrase}
 
 We point out a case of ambiguity that leads to the incompleteness of our solver.
 When solving a linear wanted and there are both linear and unrestricted givens
@@ -2600,6 +2593,6 @@ so the owner of the array is no longer owning it.
 \end{document}
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
-% LocalWords:  desugaring ghc OutsideIn quotiented gadt
+% LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
 % LocalWords:  sequents implicational

@@ -29,6 +29,9 @@ Q :: 'Ct_' ::= {{ com Constraints }}
 | Q [ theta ]        :: M :: Subst
 | pi . Q             :: M :: Scale  {{tex [[pi]]{⋅}[[Q]]}}
 | ( Q )              :: S :: Paren
+% Constraint solver
+| ctx ( UCtx )       :: M :: USolverCtx  {{ tex [[UCtx]] }}
+| ctx ( LCtx )       :: M :: LSolverCtx  {{ tex [[LCtx]] }}
 
 QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
 | Q                ::   :: GivenConstraint
