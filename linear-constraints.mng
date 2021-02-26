@@ -2264,8 +2264,6 @@ implementation.
 
 \appendix
 
-\section{Arnaud's motivating examples}
-
 \section{Application: memory ownership}
 
 In Haskell, memory deallocation is normally the responsibility of a
