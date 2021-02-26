@@ -812,7 +812,7 @@ $$
 The idea of multiplicity goes back, for instance,\jp{can be traced back at least to the work of ... }
 to~\citet{ghica_bounded_2014}, where they are dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
-so-called\jp{``so-called'' brings the idea that the naming is unclear, but at the same time it is never clarified. Which it is?} structural rules of linear logic with only semiring
+so-called\jp{``so-called'' brings the idea that the naming is unclear, but at the same time it is never clarified. Which is it?} structural rules of linear logic with only semiring
 operations (that is, addition and multiplication).
 
 
@@ -821,7 +821,7 @@ operations (that is, addition and multiplication).
 
 Following OutsideIn (see~\cite[Section 3.2, in particular Figure
 3]{OutsideIn}), we parameterise our entire type system by a constraint
-domain\,--\,the $X$ in OutsideIn($X$). This domain is characterised by
+domain\,--\,the $X$ in OutsideIn($X$). Such a domain is characterised by
 a set of \emph{atomic constraints} written $[[q]]$ and an entailment
 relation $[[Q1 ||- Q2]]$, with properties specified in
 Definition~\ref{def:entailment-relation}. Let us adopt \textsc{ghc}'s
@@ -830,11 +830,11 @@ them from the richer constraints of Section~\ref{sec:wanteds}.
 
 For instance, in \textsc{ghc},
 the domain includes type classes the entailment relation describes
-instance resolution.
-For the sake of the examples of Section~\ref{sec:examples}, simple constraints need
-only be the simplest possible, whereby atomic constraints are treated
-as uninterpreted symbols. Being parameterised by the domain therefore
-only serves to support the rest of Haskell, or any future extension.
+instance resolution.\jp{Nongrammatical sentence}
+In the examples of Section~\ref{sec:examples}, only the simplest kind
+constraints are needed, whereby we mean that atomic constraints are treated
+as uninterpreted symbols\jp{by what? Also, if they are atomic, how could they be interpreted as anything? Is there another kind of atomic constraint?}. Being parameterised by the domain therefore
+only serves to support the rest of Haskell, or future extensions.
 
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
 
