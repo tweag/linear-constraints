@@ -1371,7 +1371,7 @@ Finally, implication constraints differ in two ways. First they are
 linear implication (that is an implication which must consume its
 assumption exactly once), where in OutsideIn they are intuitionistic implications.
 In addition, there is a scaling factor $[[pi]]$ on implication. This scaling prescribes how
-many times the implication must consumed. We will need it when
+many times the implication must be consumed. We will need it when
 extending scaling to all wanted constraints below. This scaling factor
 does not, however, change linear implication into intuitionistic
 implication. Concretely, $[[1.(omega.Q => C)]]$ is an intuitionistic
