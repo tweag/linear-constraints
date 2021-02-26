@@ -2063,7 +2063,77 @@ $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
 announced.\unsure{a few more closing words would be welcome.}
 
 
-\section{Design decisions}
+\section{Implementation}
+\label{sec:implementation}
+
+We have implemented linear constraints on top of GHC 9.1, a version that already
+ships with the LinearTypes extension. Function arrows (|->|) and context arrows
+(|=>|) share the same internal representation in the typechecker, differentiated
+only by a boolean flag. Thus, the LinearTypes implementation effort has already
+laid down the bureaucratic ground work of annotating these arrows with
+multiplicity information.
+
+The key changes affect constraint generation and constraint solving. Constraints
+are now annotated with a multiplicity, scaled according to the usage environment
+from which they arise. With LinearTypes, GHC already does scaling for the usage
+of term variables, we simply needed to modify the scaling funcion to capture all
+the generated constraints and re-emit a scaled version of them -- a fairly local
+change.
+
+Nesting of constraints in GHC is done via implication constraints, which hold a
+set of \emph{given} constraints and a set of \emph{wanted} constraints. The
+givens can (and for linear constraints, must) be used to solve the wanteds. We
+modified implication constraints to hold a set of sets of wanteds, to represent
+multiplicative conjuctions ($[[*]]$) and additive conjuctions ($[[&]]$).
+
+When solving $[[C_1 * C_2]]$ (such as for two arguments of a function), the
+constraint solver first solves $[[C_1]]$ using all of the givens, and records
+the ones that have been used and the ones that haven't. Then the residual givens
+are fed into the solution of $[[C_2]]$.  GHC stores the given constraints in a
+set (called the \emph{inert} set), which we modified to store a set of lists
+instead: for each constraint $[[C]]$ we have a list of givens, in the order they
+were bound (which can happen by opening several |Pack| constructors in nested
+scopes for example), and the solver uses the most
+recent one first.
+
+When solving $[[C_1 & C_2]]$ (such as the two branches of an if expression),
+we feed the same givens to both $[[C_1]]$ and $[[C_2]]$, and at the end
+check that the residuals agree.
+
+When a given constraint from the inert set is used to solve a particular wanted,
+the given is removed from the inerts. In addition, unlike regular constraints,
+linear constraints are never solved from top-level givens (like type class
+instance declarations).
+
+Finally, we check that each top-level implication constraint can be solved by
+consuming all of the linear givens. If any residuals remain, an error is
+generated.
+
+This strategy is different from how GHC handles linear values. There, the
+compiler first computes the usage count for a particular variable, then decides
+to accept or reject if this matches the declaration. Recall the program
+from~\ref{sec:examples}:
+
+\begin{code}
+overusing' :: Int ->. (Int, Int)
+overusing' x = (x, x)
+\end{code}
+
+In this case, the usage of |x| is counted to be $[[omega]]$ and the program is
+rejected. Linear constraints are not counted in the same way, instead, they are
+expended from a set of givens during constraint solving as explained above. The
+rationale is that we can accept the following program:
+
+\begin{code}
+two :: (C, C) =>. (Int, Int)
+two = (useC, useC)
+\end{code}
+
+Which has no term-level analogue, since it is not possible to call two variables
+the same name and thus have two copies of, say, a variable |x|.
+
+
+\section{Discussion}
 \label{sec:design-decisions}
 
 \csongor{intro}
@@ -2160,87 +2230,12 @@ Since~\textsc{ghc}'s architecture is set up in a way that can already call the
 solver during constraint generation, we do generalisation in our prototype
 implementation.
 
-\section{Implementation}
-\label{sec:implementation}
+\subsection{Related work}
+\label{sec:related-work}
 
-We have implemented linear constraints on top of GHC 9.1, a version that already
-ships with the LinearTypes extension. Function arrows (|->|) and context arrows
-(|=>|) share the same internal representation in the typechecker, differentiated
-only by a boolean flag. Thus, the LinearTypes implementation effort has already
-laid down the bureaucratic ground work of annotating these arrows with
-multiplicity information.
+\section{Conclusion}
+\label{sec:conclusion}
 
-The key changes affect constraint generation and constraint solving. Constraints
-are now annotated with a multiplicity, scaled according to the usage environment
-from which they arise. With LinearTypes, GHC already does scaling for the usage
-of term variables, we simply needed to modify the scaling funcion to capture all
-the generated constraints and re-emit a scaled version of them -- a fairly local
-change.
-
-Nesting of constraints in GHC is done via implication constraints, which hold a
-set of \emph{given} constraints and a set of \emph{wanted} constraints. The
-givens can (and for linear constraints, must) be used to solve the wanteds. We
-modified implication constraints to hold a set of sets of wanteds, to represent
-multiplicative conjuctions ($[[*]]$) and additive conjuctions ($[[&]]$).
-
-When solving $[[C_1 * C_2]]$ (such as for two arguments of a function), the
-constraint solver first solves $[[C_1]]$ using all of the givens, and records
-the ones that have been used and the ones that haven't. Then the residual givens
-are fed into the solution of $[[C_2]]$.  GHC stores the given constraints in a
-set (called the \emph{inert} set), which we modified to store a set of lists
-instead: for each constraint $[[C]]$ we have a list of givens, in the order they
-were bound (which can happen by opening several |Pack| constructors in nested
-scopes for example), and the solver uses the most
-recent one first.
-
-When solving $[[C_1 & C_2]]$ (such as the two branches of an if expression),
-we feed the same givens to both $[[C_1]]$ and $[[C_2]]$, and at the end
-check that the residuals agree.
-
-When a given constraint from the inert set is used to solve a particular wanted,
-the given is removed from the inerts. In addition, unlike regular constraints,
-linear constraints are never solved from top-level givens (like type class
-instance declarations).
-
-Finally, we check that each top-level implication constraint can be solved by
-consuming all of the linear givens. If any residuals remain, an error is
-generated.
-
-This strategy is different from how GHC handles linear values. There, the
-compiler first computes the usage count for a particular variable, then decides
-to accept or reject if this matches the declaration. Recall the program
-from~\ref{sec:examples}:
-
-\begin{code}
-overusing' :: Int ->. (Int, Int)
-overusing' x = (x, x)
-\end{code}
-
-In this case, the usage of |x| is counted to be $[[omega]]$ and the program is
-rejected. Linear constraints are not counted in the same way, instead, they are
-expended from a set of givens during constraint solving as explained above. The
-rationale is that we can accept the following program:
-
-\begin{code}
-two :: (C, C) =>. (Int, Int)
-two = (useC, useC)
-\end{code}
-
-Which has no term-level analogue, since it is not possible to call two variables
-the same name and thus have two copies of, say, a variable |x|.
-
-
-\section{Extensions}
-\begin{itemize}
-\item Like there are implicational and universally-quantified
-  constraints in the left-hand side of fat arrows, we may want to have
-  $\aand$ constraints on the left hand side of (linear) fat
-  arrows. This falls in the Linear Hereditary Harrop fragment
-  described, for instance, in~\cite{hh-ll}
-  and~\cite{resource-management-for-ll-proof-search}. Hereditary
-  Harrop is a natural extension of Horn clauses in proof search
-  algorithms.
-\end{itemize}
 
 \appendix
 
