@@ -921,7 +921,7 @@ Section~\ref{sec:type-inference}.
       \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
       \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[Q']] \text{ and } [[Q'']]
       \text{ such that } [[Q]]=[[Q' * Q'']] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
-      \text{if } [[Q ||- Empty]] \text{ then } [[Q]]=[[Empty]] \\
+      \text{if } [[Q ||- Empty]] \text{ then there exists } [[Q']] \text{ such that } [[Q]]=[[omega.Q']] \\
       \text{if } [[Q1 ||- Q1']] \text{ and } [[Q2 ||- Q2']] \text{ then } [[Q1 * Q2 ||- Q1' * Q2']] \\
       \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
       \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
@@ -958,8 +958,10 @@ lemmas.
     follows that
     $[[pi.Q1 ||- pi.Q2]]$.
   \item If $[[Q2]]=[[Empty]]$, then, by
-    Definition~\ref{def:entailment-relation}, we know that $[[Q1]]=1$,
-    and the result is immediate.
+    Definition~\ref{def:entailment-relation}, we know that
+    $[[Q1]]=[[omega.Q1']]$, for some $[[Q1']]$
+    and the result is immediate.\unsure{really requires a lemma that
+      $[[pi.(rho.Q)]] = [[(pi.rho).Q]]$}
   \end{itemize}
 \end{proof}
 
@@ -1734,8 +1736,25 @@ times.
 \subsubsection{A simple-constraint solver}
 \label{sec:simple-constr-solv}
 
-\drules[Simp]{$[[UCtx ; LCtx |-simp pi.q ~>
-  LCtx_o]]$}{Simple-constraint solver}{AtomMany,AtomOneL,AtomOneU}
+In the entire article, so far, the simple-constraint domain has been
+an abstract parameter. In this section, though, let us give a concrete
+domain which can support our examples.
+
+\begin{figure}\centering
+  \begin{subfigure}{\linewidth}
+    \drules[Q]{$[[Q1 ||- Q2]]$}{Entailment relation}{Hyp,Prod,Empty}
+    \caption{Entailment relation}
+    \label{fig:simpl-entailment}
+  \end{subfigure}
+  \begin{subfigure}{\linewidth}
+    \drules[Simp]{$[[UCtx ; LCtx |-simp pi.q ~>
+      LCtx_o]]$}{Simple-constraint solver}{AtomMany,AtomOneL,AtomOneU}
+    \caption{Simple-constraint solver}
+    \label{fig:simpl-solver}
+  \end{subfigure}
+  \caption{A stripped-down constraint domain}
+  \label{fig:predicate-domain}
+\end{figure}
 
 \begin{itemize}
   \item The~\rref*{S-AtomMany},~\rref*{S-AtomOneL}, and~\rref*{S-AtomOneU}
