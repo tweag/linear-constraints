@@ -1253,7 +1253,7 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   \textsc{gadt}s.
 \item On the other hand, we have the type $[[exists as. t o= Q]]$, as
   introduced in Section~\ref{sec:what-it-looks-like}, together with
-  the $\kpack$ and $\kpack$ constructions\jp{Duplication. Sounds like a renaming gone wrong}. This mostly acts as a
+  the $\kpack$ and $\kunpack$ constructions. This mostly acts as a
   \textsc{gadt} with a single constructor. A specificity of
   $[[exists as. t o= Q]]$, as we touched upon in
   Section~\ref{sec:what-it-looks-like}, is that the $[[t]]$ component
