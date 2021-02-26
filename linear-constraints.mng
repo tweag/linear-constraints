@@ -2116,7 +2116,7 @@ hold in the outer context, therefore recording these assumptions in the inert
 set is a destructive operation. To ensure proper scoping, GHC creates a fresh
 copy of the inert set for each nested implication it solves, so these
 destructive operations do not leak out. We modify the inert set so that for each
-constraint stored in it, the level (or depth) of the impliaction is recorded
+constraint stored in it, the level (or depth) of the implication is recorded
 alongside it. Each interaction with nested assumptions (which might give rise to
 additional derived givens) is recorded at the appropriate level and
 multiplicity (decomposing a constraint tuple into its constituent parts is done
