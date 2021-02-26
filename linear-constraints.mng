@@ -352,7 +352,7 @@ is working within the linear IO monad.
   smart about it.}\unsure{Should we speak of typestate here?}
 \item A typechecking algorithm, based on a combination
   of~\cite{OutsideIn}
-  and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point incomprehensible without jumping to the ref section and having knowledge of those papers.}, that respects
+  and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point is incomprehensible without jumping to the bibliography, and having knowledge of those papers.}, that respects
   the multiplicity of assumptions. We prove that this algorithm is
   sound and complete with respect to our type system.\unsure{Can we
     have a concrete completeness result?}
@@ -527,7 +527,7 @@ In the introduction we wanted to use linearity to make sure that
 once a file is closed it can no longer be used.
 That is, we need to track in types
 whether the file open or not. We can use a linear constraint |Open h|
-to represent that a file is, indeed, open. We can write the type of
+to represent that a file is, indeed, open. Using it, we can give the following type to
 |closeFile|:
 
 \begin{code}
@@ -536,36 +536,37 @@ closeFile :: Open h =>. Handle h -> IOL ()
 
 There are a few things to notice:
 \begin{itemize}
-\item First, there is this type variable |h| which did not exist in
+\item First, there is a type variable |h| which did not exist in
   previous representation. In the representation of the Linear Haskell
   paper, for instance, |closeFile| had type |closeFile :: File ->. IOL
-  ()|. This |h| is a type-level name for the file which we are
+  ()|. This |h| is a type-level name for the file handle which we are
   closing.
-  Giving a name to function argument is the bread and butter of more
+  Ideally, we'd like he linear constraint to refer directly to the handle value, and have the type |closeFile :: (h :: Handle) -> Open h =>. IOL ()|.
+  While giving a name to a function argument is the bread and butter of more
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
-  Haskell~\cite{liquid-haskell-abstract-refinement-types}. But Haskell doesn't have such a
-  naming mechanism built in, so we have to make argument names
-  explicit in types.
-\item Second, assuming that we have a single, linear, |Open h|
+  Haskell~\cite{liquid-haskell-abstract-refinement-types}, haskell doesn't have such a
+  naming mechanism built in, so we have resort to a type variable to mediate the
+  link between handles and linear constraints.
+\item Second, if  we have a single, linear, |Open h|
   available, then after |closeFile| there will not be any |Open h|
   left to use, thus preventing the file from being closed
   twice. This is precisely what we were trying to achieve.
 \end{itemize}
 
-This still leaves questions open: where does |h| come from? where does
+The description so far still leaves questions open: where does |h| come from? where does
 |Open h| come from? what are the types of |openFile| and |readLine|?
 The answers to these three questions rely on the same device: we
 introduce a type construction |exists a1 ... an. t .<= Q|, where |Q| is some (linear)
 constraint.
 
 The fact that existential quantification generate new type-level names
-is a folklore observation. It's used crucially in the interface of the
+is folklore. It's used crucially in the interface of the
 |ST| monad~\cite{st-monad} and of type-class
 reflection~\cite{type-class-reflection} (in both of these cases, existential
 quantification is encoded as a rank-2 universal quantification). We
 shall use it exactly this way: |openFile| uses an existential
 quantifier to generate the type-level name of the file
-handle. Existentially quantified types are paired with constraint |Q|
+handle. Existentially quantified types are paired with a constraint |Q|
 which we understand as being returned by functions. We will freely
 omit the |exists a1 ... an.| or |.<= Q| parts when they are
 empty. This lets us give the following \textsc{api} to files:
@@ -575,12 +576,13 @@ Haskell doesn't have existential quantification, however it can
 be encoded as a \textsc{gadt}. For instance |exists h. Handle h .<= Open h| can
 be implemented as
 \unsure{We could use a |Proxy| instead. |Pack :: c a =>. Proxy a -> Pack c|, where |c :: * -> Constraint|}
+\jp{The following type should be called |OpenFileHandle| ? }
 \begin{code}
 data PackHandle where
   Pack :: Open h =>. Handle h -> PackHandle
 \end{code}
 Therefore, the existential types of this article are really a
-convenience for the sake of exposition\unsure{Though, see the
+convenience for the sake of exposition\jp{But if this section is a pedagogical description, the presentation as GADT should come first. The theoretical device can come as an afterthought. One can also argue that the GADT is less pedagogical, then this paragraph should be deleted.}\unsure{Though, see the
   existential type paper}. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
 
