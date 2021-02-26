@@ -1349,14 +1349,11 @@ $$
 $$
 %
 The wanteds for linear constraints differ a little from the wanteds of
-OutsideIn. \csongor{Addressing implications superficially first then returning to them later
-on breaks the flow here. Maybe we could just go left to right?}First, and most trivially, the implication constraint is a
-linear implication, rather than an intuitionistic implication. Another
-superficial difference is that our wanteds don't need existential
-quantification, this is one of the benefits that not doing type
-inference affords. Existential quantification, in OutsideIn,
-constrains which variables can be unified with which; but we are not
-doing any unification.
+OutsideIn.
+The first, superficial difference is that our wanteds don't need existential
+quantification, this is one of the benefits that not doing type inference
+affords. Existential quantification, in OutsideIn, constrains which variables
+can be unified with which; but we are not doing any unification.
 
 The more interesting difference is the presence of this extra
 $[[C1 & C2]]$ (read $[[C1]]$ \emph{with} $[[C2]]$). This is a
@@ -1375,11 +1372,18 @@ $[[C1]]$ and $[[C2]]$ were branches in a $\kcase$-expression. Not
 coincidentally, $[[C1&C2]]$ will be used to generate constraints for
 $\kcase$-expressions.
 
-The final difference is the scaling factor on implication. It is, in
-fact, a mere technicality: there is no law of linear logic which would
-let us simplify $[[omega.(Q => C)]]$. Yet, we will, next, extend
-scaling to all wanted constraints, so we need to ``store'' the scaling
-factor of implications
+The final difference is the implication constraint. Just like conjunctions,
+implication constraints also come in two flavours: the \emph{linear} flavour, as
+presented here, and the \emph{intuitionistic}, as seen in OutsideIn. The meaning
+of a linear implication is that the conclusion must consume the assumption exactly
+once. In our system, intuitionistic implications can be recovered by scaling the
+assumption of a linear implication by $[[omega]]$, such as $[[pi.(omega.Q => C)]]$
+
+In addition, there is a scaling factor $[[pi]]$ on implication. This scaling prescribes how
+many times the implication is consumed. In fact, we will, next, extend scaling to
+all wanted constraints, but for the other connectives, these scaling factors can
+be pushed in. Only implications need to ``store'' the scaling factor, as there is no rule
+in linear logic that would allow simplifying $[[pi.(Q => C)]]$
 
 $$
 \left\{
