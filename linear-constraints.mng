@@ -1349,7 +1349,8 @@ $$
 $$
 %
 The wanteds for linear constraints differ a little from the wanteds of
-OutsideIn. First, and most trivially, the implication constraint is a
+OutsideIn. \csongor{Addressing implications superficially first then returning to them later
+on breaks the flow here. Maybe we could just go left to right?}First, and most trivially, the implication constraint is a
 linear implication, rather than an intuitionistic implication. Another
 superficial difference is that our wanteds don't need existential
 quantification, this is one of the benefits that not doing type
