@@ -865,7 +865,7 @@ Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
 interesting interactions with the rest of the system, and we choose to
 omit them for simplicity.
 
-We consider simple constraints to equal up to associativity and
+We consider simple constraints to be equal up to associativity and
 commutativity of tensor products, as well as idempotence of the
 unrestricted constraints. That is
 $$
@@ -876,10 +876,9 @@ $$
   [[Q * Empty]] & = & [[Q]]
 \end{array}
 $$
-
-\noindent
-Scaling is extended to all constraints:
-
+%
+Scaling is extended to all constraints as follows:
+%
 $$
 \left\{
   \begin{array}{lcl}
@@ -893,17 +892,17 @@ $$
 
 \noindent
 The rule that $[[omega.(Q1 * Q2)]] = [[omega.Q1 * omega.Q2]]$ is not a
-typical feature of linear logic; Linear Haskell, however, introduces
-the corresponding type isomorphism for the sake of polymorphism, this
-article isn't concerned with polymorphism, yet this equality does make
+typical feature of linear logic. Linear Haskell, however, introduces
+the corresponding type isomorphism for the sake of polymorphism. While this
+article isn't concerned with polymorphism, this equality does make
 the overall presentation a bit simpler, so we do not deny ourselves
-this little pleasure. Note, in particular, that $[[1.Q]] = [[Q]]$ and
+this little pleasure.\jp{sudden change in tone purposeful?} Note, in particular, that $[[1.Q]] = [[Q]]$ and
 $[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
 We will often omit the scaling factor for linear atomic constraints
-and write $[[q]]$ for $[[1.q]]$. Note that there is no ambiguity as,
-if $[[pi.q]]$ is read as $[[pi.(1.q)]]$, then it does, indeed, equal
-$[[pi.q]]$.
+and write $[[q]]$ for $[[1.q]]$. This convention does not induce any
+ambiguity Indeed the only potential ambiguity is between $[[pi.q]]$
+and $[[pi.(1.q)]]$, which are in fact equal.
 
 \begin{definition}[Requirements for the entailment relation]\label{def:entailment-relation}
   The constraint entailment relation must satisfy the properties
