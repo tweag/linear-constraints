@@ -2244,8 +2244,6 @@ the same name and thus have two copies of, say, a variable |x|.
 
 \appendix
 
-% $ emacs
-
 \section{Arnaud's motivating examples}
 
 \subsection{Quantum IO Monad}
@@ -2315,51 +2313,125 @@ reversible computations.
 
 The strategy is to modify the QIO API to keep track of having write access to a
 qbit. Initialising a qbit provides write access to the qbit.
+\csongor{Mention that Qbit is now parameterised}
 \begin{code}
 class Write q
 mkQbit :: Bool -> exists u. QIO (Qbit q) .<= Write q
 \end{code}
-Then, we modify |unot| to require write access to the qbit.
+
+However, moving forward from this starting point requires some care, as there
+are several pitfalls that we need to avoid. The natural thing to do next would
+be to modify |unot| to consume, then return a |Write| capability for the |Qbit|
+it operates on, and do the same for |ifQ|.
 \begin{code}
 unot :: Write q =>. Qbit q -> U .<= Write q
+ifQ :: Write q =>. Qbit q -> U ->. U .<= Write q
 \end{code}
-A naive attempt would be to change |ifQ| so that it consumes the write access
+Note that |ifQ| is linear in its second argument. This might seem
+counterintuitive at first, given that the whole point of a conditional
+expression is that its body is not necessarily executed.  However, the way to
+think about |U| is that represents a (unitary) matrix that acts on the machine's
+quantum state, and this matrix is constructed in a way that happens to be the
+identity when |q| is false, but the body is always used in the construction.
+
+At a first glance, this API seems to do what we want: calling |ifQ| consumes the
+|Write| capability so |unot| can no longer use it when called inside the body.
+However, this is not the case: consider the following program:
 \begin{code}
-ifQ :: Write q =>. Qbit q -> U -> U .<= Write q
+bad q :: Write q =>. Qbit q -> U .<= Write q
+bad q = case unot q of
+  Pack (notq :: U) -> ifQ q notq
 \end{code}
-Now |ifQ q (unot q)| will not typecheck, but neither will any other |ifQ q (unot
-r)|, since the second argument to |ifQ| has type |U|, while |unot r| has type |U
-.<= Write r|. It is important to support |ifQ q (unot r)|, as this is the chief
-way of creating an \emph{entangled} pair of qbits.
-What's more troubling is that the following still typechecks:
+Here, we circumvent the naive API by first constructing the computation that
+negates |q|, then passing this to |ifQ q|.
+The fundamental issue is that, unlike previous examples\csongor{might be good to
+put this one after the ownership example}, there is no operational behaviour
+associated with our API, instead, we are building a pure data structure (|U|),
+which represents a computation. As such, it doesn't matter in which order we construct
+the individual building blocks (|unot| and |ifQ| in this case), as ultimately
+|ifQ| happily takes anything of type |U|. To move forward, we need a way to
+ensure that the body of the conditional is constructed in a context where |ifQ|
+has already consumed the capability.
+
+In order to enforce this particular requirement, we need to introduce a wrapper
+around |U .<= c| that enabled limited access to the constructed |U| inside.
 \begin{code}
-case unot q of
-  Pack n -> ifQ q n
+newtype PU c = PU (U .<= c)
 \end{code}
-Which is not sensible. Another issue is that setting up |ifQ| to consume the
-write capability would disallow nested conditionals for the same variable, viz.
+The type |PU| is defined in the same module as the API, but its constructor is
+not exported, which means users of the API can not inspect the value inside,
+only construct values of this type, using the following API:
+\begin{code}
+unot :: Write q =>. Qbit q -> PU (Write q)
+ifQ :: Write q =>. Qbit q -> PU c ->. PU (WriteQ q, c)
+\end{code}
+Now |unot| returns the |Write q| constraint, but we can not unwrap the
+constraint, and therefore the |bad| program from before is no longer possible to
+construct, since if we construct |unot q| first, then we cannot call |ifQ|. Another
+thing to note is that |ifQ| now collects the output constraints |c| of its body
+and returns them along with the |Write q| constraint. This is required because
+we still want to be able to express |ifQ q (unot r)| for some other variable
+|r|, which indeed needs to consume |Write r|, but then |ifQ| needs to return it
+at the end.
+
+As presented in Figure~\ref{fig:qio-interface}, the type |U| forms a monoid, and
+the monoidal operation provides a way to chain unitary computations together. To
+reclaim this ability, we introduce two combinators for appending |PU|s:
+\begin{code}
+appendL :: PU c -> (c =>. PU d) -> PU d
+appendR :: (c =>. PU d) -> PU c ->  P d
+\end{code}
+The reason we need two is because of how the constraints are chained.\csongor{explain more,
+the idea is that appendL m n corresponds to m <> n and appendR m n is n <> m.}
+With these additional combinators, we can now construct computations such as
+|appendL (unot q) (unot q) :: Write q =>. PU (Write q)|.
+
+One final issue remains with the API: since |ifQ| consumes write access to the
+Qbit, it is no longer possible to nest conditionals on the same variable, viz.
 |ifQ q (ifQ q ...)|. Regardless of whether this is a sensible to do, it is
 certainly something that the original API supports, and realisable on a quantum
 circuit.
 
-To fix all of these issues, we will introduce a new capability, as follows:
+To solve this final issue, we introduce a new capability, as follows:
+
 \begin{code}
 class ReadOnly q
 
-lendQbit :: Write q =>. Qbit q -> (forall p. ReadOnly p => Qbit p -> r .<= c) ->. r .<= (Write q, c)
+lendQbit :: Write q =>. Qbit q -> (forall p. ReadOnly p => Qbit p -> PU c) ->. PU (Write q, c)
 \end{code}
-
+|lendQbit| lends (unrestricted) read access to its continuation. The rank-2 type
+ensures that in the scope of the continuation, we can not conflate |q| with the
+fresh name |p| and thus return the |ReadOnly p| constraint. This constraint will
+be used in the type of |ifQ|:
 \begin{code}
-ifQ :: ReadOnly q => Qbit q -> (U .<= c) ->. U .<= c
+ifQ :: ReadOnly q => Qbit q -> PU c ->. PU c
 \end{code}
-
-
+Notice that since |ReadOnly| is an unrestricted capability, it need not be
+returned from |ifQ|. Finally, with this safe API, we can implement quantum
+entanglement:
 \begin{code}
-entangle :: (Write q, Write r) =>. Qbit q -> Qbit r -> U .<= (Writer q, Write r)
-entangle q r
-  = lendQbit q $ \p ->
-      ifQ p (unot r)
+entanglement :: (Write q, Write r) =>. Qbit q -> Qbit r -> PU (Write q, Write r)
+entanglement q r =
+  lendQbit q $ \q' ->
+    ifQ q' (ifQ q' (unot r))
 \end{code}
+This function includes a redundant conditional, mainly for demonstration purposes.
+
+The final version of the |QIO| follows:
+\begin{code}
+mkQbit :: Bool -> exists u. QIO (Qbit q) .<= Write q
+applyU :: PU c -> QIO (() .<= c)
+deleteQbit :: Write q =>. Qbit q -> IOL ()
+lendQbit :: Write q =>. Qbit q -> (forall p. ReadOnly p => Qbit p -> PU c) ->. PU (Write q, c)
+unot :: Write q =>. Qbit q -> PU (Write q)
+ifQ :: ReadOnly q => Qbit q -> PU c ->. PU c
+\end{code}
+
+The interaction point between the |U| DSL and |QIO| is the |applyU| function,
+which now indicates that once a unitary matrix has been applied to the machine's
+state, the constraints that were used in its construction are reclaimed and can
+be used in further computations.
+
 
 \section{Application: memory ownership}
 
