@@ -1740,6 +1740,13 @@ In the entire article, so far, the simple-constraint domain has been
 an abstract parameter. In this section, though, let us give a concrete
 domain which can support our examples.
 
+For the sake of our examples, we really need very little: linear
+constraints are simply names as far as the type checker is
+concerned. So it is enough for the entailment relation
+(Figure~\ref{fig:simpl-entailment}) to prove $[[q]]$ if and only if it
+is already on the left hand side, with some restriction for linearity
+of course.
+
 \begin{figure}\centering
   \begin{subfigure}{\linewidth}
     \drules[Q]{$[[Q1 ||- Q2]]$}{Entailment relation}{Hyp,Prod,Empty}
@@ -1756,37 +1763,34 @@ domain which can support our examples.
   \label{fig:predicate-domain}
 \end{figure}
 
-\begin{itemize}
-  \item The~\rref*{S-AtomMany},~\rref*{S-AtomOneL}, and~\rref*{S-AtomOneU}
-rules handle solving atomic constraints from the givens. Linear wanteds can be
-solved from either unrestricted givens (\rref*{S-AtomOneU}) or linear givens
-(\rref*{S-AtomOneL}). When solved from the linear givens, we make sure to use
-the most recently added one in the context so that implications are sure to
-consume their own assumptions first before starting to consume the outer ones.
-We discuss the other side conditions in~\ref{sec:ambiguity}.
-\end{itemize}
+The corresponding simple-constraint solver
+(Figure~\ref{fig:simpl-solver}) is more interesting. The first thing
+to notice is that the rules are deterministic: in any circumstances,
+only one of the three rules can apply. This is a central tenet of
+OutsideIn~\cite[Section 6.4]{OutsideIn}: it never makes guesses.
 
-\subsubsection{Ambiguity}
-\label{sec:ambiguity}
+Figure~\ref{fig:simpl-solver} is also where the fact that the
+$[[LCtx]]$ are lists comes into play. Indeed, \rref{Simp-AtomOneL}
+takes great care to use the most recent occurrence of $[[q]]$
+(remember that \rref{S-ImplOne} adds the new hypotheses on the top of
+the list). To understand why, consider the following example:
+\begin{code}
+f :: FilePath -> IOL ()
+f fp =
+  do  { pack f <- openFile p
+      ; let  { cl :: Open h =>. IOL ()
+             ; cl = closeFile f }
+      ; cl }
+\end{code}
+\noindent
+In this example it is quite clear, that the programmer meant for
+|closeFile| to use |Open h| introduced locally in |cl|. In fact this
+is the only possible way to attribute constraints.
 
-A major simplifying design feature of OutsideIn compared to more general proof
-search algorithms is that it always produces a \emph{guess-free} solution, which
-amounts to not doing backtracking during search. There is, however, a source of
-ambiguity in our system, which we discuss in
-\ref{sec:ambiguity}.\unsure{Moved here, rephrase}
-
-We point out a case of ambiguity that leads to the incompleteness of our solver.
-When solving a linear wanted and there are both linear and unrestricted givens
-that match the wanted, there is a choice to make: we can pick the
-unrestricted to solve the wanted, or we can consume the linear one.
-We resolve this ambiguity by failing in the case of such constraints.
-The~\rref*{S-AtomOneL} rule only applies when the unrestricted context doesn't
-provide a matching given, and the~\rref*{S-AtomOneU} rule only applies when
-linear context doesn't provide one. No rule applies when both contexts provide a
-matching given, thus the program fails.
-
-This choice eliminates guesses from the procedure, but it makes constraint
-resolution incomplete.  Consider the following (contrived) API:
+Another interesting feature of Figure~\ref{fig:simpl-solver} is that
+no rule apply to solve a linear constraint if it appears both in the
+unrestricted and the linear context.
+Consider the following (contrived) API:
 
 \begin{code}
 class C
@@ -1794,7 +1798,7 @@ class C
 giveC :: (C => Int) -> Int
 useC :: C =>. Int
 \end{code}
-
+\noindent
 |giveC| gives an unrestricted copy of |C| to some continuation, while |useC|
 uses |C| linearly. Now consider a consumer of this API:
 
@@ -1803,17 +1807,12 @@ bad :: C =>. (Int, Int)
 bad = (giveC useC, useC)
 \end{code}
 
-Here, using the outlined strategy, the first component of the tuple will happily
-consume the linear |C| from the context (ignoring the unrestricted |C| it gets
-from |giveC|), and the second component will fail as there is no longer any |C|s
-available for it to use. We might have succeeded had we gone right-to-left
-instead, but that amounts to making a guess! To make sure we do not guess, such
-programs are rejected.
-
-\csongor{Maybe we could propose to do limited backtracking? If we do, we might
-want to do the pruning optimisation in the $[[&]]$ rule. If we don't, I will add
-some text explaining why we don't need to do the optimisation}
-
+It is possible to give a type derivation to |bad| in the qualified
+type system of Section~\ref{sec:qualified-type-system}. In fact, the
+constraint assignment is unambiguous: the left-most |useC| must use
+the linear |C|, while the right-most must use the unrestricted
+|C|. This assignment, however, would require of the constraint solver
+to make a guess. So in the spirit of OutsideIn, |bad| is rejected.
 
 \section{Desugaring}
 \label{sec:desugaring}
@@ -2231,7 +2230,7 @@ generalisation strategy leads to consistent behaviour irrespective of the
 flavour of the let.
 
 Our declarative system in Section~\ref{sec:typing-rules} includes a generalising
-rule for lets without signatures (rule~\rref*{E-Let})), but for the sake of
+rule for lets without signatures (rule~\rref*{E-Let}), but for the sake of
 simplicity, our constraint generation rules do no generalisation
 (rule~\rref*{G-Let}). In order to handle generalisation, we could include
 the~\rref*{G-LetGen} rule.
