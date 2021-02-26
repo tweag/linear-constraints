@@ -1281,7 +1281,7 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
 Of course, the entire point of linear constraints is the promise that
 the compiler can handle these constraints for the
 programmer. Otherwise linear constraints are just plain Linear
-Haskell~\cite{LinearHaskell} with an extra set of sigils.\jp{Please avoid archaic/literary language/cultural references, especially if it is at the same time metaphorical.}
+Haskell~\cite{LinearHaskell} with an extra set of symbols.
 
 In this section, we are still following OutsideIn~\cite[Section
 5]{OutsideIn}. We make, however, an important simplification: we infer
