@@ -2416,10 +2416,9 @@ implementation.
 \section{Conclusion}
 \label{sec:conclusion}
 
+\printbibliography
 
 \appendix
-
-\printbibliography
 
 \end{document}
 
