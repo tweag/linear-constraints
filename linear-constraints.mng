@@ -2338,7 +2338,7 @@ At a first glance, this API seems to do what we want: calling |ifQ| consumes the
 |Write| capability so |unot| can no longer use it when called inside the body.
 However, this is not the case: consider the following program:
 \begin{code}
-bad q :: Write q =>. Qbit q -> U .<= Write q
+bad :: Write q =>. Qbit q -> U .<= Write q
 bad q = case unot q of
   Pack (notq :: U) -> ifQ q notq
 \end{code}
@@ -2378,8 +2378,8 @@ As presented in Figure~\ref{fig:qio-interface}, the type |U| forms a monoid, and
 the monoidal operation provides a way to chain unitary computations together. To
 reclaim this ability, we introduce two combinators for appending |PU|s:
 \begin{code}
-appendL :: PU c -> (c =>. PU d) -> PU d
-appendR :: (c =>. PU d) -> PU c ->  P d
+appendL :: PU c ->. (c =>. PU d) ->. PU d
+appendR :: (c =>. PU d) ->. PU c ->.  P d
 \end{code}
 The reason we need two is because of how the constraints are chained.\csongor{explain more,
 the idea is that appendL m n corresponds to m <> n and appendR m n is n <> m.}
