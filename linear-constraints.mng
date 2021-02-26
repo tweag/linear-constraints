@@ -1639,7 +1639,7 @@ counterpart of the abstract entailment relation of
 Section~\ref{sec:constraint-domain}. The simple-constraint solver is
 represented by the following judgement
 
-$[[ UCtx ; LCtx_i |-simp Q_w ~> LCtx_o]]$
+$[[ UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]$
 
 The judgement
 takes in two contexts: $[[UCtx]]$, which holds all the unrestricted
@@ -1684,8 +1684,8 @@ device for the solver.
 
 \begin{definition}[Simple constraint solver]
 \label{def:solver-soundness} The simple constraint solver must verify
-that whenever $[[UCtx ; LCtx_i |-simp Q_w ~> LCtx_o]]$, we have
-$[[LCtx_o]]\subseteq [[LCtx_i]]$ and $[[ctx(UCtx) * ctx(LCtx_i) ||- Q_w * ctx(LCtx_o)]]$.
+that whenever $[[UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]$, we have
+$[[LCtx_o]]\subseteq [[LCtx_i]]$ and $[[ctx(UCtx) * ctx(LCtx_i) ||- pi.q * ctx(LCtx_o)]]$.
 \end{definition}
 
 \subsubsection{The solver}
@@ -1738,6 +1738,12 @@ assumption linearly, but use everything from the ambient context $[[omega]]$
 times.
 
 \end{itemize}
+
+\subsubsection{A simple-constraint solver}
+\label{sec:simple-constr-solv}
+
+\drules[Simp]{$[[UCtx ; LCtx |-simp pi.q ~>
+  LCtx_o]]$}{Simple-constraint solver}{AtomMany,AtomOneL,AtomOneU}
 
 \subsubsection{Ambiguity}
 \label{sec:ambiguity}
