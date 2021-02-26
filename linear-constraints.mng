@@ -2089,7 +2089,7 @@ announced.\unsure{a few more closing words would be welcome.}
 \section{Implementation}
 \label{sec:implementation}
 
-We have implemented linear constraints on top of GHC 9.1, a version that already
+We have written a prototype implementation of linear constraints on top of GHC 9.1, a version that already
 ships with the LinearTypes extension. Function arrows (|->|) and context arrows
 (|=>|) share the same internal representation in the typechecker, differentiated
 only by a boolean flag. Thus, the LinearTypes implementation effort has already
@@ -2122,14 +2122,14 @@ additional derived givens) is recorded at the appropriate level and
 multiplicity (decomposing a constraint tuple into its constituent parts is done
 by the simplifier, which must now record the multiplicities of the components).
 
-Atomic wanteds are then by finding a matching given in the inert set (or
+Atomic wanteds are then solved by finding a matching given in the inert set (or
 a top-level given, which is not relevant to linear constraints). When a linear
 given is used to solve a linear wanted, our prototype removes the given from the
 inert set so it can not be used again. Before, the inert set only held a single
 copy of each given, but now it must hold multiple copies of linear givens,
 together with their implication level. When solving an atomic wanted, the
 matching given with the largest implication level (i.e. the innermost given) is
-selected, as per the rule~\rref*{Simp-AtomOneL} rule.
+selected, as per the \rref*{Simp-AtomOneL} rule.
 
 When an implication is finally solved, we must check that every linear
 constraint introduced in this implication was consumed, which is done by
@@ -2145,13 +2145,14 @@ the equality constraint as a boxed type, so we can simply modify it to store an
 unrestricted payload.
 
 As constraint solving proceeds, the compiler pipeline constructs a term in the
-intrinsically typed core language System FC, also known as GHC Core
-(\unsure{cite some FC paper}).  In Core, type class constraints are turned into
+intrinsically typed core language System FC~\cite{system-fc}, also
+known as GHC Core.
+In Core, type class constraints are turned into
 explicit evidences (see Section~\ref{sec:desugaring}). Thanks to being fully
 annotated, Core has decidable typechecking which is very useful in sanity
 checking modifications to the compiler. Thus, the soundness of our
 implementation is verified by the Core typechecker, which already supports
-linearity, once again, thanks to Linear Haskell.
+linearity.
 
 \section{Discussion}
 \label{sec:design-decisions}
