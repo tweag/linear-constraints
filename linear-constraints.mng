@@ -1832,8 +1832,8 @@ device for the solver.
 
 Like OutsideIn~\cite[Section 5.5]{OutsideIn}, the main solver infrastructure
 deals with solving the wanted constraints, which themselves are parameterised by
-the underlying constraint domain. To handle the constraints from the constraint
-domain (the \emph{simple} constraints), we will need  a domain-specific
+the simple-constraint domain.
+To handle simple constraints, we will need  a domain-specific
 \emph{simple-constraint solver} to be the algorithmic counterpart of the
 abstract entailment relation of Section~\ref{sec:constraint-domain}. The
 main solver will appeal to this simple-constraint solver when solving atomic
