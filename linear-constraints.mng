@@ -754,14 +754,14 @@ read an additional line, but maybe not return the result from the function.\jp{C
 \section{A qualified type system}
 \label{sec:qualified-type-system}
 
-Let us now describe the technical material which lets us support the
+Let us now describe the technical material which supports the
 examples of Section~\ref{sec:examples}. The presentation in this
-section, as well as Section~\ref{sec:type-inference}, strongly mirror
+section, as well as Section~\ref{sec:type-inference}, strongly mirrors
 the presentation of OutsideIn~\cite{OutsideIn}. OutsideIn is a
 foundation of the type inference algorithm of \textsc{ghc}, the most
 popular Haskell compiler where Linear Haskell~\cite{LinearHaskell} is being
 implemented\footnote{A version of Linear Haskell has been released as
-  part of version 9.0.1 of \textsc{ghc}}, as such we chose to frame
+  part of version 9.0.1 of \textsc{ghc}}, as such we choose to frame
 this presentation in terms of OutsideIn. By using such a
 framing, we intend to highlight the concrete changes required to
 \textsc{ghc}, or similar compilers, to support linear constraints.
@@ -777,7 +777,7 @@ arise.
 Like in Linear Haskell~\cite{LinearHaskell} we make use of a
 system of \emph{multiplicities}, which describe how
 many times a function consumes its input.  Linear Haskell is parametric in the
-system of multiplicities. However, in this article, we will use only the
+system of multiplicities\jp{No? It only has 1 and omega, like here. But it has quantification over multiplicities. }. However, in this article, we will use only the
 simplest system of multiplicity: that composed of only $[[1]]$ (representing
 linear functions) and $[[omega]]$ (representing
 regular Haskell functions).
@@ -809,10 +809,10 @@ $$
 \smallskip
 
 \noindent
-The idea of multiplicity goes back, for instance,
-to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
-  semiring}. The power of multiplicity is that they can encode the
-so-called structural rules of linear logic with only semiring
+The idea of multiplicity goes back, for instance,\jp{can be traced back at least to the work of ... }
+to~\citet{ghica_bounded_2014}, where they are dubbed a \emph{resource
+  semiring}. The power of multiplicities is that they can encode the
+so-called\jp{``so-called'' brings the idea that the naming is unclear, but at the same time it is never clarified. Which it is?} structural rules of linear logic with only semiring
 operations (that is, addition and multiplication).
 
 
