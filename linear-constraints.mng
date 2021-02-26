@@ -1050,8 +1050,7 @@ The rule that $[[omega.(Q1 * Q2)]] = [[omega.Q1 * omega.Q2]]$ is not a
 typical feature of linear logic. Linear Haskell, however, introduces
 the corresponding type isomorphism for the sake of polymorphism. While this
 article isn't concerned with polymorphism, this equality does make
-the overall presentation a bit simpler, so we do not deny ourselves
-this little pleasure.\jp{sudden change in tone purposeful?} Note, in particular, that $[[1.Q]] = [[Q]]$ and
+the overall presentation a bit simpler. Note, in particular, that $[[1.Q]] = [[Q]]$ and
 $[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
 We will often omit the scaling factor for linear atomic constraints
