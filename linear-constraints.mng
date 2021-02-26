@@ -2234,6 +2234,10 @@ Since~\textsc{ghc}'s architecture is set up in a way that can already call the
 solver during constraint generation, we do generalisation in our prototype
 implementation.
 
+\subsection{Empty cases}
+\label{sec:empty-cases}
+
+
 \subsection{Related work}
 \label{sec:related-work}
 
