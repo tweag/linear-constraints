@@ -1791,14 +1791,10 @@ In this section,
 let us build a \emph{constraint solver} whose purpose it is to prove
 that $[[Q_g |- C]]$ holds, as required by Lemma~\ref{lem:generation-soundness}.
 
-Like OutsideIn~\cite[Section 5.5]{OutsideIn}, we will need a
-domain-specific \emph{simple-constraint solver} to be the algorithmic
-counterpart of the abstract entailment relation of
-Section~\ref{sec:constraint-domain}. The simple-constraint solver is
-represented by the following judgement
+The constraint solver is represented by the following judgement
 
 $$
-[[ UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]
+[[ UCtx ; LCtx_i |-s C ~> LCtx_o]]
 $$
 
 The judgement
@@ -1841,6 +1837,24 @@ tool for type inference, while our output constraints are an internal
 device for the solver.
 \end{itemize}
 
+Like OutsideIn~\cite[Section 5.5]{OutsideIn}, the main solver infrastructure
+deals with solving the wanted constraints, which themselves are parameterised by
+the underlying constraint domain. To handle the constraints from the constraint
+domain (the \emph{simple} constraints), we will need  a domain-specific
+\emph{simple-constraint solver} to be the algorithmic counterpart of the
+abstract entailment relation of Section~\ref{sec:constraint-domain}. The
+main solver will appeal to this simple-constraint solver when solving atomic
+constraints.  The simple-constraint solver is represented by the following
+judgement
+
+$$
+[[ UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]
+$$
+
+It has a similar structure to the main solver, but only deals with atomic
+constraints. Though the solver is parameterised in the particular choice of this
+simple-constraint solver, we will give an instantiation in
+Section~\ref{sec:simple-constr-solv}.
 
 \begin{definition}[Simple constraint solver]
 \label{def:solver-soundness} The simple constraint solver must verify
