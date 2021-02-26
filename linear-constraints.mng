@@ -1345,7 +1345,7 @@ $$
 %
 The wanteds for linear constraints differ a little from the wanteds of
 OutsideIn.
-The first, superficial difference is that our wanteds don't need existential
+The first, superficial, difference is that our wanteds don't need existential
 quantification, this is one of the benefits that not doing type inference
 affords. Existential quantification, in OutsideIn, constrains which variables
 can be unified with which; but we are not doing any unification.
@@ -1367,18 +1367,16 @@ $[[C1]]$ and $[[C2]]$ were branches in a $\kcase$-expression. Not
 coincidentally, $[[C1&C2]]$ will be used to generate constraints for
 $\kcase$-expressions.
 
-The final difference is the implication constraint. Just like conjunctions,
-implication constraints also come in two flavours: the \emph{linear} flavour, as
-presented here, and the \emph{intuitionistic}, as seen in OutsideIn. The meaning
-of a linear implication is that the conclusion must consume the assumption exactly
-once. In our system, intuitionistic implications can be recovered by scaling the
-assumption of a linear implication by $[[omega]]$, such as $[[pi.(omega.Q => C)]]$
-
+Finally, implication constraints differ in two ways. First they are
+linear implication (that is an implication which must consume its
+assumption exactly once), where in OutsideIn they are intuitionistic implications.
 In addition, there is a scaling factor $[[pi]]$ on implication. This scaling prescribes how
-many times the implication is consumed. In fact, we will, next, extend scaling to
-all wanted constraints, but for the other connectives, these scaling factors can
-be pushed in. Only implications need to ``store'' the scaling factor, as there is no rule
-in linear logic that would allow simplifying $[[pi.(Q => C)]]$
+many times the implication must consumed. We will need it when
+extending scaling to all wanted constraints below. This scaling factor
+does not, however, change linear implication into intuitionistic
+implication. Concretely, $[[1.(omega.Q => C)]]$ is an intuitionistic
+implication which must be consumed exactly once, while $[[omega.(1.Q =>
+C)]]$ is a linear implication which can be consumed many times.
 
 $$
 \left\{
