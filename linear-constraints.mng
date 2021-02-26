@@ -352,7 +352,7 @@ is working within the linear IO monad.
   smart about it.}\unsure{Should we speak of typestate here?}
 \item A typechecking algorithm, based on a combination
   of~\cite{OutsideIn}
-  and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point incomprehensible without jumping to the ref section and having knowledge of those papers.}, that respects
+  and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point is incomprehensible without jumping to the bibliography, and having knowledge of those papers.}, that respects
   the multiplicity of assumptions. We prove that this algorithm is
   sound and complete with respect to our type system.\unsure{Can we
     have a concrete completeness result?}
@@ -527,7 +527,7 @@ In the introduction we wanted to use linearity to make sure that
 once a file is closed it can no longer be used.
 That is, we need to track in types
 whether the file open or not. We can use a linear constraint |Open h|
-to represent that a file is, indeed, open. We can write the type of
+to represent that a file is, indeed, open. Using it, we can give the following type to
 |closeFile|:
 
 \begin{code}
@@ -536,36 +536,37 @@ closeFile :: Open h =>. Handle h -> IOL ()
 
 There are a few things to notice:
 \begin{itemize}
-\item First, there is this type variable |h| which did not exist in
+\item First, there is a type variable |h| which did not exist in
   previous representation. In the representation of the Linear Haskell
   paper, for instance, |closeFile| had type |closeFile :: File ->. IOL
-  ()|. This |h| is a type-level name for the file which we are
+  ()|. This |h| is a type-level name for the file handle which we are
   closing.
-  Giving a name to function argument is the bread and butter of more
+  Ideally, we'd like he linear constraint to refer directly to the handle value, and have the type |closeFile :: (h :: Handle) -> Open h =>. IOL ()|.
+  While giving a name to a function argument is the bread and butter of more
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
-  Haskell~\cite{liquid-haskell-abstract-refinement-types}. But Haskell doesn't have such a
-  naming mechanism built in, so we have to make argument names
-  explicit in types.
-\item Second, assuming that we have a single, linear, |Open h|
+  Haskell~\cite{liquid-haskell-abstract-refinement-types}, haskell doesn't have such a
+  naming mechanism built in, so we have resort to a type variable to mediate the
+  link between handles and linear constraints.
+\item Second, if  we have a single, linear, |Open h|
   available, then after |closeFile| there will not be any |Open h|
   left to use, thus preventing the file from being closed
   twice. This is precisely what we were trying to achieve.
 \end{itemize}
 
-This still leaves questions open: where does |h| come from? where does
+The description so far still leaves questions open: where does |h| come from? where does
 |Open h| come from? what are the types of |openFile| and |readLine|?
 The answers to these three questions rely on the same device: we
 introduce a type construction |exists a1 ... an. t .<= Q|, where |Q| is some (linear)
 constraint.
 
 The fact that existential quantification generate new type-level names
-is a folklore observation. It's used crucially in the interface of the
+is folklore. It's used crucially in the interface of the
 |ST| monad~\cite{st-monad} and of type-class
 reflection~\cite{type-class-reflection} (in both of these cases, existential
 quantification is encoded as a rank-2 universal quantification). We
 shall use it exactly this way: |openFile| uses an existential
 quantifier to generate the type-level name of the file
-handle. Existentially quantified types are paired with constraint |Q|
+handle. Existentially quantified types are paired with a constraint |Q|
 which we understand as being returned by functions. We will freely
 omit the |exists a1 ... an.| or |.<= Q| parts when they are
 empty. This lets us give the following \textsc{api} to files:
@@ -575,12 +576,13 @@ Haskell doesn't have existential quantification, however it can
 be encoded as a \textsc{gadt}. For instance |exists h. Handle h .<= Open h| can
 be implemented as
 \unsure{We could use a |Proxy| instead. |Pack :: c a =>. Proxy a -> Pack c|, where |c :: * -> Constraint|}
+\jp{The following type should be called |OpenFileHandle| ? }
 \begin{code}
 data PackHandle where
   Pack :: Open h =>. Handle h -> PackHandle
 \end{code}
 Therefore, the existential types of this article are really a
-convenience for the sake of exposition\unsure{Though, see the
+convenience for the sake of exposition\jp{But if this section is a pedagogical description, the presentation as GADT should come first. The theoretical device can come as an afterthought. One can also argue that the GADT is less pedagogical, then this paragraph should be deleted.}\unsure{Though, see the
   existential type paper}. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
 
@@ -639,8 +641,8 @@ an error for double-free and use-after-free usages.
 \label{sec:examples}
 
 To get a sense of how the features we introduce should behave, let's look at
-some simple examples. Treating constraints as expendable resources allows use to
-reject certain classes of ill-behaved programs. Thus, the following examples show
+some simple examples. Using constraints to represent expendable resources allows the typechecker to
+reject certain classes of ill-behaved programs. Accordingly, the following examples show
 the different reasons a program might be rejected.
 
 In what follows, we will be using a class |C| that is consumed by the |useC|
@@ -678,7 +680,7 @@ neglecting = const 10 useC
 \end{code}
 The problem with |neglecting| is that although |useC| is mentioned in this program,
 it is never evaluated because |const| does not use its second argument.
-The constraint |C| is never consumed so this program ought to be rejected.
+The constraint |C| is never consumed so this program ought to be rejected.\jp{Rather, it is consumed ω times. Not sure how this fits the exposition. Maybe this example needs moving somewhere else. What follow suggests a funny definition of consumed, where ``consumed ω times'' is a special case of ``not consumed''. That's confusing to me. But I can accept it if it made very explicit. As it stands it seems implicit, or only defined by examples.}
 
 The rule is that a linear constraint is only consumed in a linear context. For
 example,
@@ -697,37 +699,39 @@ Finally, consider the following program:
 overusing :: C =>. (Int, Int)
 overusing = (useC, useC)
 \end{code}
-Naturally, this is program is rejected as it uses |C| twice. However, the
+Naturally, this is program is rejected, because it uses |C| twice. However, the
 following version is accepted:
 \begin{code}
 notOverusing :: (C, C) =>. (Int, Int)
 notOverusing = (useC, useC)
 \end{code}
-That is, it is possible to have multiple copies of a given constraint. The order
-of resolution is non-deterministic, and it is up to the creator of the API to
-ensure that the runtime behaviour is confluent irrespective of the order of
-constraint resolution.
-\unsure{Linear constraints have no runtime payload, or even if they did, they
-would not be observable (safely) as dictionary methods use the dictionary in an
-unrestricted way.}
+That is, it is possible to have multiple copies of a given
+constraint. We design our system so that the order of resolution is
+non-deterministic. This corresponds to the assumption that all
+instances of a linear constraint are equivalent. Consequently, if an
+API use linear constraints, it needs to be designed to ensure that the
+runtime behaviour is not dependent on the order of constraint
+resolution.  \unsure{Linear constraints have no runtime payload, or
+  even if they did, they would not be observable (safely) as
+  dictionary methods use the dictionary in an unrestricted way.}
 
 \subsection{Linear IO}
 \label{sec:linear-io}
 
-The file handling example discussed in Sections~\ref{sec:linear-types}
+The file handling example discussed in sections~\ref{sec:linear-types}
 and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
 There are two main modifications compared to the traditional |IO|. Firstly, the
-type of the monadic operations |>>=| and |return| are changed so that they
-consume their arguments linearly. In the case of |>>=|, its argument also must
-be a linear function:
-
+type of the monadic operations |>>=| and |return| are changed to
+use linear arrows. 
+% In the case of |>>=|, its argument also must be a linear function: \jp{I could not tell what this was saying which was not already said. Commented out.}
+%
 \begin{code}
 (>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b
 return :: a ->. IOL a
 \end{code}
-
+%
 The reason bind needs to be linear is that, as explained in the previous
-section, a linear constraint can only be used in a linear context. For the following
+section, a linear constraint can only be used\jp{used or consumed?} in a linear context. For the following
 program to typecheck, bind must be linear:
 \begin{code}
 readTwo ::  Open h =>. Handle h -> IOL ((String, String) .<= Open h)
@@ -739,25 +743,25 @@ readTwo h =
 If it were not linear, the first argument |readLine h| of the first bind would
 not be able to consume the |Open h| constraint.
 
-The astute reader will notice that since |>>=|'s function argument is a linear
+The astute reader might notice that because |>>=|'s function argument is a linear
 function, all the values bound must be used exactly once. But our intention is
 to treat only the constraints linearly, but use the values in an unrestricted
-fashion. To this end, |pack| is actually unrestricted in the value it holds, and
+fashion.\jp{To many \emph{but}s, I don't know what is meant.} To this end, |pack| is actually unrestricted in the value it holds, and
 only linear in the constraints. This means that in |readTwo|, we could decide to
-read an additional line, but maybe not return the result from the function.
+read an additional line, but maybe not return the result from the function.\jp{Confused.}
 
 
 \section{A qualified type system}
 \label{sec:qualified-type-system}
 
-Let us now describe the technical material which lets us support the
+Let us now describe the technical material which supports the
 examples of Section~\ref{sec:examples}. The presentation in this
-section, as well as Section~\ref{sec:type-inference}, strongly mirror
+section, as well as Section~\ref{sec:type-inference}, strongly mirrors
 the presentation of OutsideIn~\cite{OutsideIn}. OutsideIn is a
 foundation of the type inference algorithm of \textsc{ghc}, the most
 popular Haskell compiler where Linear Haskell~\cite{LinearHaskell} is being
 implemented\footnote{A version of Linear Haskell has been released as
-  part of version 9.0.1 of \textsc{ghc}}, as such we chose to frame
+  part of version 9.0.1 of \textsc{ghc}}, as such we choose to frame
 this presentation in terms of OutsideIn. By using such a
 framing, we intend to highlight the concrete changes required to
 \textsc{ghc}, or similar compilers, to support linear constraints.
@@ -773,7 +777,7 @@ arise.
 Like in Linear Haskell~\cite{LinearHaskell} we make use of a
 system of \emph{multiplicities}, which describe how
 many times a function consumes its input.  Linear Haskell is parametric in the
-system of multiplicities. However, in this article, we will use only the
+system of multiplicities\jp{No? It only has 1 and omega, like here. But it has quantification over multiplicities. }. However, in this article, we will use only the
 simplest system of multiplicity: that composed of only $[[1]]$ (representing
 linear functions) and $[[omega]]$ (representing
 regular Haskell functions).
@@ -805,10 +809,10 @@ $$
 \smallskip
 
 \noindent
-The idea of multiplicity goes back, for instance,
-to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
-  semiring}. The power of multiplicity is that they can encode the
-so-called structural rules of linear logic with only semiring
+The idea of multiplicity goes back, for instance,\jp{can be traced back at least to the work of ... }
+to~\citet{ghica_bounded_2014}, where they are dubbed a \emph{resource
+  semiring}. The power of multiplicities is that they can encode the
+so-called\jp{``so-called'' brings the idea that the naming is unclear, but at the same time it is never clarified. Which is it?} structural rules of linear logic with only semiring
 operations (that is, addition and multiplication).
 
 
@@ -817,7 +821,7 @@ operations (that is, addition and multiplication).
 
 Following OutsideIn (see~\cite[Section 3.2, in particular Figure
 3]{OutsideIn}), we parameterise our entire type system by a constraint
-domain\,--\,the $X$ in OutsideIn($X$). This domain is characterised by
+domain\,--\,the $X$ in OutsideIn($X$). Such a domain is characterised by
 a set of \emph{atomic constraints} written $[[q]]$ and an entailment
 relation $[[Q1 ||- Q2]]$, with properties specified in
 Definition~\ref{def:entailment-relation}. Let us adopt \textsc{ghc}'s
@@ -826,26 +830,27 @@ them from the richer constraints of Section~\ref{sec:wanteds}.
 
 For instance, in \textsc{ghc},
 the domain includes type classes the entailment relation describes
-instance resolution.
-For the sake of the examples of Section~\ref{sec:examples}, simple constraints need
-only be the simplest possible, whereby atomic constraints are treated
-as uninterpreted symbols. Being parameterised by the domain therefore
-only serves to support the rest of Haskell, or any future extension.
-
+instance resolution.\jp{Nongrammatical sentence}
+In the examples of Section~\ref{sec:examples}, only the simplest kind
+constraints are needed, whereby we mean that atomic constraints are treated
+as uninterpreted symbols\jp{by what? Also, if they are atomic, how could they be interpreted as anything? Is there another kind of atomic constraint?}. Being parameterised by the domain therefore
+only serves to support the rest of Haskell, or future extensions.
+%
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
-
+%
 $$
 \begin{array}{lcll}
   [[Q]] & \bnfeq & [[pi.q]] \bnfor [[Q1*Q2]] \bnfor [[Empty]] &
                                                                 \text{Simple constraints}
 \end{array}
 $$
-
+%
 The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
-  factor}. It indicates whether the constraint is to be used linearly
+  factor}. \jp{Multiplicity and scaling factor essentially evoke the same picture. Annoyingly both 'multiplying' and 'scaling' are used throughout the paper.}
+It indicates whether the constraint is to be used linearly
 ($[[1]]$) or without restriction ($[[omega]]$).
 
-Simple constraints are treated completely abstractly by our system
+Simple constraints are treated abstractly\jp{Seems wrong, we just defined simple constraints by structural induction; is it only to ignore this structure and treat all of them abstractly? Confusing.} by our system
 (just like they are in OutsideIn). For
 inference, in Section~\ref{sec:type-inference}, we will need a domain-specific solver, of which
 we only require that it adheres to the interface given in
@@ -2063,7 +2068,77 @@ $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
 announced.\unsure{a few more closing words would be welcome.}
 
 
-\section{Design decisions}
+\section{Implementation}
+\label{sec:implementation}
+
+We have implemented linear constraints on top of GHC 9.1, a version that already
+ships with the LinearTypes extension. Function arrows (|->|) and context arrows
+(|=>|) share the same internal representation in the typechecker, differentiated
+only by a boolean flag. Thus, the LinearTypes implementation effort has already
+laid down the bureaucratic ground work of annotating these arrows with
+multiplicity information.
+
+The key changes affect constraint generation and constraint solving. Constraints
+are now annotated with a multiplicity, scaled according to the usage environment
+from which they arise. With LinearTypes, GHC already does scaling for the usage
+of term variables, we simply needed to modify the scaling funcion to capture all
+the generated constraints and re-emit a scaled version of them -- a fairly local
+change.
+
+Nesting of constraints in GHC is done via implication constraints, which hold a
+set of \emph{given} constraints and a set of \emph{wanted} constraints. The
+givens can (and for linear constraints, must) be used to solve the wanteds. We
+modified implication constraints to hold a set of sets of wanteds, to represent
+multiplicative conjuctions ($[[*]]$) and additive conjuctions ($[[&]]$).
+
+When solving $[[C_1 * C_2]]$ (such as for two arguments of a function), the
+constraint solver first solves $[[C_1]]$ using all of the givens, and records
+the ones that have been used and the ones that haven't. Then the residual givens
+are fed into the solution of $[[C_2]]$.  GHC stores the given constraints in a
+set (called the \emph{inert} set), which we modified to store a set of lists
+instead: for each constraint $[[C]]$ we have a list of givens, in the order they
+were bound (which can happen by opening several |Pack| constructors in nested
+scopes for example), and the solver uses the most
+recent one first.
+
+When solving $[[C_1 & C_2]]$ (such as the two branches of an if expression),
+we feed the same givens to both $[[C_1]]$ and $[[C_2]]$, and at the end
+check that the residuals agree.
+
+When a given constraint from the inert set is used to solve a particular wanted,
+the given is removed from the inerts. In addition, unlike regular constraints,
+linear constraints are never solved from top-level givens (like type class
+instance declarations).
+
+Finally, we check that each top-level implication constraint can be solved by
+consuming all of the linear givens. If any residuals remain, an error is
+generated.
+
+This strategy is different from how GHC handles linear values. There, the
+compiler first computes the usage count for a particular variable, then decides
+to accept or reject if this matches the declaration. Recall the program
+from~\ref{sec:examples}:
+
+\begin{code}
+overusing' :: Int ->. (Int, Int)
+overusing' x = (x, x)
+\end{code}
+
+In this case, the usage of |x| is counted to be $[[omega]]$ and the program is
+rejected. Linear constraints are not counted in the same way, instead, they are
+expended from a set of givens during constraint solving as explained above. The
+rationale is that we can accept the following program:
+
+\begin{code}
+two :: (C, C) =>. (Int, Int)
+two = (useC, useC)
+\end{code}
+
+Which has no term-level analogue, since it is not possible to call two variables
+the same name and thus have two copies of, say, a variable |x|.
+
+
+\section{Discussion}
 \label{sec:design-decisions}
 
 \csongor{intro}
@@ -2160,87 +2235,12 @@ Since~\textsc{ghc}'s architecture is set up in a way that can already call the
 solver during constraint generation, we do generalisation in our prototype
 implementation.
 
-\section{Implementation}
-\label{sec:implementation}
+\subsection{Related work}
+\label{sec:related-work}
 
-We have implemented linear constraints on top of GHC 9.1, a version that already
-ships with the LinearTypes extension. Function arrows (|->|) and context arrows
-(|=>|) share the same internal representation in the typechecker, differentiated
-only by a boolean flag. Thus, the LinearTypes implementation effort has already
-laid down the bureaucratic ground work of annotating these arrows with
-multiplicity information.
+\section{Conclusion}
+\label{sec:conclusion}
 
-The key changes affect constraint generation and constraint solving. Constraints
-are now annotated with a multiplicity, scaled according to the usage environment
-from which they arise. With LinearTypes, GHC already does scaling for the usage
-of term variables, we simply needed to modify the scaling funcion to capture all
-the generated constraints and re-emit a scaled version of them -- a fairly local
-change.
-
-Nesting of constraints in GHC is done via implication constraints, which hold a
-set of \emph{given} constraints and a set of \emph{wanted} constraints. The
-givens can (and for linear constraints, must) be used to solve the wanteds. We
-modified implication constraints to hold a set of sets of wanteds, to represent
-multiplicative conjuctions ($[[*]]$) and additive conjuctions ($[[&]]$).
-
-When solving $[[C_1 * C_2]]$ (such as for two arguments of a function), the
-constraint solver first solves $[[C_1]]$ using all of the givens, and records
-the ones that have been used and the ones that haven't. Then the residual givens
-are fed into the solution of $[[C_2]]$.  GHC stores the given constraints in a
-set (called the \emph{inert} set), which we modified to store a set of lists
-instead: for each constraint $[[C]]$ we have a list of givens, in the order they
-were bound (which can happen by opening several |Pack| constructors in nested
-scopes for example), and the solver uses the most
-recent one first.
-
-When solving $[[C_1 & C_2]]$ (such as the two branches of an if expression),
-we feed the same givens to both $[[C_1]]$ and $[[C_2]]$, and at the end
-check that the residuals agree.
-
-When a given constraint from the inert set is used to solve a particular wanted,
-the given is removed from the inerts. In addition, unlike regular constraints,
-linear constraints are never solved from top-level givens (like type class
-instance declarations).
-
-Finally, we check that each top-level implication constraint can be solved by
-consuming all of the linear givens. If any residuals remain, an error is
-generated.
-
-This strategy is different from how GHC handles linear values. There, the
-compiler first computes the usage count for a particular variable, then decides
-to accept or reject if this matches the declaration. Recall the program
-from~\ref{sec:examples}:
-
-\begin{code}
-overusing' :: Int ->. (Int, Int)
-overusing' x = (x, x)
-\end{code}
-
-In this case, the usage of |x| is counted to be $[[omega]]$ and the program is
-rejected. Linear constraints are not counted in the same way, instead, they are
-expended from a set of givens during constraint solving as explained above. The
-rationale is that we can accept the following program:
-
-\begin{code}
-two :: (C, C) =>. (Int, Int)
-two = (useC, useC)
-\end{code}
-
-Which has no term-level analogue, since it is not possible to call two variables
-the same name and thus have two copies of, say, a variable |x|.
-
-
-\section{Extensions}
-\begin{itemize}
-\item Like there are implicational and universally-quantified
-  constraints in the left-hand side of fat arrows, we may want to have
-  $\aand$ constraints on the left hand side of (linear) fat
-  arrows. This falls in the Linear Hereditary Harrop fragment
-  described, for instance, in~\cite{hh-ll}
-  and~\cite{resource-management-for-ll-proof-search}. Hereditary
-  Harrop is a natural extension of Horn clauses in proof search
-  algorithms.
-\end{itemize}
 
 \appendix
 
