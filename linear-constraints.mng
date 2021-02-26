@@ -810,7 +810,7 @@ $$
 
 \noindent
 The idea of multiplicity goes back, for instance,\jp{can be traced back at least to the work of ... }
-to~\citet{ghica_bounded_2014}, where they are dubbed a \emph{resource
+to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
 so-called\jp{``so-called'' brings the idea that the naming is unclear, but at the same time it is never clarified. Which is it?} structural rules of linear logic with only semiring
 operations (that is, addition and multiplication).
