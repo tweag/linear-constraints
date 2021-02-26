@@ -1691,11 +1691,10 @@ constraints).
 
 \subsubsection{The solver}
 
-Following this exposition of the constraint language, we use a linear proof
+To extend the solver to all wanted constraints, we use a linear proof
 search algorithm based on the recipe given
-by~\textcite{resource-management-for-ll-proof-search}.  This recipe is phrased
-in a way which implies goal oriented proof search, but it can be adapted
-\emph{mutatis mutandis} to GHC's backtrackingless rewrite-based search.
+by~\textcite{resource-management-for-ll-proof-search}. Figure~\ref{fig:constraint-solver}
+presents the rules of the constraint solver.
 
 \begin{figure}
   \centering
@@ -1704,16 +1703,7 @@ in a way which implies goal oriented proof search, but it can be adapted
   \label{fig:constraint-solver}
 \end{figure}
 
-Figure~\ref{fig:constraint-solver} presents the rules of the constraint solver.
-
 \begin{itemize}
-  \item The~\rref*{S-AtomMany},~\rref*{S-AtomOneL}, and~\rref*{S-AtomOneU}
-rules handle solving atomic constraints from the givens. Linear wanteds can be
-solved from either unrestricted givens (\rref*{S-AtomOneU}) or linear givens
-(\rref*{S-AtomOneL}). When solved from the linear givens, we make sure to use
-the most recently added one in the context so that implications are sure to
-consume their own assumptions first before starting to consume the outer ones.
-We discuss the other side conditions in~\ref{sec:ambiguity}.
   \item The~\rref*{S-Mult} rule first proceeds by solving one side of a
 conjunction first, then passing the output constraint to the other side. Note
 that the unrestricted context is shared between both sides.
@@ -1727,7 +1717,8 @@ for solving linear and unrestricted wanted implications respectively. In
 both cases, the assumption of the implication is split to the unrestricted
 $[[omega . Q1]]$ and the linear $[[Q2]]$ parts (this can be done deterministically).
 When solving a linear implication, we add the assumptions to their respective context, and
-proceed with solving the conclusion. Importantly, the linear assumptions are
+proceed with solving the conclusion. Importantly (see
+Section~\ref{sec:simple-constr-solv} below), the linear assumptions are
 added to the front of the list. The side condition requires that the output
 context is a subset of the input context: this is to ensure that the implication
 actually consumes its assumption and doesn't leak it to the ambient context.
@@ -1745,6 +1736,16 @@ times.
 
 \drules[Simp]{$[[UCtx ; LCtx |-simp pi.q ~>
   LCtx_o]]$}{Simple-constraint solver}{AtomMany,AtomOneL,AtomOneU}
+
+\begin{itemize}
+  \item The~\rref*{S-AtomMany},~\rref*{S-AtomOneL}, and~\rref*{S-AtomOneU}
+rules handle solving atomic constraints from the givens. Linear wanteds can be
+solved from either unrestricted givens (\rref*{S-AtomOneU}) or linear givens
+(\rref*{S-AtomOneL}). When solved from the linear givens, we make sure to use
+the most recently added one in the context so that implications are sure to
+consume their own assumptions first before starting to consume the outer ones.
+We discuss the other side conditions in~\ref{sec:ambiguity}.
+\end{itemize}
 
 \subsubsection{Ambiguity}
 \label{sec:ambiguity}
