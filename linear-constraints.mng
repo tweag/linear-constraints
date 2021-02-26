@@ -2377,7 +2377,7 @@ ensure that the body of the conditional is constructed in a context where |ifQ|
 has already consumed the capability.
 
 In order to enforce this particular requirement, we need to introduce a wrapper
-around |U .<= c| that enabled limited access to the constructed |U| inside.
+around |U .<= c| that enables limited access to the constructed |U| inside.
 \begin{code}
 newtype PU c = PU (U .<= c)
 \end{code}
@@ -2402,7 +2402,7 @@ the monoidal operation provides a way to chain unitary computations together. To
 reclaim this ability, we introduce two combinators for appending |PU|s:
 \begin{code}
 appendL :: PU c ->. (c =>. PU d) ->. PU d
-appendR :: (c =>. PU d) ->. PU c ->.  P d
+appendR :: (c =>. PU d) ->. PU c ->.  PU d
 \end{code}
 The reason we need two is because of how the constraints are chained.\csongor{explain more,
 the idea is that appendL m n corresponds to m <> n and appendR m n is n <> m.}
