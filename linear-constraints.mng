@@ -835,21 +835,22 @@ In the examples of Section~\ref{sec:examples}, only the simplest kind
 constraints are needed, whereby we mean that atomic constraints are treated
 as uninterpreted symbols\jp{by what? Also, if they are atomic, how could they be interpreted as anything? Is there another kind of atomic constraint?}. Being parameterised by the domain therefore
 only serves to support the rest of Haskell, or future extensions.
-
+%
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
-
+%
 $$
 \begin{array}{lcll}
   [[Q]] & \bnfeq & [[pi.q]] \bnfor [[Q1*Q2]] \bnfor [[Empty]] &
                                                                 \text{Simple constraints}
 \end{array}
 $$
-
+%
 The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
-  factor}. It indicates whether the constraint is to be used linearly
+  factor}. \jp{Multiplicity and scaling factor essentially evoke the same picture. Annoyingly both 'multiplying' and 'scaling' are used throughout the paper.}
+It indicates whether the constraint is to be used linearly
 ($[[1]]$) or without restriction ($[[omega]]$).
 
-Simple constraints are treated completely abstractly by our system
+Simple constraints are treated abstractly\jp{Seems wrong, we just defined simple constraints by structural induction; is it only to ignore this structure and treat all of them abstractly? Confusing.} by our system
 (just like they are in OutsideIn). For
 inference, in Section~\ref{sec:type-inference}, we will need a domain-specific solver, of which
 we only require that it adheres to the interface given in
