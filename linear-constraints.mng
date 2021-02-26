@@ -70,6 +70,7 @@ import GHC.Base
 %format ->. = "⊸"
 %format =>. = "\Lolly "
 %format .<= = "\RLolly"
+%format <== = "\Leftarrow"
 %format IOL = "IO_L"
 %format . = "."
 %format exists = "\exists"
@@ -763,7 +764,7 @@ With linear constraints, it is possible to use the type system to
 enforce correct deallocation of memory.  The approach is to use a
 linear constraint to represent \emph{ownership} of a memory location,
 i.e. the responsibility to deallocate it. We use a linear constraint
-|(Own n)|, such that a program which has an |Own n| contstraint in
+|Own n|, such that a program which has an |Own n| constraint in
 context is responsible to deallocate the memory area(s) associated
 with a memory locations |n|.  Because of linearity, this constraint
 must be discharged exactly once, so it is guaranteed that the memory
@@ -788,13 +789,13 @@ one cannot be writing unless we also have read access, so that a
 reader does not experience changes to a location while it is
 reading. This way we can additionally enforce consistency per memory
 location. Therefore we will systematically use the |RW| set of
-constraints, defined below, instead of |Read|.
+constraints, defined below, instead of |Write|.
 
 > type RW n = (Read n, Write n)
 
 Likewise, one cannot deallocate a location if any part of the program
 is keeping a read or write reference to it, so all 3 capabilities are
-needed for true ownership. Thus We never use |Own| alone, but |O|,
+needed for true ownership. So we never use |Own| alone, but |O|,
 defined thus:
 
 > type O n = (Read n, Write n, Own n)
@@ -810,18 +811,16 @@ following function.
 
 > newRef :: (forall n. O n =>. AtomRef a n -> Ur b) ⊸ Ur b
 
-The reference available in a continuation, which returns an
-unrestricted value.  Indeed, if we would allow returning any type |b|
+The reference is made available in a function which we call the
+\emph{scope} of the reference. The return type of the scope is,
+crucially, |Ur b|.  Indeed, if we would allow returning any type |b|
 then the |O n| constraint could be embedded in |b|, and therefore
-escape the scope of the continuation. This would become a problematic
-because newRef can be used in an unrestricted context, and thus
-|newRef| could not be implemented by allocating an explicitly-managed
-reference. In contrast with our API no linear constraint can escape
-from the scope of the continuation, whose execution is forced at the
-point where case analysis of the returned |Ur b| value is done.
+escape from the scope. This would be bad.
+It would effectively let |O n| be an unrestricted constraint, and
+would no longer guarantee that the reference has a unique owner.
 
 To read a reference, a simple |Read| constraint is demanded, and
-immediately released. Writing is handled similarly.
+immediately restored. Writing is handled similarly.
 
 > readRef :: (Read n) =>. AtomRef a n -> Ur a .<= Read n
 > writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
@@ -840,71 +839,67 @@ sometimes called ``freezing'':
 
 > freezeRef :: O n =>. AtomRef a n -> Ur a
 
+With this toolkit set up, what about references to references; or,
+indeed, arrays of arrays? A common example of plain Linear Haskell is
+a pure interface to mutable arrays, but it's terribly
+inconvenient to make mutable arrays of mutable arrays, at least if we
+want to freeze them in $O(1)$.
 
-Another aspect of our system is that ownership can be relinquished, by
-writing a reference in a datastructure owned by some other part of the
-program. To illustrate this aspect, we can use arrays of references:
-if one puts a reference in an array, the owner of the array becomes
-responsible to deallocate this reference together with the array.
-
+The |AtomRef| \textsc{api} above is not quite enough to handle nested
+references. Indeed if we have |r :: AtomRef (AtomRef a s) r| and |s ::
+AtomRef a s|, we can |writeRef r s|; however we would then be stuck
+with the |Own s| constraint, which can only be consumed by
+deallocating |s|. What we really need here, is a way to
+relinquish the ownership of |s| to |r| so that |r| becomes responsible
+for deallocating |s|. This is what the type |PArray| lets us do
 
 > data PArray (a :: Location -> Type) (n :: Location)
-
-We make our the type |PArray a n| polymorphic in the reference type of
-elements, |a|. A sublety is that the kind of |a| is |Location ->
-Type|. This way we can easily enforce that every reference in the
-array refer to the same location |n|. Both types |AtomRef a| and
-|PArray a| inhabit this kind, and therefore one can allocate, and
-manipulate arrays of arrays with this API.
-
-Allocation of |PArrays| proceeds from the same logic as
-that of simple references:
-
 > newPArray    :: (forall n. O n =>. PArray a n -> Ur b) ⊸ Ur b
 
-%% Reading at a given index returns a \emph{reference} to the element in question:
+The key is that the kind of |a| is |Location ->
+Type|. This way we can easily enforce that every reference in the
+array refer to the same location |n|. Both types |AtomRef a| and
+|PArray a| have kind |Location -> Type|, and therefore one can allocate, and
+manipulate arrays of arrays with this API.
 
-%% > readPArray   :: Read n =>. PArray a n -> Int -> a n .<= Read n
-
-%% It can be noted that the returned reference remains in the same
-%% location as the array, |readPArray| needs not be implemented by copy.
-
-As advertised, writing a reference in an array gives up ownership.
+When writing a reference (be it an array or an |AtomRef|) in an array,
+ownership of the reference is relinquished to the array.
 
 > writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> (() .<= RW n)
 
 More precisely, the ownership of the location |p| is absorbed in that
 of |n|. Therefore, the associated operational semantics is to move the
-reference inside the array (and potentially deallocate the memory
-previously pointed to by the old reference at that index.)
+reference inside the array (and deallocate any previous reference at that index).
 
-Accessing elements of the arrays can be done using the following function):
+We still want to have read and write access to inner references, of
+course. To this effect we use |lendPArrayElt|
 
-> lendPArrayElement  :: RW n =>. Parray a n -> Int -> (forall p. RW p =>. a p -> (k .<= RW p)) ⊸ (k .<= RW n)
+> lendPArrayElt  :: RW n =>. PArray a n -> Int -> (forall p. RW p =>. a p -> (k .<= RW p)) ⊸ (k .<= RW n)
 
-|lendPArrayElement a i k| Lends read-write access to an element i of
-a, to a continuation k. (In Rust terminology, the continuation
-``borrows'' an element of the array.). Note that, with this API, |RW
-n| and |RW p| are never simultaneously available. This is very
-important; indeed the following function, extracting a reference,
-could not be implemented soundly:
+The |lendPArrayElt a i k| primitive lends access to the reference at index |i| in
+|a|, to a scope functino |k| (in Rust terminology, the scope
+``borrows'' an element of the array). Crucially, with this API, |RW
+n| and |RW p| are never simultaneously available. The following
+function would not be sound
 
-> extractElementWrong  :: RW n =>. Parray a n -> Int -> (Ur (a p) .<= (RW n, RW p))
+> extractEltWrong  :: RW n =>. PArray a n -> Int -> (exists p. Ur (a p) .<= (RW n, RW p))
 
-Indeed, when called from a context where the program owns the
-allocated array, it can immediately deallocate it, even though the (RW
-p) access to the element remains available. For the same reason,
+Indeed, when called from a context where the program owns |n|,
+|n| could immediately be deallocated, even though |RW
+p| would remain available, letting us write to free memory. For the same reason,
 gaining read access to an element needs to be done using a
-continuation API as well:
+scope API as well:
 
-> lendPArrayElementRead  :: Read n =>. Parray a n -> Int -> (forall p. Read p =>. a p -> (k .<= Read p)) ⊸ (k .<= Read n)
+> lendPArrayEltRead  :: Read n =>. PArray a n -> Int -> (forall p. Read p =>. a p -> (k .<= Read p)) ⊸ (k .<= Read n)
 
-For ownership, it is however possible to use a direct API:
+Finally, we can freeze arrays, and arrays of arrays or more, using the
+following primitives
 
-> extractElementO  :: O n =>. Parray a n -> Int -> (Ur (a p) .<= (O n, O p))
+> freezePArray :: O n =>. PArray a n -> () <== Read n
+> readArray :: Read n => PArray a n -> Int -> a n
 
-Here, operationally the element can be overwritten with ``null'', and
-so the owner of the array is no longer owning it.
+After |freezePArray n|, we have unrestricted read access to |n| (or,
+indeed, any element of |n|), as expected.
 
 \section{A qualified type system}
 \label{sec:qualified-type-system}
@@ -2444,4 +2439,5 @@ implementation.
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
-% LocalWords:  sequents implicational
+% LocalWords:  sequents implicational deallocate deallocating
+% LocalWords:  deallocated
