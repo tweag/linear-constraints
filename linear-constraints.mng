@@ -2316,7 +2316,7 @@ qbit. Initialising a qbit provides write access to the qbit.
 \csongor{Mention that Qbit is now parameterised}
 \begin{code}
 class Write q
-mkQbit :: Bool -> exists u. QIO (Qbit q) .<= Write q
+mkQbit :: Bool -> QIO (exists q. Qbit q .<= Write q)
 \end{code}
 
 However, moving forward from this starting point requires some care, as there
@@ -2419,7 +2419,7 @@ This function includes a redundant conditional, mainly for demonstration purpose
 
 The final version of the |QIO| follows:
 \begin{code}
-mkQbit :: Bool -> exists u. QIO (Qbit q) .<= Write q
+mkQbit :: Bool -> QIO (exists q. Qbit q .<= Write q)
 applyU :: PU c -> QIO (() .<= c)
 deleteQbit :: Write q =>. Qbit q -> IOL ()
 lendQbit :: Write q =>. Qbit q -> (forall p. ReadOnly p => Qbit p -> PU c) ->. PU (Write q, c)
