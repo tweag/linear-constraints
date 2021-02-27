@@ -361,7 +361,7 @@ complete with respect to our type system~(\Fref{sec:type-inference}).
 \end{itemize}
 We then outline our implementation of this system (\Fref{sec:implementation})
 and alternative extensions (\Fref{sec:design-decisions}). Finally, we discuss
-related work (\Fref{sec:related-work}) and conclude (\Fref{sec:conclusion})
+related work (\Fref{sec:related-work}) and conclude (\Fref{sec:conclusion}).
 
 
 \section{Motivation}
