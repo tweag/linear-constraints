@@ -963,7 +963,7 @@ $$
 The idea of multiplicity goes back, for instance,\jp{can be traced back at least to the work of ... }
 to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
-so-called\jp{``so-called'' brings the idea that the naming is unclear, but at the same time it is never clarified. Which is it?} structural rules of linear logic with only semiring
+structural rules of linear logic with only semiring
 operations (that is, addition and multiplication).
 
 
@@ -980,11 +980,11 @@ terminology and call these \emph{simple constraints} to distinguish
 them from the richer constraints of Section~\ref{sec:wanteds}.
 
 For instance, in \textsc{ghc},
-the domain includes type classes the entailment relation describes
-instance resolution.\jp{Nongrammatical sentence}
+the domain includes type classes, and the entailment relation describes
+instance resolution.
 In the examples of Section~\ref{sec:examples}, only the simplest kind
 constraints are needed, whereby we mean that atomic constraints are treated
-as uninterpreted symbols\jp{by what? Also, if they are atomic, how could they be interpreted as anything? Is there another kind of atomic constraint?}. Being parameterised by the domain therefore
+as uninterpreted symbols by the entailment relation. Being parameterised by the domain therefore
 only serves to support the rest of Haskell, or future extensions.
 %
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
@@ -1229,7 +1229,7 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   many times! That is, it must be impossible to derive
   $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$,
   otherwise we could make, for instance, the |overusing| function from
-  Section~\ref{sec:overusing}. You can check that this\jp{f x ?} indeed doesn't
+  Section~\ref{sec:overusing}. You can check that $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$ indeed doesn't
   type check, because the scaling of $[[Q2]]$ in \rref{E-App} ensures that
   the constraint would be $[[omega.q]]$ instead. On the other hand,
   it's perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
