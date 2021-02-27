@@ -315,7 +315,7 @@ they can be used to track resources.  arguments. This way, resource
 consumption is tracked without explicitly having to thread the tokens
 through the program. We show how linear constraints can be implemented
 as an extension of Haskell's type class mechanism.
-%if True
+
 With this extension, the final version of |firstLine| is almost the
 same as the traditional version above, with a few minor modifications:
 \begin{code}
@@ -328,15 +328,8 @@ firstLine fp =
 \end{code}
 The only changes from the unsafe version are that this version runs in the linear IO monad,
 and explicit |pack| annotations are used to indicate the variables that require
-special treatment.
-\unsure{We should decide what to do with |pack|.}
-In fact, with the right preamble, even the |pack| annotations can be dropped.\jp{Requires a forward reference.}
-%else
-With this extension, the final version
-of |firstLine| is exactly the same as the traditional version above,
-except that the type |IOL| is used instead of |IO| indicating that this
-is working within the linear IO monad.
-%endif
+special treatment. Crucially, the resource representing the open file no longer
+needs to be passed around manually.
 
 \paragraph{Our contributions are as follows}
 
@@ -695,8 +688,8 @@ return :: a ->. IOL a
 \end{code}
 %
 The reason bind needs to be linear is that, as explained in the previous
-section, a linear constraint can only be used\jp{used or consumed?} in a linear context. For the following
-program to typecheck, bind must be linear:
+section, a linear constraint can only be consumed in a linear context. For the
+following program to typecheck, bind must be linear:
 \begin{code}
 readTwo ::  Open h =>. Handle h -> IOL (Ur (String, String) .<= Open h)
 readTwo h =
@@ -706,13 +699,6 @@ readTwo h =
 \end{code}
 If it were not linear, the first argument |readLine h| of the first bind would
 not be able to consume the |Open h| constraint.
-
-The astute reader might notice that because |>>=|'s function argument is a linear
-function, all the values bound must be used exactly once. But our intention is
-to treat only the constraints linearly, but use the values in an unrestricted
-fashion.\jp{To many \emph{but}s, I don't know what is meant.} To this end, |pack| is actually unrestricted in the value it holds, and
-only linear in the constraints. This means that in |readTwo|, we could decide to
-read an additional line, but maybe not return the result from the function.\jp{Confused.}
 
 \section{Application: memory ownership}
 
