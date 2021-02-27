@@ -1494,8 +1494,6 @@ inference oracle, as discussed above) and returning a wanted
 constraint $[[C]]$.
 
 \info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
-\unsure{Todo: syntax to
-  select the $\pi$ in case and let rules}
 
 \unsure{The case rule, for an empty case, implies the existence of the
   typically annoying $⊤$. We will have to confront this.}
@@ -1567,6 +1565,8 @@ Section~\ref{sec:qualified-type-system}. That is, we are not defining
 a new type system but indeed an inference algorithm for the qualified
 type system.
 
+\unsure{Can I make all these item descriptions hyperlinks to the rule? It
+  would be fantastic!}
 \begin{lemma}[Soundness of constraint generation]\label{lem:generation-soundness}
   For all $[[Q_g]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
@@ -1596,7 +1596,7 @@ type system.
     From which follows that $[[Q_g; G |- \x. e : t0 ->_pi t]]$.
   \item[Let] We have
     \begin{itemize}
-    \item $[[pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.C1 * C2]]$
+    \item $[[pi.G1+G2 |-> let_pi x = e1 in e2 : t ~> pi.C1 * C2]]$
     \item $[[Q_g |- pi.C1 * C2]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
@@ -1612,11 +1612,11 @@ type system.
     \item $[[Q_1 ; G1 |- e1 : t1]]$
     \item $[[Q_2; G2, x:_pi  t1 |- e1 : t1]]$
     \end{itemize}
-    From which follows that $[[Q_g; pi.G1+G2 |- let x = e1 in e2 :
+    From which follows that $[[Q_g; pi.G1+G2 |- let_pi x = e1 in e2 :
     t]]$.
   \item[LetSig] We have
     \begin{itemize}
-    \item $[[pi.G1+G2 |-> let x : forall as. Q =o t1 = e1 in e2 : t ~>
+    \item $[[pi.G1+G2 |-> let_pi x : forall as. Q =o t1 = e1 in e2 : t ~>
       C2 * pi.(Q => C1)]]$
     \item $[[Q_g |- C2 * pi.(Q => C1)]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
@@ -1634,7 +1634,7 @@ type system.
     \item $[[Q1*Q;G1 |- e1 : t1]]$
     \item $[[Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
     \end{itemize}
-    Hence $[[Q_g; pi.G1+G2 |- let x : forall as. Q =o t1 = e1 in e2 : t]]$
+    Hence $[[Q_g; pi.G1+G2 |- let_pi x : forall as. Q =o t1 = e1 in e2 : t]]$
   \item[App] \info{Most of the linearity problems are in the App
       rule. Unpack is also relevant.}
     We have
@@ -1698,7 +1698,7 @@ type system.
     Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
   \item[Case] We have
     \begin{itemize}
-    \item $[[pi.G + D |-> case e of {alts} : t ~> pi.C * && Ci]]$
+    \item $[[pi.G + D |-> case_pi e of {alts} : t ~> pi.C * && Ci]]$
     \item $[[Q_g |- pi.C * && Ci]]$
     \item $[[G |-> e : T ss ~> C]]$
     \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
@@ -1715,7 +1715,7 @@ type system.
     \item $[[Q; G |- e : T ss]]$
     \item For each $i$, $[[Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
     \end{itemize}
-    Therefore $[[Q_g ; pi.G + D |- case e of {alts} : t]]$.
+    Therefore $[[Q_g ; pi.G + D |- case_pi e of {alts} : t]]$.
   \end{description}
 \end{proof}
 
@@ -1983,9 +1983,9 @@ Our Core calculus is described in Figure~\ref{fig:core-grammar}
     [[e]] & \bnfeq & [[x]] \bnfor [[K]] \bnfor [[\x. e]] \bnfor [[e1
                      e2]] \bnfor [[pack (e1, e2)]] & \text{Expressions}\\
                  &\bnfor & [[unpack (y,x)=e1 in
-                           e2]] \bnfor [[case e of { alts }]] &\\
-                 &\bnfor & [[let
-                           x=e1 in e2]] \bnfor [[let x : s = e1 in e2]] &
+                           e2]] \bnfor [[case_pi e of { alts }]] &\\
+                 &\bnfor & [[let_pi
+                           x=e1 in e2]] \bnfor [[let_pi x : s = e1 in e2]] &
   \end{array}
   $$
   \caption{Grammar of the core calculus}
@@ -2103,17 +2103,17 @@ We will need one more device. Namely, we'll need a way to turn every
 $[[Ev(omega.Q)]]$ into an $[[Ur(Ev(Q))]]$. For any
 $[[e : Ev(omega.Q)]]$, we shall write $[[urify(Q;e) :
 Ur(Ev(omega.Q))]]$. As a shorthand, particularly useful in nested
-patterns, we will write $[[case e of {urified(Q;x) -> e'}]]$ for
-$[[case urify(Q;e) of {Ur x -> e'}]]$.
+patterns, we will write $[[case_pi e of {urified(Q;x) -> e'}]]$ for
+$[[case_pi urify(Q;e) of {Ur x -> e'}]]$.
 Let's define $[[e : Ev(omega.Q)]]$:
 
 $$
 \left\{
   \begin{array}{lcl}
-    [[urify(Empty;e)]]& = & [[case e of {() -> Ur ()}]] \\
+    [[urify(Empty;e)]]& = & [[case_1 e of {() -> Ur ()}]] \\
     [[urify(1.q;e)]] & = & [[e]] \\
-    [[urify(omega.q;e)]] & = & [[case e of {Ur x -> Ur (Ur x)}]] \\
-    [[urify(Q1*Q2;e)]] & = & [[case e of {(urified(Q1;x), urified(Q2;y)) -> Ur (x,y)}]]
+    [[urify(omega.q;e)]] & = & [[case_1 e of {Ur x -> Ur (Ur x)}]] \\
+    [[urify(Q1*Q2;e)]] & = & [[case_1 e of {(urified(Q1;x), urified(Q2;y)) -> Ur (x,y)}]]
   \end{array}
 \right.
 $$
@@ -2150,39 +2150,39 @@ $$
     [[ Ds(z;Q;G |- \x.e : t1 ->_pi t2) ]] & = & [[ \x. Ds(z;Q;G,x:_pi t1
                                               |- e : t2) ]] \\
     [[ Ds(z;Q1*Q2; G1+G2 |- e1 e2 : t) ]]
-        & = & [[ case z of { (z1, z2) -> Ds(z1;Q1;G1 |- e1 : t1 ->_1 t)
+        & = & [[ case_1 z of { (z1, z2) -> Ds(z1;Q1;G1 |- e1 : t1 ->_1 t)
               Ds(z2;Q2;G2 |- e2 : t1) } ]] \\
     [[ Ds(z;Q1*omega.Q2; G1+omega.G2 |- e1 e2 : t) ]]
-        & = & [[ case z of { (z1, urified(z2))
+        & = & [[ case_1 z of { (z1, urified(z2))
               -> Ds(z1;Q1;G1 |- e1 : t1 ->_omega t)
               Ds(z2;Q2;G2 |- e2 : t1) } ]] \\
     [[ Ds(z;Q * Q1[us/as];G |- pack e : exists as. t o=
     Q1)]]
-        & = & [[ case z of { (z', z'')
+        & = & [[ case_1 z of { (z', z'')
               -> pack (z'', Ds(z'; Q ; G |- e : t[us/as]))} ]] \\
     [[ Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t) ]]
-        & = & [[ case z of { (z1, z2) -> unpack (z',x) =
-              Ds(z';Q1;G1 |- e1 : exists as. t1 o= Q) in let z2' =
+        & = & [[ case_1 z of { (z1, z2) -> unpack (z',x) =
+              Ds(z';Q1;G1 |- e1 : exists as. t1 o= Q) in let_1 z2' =
               (z2,z') in Ds(z2';Q2 * Q;G2,x:_1 t1 |- e2 : t)
               } ]] \\
-    [[ Ds(z;Q1 * Q2 ;G1+G2 |- let x = e1 in e2 : t) ]]
-        & = & [[ case z of { (z1, z2) -> let x : Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
+    [[ Ds(z;Q1 * Q2 ;G1+G2 |- let x_1 = e1 in e2 : t) ]]
+        & = & [[ case_1 z of { (z1, z2) -> let x : Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
               t1) in Ds(z2;Q2;G2,x:_1 t1 |- e2 : t)} ]] \\
     [[ Ds(z;omega.Q1 * Q2 ;omega.G1+G2 |- let x = e1 in e2 : t) ]]
-        & = & [[ case z of { (urified(z1), z2) -> let x : Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
+        & = & [[ case_1 z of { (urified(z1), z2) -> let x : Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
               t1) in Ds(z2;Q2;G2,x:_omega t1 |- e2 : t)} ]] \\
     [[ Ds(z;Q1 * Q2 ;G1+G2 |- let x : forall as. Q =o t1 = e1 in e2 : t) ]]
-        & = & [[ case z of { (z1, z2) -> let x : forall as. Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
+        & = & [[ case_1 z of { (z1, z2) -> let x : forall as. Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
               t1) in Ds(z2;Q2;G2,x:_1 forall as. Q =o t1 |- e2 : t)} ]] \\
     [[ Ds(z;omega.Q1 * Q2 ;omega.G1+G2 |- let x : forall as. Q =o t1 = e1 in e2 : t) ]]
-        & = & [[ case z of { (urified(z1), z2) -> let x : forall as. Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
+        & = & [[ case_1 z of { (urified(z1), z2) -> let x : forall as. Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
               t1) in Ds(z2;Q2;G2,x:_omega t1 |- e2 : t)} ]] \\
-    [[ Ds(z;omega.Q1*Q2;omega.G1+G2 |- case e of { alts } : t) ]]
-        & = & [[ case z of { (urified(z1), z2) -> case Ds(z1;Q1;G1 |-
+    [[ Ds(z;omega.Q1*Q2;omega.G1+G2 |- case_1 e of { alts } : t) ]]
+        & = & [[ case_1 z of { (urified(z1), z2) -> case_1 Ds(z1;Q1;G1 |-
               e : T ts) of { < K xsi -> Ds(z2; Q2; G2, < xi :_(pi.pii)
               ui[ts/as] > |- ei : t)>}} ]] \\
-    [[ Ds(z;Q1*Q2;G1+G2 |- case e of { alts } : t) ]]
-        & = & [[ case z of { (z1, z2) -> case Ds(z1;Q1;G1 |-
+    [[ Ds(z;Q1*Q2;G1+G2 |- case_omega e of { alts } : t) ]]
+        & = & [[ case_1 z of { (z1, z2) -> case_omega Ds(z1;Q1;G1 |-
               e : T ts) of { < K xsi -> Ds(z2; Q2; G2, < xi :_(pi.pii)
               ui[ts/as] > |- ei : t)>}} ]] \\
     [[ Ds(z;Q;G |- e : t) ]] & = & [[ let z' = Ev(Q1 ||- Q) z in
