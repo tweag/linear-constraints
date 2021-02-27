@@ -394,7 +394,7 @@ closeFile  :: Handle ⊸ IOL ()
 \label{fig:linear-interface}
   \end{subfigure}
   \hfill
-  \begin{subfigure}{.52\linewidth}
+  \begin{subfigure}{.55\linewidth}
 \begin{code}
 openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= Open h)
 readLine   :: Open h =>. Handle h -> IOL (Ur String .<= Open h)
