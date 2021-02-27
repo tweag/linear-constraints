@@ -599,45 +599,6 @@ the example given in the introduction.
   to the idea of typestate than the pedestrian encoding in regular
   linear types.}
 
-\unsure{NW: I have hidden the unsound |openFile| example ... we can discuss it if we have too much space.}
-%if False
-\begin{spec}
-openFile  :: FilePath -> IOL (Handle h .<= Open h)
-\end{spec}
-%endif
-
-%if False
-%NW: This example seems redundant
-Another example to consider:
-\begin{spec}
-readTwoLines path = do
-  h0 <- openFile path
-  (h1, line1) <- readLine h0
-  (h2, line2) <- readLine h1
-  close h2
-\end{spec}
-With linear constraints, API:
-
-The example become (remark: not the do-notation for the |IO| monad):
-\begin{spec}
-readTwoLines path = do
-  h <- openFile path
-  line1 <- readLine h
-  line2 <- readLine h
-  close h
-\end{spec}
-
-It looks exactly the same as without linear types. But you still get
-an error for double-free and use-after-free usages.
-%endif
-
-
-
-
-
-
-
-
 \subsection{Motivating Examples}
 \label{sec:examples}
 
