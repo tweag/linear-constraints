@@ -112,9 +112,8 @@ Q ; G |- e : t :: :: Ty :: 'E_' {{ com Expression typing }}
 by
 
 x :_1 forall as. Q1 =o u \in G
-Q ||- Q1[ts/as]
--------------- :: Var
-Q;G |- x : u[ts/as]
+--------------------------- :: Var
+Q1[ts/as];G |- x : u[ts/as]
 
 Q;G, x:_pi t1 |- e : t2
 ---------------------- :: Abs

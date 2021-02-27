@@ -1207,12 +1207,10 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   \rref*{E-Unpack}).
 \item A more minor difference with OutsideIn is that we have an
   explicit \rref*{E-Sub} rule, while OutsideIn uses simple constraint
-  entailment directly in the relevant rules. The \rref*{E-Sub} rule
-  will be a device in the proof of soundness of inference in
-  Section~\ref{sec:constraint-solver}. There are other ways to achieve
-  the same result, such as proving that the \rref*{E-Sub} rule is
-  admissible in the type system. But having it explicit is simpler,
-  and otherwise just as good.
+  entailment directly in the relevant rules. In OutsideIn, only the
+  \rref*{E-Var} rule needed subsumption; we would also need it for the
+  \rref*{E-Pack} rule as well. So we preferred having one shared
+  dedicated rule.
 \end{itemize}
 %
 \info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
@@ -1586,8 +1584,7 @@ type system.
     \item $[[G |-> x : u[ts/as] ~> Q[ts/as] ]]$
     \item $[[Q_g |- Q[ts/as] ]]$
     \end{itemize}
-    Therefore, by rule~\rref*{E-Var}\unsure{and E-Sub if we
-      remove subsumption from the Var rule}, it follows
+    Therefore, by rules~\rref*{E-Var} and~\rref*{E-Sub}, it follows
     immediately that $[[Q_g ; G |- x : u[ts/as] ]]$
   \item[Abs] We have
     \begin{itemize}
@@ -2152,7 +2149,7 @@ variable $[[z]]$).
 $$
 \left\{
   \begin{array}{lcl}
-    [[ Ds(z;Q;G |- x : u[ts/as]) ]] & = & [[ x (Ev(Q ||- Q1[ts/as]) z) ]] \\
+    [[ Ds(z;Q;G |- x : u[ts/as]) ]] & = & [[ x z ]] \\
     [[ Ds(z;Q;G |- \x.e : t1 ->_pi t2) ]] & = & [[ \x. Ds(z;Q;G,x:_pi t1
                                               |- e : t2) ]] \\
     [[ Ds(z;Q1*Q2; G1+G2 |- e1 e2 : t) ]]
