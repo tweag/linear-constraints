@@ -201,7 +201,7 @@ import GHC.Base
 }
 \email{n.wu@@imperial.ac.uk}
 
-\keywords{GHC, Haskell, laziness, linear logic, linear types,
+\keywords{\textsc{ghc}, Haskell, laziness, linear logic, linear types,
   constraints, inference}
 
 \begin{CCSXML}
@@ -236,7 +236,7 @@ safety of the linear version while also keeping the simplicity of the
 traditional version. We present a qualified type system with linear constraints,
 and a typechecking algorithm. We prove the soundness of the algorithm with
 respect to the type system, and show how our changes can be integrated into
-|OutsideIn|, GHC's existing constraint solver algorithm.
+|OutsideIn|, \textsc{ghc}'s existing constraint solver algorithm.
 \end{abstract}
 
 \maketitle
@@ -251,7 +251,7 @@ respect to the type system, and show how our changes can be integrated into
 Linear type systems have seen somewhat of a renaissance in recent years in
 various mainstream programming communities. Rust's ownership system guarantees
 memory safety for systems programmers, Haskell's linear types give functional
-programmers safe APIs for low-level mutable data structures, and even
+programmers safe \textsc{api}s for low-level mutable data structures, and even
 dependently typed programmers can now use linear types with Idris 2.
 
 \csongor{Say something about ergonomics to set up the next part}
@@ -666,7 +666,7 @@ That is, it is possible to have multiple copies of a given
 constraint. We design our system so that the order of resolution is
 non-deterministic. This corresponds to the assumption that all
 instances of a linear constraint are equivalent. Consequently, if an
-API use linear constraints, it needs to be designed to ensure that the
+\textsc{api} uses linear constraints, it needs to be designed to ensure that the
 runtime behaviour is not dependent on the order of constraint
 resolution.  \unsure{Linear constraints have no runtime payload, or
   even if they did, they would not be observable (safely) as
@@ -705,7 +705,7 @@ not be able to consume the |Open h| constraint.
 In Haskell, memory deallocation is normally the responsibility of a
 garbage collector. However, garbage collection comes with runtime
 costs which not all applications can afford: one must then resort to
-explict memory allocation and deallocation. However this task is error
+explict memory allocation and deallocation. This task is error
 prone: one can easily forget a deallocation (causing a memory leak) or
 deallocate several times (corrupting data).
 
@@ -715,20 +715,20 @@ linear constraint to represent \emph{ownership} of a memory location,
 i.e. the responsibility to deallocate it. We use a linear constraint
 |Own n|, such that a program which has an |Own n| constraint in
 context is responsible to deallocate the memory area(s) associated
-with a memory locations |n|.  Because of linearity, this constraint
+with a memory location |n|.  Because of linearity, this constraint
 must be discharged exactly once, so it is guaranteed that the memory
 is deallocated correctly.
 
-In the above |n| is a type variable (of a special kind |Location|)
-which represent a memory location or a set thereof. Locations mediate
+In the above, |n| is a type variable (of a special kind |Location|)
+which represents a memory location. Locations mediate
 the relationship between references and ownership constraints.
 
-In fact, we will be using three linear constraints, one for ownership,
-one for reading and one for writing:
+For more granular control, we will be using three linear constraints: one for
+ownership, one for reading, and one for writing:
 
 
-> class Read (n :: Location)    -- read capability
-> class Write (n :: Location)   -- write capability
+> class Read (n :: Location)
+> class Write (n :: Location)
 > class Own (n :: Location)
 
 
@@ -749,7 +749,7 @@ defined thus:
 
 > type O n = (Read n, Write n, Own n)
 
-With these components in place, we can provide an API for ownable
+With these components in place, we can provide an \textsc{api} for ownable
 references.
 
 > data AtomRef (a :: Type) (n :: Location)
@@ -769,7 +769,7 @@ It would effectively let |O n| be an unrestricted constraint, and
 would no longer guarantee that the reference has a unique owner.
 
 To read a reference, a simple |Read| constraint is demanded, and
-immediately restored. Writing is handled similarly.
+immediately returned. Writing is handled similarly.
 
 > readRef :: (Read n) =>. AtomRef a n -> Ur a .<= Read n
 > writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
@@ -782,7 +782,7 @@ Deallocation consumes all linear constraints associated with |O n|.
 
 > freeRef :: O n =>. AtomRef a n -> ()
 
-As an alternative to read followed by free, one could transfer control
+As an alternative to freein the reference, one could transfer control
 of the memory location to the garbage collector. This operation is
 sometimes called ``freezing'':
 
@@ -809,7 +809,7 @@ The key is that the kind of |a| is |Location ->
 Type|. This way we can easily enforce that every reference in the
 array refer to the same location |n|. Both types |AtomRef a| and
 |PArray a| have kind |Location -> Type|, and therefore one can allocate, and
-manipulate arrays of arrays with this API.
+manipulate arrays of arrays with this \textsc{api}.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is relinquished to the array.
@@ -827,7 +827,7 @@ course. To this effect we use |lendPArrayElt|
 
 The |lendPArrayElt a i k| primitive lends access to the reference at index |i| in
 |a|, to a scope functino |k| (in Rust terminology, the scope
-``borrows'' an element of the array). Crucially, with this API, |RW
+``borrows'' an element of the array). Crucially, with this \textsc{api}, |RW
 n| and |RW p| are never simultaneously available. The following
 function would not be sound
 
@@ -837,7 +837,7 @@ Indeed, when called from a context where the program owns |n|,
 |n| could immediately be deallocated, even though |RW
 p| would remain available, letting us write to free memory. For the same reason,
 gaining read access to an element needs to be done using a
-scope API as well:
+scope \textsc{api} as well:
 
 > lendPArrayEltRead  :: Read n =>. PArray a n -> Int -> (forall p. Read p =>. a p -> (k .<= Read p)) ⊸ (k .<= Read n)
 
@@ -1242,7 +1242,7 @@ as will be evident in the rest of the section. We can make this
 simplification for two reasons:
 \begin{itemize}
 \item Our system doesn't have equality constraints, and even when
-  integrated into GHC, we do not allow equality constraints to be
+  integrated into \textsc{ghc}, we do not allow equality constraints to be
   linear. This is because traditional unification algorithms are
   unsound for linear equalities as they will gladly reuse the same
   equality many times (or none at all). Linear equalities make sense
@@ -1261,7 +1261,7 @@ simplification for two reasons:
 \end{itemize}
 
 Our current focus is much more narrow than a general typechecking algorithm for
-all of GHC's features.
+all of \textsc{ghc}'s features.
 Secondly,
 As a consequence of these two restrictions (no linear equalities and no
 multiplicity polymorphic constraints), type inference and (linear) class
@@ -1900,7 +1900,7 @@ is the only possible way to attribute constraints.
 Another interesting feature of Figure~\ref{fig:simpl-solver} is that
 no rule apply to solve a linear constraint if it appears both in the
 unrestricted and the linear context.
-Consider the following (contrived) API:
+Consider the following (contrived) \textsc{api}:
 
 \begin{code}
 class C
@@ -1910,7 +1910,7 @@ useC :: C =>. Int
 \end{code}
 \noindent
 |giveC| gives an unrestricted copy of |C| to some continuation, while |useC|
-uses |C| linearly. Now consider a consumer of this API:
+uses |C| linearly. Now consider a consumer of this \textsc{api}:
 
 \begin{code}
 bad :: C =>. (Int, Int)
@@ -1936,12 +1936,12 @@ the spirit of OutsideIn, |bad| is rejected.
   constants in linear haskell. They were not supported.)
 
   So, we're using something like ``Open f'' instead. Together with a
-  an existential variable f. Then the API can ensure that there is a
-  single token for this constraint at any given point. The API can
-  however create several copies --- but then it's up to the API to
+  an existential variable f. Then the \textsc{api} can ensure that there is a
+  single token for this constraint at any given point. The \textsc{api} can
+  however create several copies --- but then it's up to the \textsc{api} to
   make sure that the order of picking the constraints is
   computationally irrelevant. (Label constraints as computationally
-  relevant? Then GHC could issue errors if there is computational
+  relevant? Then \textsc{ghc} could issue errors if there is computational
   relevance and it ends up making a choice.)
 
   [arnaud] maybe reject all programs which force the constraint solver
@@ -2199,7 +2199,7 @@ announced.\unsure{a few more closing words would be welcome.}
 \section{Implementation}
 \label{sec:implementation}
 
-We have written a prototype implementation of linear constraints on top of GHC 9.1, a version that already
+We have written a prototype implementation of linear constraints on top of \textsc{ghc} 9.1, a version that already
 ships with the LinearTypes extension. Function arrows (|->|) and context arrows
 (|=>|) share the same internal representation in the typechecker, differentiated
 only by a boolean flag. Thus, the LinearTypes implementation effort has already
@@ -2208,7 +2208,7 @@ multiplicity information.
 
 The key changes affect constraint generation and constraint solving. Constraints
 are now annotated with a multiplicity, scaled according to the usage environment
-from which they arise. With LinearTypes, GHC already does scaling for the usage
+from which they arise. With LinearTypes, \textsc{ghc} already does scaling for the usage
 of term variables, we simply needed to modify the scaling funcion to capture all
 the generated constraints and re-emit a scaled version of them -- a fairly local
 change.
@@ -2223,7 +2223,7 @@ equality constraints interact with other constraints by applying a substitution.
 The treatment of implication constraints is of particular interest.
 Implications, by their nature, introduce assumptions which do not necessarily
 hold in the outer context, therefore recording these assumptions in the inert
-set is a destructive operation. To ensure proper scoping, GHC creates a fresh
+set is a destructive operation. To ensure proper scoping, \textsc{ghc} creates a fresh
 copy of the inert set for each nested implication it solves, so these
 destructive operations do not leak out. We modify the inert set so that for each
 constraint stored in it, the level (or depth) of the implication is recorded
@@ -2248,15 +2248,15 @@ the implication.
 
 When a linear equality constraint is encountered, it is automatically promoted
 to an unrestricted one and handled accordingly. This may happen in many
-different scenarios, as the entailment relation of GHC's constraint domain does
+different scenarios, as the entailment relation of \textsc{ghc}'s constraint domain does
 produce many equalities, thus we need to ensure they are turned into
-unrestricted before interacting with the inert set. GHC core already represents
+unrestricted before interacting with the inert set. \textsc{ghc} core already represents
 the equality constraint as a boxed type, so we can simply modify it to store an
 unrestricted payload.
 
 As constraint solving proceeds, the compiler pipeline constructs a term in the
 intrinsically typed core language System FC~\cite{system-fc}, also
-known as GHC Core.
+known as \textsc{ghc} Core.
 In Core, type class constraints are turned into
 explicit evidences (see Section~\ref{sec:desugaring}). Thanks to being fully
 annotated, Core has decidable typechecking which is very useful in sanity
