@@ -2328,10 +2328,14 @@ linear $\klet$s are not that useful because they consume the linear constraint
 on the spot. Thus we argue that linear constraints should be generalised in
 $\klet$ bindings.
 
-In order to handle generalisation, we could include the~\rref*{G-LetGen} rule.
+\noindent
+To handle $\klet$-generalisation, we could include following rule
 
-\drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{LetGen}
+$$
+\drule{G-LetGen}
+$$
 
+\noindent
 We elected not to include this rule, as the way it stands, it is
 non-deterministic.  It requires finding some $[[Q_r]]$ and $[[Q]]$ that together
 entail the generated $[[C1]]$. It could be made deterministic by calling the
