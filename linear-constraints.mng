@@ -420,7 +420,6 @@ dubbed \emph{linear functions}, and written |a ⊸ b|\footnote{The linear functi
 \emph{Meaning of the linear arrow}:
 |f :: a ⊸ b| guarantees that if |(f u)| is consumed exactly once,
 then the argument |u| is consumed exactly once.
-\unsure{NW: do we really need to say ``consumed exactly once'' every time? How about just ``consumed'' and explain this is exactly once by default the first time?}
 \end{quote}
 To make sense of this statement we need to know what ``consumed exactly once'' means.
 Our definition is based on the type of the value concerned:
