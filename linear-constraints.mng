@@ -2332,7 +2332,7 @@ is not consumed. If, on the other hand, the let binding was unrestricted, then
 the program would fail to compile because the binding would have consumed |Open
 h0| $[[omega]]$ times. However in this latter case, even if we do end up calling
 |closer|, the program would still fail to typecheck. We expect users to mostly
-use unrestricted lets when working with linear constraints~\footnote{In fact, as
+use unrestricted lets when working with linear constraints\footnote{In fact, as
 of writing, Linear Haskell has no syntax for linear lets}, and the proposed
 generalisation strategy leads to consistent behaviour irrespective of the
 flavour of the let.
