@@ -2500,6 +2500,26 @@ break our proofs.
 \section{Conclusion}
 \label{sec:conclusion}
 
+This article shows how a simple linear type system like that of Linear
+Haskell can be extended with an inference mechanism which lets the
+compiler manage some of the additional complexity of linear types
+instead of the programmer. Linear constraints narrow the gap between a
+general purpose linearly typed language and language with dedicated
+linear-like typing disciplines such as Rust's, Mezzo's, or
+\textsc{ats}'s.
+
+In some case, like the file example of Section~\ref{sec:introduction},
+linear constraints are a mere convenience, reducing line noise and
+making code more idiomatic. But the memory management \textsc{api} of
+Section~\ref{sec:memory-ownership} is probably not feasible without
+linear constraints. Sure, we could manage the proofs of ownership
+manually, but it is hard to imagine a circumstance where such a
+tedious task would be worth the cost.
+
+And, this, really, is the philosophy of linear constraints: lowering
+the cost of linear types so that more theoretical application become
+practical.
+
 \printbibliography
 
 \appendix
