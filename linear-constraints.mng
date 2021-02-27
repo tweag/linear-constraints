@@ -1248,14 +1248,9 @@ linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{Outside
   \textsc{gadt}s.
 \item On the other hand, we have the type $[[exists as. t o= Q]]$, as
   introduced in Section~\ref{sec:what-it-looks-like}, together with
-  the $\kpack$ and $\kunpack$ constructions. This mostly acts as a
-  \textsc{gadt} with a single constructor. A specificity of
-  $[[exists as. t o= Q]]$, as we touched upon in
-  Section~\ref{sec:what-it-looks-like}, is that the $[[t]]$ component
-  is always unrestricted (as can be seen in rules~\rref*{E-Pack} and
-  \rref*{E-Unpack}). This is in no way an essential property, rather,
-  it is a convenience for the sake of exposition, as all the
-  existential types that we need for our examples are of this kind.
+  the $\kpack$ and $\kunpack$ constructions. It acts as a sort of
+  \textsc{gadt} with a single constructor (see rules~\rref*{E-Pack} and
+  \rref*{E-Unpack}).
 \item A more minor difference with OutsideIn is that we have an
   explicit \rref*{E-Sub} rule, while OutsideIn uses simple constraint
   entailment directly in the relevant rules. The \rref*{E-Sub} rule
