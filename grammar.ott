@@ -32,6 +32,8 @@ Q :: 'Ct_' ::= {{ com Constraints }}
 % Constraint solver
 | ctx ( UCtx )       :: M :: USolverCtx  {{ tex [[UCtx]] }}
 | ctx ( LCtx )       :: M :: LSolverCtx  {{ tex [[LCtx]] }}
+% Empty case
+| Top                ::   :: Top
 
 QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
 | Q                ::   :: GivenConstraint
@@ -223,7 +225,8 @@ terminals :: 'terminals_' ::=
 | \notin      ::   :: NotIn   {{ tex \notin }}
 | omega       ::   :: Many    {{ tex \omega }}
 | Sum         ::   :: BigSum  {{ tex \sum }}
-| empty       ::   :: emptyseq {{ tex ∙ }} % alternative ϵ
+| empty       ::   :: emptyseq {{ tex ∙ }} % alternative: ϵ
+| Top         ::   :: Top     {{ tex ⊤ }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

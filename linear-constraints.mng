@@ -2371,6 +2371,38 @@ implementation.
 \subsection{Empty cases}
 \label{sec:empty-cases}
 
+Throughout the article we have assumed that $\kcase$-expressions
+always have a non-empty list of alternatives. This is, incidentally,
+also how Haskell originally behaved; though \textsc{ghc} now has an
+|EmptyCase| extension to allow empty lists of alternatives.
+
+Not allowing empty lists of alternatives is, therefore not terrible in
+principle. Though it makes empty types more awkward than they need to
+be, and, of course, to support the entirety of \textsc{ghc}, we will
+need to support empty lists of alternatives.
+
+The reason why it has been omitted from the rest of the article is
+that generating constraints for an empty requires an $0$-ary version
+of $[[C1&C2]]$, usually written $[[Top]]$ in Linear Logic. The
+corresponding entailment rule would be
+
+$$
+\drule{C-Top}
+$$
+
+\noindent
+That is $[[Top]]$ is unconditionally true, and can consume any number
+of linear given constraints. The \rref*{C-Top} rule thus induces a
+considerable amount of non-determinism. Eliminating the
+non-determinism induced by $[[Top]]$ is ultimately
+what~\cite{resource-management-for-ll-proof-search} builds up
+to. Their methods can be adapted to the constraint solver of
+Section~\ref{sec:constraint-solver} without any technical
+difficulty. We chose, however, to keep empty cases out the
+presentation because has a very high overhead and would distract from
+the point. Instead, we refer readers
+to~\cite[Section 4]{resource-management-for-ll-proof-search} for a
+careful treatment of $[[Top]]$.
 
 \subsection{Related work}
 \label{sec:related-work}
