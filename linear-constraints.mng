@@ -2193,7 +2193,7 @@ $$
         & = & [[ case_1 z of { (z1, z2) -> case_omega Ds(z1;Q1;G1 |-
               e : T ts) of { < K xsi -> Ds(z2; Q2; G2, < xi :_(pi.pii)
               ui[ts/as] > |- ei : t)>}} ]] \\
-    [[ Ds(z;Q;G |- e : t) ]] & = & [[ let_1 z' = Ev(Q1 ||- Q) z in
+    [[ Ds(z;Q;G |- e : t) ]] & = & [[ let_1 z' = Ev(Q ||- Q1) z in
                                    Ds(z';Q1;G |- e : t) ]]
   \end{array}
 \right.
