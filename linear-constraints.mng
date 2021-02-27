@@ -732,13 +732,12 @@ ownership, one for reading, and one for writing:
 > class Own (n :: Location)
 
 
-Thanks to this extended set of constraints, programs are able to read
-or write to a memory reference without necessarily owning it. However,
-one cannot be writing unless we also have read access, so that a
-reader does not experience changes to a location while it is
-reading. This way we can additionally enforce consistency per memory
-location. Therefore we will systematically use the |RW| set of
-constraints, defined below, instead of |Write|.
+Thanks to this extended set of constraints, programs are able to read or write
+to a memory reference without necessarily owning it. To ensure consistency,
+writes can only be done when we are sure that no one else is reading. Therefore,
+writing also requires owning the read capability.
+We will systematically use the |RW| set of constraints, defined below, instead
+of |Write|.
 
 > type RW n = (Read n, Write n)
 
@@ -764,8 +763,8 @@ The reference is made available in a function which we call the
 \emph{scope} of the reference. The return type of the scope is,
 crucially, |Ur b|.  Indeed, if we would allow returning any type |b|
 then the |O n| constraint could be embedded in |b|, and therefore
-escape from the scope. This would be bad.
-It would effectively let |O n| be an unrestricted constraint, and
+escape from the scope.
+This would effectively let |O n| be an unrestricted constraint, and
 would no longer guarantee that the reference has a unique owner.
 
 To read a reference, a simple |Read| constraint is demanded, and
@@ -782,13 +781,14 @@ Deallocation consumes all linear constraints associated with |O n|.
 
 > freeRef :: O n =>. AtomRef a n -> ()
 
-As an alternative to freein the reference, one could transfer control
+As an alternative to freeing the reference, one could transfer control
 of the memory location to the garbage collector. This operation is
 sometimes called ``freezing'':
 
 > freezeRef :: O n =>. AtomRef a n -> Ur a
 
-With this toolkit set up, what about references to references; or,
+The toolkit we set up handles references to base types just fine.
+But what about references to references; or,
 indeed, arrays of arrays? A common example of plain Linear Haskell is
 a pure interface to mutable arrays, but it's terribly
 inconvenient to make mutable arrays of mutable arrays, at least if we
@@ -806,32 +806,35 @@ for deallocating |s|. This is what the type |PArray| lets us do
 > newPArray    :: (forall n. O n =>. PArray a n -> Ur b) ⊸ Ur b
 
 The key is that the kind of |a| is |Location ->
-Type|. This way we can easily enforce that every reference in the
-array refer to the same location |n|. Both types |AtomRef a| and
+Type|. This way we can easily enforce that each reference in the
+array refers to the same location |n|. Both types |AtomRef a| and
 |PArray a| have kind |Location -> Type|, and therefore one can allocate, and
 manipulate arrays of arrays with this \textsc{api}.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is relinquished to the array.
 
-> writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> (() .<= RW n)
+> writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> () .<= RW n
 
-More precisely, the ownership of the location |p| is absorbed in that
+More precisely, the ownership of the location |p| is absorbed into that
 of |n|. Therefore, the associated operational semantics is to move the
 reference inside the array (and deallocate any previous reference at that index).
 
 We still want to have read and write access to inner references, of
 course. To this effect we use |lendPArrayElt|
 
-> lendPArrayElt  :: RW n =>. PArray a n -> Int -> (forall p. RW p =>. a p -> (k .<= RW p)) ⊸ (k .<= RW n)
+> lendPArrayElt  :: RW n =>. PArray a n -> Int -> (forall p. RW p =>. a p -> r .<= RW p) ⊸ r .<= RW n
 
 The |lendPArrayElt a i k| primitive lends access to the reference at index |i| in
-|a|, to a scope functino |k| (in Rust terminology, the scope
-``borrows'' an element of the array). Crucially, with this \textsc{api}, |RW
-n| and |RW p| are never simultaneously available. The following
-function would not be sound
+|a|, to a scope function |k| (in Rust terminology, the scope
+``borrows'' an element of the array). Here, the return type of the scope, |r|,
+is not in |Ur|: indeed, since the scope must return the |RW p| constraint, it is
+not possible to leak it out by packing it into |r|, so it's not necessary to
+wrap the result in |Ur|.
+Crucially, with this \textsc{api}, |RW n| and |RW p| are never simultaneously
+available. The following function would not be sound
 
-> extractEltWrong  :: RW n =>. PArray a n -> Int -> (exists p. Ur (a p) .<= (RW n, RW p))
+> extractEltWrong  :: RW n =>. PArray a n -> Int -> exists p. Ur (a p) .<= (RW n, RW p)
 
 Indeed, when called from a context where the program owns |n|,
 |n| could immediately be deallocated, even though |RW
@@ -839,16 +842,20 @@ p| would remain available, letting us write to free memory. For the same reason,
 gaining read access to an element needs to be done using a
 scope \textsc{api} as well:
 
-> lendPArrayEltRead  :: Read n =>. PArray a n -> Int -> (forall p. Read p =>. a p -> (k .<= Read p)) ⊸ (k .<= Read n)
+> lendPArrayEltRead
+>   :: Read n =>. PArray a n -> Int
+>   -> (forall p. Read p =>. a p -> r .<= Read p)
+>   ⊸ r .<= Read n
 
 Finally, we can freeze arrays, and arrays of arrays or more, using the
-following primitives
+following primitive
 
 > freezePArray :: O n =>. PArray a n -> () <== Read n
-> readArray :: Read n => PArray a n -> Int -> a n
 
 After |freezePArray n|, we have unrestricted read access to |n| (or,
 indeed, any element of |n|), as expected.
+
+> readArray :: Read n => PArray a n -> Int -> a n
 
 \section{A qualified type system}
 \label{sec:qualified-type-system}
@@ -2209,7 +2216,7 @@ multiplicity information.
 The key changes affect constraint generation and constraint solving. Constraints
 are now annotated with a multiplicity, scaled according to the usage environment
 from which they arise. With LinearTypes, \textsc{ghc} already does scaling for the usage
-of term variables, we simply needed to modify the scaling funcion to capture all
+of term variables, we simply needed to modify the scaling function to capture all
 the generated constraints and re-emit a scaled version of them -- a fairly local
 change.
 
