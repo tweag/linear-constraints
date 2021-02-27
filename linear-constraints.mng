@@ -329,12 +329,15 @@ and explicit |pack'| annotations are used to indicate the variables that require
 special treatment. Crucially, the resource representing the open file no longer
 needs to be passed around manually.
 
-\paragraph{Our contributions are as follows}
-
+We start with some motivating examples that will illustrate the desired
+functionality of linear constraints~(\Fref{sec:motivation}),
+then, after demonstrating how our system works for memory
+ownership~(\Fref{sec:memory-ownership}) our contributions are as follows:
 \begin{itemize}
 \item A system of qualified types that allows a constraint assumption
   to be given a multiplicity. Linear assumptions are used precisely
-  once in the body of a definition.
+  once in the body of a definition
+  (\Fref{sec:qualified-type-system}).
 \item This system supports examples that have motivated the design of
   several resource-aware systems, such as ownership à la Rust, or
   capabilities in the style of Mezzo~\cite{mezzo-permissions}
@@ -346,18 +349,23 @@ needs to be passed around manually.
 \item A typechecking algorithm, based on a combination
   of~\cite{OutsideIn}
   and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point is incomprehensible without jumping to the bibliography, and having knowledge of those papers.}, that respects
-  the multiplicity of assumptions. We prove that this algorithm is
-  sound and complete with respect to our type system.\unsure{Can we
+  the multiplicity of assumptions. We prove that this algorithm is sound and
+complete with respect to our type system~(\Fref{sec:type-inference}).
+        \unsure{Can we
     have a concrete completeness result?}
 \item Our algorithm additionally desugars expressions in our qualified
   type system into a core language (directly inspired \jp{Isn't it more closely related than that? A variant of? A close cousin?}
   by Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
   prove that the output of desugaring is well-typed in the core
-  language.
+  language~(\Fref{sec:desugaring}).
 \end{itemize}
+We then outline our implementation of this system (\Fref{sec:implementation})
+and alternative extensions (\Fref{sec:design-decisions}). Finally, we discuss
+related work (\Fref{sec:related-work}) and conclude (\Fref{sec:conclusion})
 
 
 \section{Motivation}
+\label{sec:motivation}
 
 The goal of this paper is to introduce linear constraints as a mechanism for
 ergonomically using linear types in Haskell.  Of course, in order to appreciate
@@ -2267,7 +2275,7 @@ checking modifications to the compiler. Thus, the soundness of our
 implementation is verified by the Core typechecker, which already supports
 linearity.
 
-\section{Discussion}
+\section{Extensions}
 \label{sec:design-decisions}
 
 \csongor{intro}
@@ -2387,7 +2395,7 @@ the point. Instead, we refer readers
 to~\cite[Section 4]{resource-management-for-ll-proof-search} for a
 careful treatment of $[[Top]]$.
 
-\subsection{Related work}
+\section{Related work}
 \label{sec:related-work}
 
 \paragraph{Rust}
