@@ -866,7 +866,6 @@ indeed, any element of |n|), as expected.
 
 \section{A qualified type system}
 \label{sec:qualified-type-system}
-\unsure{Change $\kpack$ to be linear. Must fix Section 1 an 2 as well}
 
 Let us now describe the technical material which supports the
 examples of Section~\ref{sec:examples}. The presentation in this
