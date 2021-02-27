@@ -113,9 +113,9 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | e1 e2                  ::   :: App
 | pack e                 ::   :: Pack
 | unpack x = e1 in e2    ::   :: Unpack
-| let x = e1 in e2       ::   :: Let
-| let x : s = e1 in e2  ::   :: LetSig
-| case e of { alts }     ::   :: Case
+| LET x = e1 in e2       ::   :: Let
+| LET x : s = e1 in e2   ::   :: LetSig
+| CASE e of { alts }     ::   :: Case
 | ( e )                  :: S :: Paren
 % Cheating a little by adding desugared expressions to the same grammar below.
 % This is not formally correct, but it should do.
@@ -128,6 +128,12 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | ( e1 , e2 )            :: M :: Prod
 | ()                     ::   :: UnitCon
 | unpack ( pat1 , pat2 ) = e1 in e2    ::   :: UnpackProd
+
+CASE :: 'CaseHead_' ::= {{ com Case head }}
+| case_ pi   ::  :: Case {{ tex [[case]]_[[pi]] }}
+
+LET :: 'LetHead_' ::= {{ com Let head }}
+| let_ pi    ::  :: Let  {{ tex [[let]]_[[pi]] }}
 
 alt :: 'Alt_' ::= {{ com Case alternative }}
 | pat -> e              ::   :: Alt

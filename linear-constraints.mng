@@ -1133,9 +1133,9 @@ typing rules in Figure~\ref{fig:typing-rules}.\unsure{I [Arnaud] think that eith
     [[e]] & \bnfeq & [[x]] \bnfor [[K]] \bnfor [[\x. e]] \bnfor [[e1
                      e2]] \bnfor [[pack e]] & \text{Expressions}\\
                  &\bnfor & [[unpack x=e1 in
-                     e2]] \bnfor [[case e of { alts }]] &\\
-                 &\bnfor & [[let
-                     x=e1 in e2]] \bnfor [[let x : s = e1 in e2]] &
+                     e2]] \bnfor [[case_pi e of { alts }]] &\\
+                 &\bnfor & [[let_pi
+                     x=e1 in e2]] \bnfor [[let_pi x : s = e1 in e2]] &
   \end{array}
   $$
   \caption{Grammar of the qualified type system}

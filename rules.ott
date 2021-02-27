@@ -135,19 +135,19 @@ Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t
 Q1*Q;G1 |- e1 : t1
 Q2;G2,x:_pi Q =o t1 |- e2 : t
 --------------------------- :: Let
-pi.Q1*Q2 ;pi.G1+G2 |- let x = e1 in e2 : t
+pi.Q1*Q2 ;pi.G1+G2 |- let_pi x = e1 in e2 : t
 
 Q1*Q;G1 |- e1 : t1
 as fresh
 Q2;G2,x:_pi forall as.Q =o t1 |- e2 : t
 --------------------------- :: LetSig
-Q2 ;pi.G1+G2 |- let x : forall as.Q =o t1 = e1 in e2 : t
+Q2 ;pi.G1+G2 |- let x_pi : forall as.Q =o t1 = e1 in e2 : t
 
 Q1;G1 |- e : T ts
 < Ki : forall as. usi ->_pisi T as >
 < Q2; G2, < xi :_(pi.pii) ui[ts/as] > |- ei : t >
 ------------------------- :: Case
-pi.Q1*Q2;pi.G1+G2 |- case e of { alts } : t
+pi.Q1*Q2;pi.G1+G2 |- case_pi e of { alts } : t
 
 Q1;G |- e : t
 Q1 ||- Q
@@ -182,7 +182,7 @@ G |-> e : T ss ~> C
 Ki : forall as. usi ->_pisi T as
 D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci
 ------------------------------ :: Case
-pi.G + D |-> case e of {alts} : t ~> pi.C * && Ci
+pi.G + D |-> case_pi e of {alts} : t ~> pi.C * && Ci
 
 G1 |-> e1 : exists as. t1 o= Q1 ~> C1
 as fresh
@@ -198,19 +198,19 @@ G |-> pack e : exists as. t o= Q ~> C * Q[us/as]
 G1 |-> e1 : t1 ~> C1
 G2, x:_pi t1 |-> e2 : t ~> C2
 ------------------------------ :: Let
-pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.C1 * C2
+pi.G1+G2 |-> let_pi x = e1 in e2 : t ~> pi.C1 * C2
 
 G1 |-> e1 : t1 ~> C1
 Q_r * Q |- C1
 G2, x:_pi Q =o t1 |-> e2 : t ~> C2
 ------------------------------ :: LetGen
-pi.G1+G2 |-> let x = e1 in e2 : t ~> pi.Q_r * C2
+pi.G1+G2 |-> let_pi x = e1 in e2 : t ~> pi.Q_r * C2
 
 G1 |-> e1 : t1 ~> C1
 as fresh
 G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2
 ------------------------------ :: LetSig
-pi.G1+G2 |-> let x : forall as. Q =o t1 = e1 in e2 : t ~> C2 * pi.(Q => C1)
+pi.G1+G2 |-> let_pi x : forall as. Q =o t1 = e1 in e2 : t ~> C2 * pi.(Q => C1)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraint solver  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -300,10 +300,10 @@ G1+G2 |- unpack (y,x) = e1 in e2 : t
 G1 |- e1 : t1
 G2, x:_pi s |- e2 : t
 ----------------------------------- :: Let
-pi.G1 + G2 |- let x : s = e1 in e2 : t
+pi.G1 + G2 |- let_pi x : s = e1 in e2 : t
 
 G1 |- e : T ts
 < Ki : forall as. usi ->_pisi T as >
 <G2, < xi :_(pi.pii) ui[ts/as] > |- ei : t >
 ------------------------------------------------ :: Case
-pi.G1+G2 |- case e of { alts } : t
+pi.G1+G2 |- case_pi e of { alts } : t
