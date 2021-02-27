@@ -701,6 +701,7 @@ If it were not linear, the first argument |readLine h| of the first bind would
 not be able to consume the |Open h| constraint.
 
 \section{Application: memory ownership}
+\label{sec:memory-ownership}
 
 In Haskell, memory deallocation is normally the responsibility of a
 garbage collector. However, garbage collection comes with runtime
@@ -2406,6 +2407,40 @@ careful treatment of $[[Top]]$.
 
 \subsection{Related work}
 \label{sec:related-work}
+
+\paragraph{Rust}
+
+The memory ownership example of Section~\ref{sec:memory-ownership} is
+strongly inspired by Rust. There seems to be something inescapable
+about Rust's model (itself inspired by C++'s move semantic) of owned
+and borrowed reference as the \textsc{api} in
+Section~\ref{sec:memory-ownership} follows naturally from the
+requirements (namely a pure interface for a mutable array, and the
+ability to freeze arrays into an immutable but shareable). It is not
+clear that any other \textsc{api} could be essentially different.
+
+Rust, of course, is built around ownership and borrows for memory
+management. As a consequence, they have a much more convenient syntax
+than Linear Haskell with linear constraint can propose. Though Rust's
+convenient syntax comes at the price that it is almost impossible to
+write tail-recursive functions in Rust, which is surprising from the
+perspective of functional programming.
+
+On the other hand, the focus of Linear Haskell as well as linear
+constraints is to provide programmers with tools create safe
+interfaces in libraries. The language itself is agnostic about what
+linear constraints mean. If linear constraints don't have anywhere
+near the convenience of Rust's syntax, we expect that they will
+support a greater variety of abstraction. It is worth noting, though,
+that Rust programmers have come up with varied abstraction leveraging
+borrowing which go beyond memory management (for instance, safe file
+handling).
+
+Yet, if Section~\ref{sec:memory-ownership} shows how to make a
+Rust-like \textsc{dsl} in Haskell with linear constraints. It is not
+clear that it is possible at all to make a Linear-Haskell-like
+\textsc{dsl} in Rust. So, presumably, linear constraints are indeed
+more general.
 
 \section{Conclusion}
 \label{sec:conclusion}
