@@ -76,6 +76,7 @@ import GHC.Base
 %format exists = "\exists"
 %format forall = "\forall"
 %format pack = "\kpack"
+%format pack' = "\kpack!"
 %
 %format a1
 %format a_n
@@ -320,8 +321,8 @@ same as the traditional version above, with a few minor modifications:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =
-  do  {  pack f <- openFile fp
-      ;  pack xs <- readLine f
+  do  {  pack' f <- openFile fp
+      ;  pack' xs <- readLine f
       ;  closeFile f
       ;  return xs }
 \end{code}
@@ -396,8 +397,8 @@ closeFile  :: Handle ⊸ IOL ()
   \hfill
   \begin{subfigure}{.52\linewidth}
 \begin{code}
-openFile   :: FilePath -> IOL (exists h. Handle h .<= Open h)
-readLine   :: Open h =>. Handle h -> IOL (String .<= Open h)
+openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= Open h)
+readLine   :: Open h =>. Handle h -> IOL (Ur String .<= Open h)
 closeFile  :: Open h =>. Handle h -> IOL ()
 \end{code}
 \caption{Linear Constraints}
@@ -574,7 +575,7 @@ empty. This lets us give the following \textsc{api} to files:
 
 
 Haskell doesn't have existential quantification, however it can
-be encoded as a \textsc{gadt}. For instance |exists h. Handle h .<= Open h| can
+be encoded as a \textsc{gadt}. For instance |exists h. Ur (Handle h) .<= Open h| can
 be implemented as
 \unsure{We could use a |Proxy| instead. |Pack :: c a =>. Proxy a -> Pack c|, where |c :: * -> Constraint|}
 \jp{The following type should be called |OpenFileHandle| ? }
@@ -589,7 +590,8 @@ introduced by a data constructor, which we write as |pack|.
 
 When pattern-matching on a |pack| all the existentially quantified
 names are introduced in scope and all the returned constraints are
-made available. With all these ingredients we can indeed write
+made available. We also use |pack' x| as a shorthand for
+for |pack (Ur x)|. With all these ingredients we can indeed write
 the example given in the introduction.
 
 \unsure {Explain that existentially quantified type always have an
@@ -696,11 +698,11 @@ The reason bind needs to be linear is that, as explained in the previous
 section, a linear constraint can only be used\jp{used or consumed?} in a linear context. For the following
 program to typecheck, bind must be linear:
 \begin{code}
-readTwo ::  Open h =>. Handle h -> IOL ((String, String) .<= Open h)
+readTwo ::  Open h =>. Handle h -> IOL (Ur (String, String) .<= Open h)
 readTwo h =
-  readLine h >>= \case pack xs ->
-  readLine h >>= \case pack ys ->
-  return (pack (xs, ys))
+  readLine h >>= \case pack' xs ->
+  readLine h >>= \case pack' ys ->
+  return (pack' (xs, ys))
 \end{code}
 If it were not linear, the first argument |readLine h| of the first bind would
 not be able to consume the |Open h| constraint.
