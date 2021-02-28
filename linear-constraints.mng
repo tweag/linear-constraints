@@ -1575,7 +1575,7 @@ that the unrestricted context is shared between both sides.
   \item The~\rref*{S-Add} rule handles additive conjunction. Here, the linear
 constraints are also shared between the branches (since additive conjunction is
 generated from case expressions, only one of them is actually going to be
-executed). Note that both branches must consume exactly the same amount of
+executed). Note that both branches must consume exactly the same
 resources.
   \item Implications are handled by~\rref*{S-ImplOne} and~\rref*{S-ImplMany},
 for solving linear and unrestricted wanted implications respectively. In
@@ -1587,7 +1587,6 @@ Section~\ref{sec:simple-constr-solv} below), the linear assumptions are
 added to the front of the list. The side condition requires that the output
 context is a subset of the input context: this is to ensure that the implication
 actually consumes its assumption and doesn't leak it to the ambient context.
-That the correct one will be consumed is ensured by the~\rref*{AtomOneL} rule.
 Solving unrestricted implications only allows the conclusion of the implication
 to be solved using its own linear assumption, but none of the other linear
 constraints. This is because unrestricted implications only use their own
