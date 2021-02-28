@@ -1393,12 +1393,12 @@ remarks are in order
   constraints.
 
   This is easily understood in terms of the file example of
-  Section~\ref{sec:introduction}: if you close a file in one branch of
-  a $\kcase$, you better close it in the other branches too!
-  Otherwise, you'll end up, after the case in a state where it is
-  unknown, to the type system, whether the file is open or close.
+  Section~\ref{sec:introduction}:
+  if a file is closed in one branch of a $\kcase$, it had better be closed in
+the other branches too.
+  Otherwise, after the case its state will be unknown to the type system.
 
-  Why we don't have to make this distinction in an intuitionistic
+  The reason this distinction is not made in an intuitionistic
   system like the original OutsideIn is somewhat elucidated by the
   fact that $[[omega.(C1&C2)]] = [[omega.C1 * omega.C2]]$. In other
   words, in a purely unrestricted context, linear constraints don't
@@ -1426,7 +1426,7 @@ remarks are in order
 % the label to avoid dead links.
 \label{sec:constraint-generation-soundness}
 
-The crucial property of the constraint-generation algorithm is that,
+The key property of the constraint-generation algorithm is that,
 if the generated constraint is solvable, then we can indeed type the
 term in the qualified type system of
 Section~\ref{sec:qualified-type-system}. That is, we are not defining
