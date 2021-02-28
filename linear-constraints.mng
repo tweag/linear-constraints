@@ -242,14 +242,17 @@ import GHC.Base
 \ccsdesc[300]{Software and its engineering~Formal language definitions}
 
 \begin{abstract}
-This paper presents \emph{linear constraints}, a language feature that improves
-the ergonomics of using linear types by freeing programmers from having to
-manually pass around linear resource tokens. The resulting code retains the
-safety of the linear version while also keeping the simplicity of the
-traditional version. We present a qualified type system with linear constraints,
-and a typechecking algorithm. We prove the soundness of the algorithm with
-respect to the type system, and show how our changes can be integrated into
-|OutsideIn|, \textsc{ghc}'s existing constraint solver algorithm.
+  This paper presents \emph{linear constraints} a front-end feature to
+  linear typing which lets the compiler discharge some of the cost
+  associated with linear types from the programmer. Concretely, owe
+  introduce a \emph{linear fat arrow}, to the left of which,
+  constraints are solved according to the rules of linear logic.
+  %
+  Linear constraints are presented as a qualified type system,
+  together with an inference algorithm which extends of OutsideIn,
+  \textsc{ghc}'s existing constraint solver algorithm. Soundness of
+  linear constraints is ensured by the fact that they desugar into
+  Linear Haskell.
 \end{abstract}
 
 \maketitle
