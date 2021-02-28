@@ -1483,7 +1483,6 @@ in the supplementary material
 In this section,
 let us build a \emph{constraint solver} whose purpose it is to prove
 that $[[Q_g |- C]]$ holds, as required by Lemma~\ref{lem:generation-soundness}.
-
 The constraint solver is represented by the following judgement
 %
 $$
@@ -1492,13 +1491,11 @@ $$
 %
 The judgement
 takes in two contexts: $[[UCtx]]$, which holds all the unrestricted
-atomic constraints
-(scaled by $[[omega]]$) and $[[LCtx_i]]$, which holds all the linear
-atomic constraints. Due to the associativity and commutativity properties of $[[*]]$ we
+atomic constraints (scaled by $[[omega]]$) and $[[LCtx_i]]$, which holds all the linear
+atomic constraints. Due to associativity and commutativity of $[[*]]$ we
 can always factor any simple constraint into such a pair of contexts. The
-unrestricted context $[[UCtx]]$ is an unordered set of constraints, while the
-multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists of
-constraints.
+unrestricted context $[[UCtx]]$ is an unordered set, while the
+multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists.
 
 Linearity requires treating constraints as consumable resources. This
 is what $[[LCtx_o]]$ is for: it is the list of the hypotheses of
@@ -1516,10 +1513,9 @@ judgement.
   \item In case the wanteds can not be solved completely, OutsideIn also returns
 a set of \emph{residual} constraints: these are the remaining subproblems to
 solve. This set of residual constraints is simply quantified over in the type of
-top-level function definitions that don't have signatures. The residuals are
-essentially all of the wanteds that arise from the program that couldn't be
-solved from the global givens. In our solver we omit these residual constraints,
-because we never infer a type scheme for a let without a signature.
+top-level function definitions that don't have signatures. In our solver we omit these residual constraints,
+because we never infer a type scheme for a let without a signature
+(though we revisit this hypothesis in Section~\ref{sec:let-generalisation}).
 
 It is important to reiterate this
 distinction: OutsideIn's residual constraints are constraints from the
