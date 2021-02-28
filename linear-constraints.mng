@@ -1093,9 +1093,9 @@ declarative: it doesn't have any algorithmic properties. We will see
 how to infer constraints in Section~\ref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
 definition that programmers can reason about typing. Another
-thing of notice is that we will not attempt to give a dynamic
+thing of note is that we will not attempt to directly give a dynamic
 semantics to this language: instead we will give it meaning via
-desugaring to a simpler core language in Section~\ref{sec:desugaring}.\jp{Does this core language have a dynamic (operational?) semantics? if so then we do give an operational semantics, albeit indirectly.}
+desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 
 The main differences with OutsideIn, either for simplification, or for
 linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
