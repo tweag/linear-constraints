@@ -1957,7 +1957,7 @@ announced.
 
 Thanks to the desugaring machinery, the semantics of a language with linear
 constraints can be understood in terms of a simple core language with linear
-types, such as $λ^q$, or indeed, \textsc{ghc} Core, as we discuss next.
+types, such as $λ^q$, or indeed, \textsc{ghc} Core.
 
 \section{Implementation}
 \label{sec:implementation}
@@ -2042,7 +2042,7 @@ As discussed in Section~\ref{sec:constraint-generation}, the~\rref*{G-Let} rule
 of our constraint generator does not generalise the type of let bindings.
 Not doing let generalisation is in line with \textsc{ghc}'s existing
 behaviour~\cite[Section 4.2]{OutsideIn}. There, this behaviour was guided
-by concerns around inferring type variables, which become harder in the
+by concerns around inferring type variables, which is harder in the
 presence of local equality assumptions (that is, \textsc{gadt} pattern
 matching).
 
