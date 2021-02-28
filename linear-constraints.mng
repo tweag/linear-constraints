@@ -287,13 +287,6 @@ used in further interactions with the file. The line's content is a string
 |xs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
 signify that it can be used arbitrary many times.
 
-% We see that linear types introduce some noise on the |readLine| line:
-% we need to destruct an extra pair, and an extra |Ur| (called
-% |Unrestricted| in~\cite{LinearHaskell}), compared to the
-% traditional (albeit less safe)\unsure{It only gets worse in larger
-%   program. This makes the extra safety afforded by linear types too
-%   rarely worth it.}
-
 Compare this function with one would write in a non-linear language:
 \begin{code}
 firstLine :: FilePath -> IO String
