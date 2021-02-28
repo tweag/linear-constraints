@@ -1740,7 +1740,50 @@ type system.
 \end{proof}
 %else
 \begin{proof}
-By induction on $[[G |-> e : t ~> C]]$
+Soundness is proved by induction on $[[G |-> e : t ~> C]]$, we only
+present the two most interesting cases, the full proof can be found
+in the supplementary material
+  \begin{description}
+  \item[App] We have
+    \begin{itemize}
+    \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
+    \item $[[Q_g |- C1 * pi.C2]]$
+    \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
+    \item $[[G2 |-> e2 : t2 ~> C2]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such that
+    \begin{itemize}
+    \item $[[Q1 |- C1]]$
+    \item $[[Q2 |- C2]]$
+    \item $[[Q_g]] = [[Q1 * pi.Q2]]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
+    \item $[[Q2; G2 |- e2 : t2]]$
+    \end{itemize}
+    Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
+  \item[Unpack] We have
+    \begin{itemize}
+    \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q' => C2]]$
+    \item $[[Q_g |- C1 * Q' => C2]]$
+    \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
+    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
+    such that
+    \begin{itemize}
+    \item $[[Q_1 |- C1]]$
+    \item $[[Q_2 * Q' |- C2]]$
+    \item $[[Q_g]] = [[Q1 * Q2]]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
+    \item $[[Q_2*Q ; G2 |- e2 : t]]$
+    \end{itemize}
+    Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
+  \end{description}
 \end{proof}
 %endif
 
