@@ -1478,8 +1478,6 @@ constraint $[[C]]$.
 
 \info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
 
-\unsure{The case rule, for an empty case, implies the existence of the
-  typically annoying $⊤$. We will have to confront this.}
 \info{Not caring about inferences simplifies $\kpack$ quite a bit, we
   are using the pseudo-inferred type to generate constraint. In a real
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
