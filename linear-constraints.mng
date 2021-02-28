@@ -1582,7 +1582,7 @@ presents the rules of the constraint solver.
 
 \begin{figure}
   \centering\small
-  \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Simple, Mult, Add, ImplMany, ImplOne}
+  \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Simple, Mult, ImplOne, Add, ImplMany}
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
