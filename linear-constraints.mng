@@ -341,10 +341,7 @@ Our contributions are as follows:
   several resource-aware systems, such as ownership à la Rust (\Fref{sec:memory-ownership}), or
   capabilities in the style of Mezzo~\cite{mezzo-permissions}
   or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
-  may serve as a way to unify these lines of research.\unsure{Speak of
-  the Pony language? On the one hand Pony is a pretty cool piece of
-  tech, on the other hand, I don't know enough to say something
-  smart about it.}\unsure{Should we speak of typestate here?}
+  may serve as a way to unify these lines of research.
 \item A typechecking algorithm, based on a combination
   of~\cite{OutsideIn}
   and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point is incomprehensible without jumping to the bibliography, and having knowledge of those papers.}, that respects
