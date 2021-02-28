@@ -345,9 +345,9 @@ Our contributions are as follows:
 \item An inference algorithm, that respects the multiplicity of
   assumptions. We prove that this algorithm is sound with respect to
   our type system~(\Fref{sec:type-inference}).
-\item Our algorithm additionally desugars expressions in our qualified
-  type system into a core language (directly inspired \jp{Isn't it more closely related than that? A variant of? A close cousin?}
-  by Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
+\item Expressions in our qualified
+  type system desugar into a core language (directly adapted
+  from Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
   prove that the output of desugaring is well-typed in the core
   language~(\Fref{sec:desugaring}).
 \end{itemize}
@@ -2614,4 +2614,4 @@ practical.
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
 % LocalWords:  sequents implicational deallocate deallocating
-% LocalWords:  deallocated instantiations
+% LocalWords:  deallocated instantiations desugars
