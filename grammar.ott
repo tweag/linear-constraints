@@ -120,6 +120,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | LET x = e1 in e2       ::   :: Let
 | LET x : s = e1 in e2   ::   :: LetSig
 | CASE e of { alts }     ::   :: Case
+| mcase_ pi e of { alts } :: M :: MultilineCase {{ tex \begin{array}{ll} \multicolumn{2}{l}{\mathop{\kcase_[[pi]] } [[e]] \mathop{\keyword{of} } } \\ \quad & \left\{ \begin{array}{l}[[alts]]\end{array} \right\} \end{array} }}
 | ( e )                  :: S :: Paren
 % Cheating a little by adding desugared expressions to the same grammar below.
 % This is not formally correct, but it should do.
