@@ -505,6 +505,7 @@ closeFile :: Open h =>. Handle h -> IOL ()
 \end{code}
 
 There are a few things to notice:
+\unsure{NW: I think this first item can be dropped. Only the second point really needs to be made}
 \begin{itemize}
 \item First, there is a type variable |h| which did not exist in
   previous representation. In the representation of the Linear Haskell
