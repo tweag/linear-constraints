@@ -1043,6 +1043,7 @@ lemmas.
   \label{lem:q:promotion}
   If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
 \end{lemma}
+%if full
 \begin{proof}
   Let us prove this lemma by induction on the syntax of $[[Q2]]$:
   \begin{itemize}
@@ -1063,12 +1064,17 @@ lemmas.
       $[[pi.(rho.Q)]] = [[(pi.rho).Q]]$}
   \end{itemize}
 \end{proof}
+%else
+\begin{proof}
+  By induction on the syntax of $[[Q2]]$
+\end{proof}
+%endif
 
 \begin{lemma}[Inversion of promotion]
   \label{lem:q:scaling-inversion}
-  If $[[Q1 ||- pi.Q2]]$, then there exists $[[Q1']]$ such that
-  $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- Q2]]$
+  If $[[Q1 ||- pi.Q2]]$, then $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- Q2]]$ for some $[[Q']]$.
 \end{lemma}
+%if full
 \begin{proof}
   Let us prove this lemma by induction on the syntax of $[[Q2]]$
   \begin{itemize}
@@ -1091,7 +1097,11 @@ lemmas.
     the result is immediate.
   \end{itemize}
 \end{proof}
-
+%else
+\begin{proof}
+  By induction on the syntax of $[[Q2]]$
+\end{proof}
+%endif
 
 \subsection{Typing rules}
 \label{sec:typing-rules}
@@ -1414,6 +1424,7 @@ entailment relation.
   \label{lem:wanted:promote}
   If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
 \end{lemma}
+%if full
 \begin{proof}
   By induction on the syntax of $[[C]]$
   \begin{itemize}
@@ -1441,12 +1452,17 @@ entailment relation.
     In other words: $[[pi.Q |- pi.(rho.(Q=>C))]]$ as expected.
   \end{itemize}
 \end{proof}
+%else
+\begin{proof}
+  By induction on the syntax of $[[C]]$
+\end{proof}
+%endif
 
 \begin{lemma}[Inversion of promotion]
   \label{lem:wanted:demote}
-  If $[[Q |- pi.C]]$ then there exists $[[Q']]$ such that
-  $[[Q' |- C]]$ and $[[Q]] = [[pi.Q']]$
+  If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[Q]] = [[pi.Q']]$ for some $[[Q']]$
 \end{lemma}
+%if full
 \begin{proof}
   By induction on the syntax of $[[C]]$
   \begin{itemize}
@@ -1475,6 +1491,11 @@ entailment relation.
     immediately by Lemma~\ref{lem:inversion}.
   \end{itemize}
 \end{proof}
+%else
+\begin{proof}
+By induction on the syntax of $[[C]]$
+\end{proof}
+%endif
 
 
 
@@ -1570,6 +1591,7 @@ type system.
   For all $[[Q_g]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
 \end{lemma}
+%if full
 \begin{proof}
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
@@ -1716,6 +1738,11 @@ type system.
     Therefore $[[Q_g ; pi.G + D |- case_pi e of {alts} : t]]$.
   \end{description}
 \end{proof}
+%else
+\begin{proof}
+By induction on $[[G |-> e : t ~> C]]$
+\end{proof}
+%endif
 
 
 \subsection{Constraint solving}
@@ -2066,7 +2093,7 @@ routine.
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
 Definition~\ref{def:solver-soundness} we know that if
 $[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C~> empty ]]$, then
-$[[Q_g ; G |- e : t]]$ for $[[Q_g]] = [[UCtx]] [[*]] [[LCtx]]$
+$[[ctx(UCtx) * ctx(LCtx)  ; G |- e : t]]$.
 
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
 Core Calculus. Let us dedicate the rest of this section to describe
@@ -2080,7 +2107,7 @@ calculus, we will use the classic technique known as evidence-passing
 style\footnote{This technique is also often called dictionary-passing
   style because, in the case of type classes, evidences are
   dictionaries, and because type classes were the original form of
-  constraints in Haskell.}
+  constraints in Haskell.}.
 
 To do so, we shall require some more material from
 constraints. Namely, we will assume a type $[[Ev(q)]]$ for each atomic
