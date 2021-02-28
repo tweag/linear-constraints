@@ -1892,7 +1892,10 @@ types, type schemes, and terms of the Core Calculus.
 
 \subsubsection{Translating types}
 Type schemes $[[s]]$ are translated by turning the implicit argument $[[Q]]$
-into a function that takes the evidence of $[[Q]]$.
+into a function that takes the evidence of $[[Q]]$, and
+translating types $[[t]]$ proceeds as expected.
+
+\begin{minipage}{0.5\linewidth}
 %
 $$
 \left\{
@@ -1901,8 +1904,9 @@ $$
   \end{array}
 \right.
 $$
-Translating types $[[t]]$ proceeds as expected.
 %
+\end{minipage}%
+\begin{minipage}{0.5\linewidth}
 $$
 \left\{
   \begin{array}{lcl}
@@ -1911,6 +1915,7 @@ $$
   \end{array}
 \right.
 $$
+\end{minipage}
 
 \subsubsection{Translating terms}
 Let us finally build, given a derivation $[[Q;G |- e : t]]$, an expression
