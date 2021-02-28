@@ -288,9 +288,9 @@ firstLine fp =   do  {  h <- openFile fp
                      ;  closeFile h
                      ;  return xs }
 \end{code}
-
 This simple function opens a file, reads its first line, then closes
 it. Linearity ensures that the file handle |h| is consumed at the end.
+
 Forgetting to call |closeFile h| would result in a type error since |h| would
 remain unused at the end of the function. Notice that |readLine| consumes the
 file handle, and returns a fresh |h| that shadows the previous version, to be
@@ -306,12 +306,11 @@ firstLine fp = do  {  h <- openFile fp
                    ;  closeFile h
                    ;  return xs }
 \end{code}
-
 This style is less safe, because the type system does not keep track of the
 file handle. But it is also
 simpler: apparently, using a linear language means trading clarity for safety. When
 modelling a handle as a linear resource, the type system must know at all
-times where it is being consumed, so the file handle must be passed around
+times where it is being consumed, so the file handle is passed around
 manually, resulting in extra noise. 
 %
 But when reading the non-linear version, it is clear where the
