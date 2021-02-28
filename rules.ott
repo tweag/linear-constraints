@@ -146,8 +146,8 @@ Q2;G2,x:_pi forall as.Q =o t1 |- e2 : t
 Q2 ;pi.G1+G2 |- let_pi x : forall as.Q =o t1 = e1 in e2 : t
 
 Q1;G1 |- e : T ts
-< Ki : forall as. usi ->_pisi T as >
-< Q2; G2, < xi :_(pi.pii) ui[ts/as] > |- ei : t >
+Ki : forall as. usi ->_pisi T as
+Q2; G2, < xi :_(pi.pii) ui[ts/as] > |- ei : t
 ------------------------- :: Case
 pi.Q1*Q2;pi.G1+G2 |- case_pi e of { alts } : t
 
@@ -305,7 +305,7 @@ G2, x:_pi s |- e2 : t
 pi.G1 + G2 |- let_pi x : s = e1 in e2 : t
 
 G1 |- e : T ts
-< Ki : forall as. usi ->_pisi T as >
-<G2, < xi :_(pi.pii) ui[ts/as] > |- ei : t >
+Ki : forall as. usi ->_pisi T as
+G2, < xi :_(pi.pii) ui[ts/as] > |- ei : t
 ------------------------------------------------ :: Case
 pi.G1+G2 |- case_pi e of { alts } : t

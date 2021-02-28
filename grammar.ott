@@ -151,7 +151,7 @@ pat :: 'Pat_' ::= {{ com Patterns }}
 | urified ( Q ; pat )        :: M :: Urified  {{ tex \underline{[[pat]]}_{[[Q]]} }}
 | urified ( pat )            :: M :: UrifiedShortened  {{ tex \underline{[[pat]]} }}
 
-alts {{ tex \overline{\ottmv{K}\ \overline{\ottmv{x}_i } \to \ottnt{e}_i } }}
+alts {{ tex \overline{\ottmv{K}_i\ \overline{\ottmv{x}_i } \to \ottnt{e}_i } }}
   :: 'Alts_' ::= {{ com Case alternatives }}
 | empty                  ::   :: None
 | alt                    ::   :: One
