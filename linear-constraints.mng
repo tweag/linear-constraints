@@ -264,11 +264,10 @@ the Linear Haskell article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO
 monad}:
 \begin{code}
 firstLine :: FilePath -> IOL String
-firstLine fp =
-  do  {  h <- openFile fp
-      ;  (h, Ur xs) <- readLine h
-      ;  closeFile h
-      ;  return xs }
+firstLine fp =   do  {  h <- openFile fp
+                     ;  (h, Ur xs) <- readLine h
+                     ;  closeFile h
+                     ;  return xs }
 \end{code}
 
 This simple function opens a file, reads its first line, then closes
@@ -290,11 +289,10 @@ signify that it can be used arbitrary many times.
 Compare this function with one would write in a non-linear language:
 \begin{code}
 firstLine :: FilePath -> IO String
-firstLine fp =
-  do  {  h <- openFile fp
-      ;  xs <- readLine h
-      ;  closeFile h
-      ;  return xs }
+firstLine fp = do  {  h <- openFile fp
+                   ;  xs <- readLine h
+                   ;  closeFile h
+                   ;  return xs }
 \end{code}
 
 This style is less safe, because the type system does not keep track of the
@@ -320,11 +318,10 @@ With this extension, the final version of |firstLine| is almost the
 same as the traditional version above, with a few minor modifications:
 \begin{code}
 firstLine :: FilePath -> IOL String
-firstLine fp =
-  do  {  pack' h <- openFile fp
-      ;  pack' xs <- readLine h
-      ;  closeFile h
-      ;  return xs }
+firstLine fp = do  {  pack' h <- openFile fp
+                   ;  pack' xs <- readLine h
+                   ;  closeFile h
+                   ;  return xs }
 \end{code}
 The only changes from the unsafe version are that this version runs in the linear IO monad,
 and explicit |pack'| annotations are used to indicate the variables that require
@@ -658,10 +655,9 @@ section, a linear constraint can only be consumed in a linear context. For the
 following program to typecheck, bind must be linear:
 \begin{code}
 readTwo ::  Open h =>. Handle h -> IOL (Ur (String, String) .<= Open h)
-readTwo h =
-  readLine h >>= \case pack' xs ->
-  readLine h >>= \case pack' ys ->
-  return (pack' (xs, ys))
+readTwo h =  readLine h >>= \case pack' xs ->
+             readLine h >>= \case pack' ys ->
+             return (pack' (xs, ys))
 \end{code}
 If it were not linear, the first argument |readLine h| of the first bind would
 not be able to consume the |Open h| constraint.
@@ -808,10 +804,9 @@ p| would remain available, letting us write to free memory. For the same reason,
 gaining read access to an element needs to be done using a
 scope \textsc{api} as well:
 
-> lendPArrayEltRead
->   :: Read n =>. PArray a n -> Int
->   -> (forall p. Read p =>. a p -> r .<= Read p)
->   ⊸ r .<= Read n
+> lendPArrayEltRead    :: Read n =>. PArray a n -> Int
+>                      -> (forall p. Read p =>. a p -> r .<= Read p)
+>                      ⊸ r .<= Read n
 
 Finally, we can freeze arrays, and arrays of arrays or more, using the
 following primitive
@@ -1652,11 +1647,10 @@ takes great care to use the most recent occurrence of $[[q]]$
 the list). To understand why, consider the following example:
 \begin{code}
 f :: FilePath -> IOL ()
-f fp =
-  do  { pack h <- openFile fp
-      ; let  { cl :: Open h =>. IOL ()
-             ; cl = closeFile h }
-      ; cl }
+f fp =   do  {  pack h <- openFile fp
+             ;  let  {  cl :: Open h =>. IOL ()
+                     ;  cl = closeFile h }
+             ;  cl }
 \end{code}
 \noindent
 In this example it is quite clear, that the programmer meant for
@@ -2119,12 +2113,11 @@ this time, instead of executing |closeFile| directly, we assign it to a variable
 in a let binding:
 \begin{code}
 firstLine :: FilePath -> IOL String
-firstLine fp =
-  do  {  pack' h <- openFile fp
-      ;  let closer = closeFile h
-      ;  pack' xs <- readLine h
-      ;  closer
-      ;  return xs }
+firstLine fp =   do  {  pack' h <- openFile fp
+                     ;  let closer = closeFile h
+                     ;  pack' xs <- readLine h
+                     ;  closer
+                     ;  return xs }
 \end{code}
 This program looks reasonable; however, it is rejected. The type of
 |closer| is |IOL ()|, which means that the definition of |closer|
