@@ -2066,10 +2066,10 @@ consumes the linear constraint |Open h|. So, by the time we try to
 |readLine h|, the constraint is no longer available.
 
 What the programmer really meant, here, was for |closer| to have type
-|Open h =o IOL ()|. After all a |let| definition is not part of the
+|Open h =>. IOL ()|. After all a |let| definition is not part of the
 sequence of instructions, it is just a definition for later; it is not
 supposed to consume the current state of the file. With no let
-generalisation, the only way to give |closer| the type |Open h =o IOL
+generalisation, the only way to give |closer| the type |Open h =>. IOL
 ()| is to give |closer| a type signature. In current \textsc{ghc}, we
 can't write that signature down, since the type variable |h| is not
 bound in the program text, and there is no syntax for binding it
