@@ -2373,7 +2373,7 @@ $$
 \begin{code}
 Ds(z;Q;G |- x : u[ts/as])  =
     x z
-Ds(z;Q;G |- \x.e : t1 ->> t2)
+Ds(z;Q;G |- \x.e : t1 ->> t2) =
   \x. Ds(z;Q;G, Of pi x t1 |- e : t2)
 Ds(z;Q1*Q2; G1+G2 |- e1 e2 : t) =
   case_1 z of { (z1, z2) ->
