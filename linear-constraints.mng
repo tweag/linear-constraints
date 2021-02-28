@@ -900,7 +900,7 @@ duplicating the definition of higher-order functions (such as |map| and
 linear functions can be $\eta$-expanded into unrestricted function as
 explained in Section~\ref{sec:linear-types}. Functions taking
 constraint-qualified arguments are much rarer for non-linear
-constraint. So multiplicity-polymorphic constraints don't seem very
+constraints. So multiplicity-polymorphic constraints don't seem very
 useful, and it is not clear how to extend the constraint solver of
 Section~\ref{sec:constraint-solver} to multiplicity-polymorphic
 constraints.
