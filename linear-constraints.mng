@@ -1705,7 +1705,9 @@ the spirit of OutsideIn, |bad| is rejected.
 
 The semantics of our language is given by desugaring it into
 a simpler core language: a mild variant of the $λ^q$
-calculus from the Linear Haskell article~\cite{LinearHaskell}.
+calculus from the Linear Haskell article~\cite{LinearHaskell}. We
+define the core language's type system here; its operational semantics
+is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 
 \subsection{The core calculus}
 \label{sec:core-calculus}
