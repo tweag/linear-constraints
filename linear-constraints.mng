@@ -2451,7 +2451,7 @@ requirements (namely a pure interface for a mutable array, and the
 ability to freeze arrays into an immutable but shareable). It is not
 clear that any other \textsc{api} could be essentially different.
 
-Rust, of course, is built around ownership and borrows for memory
+Rust is built around ownership and borrows for memory
 management. As a consequence, they have a much more convenient syntax
 than Linear Haskell with linear constraint can propose. Though Rust's
 convenient syntax comes at the price that it is almost impossible to
