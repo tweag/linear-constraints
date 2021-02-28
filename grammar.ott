@@ -240,8 +240,6 @@ formula :: formula_ ::=
   {{ tex [[formula]] \ottlinebreakhack }}
   % See ottalt, sec. 1.1
 | formula1 .... formulai          ::   :: dots
-| freshness condition on as       ::   :: freshness
-  {{ tex \text{freshness condition on } [[as]] }}
 | as fresh                        ::   :: fresh
   {{ tex [[as]] \text{ fresh} }}
 | < formula >                     ::   :: Repeat
