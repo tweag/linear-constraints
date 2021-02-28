@@ -1020,8 +1020,7 @@ Section~\ref{sec:type-inference}.
 An important feature of simple constraints is that, while scaling
 syntactically happens at the level of atomic constraints, the properties
 of scaling stated in Figure~\ref{fig:entailment-relation} extend
-to scaling of arbitrary constraints, as we prove in the two following
-lemmas.
+to scaling of arbitrary constraints
 
 \begin{lemma}[Promotion]
   \label{lem:q:promotion}
@@ -1049,9 +1048,6 @@ lemmas.
   \end{itemize}
 \end{proof}
 %else
-\begin{proof}
-  By induction on the syntax of $[[Q2]]$
-\end{proof}
 %endif
 
 \begin{lemma}[Inversion of promotion]
@@ -1082,9 +1078,6 @@ lemmas.
   \end{itemize}
 \end{proof}
 %else
-\begin{proof}
-  By induction on the syntax of $[[Q2]]$
-\end{proof}
 %endif
 
 \subsection{Typing rules}
@@ -1433,9 +1426,6 @@ entailment relation.
   \end{itemize}
 \end{proof}
 %else
-\begin{proof}
-  By induction on the syntax of $[[C]]$
-\end{proof}
 %endif
 
 \begin{lemma}[Inversion of promotion]
@@ -1472,9 +1462,6 @@ entailment relation.
   \end{itemize}
 \end{proof}
 %else
-\begin{proof}
-By induction on the syntax of $[[C]]$
-\end{proof}
 %endif
 
 
