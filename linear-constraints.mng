@@ -1766,11 +1766,7 @@ In addition, we shall assume the existence of data types
 \item $[[Ur t]]$ with sole constructor $[[ Ur : forall a. a ->_omega
   Ur a]]$
 \end{itemize}
-\unsure{As I'm writing this I realise that there is no mention that
-  data constructors are treated as variables. It should probably be
-  somewhere in English, as well as in the definition of
-  $[[x :_1 forall as. u \in G]]$}
-
+%
 \noindent
 These are regular data types and constructors of the language, they
 are consumed with $\kcase$.
