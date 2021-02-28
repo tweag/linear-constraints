@@ -1085,11 +1085,7 @@ to scaling of arbitrary constraints
 
 With this material in place, we can present our type system. The
 grammar is given in Figure~\ref{fig:declarative:grammar}, and the
-typing rules in Figure~\ref{fig:typing-rules}.\unsure{I [Arnaud] think that either
-  the subsumption should be removed from the Var rule (using the Sub
-  rule explicitly when needed), or, I should remove the Sub rule and
-  use subsumption wherever relevant (in particular the Pack
-  rule). Let's revisit this when the proofs are done.}
+typing rules in Figure~\ref{fig:typing-rules}.
 
 \begin{figure}
   \centering
@@ -1552,8 +1548,6 @@ Section~\ref{sec:qualified-type-system}. That is, we are not defining
 a new type system but indeed an inference algorithm for the qualified
 type system.
 
-\unsure{Can I make all these item descriptions hyperlinks to the rule? It
-  would be fantastic!}
 \begin{lemma}[Soundness of constraint generation]\label{lem:generation-soundness}
   For all $[[Q_g]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
