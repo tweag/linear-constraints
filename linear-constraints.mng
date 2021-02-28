@@ -448,53 +448,28 @@ g x = f x
 The type of |g| makes no particular guarantees about the way in which it uses |x|;
 in particular, |g| can pass that argument to |f|.
 
-The example in the previous section makes use of |readLine :: Handle ->. IOL (Handle, String)|.
-This appears to return a new file\jp{Handle? (handles are already 'names' for files)}, but really, it returns a new name for
-the same file. The trick is that there is only ever one of
-these names in scope at any given time, and this one name\jp{This paragraph is making a confusion between scoping and consumption. 'consume exactly once' is defined for values, not names.} must be
-consumed exactly once. In other words, the name is a linear
-variable. It can, therefore, only be consumed by linear
-functions. This is why the type of |readLine| is a linear function;
-and it is also why it must return a new name for the file: passing the
-name to |readLine| consumes the name and we don't want |readLine|
-to close the file. Ultimately, we will have to call |closeFile| to
-consume the name without creating a new one (remember: we need to consume
-the name \emph{exactly} once, not at most once). The type system
-ensures that we do so exactly once.
+The example in the previous section makes use of |readLine :: Handle ->. IOL
+(Handle, String)|. Since this is a linear function the input handle must be
+consumed exactly once and can therefore no longer be used to close the file:
+doing so would result in a type error.  To resolve this, a new handle for the
+same file is produced that can be used with |closeFile|. In the code, the same
+name |h| is given to the new handler, thus shadowing the old |h| that can no
+longer be used anyway, and to give the illusion that it is being passed around.
 
-From the perspective of the programmer, this is unwanted boilerplate.
-Why do we have to manage a bunch of names to help a compiler count? Surely this
-can be handled by the typechecker automatically. And, indeed, compilers with \emph{ad hoc}
-specialised logic allow us to write essentially the traditional program but
-with the guarantee that if we forget to |closeFile|, then we will
-get a type error.
-This is most notably the case of the
-\textsc{ats}~\cite{AtsLinearViews}, and Mezzo~\cite{mezzo-permissions}
-languages.\unsure{Both \textsc{ats} and Mezzo
-  are specialised in handling pointers-and-mutations, rather than
-  file. So the sentence above is a little bit of a lie. Either
-  rephrase to say that we can write programs of \emph{this type}, or
-  use an array example instead of a file example. Though I think that
-  the file example is a better introduction.}
+From the perspective of the programmer, this is unwanted boilerplate. Using
+shadowing is a trick that hides an underlying problem that should not exist:
+it is not the handler that should be consumed by |readLine| at all.  Rather, it
+is its implicit state as a handler for an open file  that should be consumed
+exactly once. Once this open state is consumed, the handler can no longer be read
+from or closed without triggering a compile time error.
 
-\unsure{Maybe we want to hammer in the fact that, in Linear Haskell,
-  there is no use case natively understood by the compiler. Every
-  abstraction is built user-side. \textsc{Ats}'s views are closest to
-  what we are doing, though seems to only be geared towards pointers.}
-In this article we introduce a generic extension to Linear Haskell,
-which lets the typechecker handle the counting.
-There is a bit of boilerplate left, but it doesn't involve managing
-names to please the compiler. This considerably lowers the cost of
-using a linear-type based abstraction.\unsure{I'm trying to get at the
-  cost/benefit analysis thing and how it matters a lot, but I haven't
-  found a convincing way to do so without ranting for a page or so,
-  I'll get back to this when the rest of the paper is written and I
-  revisit the introduction.}
-
+In this article we introduce a generic extension to Linear Haskell which lets
+the typechecker handle this. There is a bit of boilerplate left, but it doesn't
+involve managing names. This considerably lowers the cost of using a linear-type
+based abstraction.
 
 \subsection{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
-
 
 Consider the Haskell function |show|:
 \begin{code}
