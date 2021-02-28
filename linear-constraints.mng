@@ -975,7 +975,6 @@ $$
   \end{array}
 \right.
 $$
-\unsure{Rendering}
 %
 The rule that $[[omega.(Q1 * Q2)]] = [[omega.Q1 * omega.Q2]]$ is not a
 typical feature of linear logic. Linear Haskell, however, introduces
