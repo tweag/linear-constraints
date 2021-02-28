@@ -617,22 +617,22 @@ appears as an argument to a linear function (whose result is consumed linearly).
 \subsubsection{Overusing}
 \label{sec:overusing}
 
-Finally, consider the following program:
+Finally, consider the following program, which should be rejected:
 \begin{code}
 overusing :: C =>. (Int, Int)
 overusing = (useC, useC)
 \end{code}
-Naturally, this is program is rejected, because it uses |C| twice. However, the
+This is program is rejected because it uses |C| twice. However, the
 following version is accepted:
 \begin{code}
 notOverusing :: (C, C) =>. (Int, Int)
 notOverusing = (useC, useC)
 \end{code}
 That is, it is possible to have multiple copies of a given
-constraint. We design our system so that the order of resolution is
+constraint. Our system is designed so that the order of resolution is
 non-deterministic. This corresponds to the assumption that all
 instances of a linear constraint are equivalent. Consequently, if an
-\textsc{api} uses linear constraints, it needs to be designed to ensure that the
+\textsc{api} uses linear constraints, it must be designed to ensure that the
 runtime behaviour is not dependent on the order of constraint
 resolution.  \unsure{Linear constraints have no runtime payload, or
   even if they did, they would not be observable (safely) as
