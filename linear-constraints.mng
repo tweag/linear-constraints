@@ -1284,11 +1284,12 @@ simpler.
   \label{fig:wanted:entailment}
 \end{figure}
 
-Note that it's always a simple constraint entails a wanted: we
+Note that simple constraints always entail a wanted: we
 generate wanted constraints, but programs only mention simple
 constraints, and the left-hand side does come from the program. It is
 possible to relax the syntax of the left-hand some,
-though~\cite{quantified-constraints}, which current \textsc{ghc} does.
+\unsure{What does ``left-hand some'' mean?}
+though~\cite{quantified-constraints}, which \textsc{ghc} does.
 
 Before we move on to constraint generation proper, let us prove a few
 technical, yet essential, lemmas about the wanted-constraint
