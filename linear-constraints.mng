@@ -1898,6 +1898,8 @@ conclusion, the translation is defined recursively on the
 whole typing derivation, in particular we have access to typing rule
 premises in the body of the definition.
 
+We present some of the interesting cases.
+
 %{
 %format |- = "[[|-]]"
 %format ||- = "[[||-]]"
@@ -1923,60 +1925,6 @@ premises in the body of the definition.
 %format z1 = "[[z1]]"
 %format z2 = "[[z2]]"
 %format z2' = "[[z2]]''"
-
-%
-%if full
-$$
-\left\{
-  \begin{array}{lcl}
-    [[ Ds(z;Q;G |- x : u[ts/as]) ]] & = & [[ x z ]] \\
-    [[ Ds(z;Q;G |- \x.e : t1 ->_pi t2) ]] & = & [[ \x. Ds(z;Q;G,x:_pi t1
-                                              |- e : t2) ]] \\
-    [[ Ds(z;Q1*Q2; G1+G2 |- e1 e2 : t) ]]
-        & = & [[ case_1 z of { (z1, z2) -> Ds(z1;Q1;G1 |- e1 : t1 ->_1 t)
-              Ds(z2;Q2;G2 |- e2 : t1) } ]] \\
-    [[ Ds(z;Q1*omega.Q2; G1+omega.G2 |- e1 e2 : t) ]]
-        & = & [[ case_1 z of { (z1, urified(z2))
-              -> Ds(z1;Q1;G1 |- e1 : t1 ->_omega t)
-              Ds(z2;Q2;G2 |- e2 : t1) } ]] \\
-    [[ Ds(z;Q * Q1[us/as];G |- pack e : exists as. t o=
-    Q1)]]
-        & = & [[ case_1 z of { (z', z'')
-              -> pack (z'', Ds(z'; Q ; G |- e : t[us/as]))} ]] \\
-    [[ Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t) ]]
-        & = & [[ case_1 z of { (z1, z2) -> unpack (z',x) =
-              Ds(z';Q1;G1 |- e1 : exists as. t1 o= Q) in let_1 z2' =
-              (z2,z') in Ds(z2';Q2 * Q;G2,x:_1 t1 |- e2 : t)
-              } ]] \\
-    [[ Ds(z;Q1 * Q2 ;G1+G2 |- let_1 x = e1 in e2 : t) ]]
-        & = & [[ case_1 z of { (z1, z2) -> let_1 x : Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
-              t1) in Ds(z2;Q2;G2,x:_1 t1 |- e2 : t)} ]] \\
-    [[ Ds(z;omega.Q1 * Q2 ;omega.G1+G2 |- let_omega x = e1 in e2 : t) ]]
-        & = & [[ case_1 z of { (urified(z1), z2) -> let_omega x : Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
-              t1) in Ds(z2;Q2;G2,x:_omega t1 |- e2 : t)} ]] \\
-    [[ Ds(z;Q1 * Q2 ;G1+G2 |- let_1 x : forall as. Q =o t1 = e1 in e2 : t) ]]
-        & = & [[ case_1 z of { (z1, z2) -> let_1 x : forall as. Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
-              t1) in Ds(z2;Q2;G2,x:_1 forall as. Q =o t1 |- e2 : t)} ]] \\
-    [[ Ds(z;omega.Q1 * Q2 ;omega.G1+G2 |- let_omega x : forall as. Q =o t1 = e1 in e2 : t) ]]
-        & = & [[ case_1 z of { (urified(z1), z2) -> let_omega x : forall as. Ev(Q) ->_1 t1 = Ds(z1;Q1*Q;G1 |- e1 :
-              t1) in Ds(z2;Q2;G2,x:_omega t1 |- e2 : t)} ]] \\
-    [[ Ds(z;omega.Q1*Q2;omega.G1+G2 |- case_1 e of { alts } : t) ]]
-        & = & [[ case_1 z of { (urified(z1), z2) -> case_1 Ds(z1;Q1;G1 |-
-              e : T ts) of { < K xsi -> Ds(z2; Q2; G2, < xi :_(pi.pii)
-              ui[ts/as] > |- ei : t)>}} ]] \\
-    [[ Ds(z;Q1*Q2;G1+G2 |- case_omega e of { alts } : t) ]]
-        & = & [[ case_1 z of { (z1, z2) -> case_omega Ds(z1;Q1;G1 |-
-              e : T ts) of { < K xsi -> Ds(z2; Q2; G2, < xi :_(pi.pii)
-              ui[ts/as] > |- ei : t)>}} ]] \\
-    [[ Ds(z;Q;G |- e : t) ]] & = & [[ let_1 z' = Ev(Q ||- Q1) z in
-                                   Ds(z';Q1;G |- e : t) ]]
-  \end{array}
-\right.
-$$
-%else
-
-We present some of the interesting cases.
-
 \begin{code}
 Ds(z;Q;G |- x : Sub u ts as) = x z
 Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t)  =
@@ -1986,9 +1934,11 @@ Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t)  =
     Ds(z2';Q2 * Q;G2, OneOf x t1 |- e2 : t) }
 Ds(z;Q;G |- e : t)  =
   let_1 z' = Ev(Q ||- Q1) z in Ds(z';Q1;G |- e : t)
+...
 \end{code}
 
-%
+%}
+
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
@@ -1998,14 +1948,11 @@ it contains is passed to $[[e2]]$. Finally, subsumption summons the function cor
 and applies it to $[[z]]$ : $[[Ev(Q)]]$ then proceeds to desugar $[[e]]$ with the resulting evidence for $[[Q1]]$.
 Crucially, since $[[Ds(Hole)]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
 Namely, $[[Q1]]$ is available in this last case from the~\rref*{E-Sub} rule's premise.
-%endif
 
 It is straightforward by induction, to verify that, indeed,
 $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
 announced.\unsure{a few more closing words would be welcome.}
 
-
-%}
 \section{Implementation}
 \label{sec:implementation}
 
@@ -2362,6 +2309,104 @@ Figure~\ref{fig:full:core-typing-rules}.
   \caption{Core calculus type system}
   \label{fig:full:core-typing-rules}
 \end{figure}
+
+\subsection{Desugaring}
+\label{sec:appendix:desugaring}
+
+The complete definition of the desugaring function from
+Section~\ref{sec:desugaring} can be found below.
+
+%{
+%format (Ds(x)) = "\ottkw{Ds}\,\ottsym{(}" x "\ottsym{)}"
+%format * = "[[*]]"
+%format ** = "\mathbin{⋅}"
+%format ->. = "\to_{1}"
+%format ->> = "\to_{\pi}"
+%format ->>> = "\to_{\omega}"
+%format Ev(x) = "\ottkw{Ev}\,\ottsym{(}" x "\ottsym{)}"
+%format G = "[[G]]"
+%format G1 = "[[G1]]"
+%format G2 = "[[G2]]"
+%format ListOf (b) = "\overline{" b "}"
+%format Of (w) (a) (b) = a"\mathop{:_{" w "}}"b
+%format OneOf (a) (b) = a"\mathop{:_{1}}"b
+%format Q1 = "[[Q1]]"
+%format Q2 = "[[Q2]]"
+%format Sub t as bs = t "[" as "/" bs "]"
+%format alts = "[[alts]]"
+%format as = "[[as]]"
+%format case_1 = "[[case_1]]"
+%format case_omega = "[[case_omega]]"
+%format e1 = "[[e1]]"
+%format e2 = "[[e2]]"
+%format ei = "[[ei]]"
+%format let_1 = "[[let_1]]"
+%format let_omega = "[[let_omega]]"
+%format omega = "[[omega]]"
+%format pi = "[[pi]]"
+%format pii = "[[pii]]"
+%format t = "[[t]]"
+%format t1 = "[[t1]]"
+%format t2 = "[[t2]]"
+%format ts = "[[ts]]"
+%format u = "[[u]]"
+%format ui = "[[ui]]"
+%format unpack = "\ottkw{unpack}"
+%format urified(x) = "\underline{" x "}"
+%format us = "[[us]]"
+%format xi = "[[xi]]"
+%format xsi = "[[xsi]]"
+%format z1 = "[[z1]]"
+%format z2 = "[[z2]]"
+%format z2' = "[[z2]]''"
+%format |- = "[[|-]]"
+%format ||- = "[[||-]]"
+\begin{code}
+Ds(z;Q;G |- x : u[ts/as])  =
+    x z
+Ds(z;Q;G |- \x.e : t1 ->> t2)
+  \x. Ds(z;Q;G, Of pi x t1 |- e : t2)
+Ds(z;Q1*Q2; G1+G2 |- e1 e2 : t) =
+  case_1 z of { (z1, z2) ->
+    (Ds(z1;Q1;G1 |- e1 : t1 ->. t)) (Ds(z2;Q2;G2 |- e2 : t1)) }
+Ds(z;Q1* omega ** Q2; G1+ omega ** G2 |- e1 e2 : t) =
+  case_1 z of { (z1, urified(z2)) ->
+    (Ds(z1;Q1;G1 |- e1 : t1 ->>> t)) (Ds(z2;Q2;G2 |- e2 : t1)) }
+Ds(z;Q * Sub Q1 us as;G |- pack e : exists as. t .<= Q1) =
+  case_1 z of { (z', z'') ->
+    pack (z'', Ds(z'; Q ; G |- e : Sub t us as))}
+Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t) =
+  case_1 z of { (z1, z2) ->
+    unpack (z',x) = Ds(z';Q1;G1 |- e1 : exists as. t1 .<= Q) in
+    let_1 z2' = (z2,z') in
+    Ds(z2';Q2 * Q;G2, OneOf x t1 |- e2 : t)}
+Ds(z;Q1 * Q2 ;G1+G2 |- let_1 x = e1 in e2 : t) =
+  case_1 z of { (z1, z2) ->
+    let_1 x : Ev(Q) ->. t1 = Ds(z1;Q1*Q;G1 |- e1 : t1)
+    in Ds(z2;Q2;G2, OneOf x t1 |- e2 : t)}
+Ds(z;omega ** Q1 * Q2 ;omega ** G1+G2 |- let_omega x = e1 in e2 : t) =
+  case_1 z of { (urified(z1), z2) ->
+    let_omega x : Ev(Q) ->. t1 = Ds(z1;Q1*Q;G1 |- e1 : t1) in
+    Ds(z2;Q2;G2, Of omega x t1 |- e2 : t)}
+Ds(z;Q1 * Q2 ;G1+G2 |- let_1 x : forall as. Q =>. t1 = e1 in e2 : t) =
+  case_1 z of { (z1, z2) ->
+    let_1 x : forall as. Ev(Q) ->. t1 = Ds(z1;Q1*Q;G1 |- e1 : t1) in
+    Ds(z2;Q2;G2, OneOf x (forall as. Q =>. t1) |- e2 : t)}
+Ds(z;omega ** Q1 * Q2 ;omega ** G1+G2 |- let_omega x : forall as. Q =>. t1 = e1 in e2 : t) =
+  case_1 z of { (urified(z1), z2) ->
+    let_omega x : forall as. Ev(Q) ->. t1 = Ds(z1;Q1*Q;G1 |- e1 : t1) in
+    Ds(z2;Q2;G2, Of omega x t1 |- e2 : t)}
+Ds(z;omega ** Q1*Q2;omega ** G1+G2 |- case_1 e of { alts } : t)  =
+  case_1 z of { (urified(z1), z2) ->
+    case_1 (Ds(z1;Q1;G1 |- e : T ts)) of
+      { ListOf(K xsi -> Ds(z2; Q2; G2, ListOf(Of ((pi ** pii)) xi (Sub ui ts as)) |- ei : t))}}
+Ds(z;Q1*Q2;G1+G2 |- case_omega e of { alts } : t)  =
+  case_1 z of { (z1, z2) ->
+    case_omega (Ds(z1;Q1;G1 |- e : T ts)) of
+      { ListOf(K xsi -> Ds(z2; Q2; G2, ListOf(Of ((pi**pii)) xi (Sub ui ts as)) |- ei : t))}}
+\end{code}
+
+%}
 
 
 \section{Proofs of the lemmas}
