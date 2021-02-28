@@ -1744,7 +1744,7 @@ Soundness is proved by induction on $[[G |-> e : t ~> C]]$, we only
 present the two most interesting cases, the full proof can be found
 in the supplementary material
   \begin{description}
-  \item[App] We have
+  \item[\rref*{E-App}] We have
     \begin{itemize}
     \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
     \item $[[Q_g |- C1 * pi.C2]]$
@@ -1763,7 +1763,7 @@ in the supplementary material
     \item $[[Q2; G2 |- e2 : t2]]$
     \end{itemize}
     Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
-  \item[Unpack] We have
+  \item[\rref*{E-Unpack}] We have
     \begin{itemize}
     \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q' => C2]]$
     \item $[[Q_g |- C1 * Q' => C2]]$
