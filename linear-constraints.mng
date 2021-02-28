@@ -1793,19 +1793,7 @@ style\footnote{This technique is also often called dictionary-passing
 
 To do so, we shall require some more material from
 constraints. Namely, we will assume a type $[[Ev(q)]]$ for each atomic
-constraint. It is extended to all simple constraints
-%
-$$
-\left\{
-  \begin{array}{lcl}
-    [[Ev(1.q)]] & = & [[Ev(q)]] \\
-    [[Ev(omega.q)]] & = & [[Ur (Ev(q))]] \\
-    [[Ev(Empty)]] & = & [[unit]] \\
-    [[Ev(Q1 * Q2)]] & = & [[Ev(Q1) * Ev(Q2)]]
-  \end{array}
-\right.
-$$
-
+constraint, defined in Figure~\ref{fig:evidence}.  It is extended to all simple constraints.
 It ought to be noted that $[[Ev(Q)]]$ is not technically well defined, as the
 rules in Section~\ref{sec:constraint-domain} define the syntax as being
 quotiented by associativity and commutativity of the tensor product, and
@@ -1885,7 +1873,24 @@ premises in the body of the definition.
 %
 We present some of the interesting cases in Figure~\ref{fig:desugaring}.
 \begin{figure}
-  \centering\small
+  \centering
+  \begin{subfigure}{0.3\linewidth}%
+
+\small
+$$
+\left\{
+  \begin{array}{lcl}
+    [[Ev(1.q)]] & = & [[Ev(q)]] \\
+    [[Ev(omega.q)]] & = & [[Ur (Ev(q))]] \\
+    [[Ev(Empty)]] & = & [[unit]] \\
+    [[Ev(Q1 * Q2)]] & = & [[Ev(Q1) * Ev(Q2)]]
+  \end{array}
+\right.
+$$
+  \caption{Evidence passing}
+  \label{fig:evidence}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.7\linewidth}%
 %{
 %format |- = "[[|-]]"
 %format ||- = "[[||-]]"
@@ -1911,7 +1916,7 @@ We present some of the interesting cases in Figure~\ref{fig:desugaring}.
 %format z1 = "[[z1]]"
 %format z2 = "[[z2]]"
 %format z2' = "[[z2]]''"
-$$
+$$\small
 \left\{
   \;
   \begin{minipage}{0.5\linewidth}
@@ -1932,6 +1937,8 @@ $$
 %}
   \caption{Desugaring (subset)}
   \label{fig:desugaring}
+  \end{subfigure}
+  \caption{Evidence passing and desugaring}
 \end{figure}
 
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
