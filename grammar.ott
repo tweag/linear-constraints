@@ -134,10 +134,10 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | unpack ( pat1 , pat2 ) = e1 in e2    ::   :: UnpackProd
 
 CASE :: 'CaseHead_' ::= {{ com Case head }}
-| case_ pi   ::  :: Case {{ tex [[case]]_[[pi]] }}
+| case_ pi   ::  :: Case {{ tex \kcase_[[pi]] }}
 
 LET :: 'LetHead_' ::= {{ com Let head }}
-| let_ pi    ::  :: Let  {{ tex [[let]]_[[pi]] }}
+| let_ pi    ::  :: Let  {{ tex \klet_[[pi]] }}
 
 alt :: 'Alt_' ::= {{ com Case alternative }}
 | pat -> e              ::   :: Alt
