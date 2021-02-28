@@ -1372,7 +1372,7 @@ constraint $[[C]]$.
 \begin{figure}
   \centering\small
   \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
-    App, Unpack, Pack, Case, Let, LetSig}
+    App, Pack, Unpack, Case, Let, LetSig}
 
   \caption{Constraint generation}
   \label{fig:constraint-generation}
