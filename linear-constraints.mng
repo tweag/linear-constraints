@@ -342,13 +342,9 @@ Our contributions are as follows:
   capabilities in the style of Mezzo~\cite{mezzo-permissions}
   or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
   may serve as a way to unify these lines of research.
-\item A typechecking algorithm, based on a combination
-  of~\cite{OutsideIn}
-  and~\cite{resource-management-for-ll-proof-search}\jp{Refs. don't belong in contribution list. This point is incomprehensible without jumping to the bibliography, and having knowledge of those papers.}, that respects
-  the multiplicity of assumptions. We prove that this algorithm is sound and
-complete with respect to our type system~(\Fref{sec:type-inference}).
-        \unsure{Can we
-    have a concrete completeness result?}
+\item An inference algorithm, that respects the multiplicity of
+  assumptions. We prove that this algorithm is sound with respect to
+  our type system~(\Fref{sec:type-inference}).
 \item Our algorithm additionally desugars expressions in our qualified
   type system into a core language (directly inspired \jp{Isn't it more closely related than that? A variant of? A close cousin?}
   by Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
