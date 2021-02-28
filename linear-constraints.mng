@@ -83,6 +83,8 @@ import GHC.Base
 %format an = a_n
 %endif
 
+%let full = False
+
 %%%%%%%%%%%%%%%%% /lhs2tex %%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%% Editing marks %%%%%%%%%%%%%%%%%
@@ -1961,11 +1963,12 @@ calculus from the Linear Haskell article~\cite{LinearHaskell}.
 \subsection{The core calculus}
 \label{sec:core-calculus}
 
-Our Core calculus is described in Figure~\ref{fig:core-grammar}
-(grammar) and Figure~\ref{fig:core-typing-rules} (typing rules).
+% Our Core calculus is described in Figure~\ref{fig:core-grammar}
+% (grammar) and Figure~\ref{fig:core-typing-rules} (typing rules).
 
 \begin{figure}
   \centering
+%if full
   $$
   \begin{array}{lcll}
     [[a]], [[b]] & \bnfeq & \ldots & \text{Type variables} \\
@@ -1985,33 +1988,55 @@ Our Core calculus is described in Figure~\ref{fig:core-grammar}
   \end{array}
   $$
   \caption{Grammar of the core calculus}
+%else
+  $$
+  \begin{array}{lcll}
+    [[s]] & \bnfeq & [[forall as. t]] & \text{Type schemes} \\
+    [[t]], [[u]] & \bnfeq & ... \bnfor [[exists as. t o- u]] & \text{Types} \\
+    [[e]] & \bnfeq & ... \bnfor [[pack (e1, e2)]] \bnfor [[unpack (y,x)=e1 in e2]] & \text{Expressions}
+  \end{array}
+  $$
+  \caption{Grammar of the core calculus (subset)}
+%endif
   \label{fig:core-grammar}
 \end{figure}
 
 \begin{figure}
   \centering
+%if full
   \drules[L]{$[[G |- e : t]]$}{Core language
     typing}{Var,Abs,App,Pack,Unpack,Let,Case}
   \caption{Core calculus type system}
+%else
+  \drules[L]{$[[G |- e : t]]$}{Core language
+    typing}{Pack,Unpack}
+  \caption{Core calculus type system (subset)}
+%endif
   \label{fig:core-typing-rules}
 \end{figure}
 
-The differences between Figure~\ref{fig:core-typing-rules} and $λ^q$
-from the Linear Haskell article~\cite{LinearHaskell}
-are as follows
+The core calculus is a variant of the type system defined in
+Section~\ref{sec:qualified-type-system} without implicit arguments.
+Figure~\ref{fig:core-grammar} (grammar) and Figure~\ref{fig:core-typing-rules}
+(typing rules) highlight the differences from the qualified system:
+\begin{itemize}
+  \item Type schemes $[[s]]$ do not support qualified types.
+  \item Exisentially quantified types $[[exists as. t2 o- t1]]$ now represent a
+(linear) pair of values. Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
+\end{itemize}
+
+\noindent
+The differences between our core calculus and $λ^q$ from Linear Haskell~\cite{LinearHaskell} are as follows
 \begin{itemize}
 \item We don't have multiplicity polymorphism.
 \item We need, on the other hand, type polymorphism.
 \item Polymorphism is implicit rather than explicit. This is not an
   essential difference but it simplifies the presentation.
-\item We a $\kpack$ and $\kunpack$ pair of constructions, which
-  introduce existentially quantified types. Specifically type of the
-  form $[[exists as. t2 o- t1]]$: a pair of an unrestricted $[[t2]]$
-  and a linear $[[t1]]$. As the $\kpack$ and $\kunpack$ of
-  Section~\ref{sec:typing-rules}, these can be realised in regular
-  Haskell as a family of \textsc{gadt}s.
+\item We have existential types. These can be realised in regular Haskell as a
+  family of \textsc{gadt}s.
 \end{itemize}
 
+\noindent
 In addition, we shall assume the existence of data types
 \begin{itemize}
 \item $[[t1 * t2]]$ with sole constructor
@@ -2026,13 +2051,14 @@ In addition, we shall assume the existence of data types
   somewhere in English, as well as in the definition of
   $[[x :_1 forall as. u \in G]]$}
 
+\noindent
 These are regular data types and constructors of the language, they
 are consumed with $\kcase$.
 
-In addition, for the sake of concision, when writing expressions in
-the core calculus, we will allow ourselves to write nested
-patterns in case expressions. Desugaring nested patterns into atomic
-case expression is routine.
+\noindent
+For the sake of concision, we will allow ourselves to write nested patterns in
+case expressions. Desugaring nested patterns into atomic case expression is
+routine.
 
 \subsection{Inferred constraints}
 \label{sec:ds:inferred-constraints}
