@@ -895,7 +895,7 @@ $$
 \smallskip
 
 Polymorphism of multiplicity, in Linear Haskell, is used to avoid
-duplicating the definition higher-order functions (such as |map| and
+duplicating the definition of higher-order functions (such as |map| and
 |fold|). First-order functions do not need polymorphism, because
 linear functions can be $\eta$-expanded into unrestricted function as
 explained in Section~\ref{sec:linear-types}. Functions taking
