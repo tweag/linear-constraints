@@ -489,21 +489,16 @@ intervention from the programmer.
 Thus, constraints are a convenient mechanism that allow the compiler
 to automatically fill in implicit arguments.
 
+For our |readLine| example, the implicit argument is the state of a handler |h|.
+This can be managed as a constraint called |Open h|, which indicates that the
+file associated to the handler is open. The idea is that this constraint
+should be a linear value, so that it can only be consumed exactly once.
 In order to manage linearity implicitly, this article introduces a
 linear fat arrow |=>.|, much like Linear Haskell introduced a linear
 function arrow |->.|. We dub constraints to the left of a linear fat
-arrow \emph{linear constraints}.  \unsure{I'm jumping to
-  conclusions a little fast. I need to explain what it entails for a
-  constraint to be linear. Then I need to re-read (and
-  presumably re-write) the paragraphs below, they will probably flow a
-  little bit better once the right principles are firmly established.}
-
-In the introduction we wanted to use linearity to make sure that
-once a file is closed it can no longer be used.
-That is, we need to track in types
-whether the file open or not. We can use a linear constraint |Open h|
-to represent that a file is, indeed, open. Using it, we can give the following type to
-|closeFile|:
+arrow \emph{linear constraints}.
+Using the linear constraint |Open h| to represent that a file is, indeed, open.
+Using it, we can give the following type to |closeFile|:
 
 \begin{code}
 closeFile :: Open h =>. Handle h -> IOL ()
@@ -516,7 +511,7 @@ There are a few things to notice:
   paper, for instance, |closeFile| had type |closeFile :: File ->. IOL
   ()|. This |h| is a type-level name for the file handle which we are
   closing.
-  Ideally, we'd like he linear constraint to refer directly to the handle value, and have the type |closeFile :: (h :: Handle) -> Open h =>. IOL ()|.
+  Ideally, we'd like the linear constraint to refer directly to the handle value, and have the type |closeFile :: (h :: Handle) -> Open h =>. IOL ()|.
   While giving a name to a function argument is the bread and butter of more
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
   Haskell~\cite{liquid-haskell-abstract-refinement-types}, haskell doesn't have such a
@@ -528,11 +523,26 @@ There are a few things to notice:
   twice. This is precisely what we were trying to achieve.
 \end{itemize}
 
-The description so far still leaves questions open: where does |h| come from? where does
-|Open h| come from? what are the types of |openFile| and |readLine|?
-The answers to these three questions rely on the same device: we
-introduce a type construction |exists a1 ... an. t .<= Q|, where |Q| is some (linear)
-constraint.
+This deals with closing files and ensuring that a handler cannot be closed more
+than once.  However, we still need to explain how a constraint |Open h| can come
+into existence. For this, we introduce a type construction |exists a1 ... an. t
+.<= Q|, where |Q| is some (linear) constraint that is created.  The type of
+|openFile| is thus:
+\begin{code}
+openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= Open h)
+\end{code}
+The output of this function is a new handle that is unrestricted,
+along with a new constraint that indicates that the handle is open.
+Since the handle is unrestricted it can be freely passed around. When it is,
+the |Open h| constraint implicitly tracks its state.
+
+We must also ensure that |readLine| can both promise to only operate on an open
+file, and keep that file open after reading. To do so, its signature 
+indicates that given a handle |h|, it consumes and produces the implicit |Open h|
+constraint, while also producing an unrestricted |String|.
+\begin{code}
+readLine   :: Open h =>. Handle h -> IOL (Ur String .<= Open h)
+\end{code}
 
 The fact that existential quantification generate new type-level names
 is folklore. It's used crucially in the interface of the
