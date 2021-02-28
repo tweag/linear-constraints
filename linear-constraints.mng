@@ -17,10 +17,11 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,review,natbib=false,anonymous]{acmart}
+\documentclass[acmsmall,review,anonymous]{acmart}
 
-\usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
-\bibliography{bibliography}
+% \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
+
+
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{xcolor}
@@ -170,6 +171,8 @@ import GHC.Base
 \acmYear{2021}
 \copyrightyear{2021}
 \setcopyright{none}
+
+\citestyle{acmauthoryear}
 
 \begin{document}
 
@@ -1559,7 +1562,7 @@ constraints).
 
 To extend the solver to all wanted constraints, we use a linear proof
 search algorithm based on the recipe given
-by~\textcite{resource-management-for-ll-proof-search}. Figure~\ref{fig:constraint-solver}
+by~\citet{resource-management-for-ll-proof-search}. Figure~\ref{fig:constraint-solver}
 presents the rules of the constraint solver.
 
 \begin{figure}
@@ -2256,8 +2259,8 @@ And, this, really, is the philosophy of linear constraints: lowering
 the cost of linear types so that more theoretical application become
 practical.
 
-\printbibliography
-
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{bibliography}
 \newpage
 
 \appendix
