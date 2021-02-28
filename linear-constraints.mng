@@ -1900,8 +1900,8 @@ types, type schemes, and terms of the Core Calculus.
 
 \subsubsection{Translating types}
 Type schemes $[[s]]$ are translated by turning the implicit argument $[[Q]]$
-into a function that takes the evidence of $[[Q]]$, and
-translating types $[[t]]$ proceeds as expected.
+into an explicit one of type $[[Ev(Q)]]$. Translating types $[[t]]$ proceeds as
+expected.
 
 \begin{minipage}{0.5\linewidth}
 %
