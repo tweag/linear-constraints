@@ -6,6 +6,7 @@ pkgs.mkShell
       biber
       ott
       inotify-tools
+      pdftk
       (texlive.combine {
         inherit (texlive)
           # basic toolbox

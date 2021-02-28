@@ -89,6 +89,11 @@ import GHC.Base
 
 %%%%%%%%%%%%%%%%% Editing marks %%%%%%%%%%%%%%%%%
 
+  % TOGGLE ME to turn off all the commentary:
+  \InputIfFileExists{no-editing-marks}{
+    \def\noeditingmarks{}
+  }
+
   \usepackage{xargs}
   \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
   % ^^ Need for pgfsyspdfmark apparently?
@@ -116,13 +121,16 @@ import GHC.Base
       \newcommand{\note}[1]{}
       \newenvironment{alt}{}{}
   %    \renewcommand\todo[2]{}
-      \newcommand{\unsure}[2]{}
-      \newcommand{\info}[2]{}
+      \newcommand{\unsure}[2][1=]{}
+      \newcommand{\info}[2][1=]{}
       \newcommand{\change}[2]{}
       \newcommand{\inconsistent}[2]{}
       \newcommand{\critical}[2]{}
       \newcommand{\improvement}[1]{}
       \newcommand{\resolved}[2]{}
+
+      \newcommand{\csongor}[2][1=]{}
+      \newcommand{\jp}[2][1=]{}
   \fi
 
 %%%%%%%%%%%%%%%%% /Editing marks %%%%%%%%%%%%%%%%%
