@@ -2077,7 +2077,10 @@ linearity.
 \section{Extensions}
 \label{sec:design-decisions}
 
-\csongor{intro}
+The system presented in Section~\ref{sec:qualified-type-system} and
+Section~\ref{sec:type-inference} is already capable of supporting the examples
+in Section~\ref{sec:motivation} and Section~\ref{sec:memory-ownership}. In this
+section, we consider some potential avenues for extensions.
 
 \subsection{let generalisation}
 \label{sec:let-generalisation}
