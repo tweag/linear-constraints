@@ -1897,7 +1897,6 @@ whole typing derivation, in particular we have access to typing rule
 premises in the body of the definition.
 
 We present some of the interesting cases.
-
 %{
 %format |- = "[[|-]]"
 %format ||- = "[[||-]]"
@@ -1923,6 +1922,10 @@ We present some of the interesting cases.
 %format z1 = "[[z1]]"
 %format z2 = "[[z2]]"
 %format z2' = "[[z2]]''"
+$$
+\left\{
+  \;
+  \begin{minipage}{0.5\linewidth}
 \begin{code}
 Ds(z;Q;G |- x : Sub u ts as) = x z
 Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t)  =
@@ -1934,9 +1937,10 @@ Ds(z;Q;G |- e : t)  =
   let_1 z' = Ev(Q ||- Q1) z in Ds(z';Q1;G |- e : t)
 ...
 \end{code}
-
+  \end{minipage}
+\right.
+$$
 %}
-
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
