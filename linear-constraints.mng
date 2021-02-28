@@ -1188,7 +1188,8 @@ simplification for two reasons:
   constraint resolution.
 \end{itemize}
 
-Our current focus is much more narrow than a general typechecking algorithm for
+\noindent
+Our current focus is more narrow than a general typechecking algorithm for
 all of \textsc{ghc}'s features.
 Secondly,
 As a consequence of these two restrictions (no linear equalities and no
@@ -1239,16 +1240,17 @@ coincidentally, $[[C1&C2]]$ will be used to generate constraints for
 $\kcase$-expressions.
 
 Finally, implication constraints differ in two ways. First they are
-linear implication (that is an implication which must consume its
+linear implications (an implication which must consume its
 assumption exactly once), where in OutsideIn they are intuitionistic implications.
-In addition, there is a scaling factor $[[pi]]$ on implication. This scaling prescribes how
-many times the implication must be consumed. We will need it when
+Additionally, there is a scaling factor $[[pi]]$ on implication. This scaling prescribes how
+many times the implication must be consumed,
+and is needed when
 extending scaling to all wanted constraints below. This scaling factor
 does not, however, change linear implication into intuitionistic
 implication. Concretely, $[[1.(omega.Q => C)]]$ is an intuitionistic
 implication which must be consumed exactly once, while $[[omega.(1.Q =>
 C)]]$ is a linear implication which can be consumed many times.
-
+%
 $$
 \left\{
   \begin{array}{lcl}
@@ -1492,7 +1494,7 @@ let us build a \emph{constraint solver} whose purpose it is to prove
 that $[[Q_g |- C]]$ holds, as required by Lemma~\ref{lem:generation-soundness}.
 
 The constraint solver is represented by the following judgement
-
+%
 $$
 [[ UCtx ; LCtx_i |-s C ~> LCtx_o]]
 $$
@@ -1546,7 +1548,7 @@ abstract entailment relation of Section~\ref{sec:constraint-domain}. The
 main solver will appeal to this simple-constraint solver when solving atomic
 constraints.  The simple-constraint solver is represented by the following
 judgement
-
+%
 $$
 [[ UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]
 $$
@@ -1852,7 +1854,7 @@ style\footnote{This technique is also often called dictionary-passing
 To do so, we shall require some more material from
 constraints. Namely, we will assume a type $[[Ev(q)]]$ for each atomic
 constraint. It is extended to all simple constraints
-
+%
 $$
 \left\{
   \begin{array}{lcl}
@@ -1887,7 +1889,7 @@ $[[e : Ev(omega.Q)]]$, we shall write $[[urify(Q;e) :
 Ur(Ev(omega.Q))]]$. As a shorthand, particularly useful in nested
 patterns, we will write $[[case_pi e of {urified(Q;x) -> e'}]]$ for
 $[[case_pi urify(Q;e) of {Ur x -> e'}]]$.
-
+%
 $$
 \left\{
   \begin{array}{lcl}
@@ -1910,7 +1912,7 @@ types, type schemes, and terms of the Core Calculus.
 \subsubsection{Translating types}
 Type schemes $[[s]]$ are translated by turning the implicit argument $[[Q]]$
 into a function that takes the evidence of $[[Q]]$.
-
+%
 $$
 \left\{
   \begin{array}{lcl}
@@ -1921,7 +1923,7 @@ $$
 
 \noindent
 Translating types $[[t]]$ proceeds as expected.
-
+%
 $$
 \left\{
   \begin{array}{lcl}
@@ -2143,6 +2145,7 @@ behaviour of |let|, in presence of linear constraints, almost never be
 what the programmer wants.
 
 To handle $\klet$-generalisation, let us consider the following rule
+%
 $$
 \drule{G-LetGen}
 $$
