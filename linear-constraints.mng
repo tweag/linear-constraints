@@ -2246,30 +2246,30 @@ break our proofs.
 \section{Conclusion}
 \label{sec:conclusion}
 
-This article shows how a simple linear type system like that of Linear
+We showed how a simple linear type system like that of Linear
 Haskell can be extended with an inference mechanism which lets the
 compiler manage some of the additional complexity of linear types
 instead of the programmer. Linear constraints narrow the gap between a
-general purpose linearly typed language and language with dedicated
+general purpose linearly typed language and a language with dedicated
 linear-like typing disciplines such as Rust's, Mezzo's, or
 \textsc{ats}'s.
 
-We also demonstrate how an existing constraint solver can be extended with the
-ability to handle linearity without messing up inference of existing programs.
-Our design fits into \textsc{ghc}, as demonstrated by our prototype implementation
-that can bootstrap itself. \csongor{maybe bootstrapping isn't so important.}
+We also demonstrate how an existing constraint solver can be extended to handle
+linearity without messing up inference of existing programs. Our design of
+linear constraints fits nicely into Haskell. Indeed, linear constraints can be
+thought of as an extension of Haskell's type class mechanism. This way, the
+design also integrates well into \textsc{ghc}, as demonstrated by our prototype
+implementation, which required modest changes to the compiler.
 
+Just like the type class mechanism, linear constraints
+lower the cost of abstractions, making a wider range of applications practical.
 In some cases, like the file example of Section~\ref{sec:introduction},
 linear constraints are a mere convenience that reduce line noise and
 make code more idiomatic. But the memory management \textsc{api} of
 Section~\ref{sec:memory-ownership} is not easily feasible without
-linear constraints. Surely, ownership proofs could be managed manually, but
-it is hard to imagine a circumstance where this tedious task would be worth
-the cost.
-
-And, this, really, is the philosophy of linear constraints: lowering
-the cost of linear types so that more theoretical application become
-practical.
+linear constraints. Certainly, ownership proofs could be managed manually, but
+it is hard to imagine a circumstance where this tedious task would be worth the
+cost.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
