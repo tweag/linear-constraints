@@ -2368,80 +2368,64 @@ linearity.
 \label{sec:let-generalisation}
 
 As discussed in Section~\ref{sec:constraint-generation}, the~\rref*{G-Let} rule
-of our constraint generator does not generalise the type of let bindings. Let us
-revisit this question and discuss a potential alternative.
-
+of our constraint generator does not generalise the type of let bindings.
 Not doing let generalisation is in line with \textsc{ghc}'s existing
 behaviour~\cite[Section 4.2]{OutsideIn}. There, this behaviour was mainly guided
 by concerns around inferring type variables, which become much harder in the
 presence of local equality assumptions (that is, \textsc{gadt} pattern
-matching). In this section, we argue that generalising over linear constraints
-improves user experience.
-% Then, if a type variable does not get generalised, it doesn't make
-% much sense to then generalise over the type class constraints mentioning the
-% now-monomorphic variables, since if a constraint is solvable in the ambient
-% context, then the very same constraint will be solvable in the let binding too
-% and vice versa. However, the situation changes in the presence of linear
-% constraints.
-% It is this segment of the design space that we pay special attention to: can we
-% quantify over \emph{only} linear constraints, but not type variables or
-% unrestricted constraints?
+matching).
 
+In this section, however, we argue that generalising over linear constraints
+may, in fact, improve user experience.
 Let us revisit the |firstLine| example from Section~\ref{sec:introduction}, but
 this time, instead of executing |closeFile| directly, we assign it to a variable
 in a let binding:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =
-  do  {  pack h <- openFile fp
+  do  {  pack' h <- openFile fp
       ;  let closer = closeFile h
-      ;  pack xs <- readLine h
+      ;  pack' xs <- readLine h
+      ;  closer
       ;  return xs }
 \end{code}
-This program clearly leaves the file open, and indeed our system rejects it. The
-type of |closer| is |IOL ()| (without generalisation). The $\klet$ binding can
-be either linear or unrestricted. If |closer| is bound linearly, the |Open h0|
-constraint is consumed, but the program is rejected, because |closer| is not
-consumed. In this case, the only way to fix the program is to move the |closer|
-binding \emph{after} the |readLine| (so that |Open h0| is available for
-|readLine|), and then execute |closer| as a monadic statement.
+This program looks reasonable; however, it is rejected. The type of
+|closer| is |IOL ()|, which means that the definition of |closer|
+consumes the linear constraint |Open h|. So, by the time we try to
+|readLine h|, the constraint is no longer available.
 
-If |closer| is bound in an unrestricted way, then the program is also rejected,
-this time because the linear |Open h0| can not be used in an unrestricted
-context. Here, we can simply add a signature to the binding: |closer :: Open h0
-=>. IOL ()|.  Then, we still need to use |closer| as a monadic statement
-somewhere after |readLine|, and the constraint is consumed at that point. One
-immediate issue is that as things stand, we can't write that signature down,
-since |h0| is not bound, and there is no syntax for binding it (though
-see~\cite{variables-in-patterns} for a proposed syntax).
+What the programmer really meant, here, was for |closer| to have type
+|Open h =o IOL ()|. After all a |let| definition is not part of the
+sequence of instructions, it is just a definition for later; it is not
+supposed to consume the current state of the file. With no let
+generalisation, the only way to give |closer| the type |Open h =o IOL
+()| is to give |closer| a type signature. In current \textsc{ghc}, we
+can't write that signature down, since the type variable |h| is not
+bound in the program text, and there is no syntax for binding it
+(though see~\cite{variables-in-patterns} for a proposed syntax). But
+even ignoring this, it would be rather unfortunate that the default
+behaviour of |let|, in presence of linear constraints, almost never be
+what the programmer wants.
 
-Unrestricted $\klet$s without a signature can never use a linear constraint, and
-linear $\klet$s are not that useful because they consume the linear constraint
-on the spot. Thus we argue that linear constraints should be generalised in
-$\klet$ bindings.
-
-\noindent
-To handle $\klet$-generalisation, we could include following rule
+To handle $\klet$-generalisation, let us consider the following rule
 
 $$
 \drule{G-LetGen}
 $$
 
 \noindent
-We elected not to include this rule, as the way it stands, it is
-non-deterministic.  It requires finding some $[[Q_r]]$ and $[[Q]]$ that together
-entail the generated $[[C1]]$. It could be made deterministic by calling the
-solver as an oracle to deliver these constraints. In order to keep the
-presentation simple, we decided not to incur this dependency on the solver in
-the constraint generation procedure, but since OutsideIn already has this
-dependency, our prototype implementation can happily generalise over linear
-constraints.
+This rule is non-deterministic, as it requires finding $[[Q_r]]$ and
+$[[Q]]$. We can modify the constraint solver of
+Section~\ref{sec:constraint-solver} to find $[[Q_r*Q]]$: it's the
+residual constraint, from OutsideIn, that we have omitted. But we
+still have to determine how to split the residual into $[[Q_r]]$ and
+$[[Q]]$. What we would like to say is ``$[[Q]]$ is the set of linear
+constraints''. But it's not clear how to make it formal.
 
-To summarise, generalising over linear constraints in let bindings, but keeping
-the existing behaviour of OutsideIn for type variables and unrestricted
-constraints (which include all equality constraints) leads to a conservative
-extension of~\textsc{ghc}'s generalisation strategy. This strategy does not
-affect soundness in any way, but is an improvement in user experience.
+Any predictable strategy would do: as long as it's an instance of the
+\rref*{G-LetGen} rule, constraint generation will be sound. Experience
+will tell whether we can find a better suited strategy than the current
+one, which never generalise any constraint.
 
 \subsection{Empty cases}
 \label{sec:empty-cases}
