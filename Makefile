@@ -32,7 +32,7 @@ linear-constraints-submission.pdf: linear-constraints.pdf
 	rm -f temp.pdf
 
 linear-constraints-supplementary.pdf: linear-constraints.pdf
-	pdftk $< cat 29-end output $@
+	pdftk $< cat 28-end output $@
 
 %.pdf: %.tex bibliography.bib $(OTT_TEX)
 	cd $(dir $<) && latexmk $(notdir $*)
