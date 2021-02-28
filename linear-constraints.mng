@@ -331,17 +331,14 @@ and explicit |pack'| annotations are used to indicate the variables that require
 special treatment. Crucially, the resource representing the open file no longer
 needs to be passed around manually.
 
-We start with some motivating examples that will illustrate the desired
-functionality of linear constraints~(\Fref{sec:motivation}),
-then, after demonstrating how our system works for memory
-ownership~(\Fref{sec:memory-ownership}) our contributions are as follows:
+Our contributions are as follows:
 \begin{itemize}
 \item A system of qualified types that allows a constraint assumption
   to be given a multiplicity. Linear assumptions are used precisely
   once in the body of a definition
   (\Fref{sec:qualified-type-system}).
 \item This system supports examples that have motivated the design of
-  several resource-aware systems, such as ownership à la Rust, or
+  several resource-aware systems, such as ownership à la Rust (\Fref{sec:memory-ownership}), or
   capabilities in the style of Mezzo~\cite{mezzo-permissions}
   or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
   may serve as a way to unify these lines of research.\unsure{Speak of
@@ -361,9 +358,6 @@ complete with respect to our type system~(\Fref{sec:type-inference}).
   prove that the output of desugaring is well-typed in the core
   language~(\Fref{sec:desugaring}).
 \end{itemize}
-We then outline our implementation of this system (\Fref{sec:implementation})
-and alternative extensions (\Fref{sec:design-decisions}). Finally, we discuss
-related work (\Fref{sec:related-work}) and conclude (\Fref{sec:conclusion}).
 
 
 \section{Motivation}
