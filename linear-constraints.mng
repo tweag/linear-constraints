@@ -2247,6 +2247,11 @@ general purpose linearly typed language and language with dedicated
 linear-like typing disciplines such as Rust's, Mezzo's, or
 \textsc{ats}'s.
 
+We also demonstrate how an existing constraint solver can be extended with the
+ability to handle linearity without messing up inference of existing programs.
+Our design fits into \textsc{ghc}, as demonstrated by a prototype implementation
+that can bootstrap itself. \csongor{maybe bootstrapping isn't so important.}
+
 In some cases, like the file example of Section~\ref{sec:introduction},
 linear constraints are a mere convenience that reduce line noise and
 make code more idiomatic. But the memory management \textsc{api} of
