@@ -1270,18 +1270,23 @@ Like in Section~\ref{sec:constraint-domain}, we will typically drop
 the scaling factor for implication when it is $[[1]]$ and write $[[Q
 => C]]$ for $[[1.(Q=>C)]]$.
 
-The meaning of wanted constraints is given by the following,
-inductive, entailment relation. This is a technical difference with
+The meaning of wanted constraints is given by the inductive entailment
+relation $[[Q |- C]]$ given in Figure~\ref{fig:wanted:entailment}. This is a technical difference with
 OutsideIn where the meaning of wanteds is given directly by the
 constraint solver, whereas our solver
 (Section~\ref{sec:constraint-solver}) has to be proved correct with
 respect to this entailment relation. We found that, in the case of
 linear logic, having this extra entailment relation made proofs much
 simpler.
-%
-\drules[C]{$[[Q |- C]]$}
-  {Wanted-constraint entailment}
+\begin{figure}
+  \centering\small
+  \drules[C]{$[[Q |- C]]$} {Wanted-constraint entailment}
   {Dom,Tensor,With,Impl}
+
+  \caption{Wanted-constraint entailment}
+  \label{fig:wanted:entailment}
+\end{figure}
+
 Note that it's always a simple constraint entails a wanted: we
 generate wanted constraints, but programs only mention simple
 constraints, and the left-hand side does come from the program. It is
