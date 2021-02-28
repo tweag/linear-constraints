@@ -1442,13 +1442,9 @@ in the supplementary material
     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such that
-    \begin{itemize}
-    \item $[[Q1 |- C1]]$
-    \item $[[Q2 |- C2]]$
-    \item $[[Q_g]] = [[Q1 * pi.Q2]]$
-    \end{itemize}
-    By induction hypothesis
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such
+    that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
+    $[[Q_g]] = [[Q1 * pi.Q2]]$.  Then, by induction hypothesis
     \begin{itemize}
     \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
     \item $[[Q2; G2 |- e2 : t2]]$
@@ -1463,12 +1459,10 @@ in the supplementary material
     \end{itemize}
     By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
     such that
-    \begin{itemize}
-    \item $[[Q_1 |- C1]]$
-    \item $[[Q_2 * Q' |- C2]]$
-    \item $[[Q_g]] = [[Q1 * Q2]]$
-    \end{itemize}
-    By induction hypothesis
+    $[[Q_1 |- C1]]$,
+    $[[Q_2 * Q' |- C2]]$, and
+    $[[Q_g]] = [[Q1 * Q2]]$.
+    Then, by induction hypothesis
     \begin{itemize}
     \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
     \item $[[Q_2*Q ; G2 |- e2 : t]]$
