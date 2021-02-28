@@ -302,7 +302,7 @@ simpler: apparently, using a linear language means trading clarity for safety. W
 the file handle is an expendable resource, the type system must know at all
 times where it is being consumed, so the file handle must be passed around
 manually, resulting in extra noise. 
-% Worse, the larger the program gets, the more additional bookkeeping this requires. % this is vaccuous, perhaps something else is meant?
+%
 But when reading the non-linear version, it is clear where the
 handle is used, and ultimately, consumed. Couldn't the compiler
 figure this out without extra help?
