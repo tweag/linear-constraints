@@ -308,9 +308,9 @@ firstLine fp = do  {  h <- openFile fp
 \end{code}
 
 This style is less safe, because the type system does not keep track of the
-file handle, and the programmer risks forgetting doing it. But it is also
+file handle. But it is also
 simpler: apparently, using a linear language means trading clarity for safety. When
-the file handle is an expendable resource, the type system must know at all
+modelling a handle as a linear resource, the type system must know at all
 times where it is being consumed, so the file handle must be passed around
 manually, resulting in extra noise. 
 %
