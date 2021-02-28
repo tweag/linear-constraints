@@ -1017,9 +1017,8 @@ Section~\ref{sec:type-inference}.
 \end{figure}
 
 An important feature of simple constraints is that, while scaling
-syntactically happens at the level of atomic constraints, the properties
-of scaling stated in Figure~\ref{fig:entailment-relation} extend
-to scaling of arbitrary constraints
+syntactically happens at the level of atomic constraints, these properties
+of scaling extend to scaling of arbitrary constraints.
 
 \begin{lemma}[Promotion]
   \label{lem:q:promotion}
@@ -1078,7 +1077,7 @@ a \emph{qualified type system} in the style first introduced
 by~\cite{QualifiedTypes}. Such a qualified type system introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
 type context, and $[[Q]]$ is a simple constraint as in
-Section~\ref{sec:constraint-domain}. For the most part $[[Q]]$ behaves
+Section~\ref{sec:constraint-domain}. $[[Q]]$ behaves
 much like $[[G]]$, which will be instrumental for
 desugaring in Section~\ref{sec:desugaring}; the main difference is
 that $[[G]]$ is addressed explicitly with variables, whereas $[[Q]]$
@@ -1094,7 +1093,7 @@ semantics to this language: instead we will give it meaning via
 desugaring to a simpler core language in Section~\ref{sec:desugaring}.\jp{Does this core language have a dynamic (operational?) semantics? if so then we do give an operational semantics, albeit indirectly.}
 
 The main differences with OutsideIn, either for simplification, or for
-linear constraints are as follows\info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
+linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \begin{itemize}
 \item The type system has linear functions (written $[[a ->_1 b]]$ in
   Figure~\ref{fig:typing-rules}). It is not necessarily obvious why:
