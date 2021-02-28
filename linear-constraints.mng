@@ -837,7 +837,6 @@ implemented\footnote{A version of Linear Haskell has been released as
 this presentation in terms of OutsideIn. By using such a
 framing, we intend to highlight the concrete changes required to
 \textsc{ghc}, or similar compilers, to support linear constraints.
-
 However, we have chosen, for the sake of clarity of the exposition, to
 omit details of OutsideIn which do not interact meaningfully with
 linear constraints. We shall point out such simplifications where they
