@@ -671,6 +671,8 @@ not be able to consume the |Open h| constraint.
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
 
+Let us now turn to a more substantial example: manual memory
+management.
 In Haskell, memory deallocation is normally the responsibility of a
 garbage collector. However, garbage collection comes with runtime
 costs which not all applications can afford: one must then resort to
