@@ -2360,8 +2360,8 @@ practical.
   \item If $[[Q2]]=[[Empty]]$, then, by
     Definition~\ref{def:entailment-relation}, we know that
     $[[Q1]]=[[omega.Q1']]$, for some $[[Q1']]$
-    and the result is immediate.\unsure{really requires a lemma that
-      $[[pi.(rho.Q)]] = [[(pi.rho).Q]]$}
+    and the result follows from Lemma~\ref{lem:simples:monoid-action},
+    since $[[pi.Q1]]=[[pi.(omega.Q1')]]=[[omega.Q1']]$.
   \end{itemize}
 \end{proof}
 
@@ -2386,6 +2386,14 @@ practical.
     Definition~\ref{def:entailment-relation}, $[[Q1]]=[[Empty]]$ and
     the result is immediate.
   \end{itemize}
+\end{proof}
+
+\begin{lemma}\label{lem:simples:monoid-action}
+  The following equality holds $[[pi.(rho.Q)]]=[[(pi.rho).Q]]$
+\end{lemma}
+\begin{proof}
+  This result can be proved by a straightforward induction on the
+  structure of $[[Q]]$.
 \end{proof}
 
 \setcounter{subsection}{4}
@@ -2438,11 +2446,10 @@ practical.
     hypothesis, we get $[[Q1]] = [[omega.Q1']]$ and $[[Q2]] = [[omega.Q2']]$
     such that $[[Q1' |- C1]]$ and $[[Q2' |- C2]]$. From which it
     follows that $[[omega.Q1'*omega.Q2' |- C1]]$ and
-    $[[omega.Q1'*omega.Q2' |- C1]]$ and, finally, $[[Q]]=[[omega.Q]]$
-    and $[[Q |- C1 & C2]]$. \unsure{Unproved: weakening
-      by adding $\omega$ stuff, weakening by scaling by $\omega$,
-      $\omega.(\omega.C) = omega.C$. I'll prove all these as technical
-      lemmas in the appendices}
+    $[[omega.Q1'*omega.Q2' |- C1]]$ (by
+    Lemma~\ref{lem:wanteds:weakening}) and, finally,
+    $[[Q]]=[[omega.Q]]$ (by Lemma~\ref{lem:wanteds:module-action})
+    and $[[Q |- C1 & C2]]$.
   \item If $[[C]]=[[rho.(Q1 => C')]]$, then
     $[[pi.C]] = [[(pi.rho). (Q1 => C')]]$. The result follows
     immediately by Lemma~\ref{lem:inversion}.
@@ -2596,6 +2603,24 @@ practical.
   \end{description}
 \end{proof}
 
+\begin{lemma}[Weakening of wanteds]\label{lem:wanteds:weakening}
+  If $[[Q |- C]]$, then $[[omega.Q'*Q |- C]]$
+\end{lemma}
+\begin{proof}
+  This is proved by a straightforward induction on the derivation of
+  $[[Q |- C]]$, using the corresponding property on the
+  simple-constraint entailment relation from
+  Definition~\ref{def:entailment-relation}, for the \rref*{C-Dom} case.
+\end{proof}
+
+\begin{lemma}\label{lem:wanteds:module-action}
+  The following equality holds: $[[pi.(rho.C)]]=[[(pi.rho).C]]$.
+\end{lemma}
+\begin{proof}
+  This is proved by a straightforward induction on the structure of
+  $[[C]]$, using Lemma~\ref{lem:simples:monoid-action} for the case
+  $[[C]]=[[Q]]$.
+\end{proof}
 \end{document}
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
