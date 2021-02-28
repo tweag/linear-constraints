@@ -2261,12 +2261,10 @@ thought of as an extension of Haskell's type class mechanism. This way, the
 design also integrates well into \textsc{ghc}, as demonstrated by our prototype
 implementation, which required modest changes to the compiler.
 
-Just like the type class mechanism, linear constraints
-lower the cost of abstractions, making a wider range of applications practical.
 In some cases, like the file example of Section~\ref{sec:introduction},
 linear constraints are a mere convenience that reduce line noise and
 make code more idiomatic. But the memory management \textsc{api} of
-Section~\ref{sec:memory-ownership} is not easily feasible without
+Section~\ref{sec:memory-ownership} is not feasible without
 linear constraints. Certainly, ownership proofs could be managed manually, but
 it is hard to imagine a circumstance where this tedious task would be worth the
 cost.
