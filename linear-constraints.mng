@@ -376,12 +376,12 @@ examples that motivate our extension into linear constraints.
 \label{sec:linear-types}
 
 \begin{figure}%
-  \centering
+  \centering\small
   \begin{subfigure}{.3\linewidth}%
     \noindent%
 \begin{code}
 openFile   :: FilePath -> IOL Handle
-readLine   :: Handle ⊸ IOL (Handle, String)
+readLine   :: Handle ⊸ IOL (Handle, Ur String)
 closeFile  :: Handle ⊸ IOL ()
 \end{code}
 \caption{Linear Types}
@@ -441,9 +441,8 @@ g x = f x
 The type of |g| makes no particular guarantees about the way in which it uses |x|;
 in particular, |g| can pass that argument to |f|.
 
-The example in the previous section makes use of |readLine :: Handle ->. IOL
-(Handle, String)|. Since this is a linear function the input handle must be
-consumed exactly once and can therefore no longer be used to close the file:
+The example in the previous section, when calling |readLine|, consumes
+the linear handle |h| created by |openFile|, |h| can therefore no longer be used to close the file:
 doing so would result in a type error.  To resolve this, a new handle for the
 same file is produced that can be used with |closeFile|. In the code, the same
 name |h| is given to the new handler, thus shadowing the old |h| that can no
@@ -455,11 +454,6 @@ it is not the handler that should be consumed by |readLine| at all.  Rather, it
 is its implicit state as a handler for an open file  that should be consumed
 exactly once. Once this open state is consumed, the handler can no longer be read
 from or closed without triggering a compile time error.
-
-In this article we introduce a generic extension to Linear Haskell which lets
-the typechecker handle this. There is a bit of boilerplate left, but it doesn't
-involve managing names. This considerably lowers the cost of using a linear-type
-based abstraction.
 
 \subsection{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
@@ -507,7 +501,7 @@ There are a few things to notice:
   Ideally, we'd like the linear constraint to refer directly to the handle value, and have the type |closeFile :: (h :: Handle) -> Open h =>. IOL ()|.
   While giving a name to a function argument is the bread and butter of more
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
-  Haskell~\cite{liquid-haskell-abstract-refinement-types}, haskell doesn't have such a
+  Haskell~\cite{liquid-haskell-abstract-refinement-types}, Haskell doesn't have such a
   naming mechanism built in, so we have resort to a type variable to mediate the
   link between handles and linear constraints.
 \item Second, if  we have a single, linear, |Open h|
@@ -547,7 +541,7 @@ quantifier to generate the type-level name of the file
 handle. Existentially quantified types are paired with a constraint |Q|
 which we understand as being returned by functions. We will freely
 omit the |exists a1 ... an.| or |.<= Q| parts when they are
-empty. This lets us give the following \textsc{api} to files:
+empty.
 
 
 Haskell doesn't have existential quantification, however it can
