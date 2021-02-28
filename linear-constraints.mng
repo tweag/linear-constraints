@@ -269,13 +269,18 @@ various mainstream programming communities. Rust's ownership system guarantees
 memory safety for systems programmers, Haskell's \textsc{ghc} recently
 added support for linear types, and even
 dependently typed programmers can now use linear types with Idris 2.
+All of these systems are vastly different in ergonomics and scope. In fact,
+there seems to be a tradeoff between these two aspects. Rust's \emph{borrow-checker} is
+a domain-specific typechecker that aids the programmer in reasoning about memory
+ownership, but it doesn't naturally scale beyond this use case.
+Linear Haskell, on the other hand, supports general purpose linear types, but
+using them to emulate Rust's ownership model is a painful exercise, because the
+compiler doesn't know how to help, requiring the programmer to manually supply
+proof objects.
 
-\csongor{Say something about ergonomics to set up the next part}
-
-The essence of linear types is careful tracking of the usage of resources. To
-get a sense of their power, consider the following example from
-the Linear Haskell article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO
-monad}:
+To get a sense of the power and the pain of using linear types, consider the
+following example from the Linear Haskell
+article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO monad}:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =   do  {  h <- openFile fp
