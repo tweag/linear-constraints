@@ -857,7 +857,6 @@ $$
   [[pi]], [[rho]] & \bnfeq & [[1]] \bnfor [[omega]] & \text{Multiplicities}
 \end{array}
 $$
-\noindent
 The idea of multiplicity goes back at least
 to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
@@ -971,8 +970,7 @@ $$
 \right.
 $$
 \unsure{Rendering}
-
-\noindent
+%
 The rule that $[[omega.(Q1 * Q2)]] = [[omega.Q1 * omega.Q2]]$ is not a
 typical feature of linear logic. Linear Haskell, however, introduces
 the corresponding type isomorphism for the sake of polymorphism. While this
@@ -1260,8 +1258,6 @@ $$
   \end{array}
 \right.
 $$
-
-\noindent
 Like in Section~\ref{sec:constraint-domain}, we will typically drop
 the scaling factor for implication when it is $[[1]]$ and write $[[Q
 => C]]$ for $[[1.(Q=>C)]]$.
@@ -1274,12 +1270,10 @@ constraint solver, whereas our solver
 respect to this entailment relation. We found that, in the case of
 linear logic, having this extra entailment relation made proofs much
 simpler.
-
+%
 \drules[C]{$[[Q |- C]]$}
   {Wanted-constraint entailment}
   {Dom,Tensor,With,Impl}
-
-\noindent
 Note that it's always a simple constraint entails a wanted: we
 generate wanted constraints, but programs only mention simple
 constraints, and the left-hand side does come from the program. It is
@@ -1497,7 +1491,7 @@ The constraint solver is represented by the following judgement
 $$
 [[ UCtx ; LCtx_i |-s C ~> LCtx_o]]
 $$
-
+%
 The judgement
 takes in two contexts: $[[UCtx]]$, which holds all the unrestricted
 atomic constraints
@@ -1656,7 +1650,6 @@ f fp =   do  {  pack h <- openFile fp
                      ;  cl = closeFile h }
              ;  cl }
 \end{code}
-\noindent
 In this example it is quite clear, that the programmer meant for
 |closeFile| to use |Open h| introduced locally in |cl|. In fact this
 is the only possible way to attribute constraints.
@@ -1665,22 +1658,18 @@ Another interesting feature of Figure~\ref{fig:simpl-solver} is that
 no rule apply to solve a linear constraint if it appears both in the
 unrestricted and the linear context.
 Consider the following (contrived) \textsc{api}:
-
 \begin{code}
 class C
 
 giveC :: (C => Int) -> Int
 useC :: C =>. Int
 \end{code}
-\noindent
 |giveC| gives an unrestricted copy of |C| to some continuation, while |useC|
 uses |C| linearly. Now consider a consumer of this \textsc{api}:
-
 \begin{code}
 bad :: C =>. (Int, Int)
 bad = (giveC useC, useC)
 \end{code}
-
 It is possible to give a type derivation to |bad| in the qualified type system
 of Section~\ref{sec:qualified-type-system}. In fact, the constraint assignment
 is unambiguous: the left-most |useC| must use the unrestricted |C|, while the
@@ -1801,7 +1790,6 @@ The differences between our core calculus and $λ^q$ from Linear Haskell~\cite{L
 \item We have existential types. These can be realised in regular Haskell as a
   family of \textsc{gadt}s.
 \end{itemize}
-
 \noindent
 In addition, we shall assume the existence of data types
 \begin{itemize}
@@ -1898,8 +1886,6 @@ $$
   \end{array}
 \right.
 $$
-
-\noindent
 We will often omit the $[[Q]]$ in $[[urify(Q;e)]]$, and write
 $[[urify(e)]]$ when it can be easily inferred from the context.
 
@@ -1918,8 +1904,6 @@ $$
   \end{array}
 \right.
 $$
-
-\noindent
 Translating types $[[t]]$ proceeds as expected.
 %
 $$
@@ -1989,9 +1973,9 @@ $$
 \right.
 $$
 %else
-\noindent
+%
 We present some of the interesting cases.
-
+%
 $$
 \left\{
 \begin{array}{lcl}
@@ -2008,8 +1992,7 @@ $$
 \end{array}
 \right.
 $$
-
-\noindent
+%
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
@@ -2146,8 +2129,7 @@ To handle $\klet$-generalisation, let us consider the following rule
 $$
 \drule{G-LetGen}
 $$
-
-\noindent
+%
 This rule is non-deterministic, as it requires finding $[[Q_r]]$ and
 $[[Q]]$. We can modify the constraint solver of
 Section~\ref{sec:constraint-solver} to find $[[Q_r*Q]]$: it's the
@@ -2181,8 +2163,6 @@ corresponding entailment rule would be
 $$
 \drule{C-Top}
 $$
-
-\noindent
 That is $[[Top]]$ is unconditionally true, and can consume any number
 of linear given constraints. The \rref*{C-Top} rule thus induces a
 considerable amount of non-determinism. Eliminating the
