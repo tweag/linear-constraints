@@ -686,15 +686,20 @@ In the above, |n| is a type variable (of a special kind |Location|)
 which represents a memory location. Locations mediate
 the relationship between references and ownership constraints.
 
-For more granular control, we will be using three linear constraints: one for
-ownership, one for reading, and one for writing:
+For more granular control, we will be using three linear constraints:
+one for reading, one for writing, and one for ownership:
 
-
+\begin{minipage}{0.3\linewidth}
 > class Read (n :: Location)
+\end{minipage}
+\begin{minipage}{0.3\linewidth}
 > class Write (n :: Location)
+\end{minipage}
+\begin{minipage}{0.3\linewidth}
 > class Own (n :: Location)
+\end{minipage}
 
-
+\noindent
 Thanks to this extended set of constraints, programs are able to read or write
 to a memory reference without necessarily owning it. To ensure consistency,
 writes can only be done when we are sure that no one else is reading. Therefore,
