@@ -1303,20 +1303,12 @@ entailment relation.
   as top-down, as is required of $[[Q1 |- Q2]]$ in
   Definition~\ref{def:entailment-relation}. That is
   \begin{itemize}
-  \item If $[[Q |- C1*C2]]$, then there exists $[[Q1]]$ and
-    $[[Q2]]$ such that
-    \begin{itemize}
-    \item $[[Q1 |- C1]]$
-    \item $[[Q2 |- C2]]$
-    \item $[[Q]] = [[Q1 * Q2]]$
-    \end{itemize}
+  \item If $[[Q |- C1*C2]]$, then there exists $[[Q1]]$ and $[[Q2]]$
+    such that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
+    $[[Q]] = [[Q1 * Q2]]$.
   \item If $[[Q |- C1 & C2]]$, then $[[Q |- C1]]$ and $[[Q |- C2]]$.
   \item If $[[Q |- pi.(Q2 => C)]]$, then there exists $[[Q1]]$ such
-    that
-    \begin{itemize}
-    \item $[[Q1 * Q2 |- C]]$
-    \item $[[Q]] = [[pi.Q1]]$
-    \end{itemize}
+    that $[[Q1 * Q2 |- C]]$ and  $[[Q]] = [[pi.Q1]]$
   \end{itemize}
 \end{lemma}
 \begin{proof}
