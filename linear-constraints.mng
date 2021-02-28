@@ -1026,59 +1026,11 @@ to scaling of arbitrary constraints
   \label{lem:q:promotion}
   If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
 \end{lemma}
-%if full
-\begin{proof}
-  Let us prove this lemma by induction on the syntax of $[[Q2]]$:
-  \begin{itemize}
-  \item If $[[Q2]] = [[rho.q]]$, then $[[pi.Q1 ||- (pi.rho).q]]$ holds by
-    Definition~\ref{def:entailment-relation}.
-  \item If $[[Q2]] = [[Q2' * Q2'']]$, then, by Definition~\ref{def:entailment-relation}, we know that
-    $[[Q1]] = [[Q1' * Q1'']]$ for some $[[Q1']]$ and $[[Q1'']]$, and
-    that
-    $[[Q1' ||- Q2']]$ and $[[Q1'' ||- Q2'']]$. By induction hypothesis,
-    we have
-    $[[pi.Q1' ||- pi.Q2']]$ and $[[pi.Q1'' ||- pi.Q2'']]$. From which it
-    follows that
-    $[[pi.Q1 ||- pi.Q2]]$.
-  \item If $[[Q2]]=[[Empty]]$, then, by
-    Definition~\ref{def:entailment-relation}, we know that
-    $[[Q1]]=[[omega.Q1']]$, for some $[[Q1']]$
-    and the result is immediate.\unsure{really requires a lemma that
-      $[[pi.(rho.Q)]] = [[(pi.rho).Q]]$}
-  \end{itemize}
-\end{proof}
-%else
-%endif
 
 \begin{lemma}[Inversion of promotion]
   \label{lem:q:scaling-inversion}
   If $[[Q1 ||- pi.Q2]]$, then $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- Q2]]$ for some $[[Q']]$.
 \end{lemma}
-%if full
-\begin{proof}
-  Let us prove this lemma by induction on the syntax of $[[Q2]]$
-  \begin{itemize}
-  \item If $[[Q2]] = [[rho.q]]$, then, by Definition~\ref{def:entailment-relation}, there exists
-    $[[Q1']]$ such that $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- rho.q]]$.
-  \item If $[[Q2]] = [[Q2' * Q2'']]$, then, by Definition~\ref{def:entailment-relation}, we know
-    that
-    $[[Q1]] = [[Q1' * Q1'']]$ for some $[[Q1']]$ and $[[Q1'']]$, and
-    that
-    $[[Q1' ||- pi.Q2']]$ and $[[Q1'' ||- pi.Q2'']]$ (remember that, by
-    definition, $[[pi.Q2]] = [[pi.Q2' * pi.Q2'']]$). By induction hypothesis,
-    we have
-    constraints $[[Q']]$ and $[[Q'']]$, such that $[[Q1']] =
-    [[pi.Q']]$ and $[[Q1'']] = [[pi.Q'']]$, and $[[Q' ||- Q2']]$ and
-    $[[Q'' ||- Q2'']]$.
-    It follows that $[[Q1]] = [[pi.(Q' * Q'')]]$ and
-    $[[Q' * Q'' ||- Q2]]$.
-  \item If $[[Q2]]=[[Empty]]$, then, since $[[pi.Empty]]=[[Empty]]$, by
-    Definition~\ref{def:entailment-relation}, $[[Q1]]=[[Empty]]$ and
-    the result is immediate.
-  \end{itemize}
-\end{proof}
-%else
-%endif
 
 \subsection{Typing rules}
 \label{sec:typing-rules}
@@ -1393,74 +1345,11 @@ entailment relation.
   \label{lem:wanted:promote}
   If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
 \end{lemma}
-%if full
-\begin{proof}
-  By induction on the syntax of $[[C]]$
-  \begin{itemize}
-  \item If $[[C]]=[[Q']]$, then the result follows
-    from Lemma~\ref{lem:q:promotion}
-  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
-    proved the corresponding case in Lemma~\ref{lem:q:promotion},
-    using Lemma~\ref{lem:inversion}.
-  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
-    immediate, so we can assume without loss of generality that
-    $[[pi]]=[[omega]]$, and, therefore, that $[[pi.C]] = [[pi.C1 *
-    pi.C2]]$.
-    By Lemma~\ref{lem:inversion}, we have that $[[Q|-C1]]$ and
-    $[[Q|-C2]]$; hence, by induction, $[[omega.Q |- omega.C1]]$ and
-    $[[omega.Q |- omega.C1]]$.
-    Then, by definition of the entailment relation, we have $[[omega.Q
-    * omega.Q |- omega.C1 * omega.C2]]$, which concludes,
-    since $[[omega.Q]] = [[omega.Q * omega.Q]]$.
-  \item If $[[C]]=[[rho.(Q1 => C')]]$, then by
-    Lemma~\ref{lem:inversion}, there is a $[[Q']]$ such that
-    $[[Q]]=[[pi.Q']]$ and $[[Q'*Q1 |- C']]$. Applying
-    rule~\rref*{C-Impl} with $[[pi.rho]]$, we get
-    $[[(pi.rho).Q' |- (pi.rho).(Q1 => C')]]$.
-
-    In other words: $[[pi.Q |- pi.(rho.(Q=>C))]]$ as expected.
-  \end{itemize}
-\end{proof}
-%else
-%endif
 
 \begin{lemma}[Inversion of promotion]
   \label{lem:wanted:demote}
   If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[Q]] = [[pi.Q']]$ for some $[[Q']]$
 \end{lemma}
-%if full
-\begin{proof}
-  By induction on the syntax of $[[C]]$
-  \begin{itemize}
-  \item If $[[C]]=[[Q']]$, then the result follows from
-    Lemma~\ref{lem:q:scaling-inversion}
-  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
-    proved the corresponding case in
-    Lemma~\ref{lem:q:scaling-inversion} using
-    Lemma~\ref{lem:inversion}.
-  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
-    immediate, so we can assume without loss of generality that
-    $[[pi]]=[[omega]]$, and, therefore, that
-    $[[pi.C]] = [[pi.C1 * pi.C2]]$. By Lemma~\ref{lem:inversion},
-    there exist $[[Q1]]$ and $[[Q2]]$ such that $[[Q1|- omega.C1]]$,
-    $[[Q2|- omega.C2]]$ and $[[Q]]=[[Q1 * Q2]]$. By induction
-    hypothesis, we get $[[Q1]] = [[omega.Q1']]$ and $[[Q2]] = [[omega.Q2']]$
-    such that $[[Q1' |- C1]]$ and $[[Q2' |- C2]]$. From which it
-    follows that $[[omega.Q1'*omega.Q2' |- C1]]$ and
-    $[[omega.Q1'*omega.Q2' |- C1]]$ and, finally, $[[Q]]=[[omega.Q]]$
-    and $[[Q |- C1 & C2]]$. \unsure{Unproved: weakening
-      by adding $\omega$ stuff, weakening by scaling by $\omega$,
-      $\omega.(\omega.C) = omega.C$. I'll prove all these as technical
-      lemmas in the appendices}
-  \item If $[[C]]=[[rho.(Q1 => C')]]$, then
-    $[[pi.C]] = [[(pi.rho). (Q1 => C')]]$. The result follows
-    immediately by Lemma~\ref{lem:inversion}.
-  \end{itemize}
-\end{proof}
-%else
-%endif
-
-
 
 \subsection{Constraint generation}
 \label{sec:constraint-generation}
@@ -1550,154 +1439,6 @@ type system.
   For all $[[Q_g]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
 \end{lemma}
-%if full
-\begin{proof}
-  By induction on $[[G |-> e : t ~> C]]$
-  \begin{description}
-  \item[\rref*{E-Var}] We have
-    \begin{itemize}
-    \item $[[x :_1 forall as. Q =o u \in G]]$
-    \item $[[G |-> x : u[ts/as] ~> Q[ts/as] ]]$
-    \item $[[Q_g |- Q[ts/as] ]]$
-    \end{itemize}
-    Therefore, by rules~\rref*{E-Var} and~\rref*{E-Sub}, it follows
-    immediately that $[[Q_g ; G |- x : u[ts/as] ]]$
-  \item[\rref*{E-Abs}] We have
-    \begin{itemize}
-    \item $[[G |-> \x. e : t0 ->_pi t ~> C]]$
-    \item $[[Q_g |- C]]$
-    \item $[[G, x:_pi t0 |-> e : t ~> C]]$
-    \end{itemize}
-    By induction hypothesis we have
-    \begin{itemize}
-    \item $[[Q_g; G, x:_pi t0 |- e : t]]$
-    \end{itemize}
-    From which follows that $[[Q_g; G |- \x. e : t0 ->_pi t]]$.
-  \item[\rref*{E-Let}] We have
-    \begin{itemize}
-    \item $[[pi.G1+G2 |-> let_pi x = e1 in e2 : t ~> pi.C1 * C2]]$
-    \item $[[Q_g |- pi.C1 * C2]]$
-    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
-    \item $[[G1 |-> e1 : t1 ~> C1]]$
-    \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$ and $[[Q_2]]$ such that
-    \begin{itemize}
-    \item $[[Q_1 |- C1]]$
-    \item $[[Q_2 |- C2]]$
-    \item $[[Q_g]] = [[pi.Q_1 * Q_2]]$
-    \end{itemize}
-    By induction hypothesis we have
-    \begin{itemize}
-    \item $[[Q_1 ; G1 |- e1 : t1]]$
-    \item $[[Q_2; G2, x:_pi  t1 |- e1 : t1]]$
-    \end{itemize}
-    From which follows that $[[Q_g; pi.G1+G2 |- let_pi x = e1 in e2 :
-    t]]$.
-  \item[\rref*{E-LetSig}] We have
-    \begin{itemize}
-    \item $[[pi.G1+G2 |-> let_pi x : forall as. Q =o t1 = e1 in e2 : t ~>
-      C2 * pi.(Q => C1)]]$
-    \item $[[Q_g |- C2 * pi.(Q => C1)]]$
-    \item $[[G1 |-> e1 : t1 ~> C1]]$
-    \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
-    \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such
-    that
-    \begin{itemize}
-    \item $[[Q2 |- C2]]$
-    \item $[[Q1*Q |- C]]$
-    \item $[[Q_g]] = [[pi.Q1*Q2]]$
-    \end{itemize}
-    By induction hypothesis
-    \begin{itemize}
-    \item $[[Q1*Q;G1 |- e1 : t1]]$
-    \item $[[Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
-    \end{itemize}
-    Hence $[[Q_g; pi.G1+G2 |- let_pi x : forall as. Q =o t1 = e1 in e2 : t]]$
-  \item[\rref*{E-App}] \info{Most of the linearity problems are in the App
-      rule. Unpack is also relevant.}
-    We have
-    \begin{itemize}
-    \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
-    \item $[[Q_g |- C1 * pi.C2]]$
-    \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
-    \item $[[G2 |-> e2 : t2 ~> C2]]$
-    \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such that
-    \begin{itemize}
-    \item $[[Q1 |- C1]]$
-    \item $[[Q2 |- C2]]$
-    \item $[[Q_g]] = [[Q1 * pi.Q2]]$
-    \end{itemize}
-    By induction hypothesis
-    \begin{itemize}
-    \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
-    \item $[[Q2; G2 |- e2 : t2]]$
-    \end{itemize}
-    Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
-  \item[\rref*{E-Pack}] We have
-    \begin{itemize}
-    \item $[[omega.G |-> pack e : exists as. t o= Q ~> omega.C * Q[ts/as] ]]$
-    \item $[[Q_g |- C * Q[us/as] ]]$
-    \item $[[G |-> e : t[us/as] ~> C]]$
-    \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
-    such that
-    \begin{itemize}
-    \item $[[Q_1 |- C]]$
-    \item $[[Q_2 |- Q[us/as] ]]$
-    \item $[[Q_g]] = [[omega.Q_1*Q_2]]$
-    \end{itemize}
-    Bu induction hypothesis
-    \begin{itemize}
-    \item $[[Q_1 ; G |- e : t[us/as] ]]$
-    \end{itemize}
-    So we have $[[Q_1 * Q[us/as] ; omega.G |- pack e : exists as. t o=
-    Q]]$. By rule~\rref*{E-Sub}, we conclude
-    $[[Q_g ; omega.G |- pack e : exists as. t o= Q]]$.
-  \item[\rref*{E-Unpack}] We have
-    \begin{itemize}
-    \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q' => C2]]$
-    \item $[[Q_g |- C1 * Q' => C2]]$
-    \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
-    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
-    \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
-    such that
-    \begin{itemize}
-    \item $[[Q_1 |- C1]]$
-    \item $[[Q_2 * Q' |- C2]]$
-    \item $[[Q_g]] = [[Q1 * Q2]]$
-    \end{itemize}
-    By induction hypothesis
-    \begin{itemize}
-    \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
-    \item $[[Q_2*Q ; G2 |- e2 : t]]$
-    \end{itemize}
-    Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
-  \item[\rref*{E-Case}] We have
-    \begin{itemize}
-    \item $[[pi.G + D |-> case_pi e of {alts} : t ~> pi.C * && Ci]]$
-    \item $[[Q_g |- pi.C * && Ci]]$
-    \item $[[G |-> e : T ss ~> C]]$
-    \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
-    \end{itemize}
-    By repeated uses of Lemma~\ref{lem:inversion}, there exist
-    $[[Q]]$, $[[Q']]$ such that
-    \begin{itemize}
-    \item $[[Q |- C]]$
-    \item For each $i$, $[[Q' |- Ci]]$
-    \item $[[Q_g]] = [[pi.Q * Q']]$
-    \end{itemize}
-    By induction hypothesis
-    \begin{itemize}
-    \item $[[Q; G |- e : T ss]]$
-    \item For each $i$, $[[Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
-    \end{itemize}
-    Therefore $[[Q_g ; pi.G + D |- case_pi e of {alts} : t]]$.
-  \end{description}
-\end{proof}
-%else
 \begin{proof}
 Soundness is proved by induction on $[[G |-> e : t ~> C]]$, we only
 present the two most interesting cases, the full proof can be found
@@ -1744,8 +1485,6 @@ in the supplementary material
     Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
   \end{description}
 \end{proof}
-%endif
-
 
 \subsection{Constraint solving}
 \label{sec:constraint-solver}
@@ -2598,6 +2337,265 @@ practical.
 \printbibliography
 
 \appendix
+
+\section{Proofs of the lemmas}
+\label{sec:appendix:proofs-lemmas}
+
+\setcounter{subsection}{3}
+\subsection{Lemmas on the qualified type system}
+\label{sec:appendix:qual-type-syst}
+
+\begin{proof}[Proof of Lemma~\ref{lem:q:promotion}]
+  Let us prove this lemma by induction on the syntax of $[[Q2]]$:
+  \begin{itemize}
+  \item If $[[Q2]] = [[rho.q]]$, then $[[pi.Q1 ||- (pi.rho).q]]$ holds by
+    Definition~\ref{def:entailment-relation}.
+  \item If $[[Q2]] = [[Q2' * Q2'']]$, then, by Definition~\ref{def:entailment-relation}, we know that
+    $[[Q1]] = [[Q1' * Q1'']]$ for some $[[Q1']]$ and $[[Q1'']]$, and
+    that
+    $[[Q1' ||- Q2']]$ and $[[Q1'' ||- Q2'']]$. By induction hypothesis,
+    we have
+    $[[pi.Q1' ||- pi.Q2']]$ and $[[pi.Q1'' ||- pi.Q2'']]$. From which it
+    follows that
+    $[[pi.Q1 ||- pi.Q2]]$.
+  \item If $[[Q2]]=[[Empty]]$, then, by
+    Definition~\ref{def:entailment-relation}, we know that
+    $[[Q1]]=[[omega.Q1']]$, for some $[[Q1']]$
+    and the result is immediate.\unsure{really requires a lemma that
+      $[[pi.(rho.Q)]] = [[(pi.rho).Q]]$}
+  \end{itemize}
+\end{proof}
+
+\begin{proof}[Proof of Lemma~\ref{lem:q:scaling-inversion}]
+  Let us prove this lemma by induction on the syntax of $[[Q2]]$
+  \begin{itemize}
+  \item If $[[Q2]] = [[rho.q]]$, then, by Definition~\ref{def:entailment-relation}, there exists
+    $[[Q1']]$ such that $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- rho.q]]$.
+  \item If $[[Q2]] = [[Q2' * Q2'']]$, then, by Definition~\ref{def:entailment-relation}, we know
+    that
+    $[[Q1]] = [[Q1' * Q1'']]$ for some $[[Q1']]$ and $[[Q1'']]$, and
+    that
+    $[[Q1' ||- pi.Q2']]$ and $[[Q1'' ||- pi.Q2'']]$ (remember that, by
+    definition, $[[pi.Q2]] = [[pi.Q2' * pi.Q2'']]$). By induction hypothesis,
+    we have
+    constraints $[[Q']]$ and $[[Q'']]$, such that $[[Q1']] =
+    [[pi.Q']]$ and $[[Q1'']] = [[pi.Q'']]$, and $[[Q' ||- Q2']]$ and
+    $[[Q'' ||- Q2'']]$.
+    It follows that $[[Q1]] = [[pi.(Q' * Q'')]]$ and
+    $[[Q' * Q'' ||- Q2]]$.
+  \item If $[[Q2]]=[[Empty]]$, then, since $[[pi.Empty]]=[[Empty]]$, by
+    Definition~\ref{def:entailment-relation}, $[[Q1]]=[[Empty]]$ and
+    the result is immediate.
+  \end{itemize}
+\end{proof}
+
+\setcounter{subsection}{4}
+\subsection{Lemmas on constraint inference}
+\label{sec:appendix:constraint-inference}
+
+\begin{proof}[Proof of Lemma~\ref{lem:wanted:promote}]
+  By induction on the syntax of $[[C]]$
+  \begin{itemize}
+  \item If $[[C]]=[[Q']]$, then the result follows
+    from Lemma~\ref{lem:q:promotion}
+  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
+    proved the corresponding case in Lemma~\ref{lem:q:promotion},
+    using Lemma~\ref{lem:inversion}.
+  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
+    immediate, so we can assume without loss of generality that
+    $[[pi]]=[[omega]]$, and, therefore, that $[[pi.C]] = [[pi.C1 *
+    pi.C2]]$.
+    By Lemma~\ref{lem:inversion}, we have that $[[Q|-C1]]$ and
+    $[[Q|-C2]]$; hence, by induction, $[[omega.Q |- omega.C1]]$ and
+    $[[omega.Q |- omega.C1]]$.
+    Then, by definition of the entailment relation, we have $[[omega.Q
+    * omega.Q |- omega.C1 * omega.C2]]$, which concludes,
+    since $[[omega.Q]] = [[omega.Q * omega.Q]]$.
+  \item If $[[C]]=[[rho.(Q1 => C')]]$, then by
+    Lemma~\ref{lem:inversion}, there is a $[[Q']]$ such that
+    $[[Q]]=[[pi.Q']]$ and $[[Q'*Q1 |- C']]$. Applying
+    rule~\rref*{C-Impl} with $[[pi.rho]]$, we get
+    $[[(pi.rho).Q' |- (pi.rho).(Q1 => C')]]$.
+
+    In other words: $[[pi.Q |- pi.(rho.(Q=>C))]]$ as expected.
+  \end{itemize}
+\end{proof}
+
+\begin{proof}[Proof of Lemma~\ref{lem:wanted:demote}]
+  By induction on the syntax of $[[C]]$
+  \begin{itemize}
+  \item If $[[C]]=[[Q']]$, then the result follows from
+    Lemma~\ref{lem:q:scaling-inversion}
+  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
+    proved the corresponding case in
+    Lemma~\ref{lem:q:scaling-inversion} using
+    Lemma~\ref{lem:inversion}.
+  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
+    immediate, so we can assume without loss of generality that
+    $[[pi]]=[[omega]]$, and, therefore, that
+    $[[pi.C]] = [[pi.C1 * pi.C2]]$. By Lemma~\ref{lem:inversion},
+    there exist $[[Q1]]$ and $[[Q2]]$ such that $[[Q1|- omega.C1]]$,
+    $[[Q2|- omega.C2]]$ and $[[Q]]=[[Q1 * Q2]]$. By induction
+    hypothesis, we get $[[Q1]] = [[omega.Q1']]$ and $[[Q2]] = [[omega.Q2']]$
+    such that $[[Q1' |- C1]]$ and $[[Q2' |- C2]]$. From which it
+    follows that $[[omega.Q1'*omega.Q2' |- C1]]$ and
+    $[[omega.Q1'*omega.Q2' |- C1]]$ and, finally, $[[Q]]=[[omega.Q]]$
+    and $[[Q |- C1 & C2]]$. \unsure{Unproved: weakening
+      by adding $\omega$ stuff, weakening by scaling by $\omega$,
+      $\omega.(\omega.C) = omega.C$. I'll prove all these as technical
+      lemmas in the appendices}
+  \item If $[[C]]=[[rho.(Q1 => C')]]$, then
+    $[[pi.C]] = [[(pi.rho). (Q1 => C')]]$. The result follows
+    immediately by Lemma~\ref{lem:inversion}.
+  \end{itemize}
+\end{proof}
+
+\begin{proof}[Full proof of Lemma~\ref{lem:generation-soundness}]
+  By induction on $[[G |-> e : t ~> C]]$
+  \begin{description}
+  \item[\rref*{E-Var}] We have
+    \begin{itemize}
+    \item $[[x :_1 forall as. Q =o u \in G]]$
+    \item $[[G |-> x : u[ts/as] ~> Q[ts/as] ]]$
+    \item $[[Q_g |- Q[ts/as] ]]$
+    \end{itemize}
+    Therefore, by rules~\rref*{E-Var} and~\rref*{E-Sub}, it follows
+    immediately that $[[Q_g ; G |- x : u[ts/as] ]]$
+  \item[\rref*{E-Abs}] We have
+    \begin{itemize}
+    \item $[[G |-> \x. e : t0 ->_pi t ~> C]]$
+    \item $[[Q_g |- C]]$
+    \item $[[G, x:_pi t0 |-> e : t ~> C]]$
+    \end{itemize}
+    By induction hypothesis we have
+    \begin{itemize}
+    \item $[[Q_g; G, x:_pi t0 |- e : t]]$
+    \end{itemize}
+    From which follows that $[[Q_g; G |- \x. e : t0 ->_pi t]]$.
+  \item[\rref*{E-Let}] We have
+    \begin{itemize}
+    \item $[[pi.G1+G2 |-> let_pi x = e1 in e2 : t ~> pi.C1 * C2]]$
+    \item $[[Q_g |- pi.C1 * C2]]$
+    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
+    \item $[[G1 |-> e1 : t1 ~> C1]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$ and $[[Q_2]]$ such that
+    \begin{itemize}
+    \item $[[Q_1 |- C1]]$
+    \item $[[Q_2 |- C2]]$
+    \item $[[Q_g]] = [[pi.Q_1 * Q_2]]$
+    \end{itemize}
+    By induction hypothesis we have
+    \begin{itemize}
+    \item $[[Q_1 ; G1 |- e1 : t1]]$
+    \item $[[Q_2; G2, x:_pi  t1 |- e1 : t1]]$
+    \end{itemize}
+    From which follows that $[[Q_g; pi.G1+G2 |- let_pi x = e1 in e2 :
+    t]]$.
+  \item[\rref*{E-LetSig}] We have
+    \begin{itemize}
+    \item $[[pi.G1+G2 |-> let_pi x : forall as. Q =o t1 = e1 in e2 : t ~>
+      C2 * pi.(Q => C1)]]$
+    \item $[[Q_g |- C2 * pi.(Q => C1)]]$
+    \item $[[G1 |-> e1 : t1 ~> C1]]$
+    \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such
+    that
+    \begin{itemize}
+    \item $[[Q2 |- C2]]$
+    \item $[[Q1*Q |- C]]$
+    \item $[[Q_g]] = [[pi.Q1*Q2]]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item $[[Q1*Q;G1 |- e1 : t1]]$
+    \item $[[Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
+    \end{itemize}
+    Hence $[[Q_g; pi.G1+G2 |- let_pi x : forall as. Q =o t1 = e1 in e2 : t]]$
+  \item[\rref*{E-App}] \info{Most of the linearity problems are in the App
+      rule. Unpack is also relevant.}
+    We have
+    \begin{itemize}
+    \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
+    \item $[[Q_g |- C1 * pi.C2]]$
+    \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
+    \item $[[G2 |-> e2 : t2 ~> C2]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such that
+    \begin{itemize}
+    \item $[[Q1 |- C1]]$
+    \item $[[Q2 |- C2]]$
+    \item $[[Q_g]] = [[Q1 * pi.Q2]]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
+    \item $[[Q2; G2 |- e2 : t2]]$
+    \end{itemize}
+    Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
+  \item[\rref*{E-Pack}] We have
+    \begin{itemize}
+    \item $[[omega.G |-> pack e : exists as. t o= Q ~> omega.C * Q[ts/as] ]]$
+    \item $[[Q_g |- C * Q[us/as] ]]$
+    \item $[[G |-> e : t[us/as] ~> C]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
+    such that
+    \begin{itemize}
+    \item $[[Q_1 |- C]]$
+    \item $[[Q_2 |- Q[us/as] ]]$
+    \item $[[Q_g]] = [[omega.Q_1*Q_2]]$
+    \end{itemize}
+    Bu induction hypothesis
+    \begin{itemize}
+    \item $[[Q_1 ; G |- e : t[us/as] ]]$
+    \end{itemize}
+    So we have $[[Q_1 * Q[us/as] ; omega.G |- pack e : exists as. t o=
+    Q]]$. By rule~\rref*{E-Sub}, we conclude
+    $[[Q_g ; omega.G |- pack e : exists as. t o= Q]]$.
+  \item[\rref*{E-Unpack}] We have
+    \begin{itemize}
+    \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q' => C2]]$
+    \item $[[Q_g |- C1 * Q' => C2]]$
+    \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
+    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
+    \end{itemize}
+    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
+    such that
+    \begin{itemize}
+    \item $[[Q_1 |- C1]]$
+    \item $[[Q_2 * Q' |- C2]]$
+    \item $[[Q_g]] = [[Q1 * Q2]]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
+    \item $[[Q_2*Q ; G2 |- e2 : t]]$
+    \end{itemize}
+    Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
+  \item[\rref*{E-Case}] We have
+    \begin{itemize}
+    \item $[[pi.G + D |-> case_pi e of {alts} : t ~> pi.C * && Ci]]$
+    \item $[[Q_g |- pi.C * && Ci]]$
+    \item $[[G |-> e : T ss ~> C]]$
+    \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
+    \end{itemize}
+    By repeated uses of Lemma~\ref{lem:inversion}, there exist
+    $[[Q]]$, $[[Q']]$ such that
+    \begin{itemize}
+    \item $[[Q |- C]]$
+    \item For each $i$, $[[Q' |- Ci]]$
+    \item $[[Q_g]] = [[pi.Q * Q']]$
+    \end{itemize}
+    By induction hypothesis
+    \begin{itemize}
+    \item $[[Q; G |- e : T ss]]$
+    \item For each $i$, $[[Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
+    \end{itemize}
+    Therefore $[[Q_g ; pi.G + D |- case_pi e of {alts} : t]]$.
+  \end{description}
+\end{proof}
 
 \end{document}
 
