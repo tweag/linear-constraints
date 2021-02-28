@@ -2271,6 +2271,10 @@ linear constraints. Certainly, ownership proofs could be managed manually, but
 it is hard to imagine a circumstance where this tedious task would be worth the
 cost.
 
+And, this, really, is the philosophy of linear constraints: lowering
+the cost of linear types so that more theoretical application become
+practical.
+
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
 \newpage
