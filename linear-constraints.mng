@@ -362,10 +362,9 @@ Our contributions are as follows:
 \label{sec:motivation}
 
 The goal of this paper is to introduce linear constraints as a mechanism for
-ergonomically using linear types in Haskell.  Of course, in order to appreciate
-this work, it helps to understand how linear types work.\jp{condescending}  In this section, we
-sketch out some of the basics of how linear types work in Haskell, and then
-give a number of examples that motivate our extension into linear constraints.
+ergonomically using linear types in Haskell. In this section, we sketch out some
+of the basics of how linear types work in Haskell, and then give a number of
+examples that motivate our extension into linear constraints.
 
 \subsection{Linear Types}
 \label{sec:linear-types}
