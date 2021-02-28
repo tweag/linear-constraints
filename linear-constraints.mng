@@ -2199,7 +2199,7 @@ Let us finally build, given a derivation $[[Q;G |- e : t]]$, an expression
 $[[Ds(z;Q;G |- e : t)]]$, such that
 $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for a distinguished variable
 $[[z]]$). Even though we abbreviate the derivation as its
-conclusion, the translation is defined recursively on the typing
+conclusion, the translation is defined recursively on the
 whole typing derivation, in particular we have access to typing rule
 premises in the body of the definition.
 
