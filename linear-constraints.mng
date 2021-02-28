@@ -544,7 +544,6 @@ empty. This lets us give the following \textsc{api} to files:
 Haskell doesn't have existential quantification, however it can
 be encoded as a \textsc{gadt}. For instance |exists h. Ur (Handle h) .<= Open h| can
 be implemented as
-\unsure{We could use a |Proxy| instead. |Pack :: c a =>. Proxy a -> Pack c|, where |c :: * -> Constraint|}
 \jp{The following type should be called |OpenFileHandle| ? }
 \begin{code}
 data PackHandle where
@@ -560,13 +559,6 @@ names are introduced in scope and all the returned constraints are
 made available. We also use |pack' x| as a shorthand for
 for |pack (Ur x)|. With all these ingredients we can indeed write
 the example given in the introduction.
-
-\unsure {Explain that existentially quantified type always have an
-  implicit unrestricted at their core.}
-
-\unsure{Link to a typestate paper + mention how much closer this is
-  to the idea of typestate than the pedestrian encoding in regular
-  linear types.}
 
 \subsection{Motivating Examples}
 \label{sec:examples}
