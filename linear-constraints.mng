@@ -1102,7 +1102,7 @@ linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
   Figure~\ref{fig:typing-rules}). It is not necessarily obvious why:
   after all we seem to be mostly concerned about linearity in
   constraints, maybe it's all we need and we can forgo linear
-  functions. But we are not that lucky.\jp{Since we have designed this language, we can hardly speak of luck. We have inflicted this burden upon ourselves.} Actually, just to define the
+  functions. But we are not that lucky. Actually, just to define the
   bind combinator for the |IOL| monad from
   Section~\ref{sec:introduction}, we need linear arrows: |(>>=) :: IOL
   a ->. (a ->. IOL b) ->. IOL b|.
