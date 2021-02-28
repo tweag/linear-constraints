@@ -2316,7 +2316,11 @@ Figure~\ref{fig:full:core-typing-rules}.
 \label{sec:appendix:desugaring}
 
 The complete definition of the desugaring function from
-Section~\ref{sec:desugaring} can be found below.
+Section~\ref{sec:desugaring} can be found in
+Figure~\ref{fig:full:desugaring}.
+
+\begin{figure}
+  \centering\small
 
 %{
 %format (Ds(x)) = "\ottkw{Ds}\,\ottsym{(}" x "\ottsym{)}"
@@ -2363,6 +2367,9 @@ Section~\ref{sec:desugaring} can be found below.
 %format z2' = "[[z2]]''"
 %format |- = "[[|-]]"
 %format ||- = "[[||-]]"
+$$
+\left\{\;
+\begin{minipage}{0.8\linewidth}
 \begin{code}
 Ds(z;Q;G |- x : u[ts/as])  =
     x z
@@ -2407,9 +2414,15 @@ Ds(z;Q1*Q2;G1+G2 |- case_omega e of { alts } : t)  =
     case_omega (Ds(z1;Q1;G1 |- e : T ts)) of
       { ListOf(K xsi -> Ds(z2; Q2; G2, ListOf(Of ((pi**pii)) xi (Sub ui ts as)) |- ei : t))}}
 \end{code}
+\end{minipage}
+\right.
+$$
 
 %}
 
+  \caption{Desugaring}
+  \label{fig:full:desugaring}
+\end{figure}
 
 \section{Proofs of the lemmas}
 \label{sec:appendix:proofs-lemmas}
