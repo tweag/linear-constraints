@@ -1595,7 +1595,7 @@ type system.
 \begin{proof}
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
-  \item[Var] We have
+  \item[\rref*{E-Var}] We have
     \begin{itemize}
     \item $[[x :_1 forall as. Q =o u \in G]]$
     \item $[[G |-> x : u[ts/as] ~> Q[ts/as] ]]$
@@ -1603,7 +1603,7 @@ type system.
     \end{itemize}
     Therefore, by rules~\rref*{E-Var} and~\rref*{E-Sub}, it follows
     immediately that $[[Q_g ; G |- x : u[ts/as] ]]$
-  \item[Abs] We have
+  \item[\rref*{E-Abs}] We have
     \begin{itemize}
     \item $[[G |-> \x. e : t0 ->_pi t ~> C]]$
     \item $[[Q_g |- C]]$
@@ -1614,7 +1614,7 @@ type system.
     \item $[[Q_g; G, x:_pi t0 |- e : t]]$
     \end{itemize}
     From which follows that $[[Q_g; G |- \x. e : t0 ->_pi t]]$.
-  \item[Let] We have
+  \item[\rref*{E-Let}] We have
     \begin{itemize}
     \item $[[pi.G1+G2 |-> let_pi x = e1 in e2 : t ~> pi.C1 * C2]]$
     \item $[[Q_g |- pi.C1 * C2]]$
@@ -1634,7 +1634,7 @@ type system.
     \end{itemize}
     From which follows that $[[Q_g; pi.G1+G2 |- let_pi x = e1 in e2 :
     t]]$.
-  \item[LetSig] We have
+  \item[\rref*{E-LetSig}] We have
     \begin{itemize}
     \item $[[pi.G1+G2 |-> let_pi x : forall as. Q =o t1 = e1 in e2 : t ~>
       C2 * pi.(Q => C1)]]$
@@ -1655,7 +1655,7 @@ type system.
     \item $[[Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
     \end{itemize}
     Hence $[[Q_g; pi.G1+G2 |- let_pi x : forall as. Q =o t1 = e1 in e2 : t]]$
-  \item[App] \info{Most of the linearity problems are in the App
+  \item[\rref*{E-App}] \info{Most of the linearity problems are in the App
       rule. Unpack is also relevant.}
     We have
     \begin{itemize}
@@ -1676,7 +1676,7 @@ type system.
     \item $[[Q2; G2 |- e2 : t2]]$
     \end{itemize}
     Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
-  \item[Pack] We have
+  \item[\rref*{E-Pack}] We have
     \begin{itemize}
     \item $[[omega.G |-> pack e : exists as. t o= Q ~> omega.C * Q[ts/as] ]]$
     \item $[[Q_g |- C * Q[us/as] ]]$
@@ -1696,7 +1696,7 @@ type system.
     So we have $[[Q_1 * Q[us/as] ; omega.G |- pack e : exists as. t o=
     Q]]$. By rule~\rref*{E-Sub}, we conclude
     $[[Q_g ; omega.G |- pack e : exists as. t o= Q]]$.
-  \item[Unpack] We have
+  \item[\rref*{E-Unpack}] We have
     \begin{itemize}
     \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q' => C2]]$
     \item $[[Q_g |- C1 * Q' => C2]]$
@@ -1716,7 +1716,7 @@ type system.
     \item $[[Q_2*Q ; G2 |- e2 : t]]$
     \end{itemize}
     Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
-  \item[Case] We have
+  \item[\rref*{E-Case}] We have
     \begin{itemize}
     \item $[[pi.G + D |-> case_pi e of {alts} : t ~> pi.C * && Ci]]$
     \item $[[Q_g |- pi.C * && Ci]]$
