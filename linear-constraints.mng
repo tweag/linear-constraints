@@ -1732,22 +1732,17 @@ calculus from the Linear Haskell article~\cite{LinearHaskell}.
     [[e]] & \bnfeq & ... \bnfor [[pack (e1, e2)]] \bnfor [[unpack (y,x)=e1 in e2]] & \text{Expressions}
   \end{array}
   $$
-  \caption{Grammar of the core calculus (subset)}
-  \label{fig:core-grammar}
-\end{figure}
 
-\begin{figure}
-  \centering\small
   \drules[L]{$[[G |- e : t]]$}{Core language
     typing}{Pack,Unpack}
-  \caption{Core calculus type system (subset)}
-  \label{fig:core-typing-rules}
+  \caption{Core calculus (subset)}
+  \label{fig:core-typing-rules}\label{fig:core-grammar}
 \end{figure}
 
 The core calculus is a variant of the type system defined in
 Section~\ref{sec:qualified-type-system} without implicit arguments.
-Figure~\ref{fig:core-grammar} (grammar) and Figure~\ref{fig:core-typing-rules}
-(typing rules) highlight the differences from the qualified system:
+Figure~\ref{fig:core-typing-rules}
+highlights the differences from the qualified system:
 \begin{itemize}
   \item Type schemes $[[s]]$ do not support qualified types.
   \item Exisentially quantified types $[[exists as. t2 o- t1]]$ now represent a
