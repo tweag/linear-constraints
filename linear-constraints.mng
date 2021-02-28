@@ -1645,10 +1645,7 @@ takes great care to use the most recent occurrence of $[[q]]$
 the list). To understand why, consider the following example:
 \begin{code}
 f :: FilePath -> IOL ()
-f fp =   do  {  pack h <- openFile fp
-             ;  let  {  cl :: Open h =>. IOL ()
-                     ;  cl = closeFile h }
-             ;  cl }
+f fp =   do  {  pack h <- openFile fp ;  let  {  cl :: Open h =>. IOL () ;  cl = closeFile h } ;  cl }
 \end{code}
 In this example it is quite clear, that the programmer meant for
 |closeFile| to use |Open h| introduced locally in |cl|. In fact this
