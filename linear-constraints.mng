@@ -929,7 +929,7 @@ $$
 $$
 %
 The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
-  factor}. \jp{Multiplicity and scaling factor essentially evoke the same picture. Annoyingly both 'multiplying' and 'scaling' are used throughout the paper.}
+  factor}.
 It indicates whether the constraint is to be used linearly
 ($[[1]]$) or without restriction ($[[omega]]$).
 
