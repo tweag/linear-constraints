@@ -2139,7 +2139,7 @@ fixed.
 
 This is a bit imprecise. It's not actually hard to fix the
 imprecision: give a name to each atomic constraint, when tensoring two
-simple constraints together merge constraints with the same name. Much
+simple constraints together merge constraints with the same name.\csongor{This sentence is a bit unclear to me. What does ``merging'' mean?} Much
 like we do for type context. This is actually essentially how
 \textsc{ghc} deals with constraints today. It is also the mechanism
 that our prototype implementation (see
