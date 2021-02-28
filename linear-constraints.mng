@@ -362,11 +362,6 @@ this work, it helps to understand how linear types work.\jp{condescending}  In t
 sketch out some of the basics of how linear types work in Haskell, and then
 give a number of examples that motivate our extension into linear constraints.
 
-% This extra noise is the consequence of the fact that, as far as a
-% linear type system is concerned, |h| is expended after |readLine
-% h|. But, of course, we typically want to do more with a file that
-% reading just one line of it, so the linear |readLine| is given the type.
-
 \subsection{Linear Types}
 \label{sec:linear-types}
 
