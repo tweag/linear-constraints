@@ -1886,8 +1886,10 @@ $[[z]]$). Even though we abbreviate the derivation as its
 conclusion, the translation is defined recursively on the
 whole typing derivation, in particular we have access to typing rule
 premises in the body of the definition.
-
-We present some of the interesting cases.
+%
+We present some of the interesting cases in Figure~\ref{fig:desugaring}.
+\begin{figure}
+  \centering\small
 %{
 %format |- = "[[|-]]"
 %format ||- = "[[||-]]"
@@ -1932,6 +1934,10 @@ Ds(z;Q;G |- e : t)  =
 \right.
 $$
 %}
+  \caption{Desugaring (subset)}
+  \label{fig:desugaring}
+\end{figure}
+
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
