@@ -2146,13 +2146,12 @@ Furthermore we shall require that for every $[[Q1]]$ and $[[Q2]]$
 such that $[[Q1 ||- Q2]]$, there is a (linear) function
 $[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
 
-We will need one more device. Namely, we'll need a way to turn every
+We will need to define one more device. Namely, we'll need a way to turn every
 $[[Ev(omega.Q)]]$ into an $[[Ur(Ev(Q))]]$. For any
 $[[e : Ev(omega.Q)]]$, we shall write $[[urify(Q;e) :
 Ur(Ev(omega.Q))]]$. As a shorthand, particularly useful in nested
 patterns, we will write $[[case_pi e of {urified(Q;x) -> e'}]]$ for
 $[[case_pi urify(Q;e) of {Ur x -> e'}]]$.
-Let's define $[[e : Ev(omega.Q)]]$:
 
 $$
 \left\{
@@ -2165,10 +2164,11 @@ $$
 \right.
 $$
 
+\noindent
 We will often omit the $[[Q]]$ in $[[urify(Q;e)]]$, and write
 $[[urify(e)]]$ when it can be easily inferred from the context.
 
-\noindent Let us now define a family of functions $[[Ds(Hole)]]$ to translate
+Let us now define a family of functions $[[Ds(Hole)]]$ to translate
 the type schemes, types, and typing derivations of the qualified system into the
 types, type schemes, and terms of the Core Calculus respectively.
 
@@ -2200,10 +2200,10 @@ $$
 Let us finally build, given a derivation $[[Q;G |- e : t]]$, an expression
 $[[Ds(z;Q;G |- e : t)]]$, such that
 $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for a distinguished variable
-$[[z]]$). The translation is defined recursively on the typing derivation, and
-maintains a special value $[[z]]$, which corresponds to the evidence of the
-entire qualified context. The shape of this value is dictated by the rule used
-in the derivation.
+$[[z]]$). Even though we abbreviate the derivation as its
+conclusion, the translation is defined recursively on the typing
+whole typing derivation, in particular we have access to typing rule
+premises in the body of the definition.
 
 %if full
 $$
@@ -2275,11 +2275,11 @@ $$
 $$
 
 \noindent
-The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, in order.
+The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
 is inserted  passing $[[z]]$ as an argument.
-Handling $\kunpack$ requires splitting the context into two. $[[e1]]$ is desugared as a pair, and the evidence
+Handling $\kunpack$ requires splitting the context into two: $[[e1]]$ is desugared as a pair, and the evidence
 it contains is passed to $[[e2]]$. Finally, subsumption summons the function corresponding to the entailment relation $[[Q ||- Q1]]$
 and applies it to $[[z]]$ : $[[Ev(Q)]]$ then proceeds to desugar $[[e]]$ with the resulting evidence for $[[Q1]]$.
 Crucially, since $[[Ds(Hole)]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
