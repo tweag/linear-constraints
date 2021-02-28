@@ -266,8 +266,8 @@ import GHC.Base
 
 Linear type systems have seen somewhat of a renaissance in recent years in
 various mainstream programming communities. Rust's ownership system guarantees
-memory safety for systems programmers, Haskell's linear types give functional
-programmers safe \textsc{api}s for low-level mutable data structures, and even
+memory safety for systems programmers, Haskell's \textsc{ghc} recently
+added support for linear types, and even
 dependently typed programmers can now use linear types with Idris 2.
 
 \csongor{Say something about ergonomics to set up the next part}
