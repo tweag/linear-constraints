@@ -242,12 +242,12 @@ import GHC.Base
 \ccsdesc[300]{Software and its engineering~Formal language definitions}
 
 \begin{abstract}
-  This paper presents \emph{linear constraints} a front-end feature to
+  This paper presents \emph{linear constraints}, a front-end feature to
   linear typing which lets the compiler discharge some of the difficutly
-  associated with linear types from the programmer.
+  associated with programming with linear types.
   Just as with class constraints, linear constraints provide context that is to
   be filled in implicitly by the compiler.
-  Concretely, owe
+  Concretely, we
   introduce a \emph{linear fat arrow}, to the left of which,
   constraints are solved according to the rules of linear logic.
   %
