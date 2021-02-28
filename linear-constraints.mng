@@ -2106,6 +2106,7 @@ this last step.
 \subsection{From qualified to core}
 \label{sec:ds:from-qualified-core}
 
+\subsubsection{Evidence}
 In order to desugar derivations of the qualified system to the core
 calculus, we will use the classic technique known as evidence-passing
 style\footnote{This technique is also often called dictionary-passing
@@ -2128,24 +2129,17 @@ $$
 \right.
 $$
 
-It ought to be noted that $[[Ev(Q)]]$ is not technically well
-defined. Indeed Section~\ref{sec:constraint-domain} defines the syntax
-as being quotiented by associativity and commutativity of the tensor
-product, and idempotence of unrestricted constraints. But core
-language data types (or Haskell's for that matter) are not so
-quotiented. So for the sake of defining $[[Ev(Q)]]$, we have to assume
-that a particular representative of the equivalence classes has been
-fixed.
-
-This is a bit imprecise. It's not actually hard to fix the
-imprecision: give a name to each atomic constraint, when tensoring two
-simple constraints together merge constraints with the same name.\csongor{This sentence is a bit unclear to me. What does ``merging'' mean?} Much
-like we do for type context. This is actually essentially how
-\textsc{ghc} deals with constraints today. It is also the mechanism
-that our prototype implementation (see
-Section~\ref{sec:implementation}) uses. However, we have preferred
-keeping this section a little imprecise, in order to save the rest of
-the article from the non-trivial extra tedium that the more precise
+It ought to be noted that $[[Ev(Q)]]$ is not technically well defined, as the
+rules in Section~\ref{sec:constraint-domain} define the syntax as being
+quotiented by associativity and commutativity of the tensor product, and
+idempotence of unrestricted constraints. But core language data types (or
+Haskell's for that matter) are not so quotiented. It's not actually hard to fix
+the imprecision: give a name to each atomic constraint, and operate on canonical
+representatives of the equivalence classes.  This is actually essentially how
+\textsc{ghc} deals with constraints today. It is also the mechanism that our
+prototype implementation (see Section~\ref{sec:implementation}) uses. However,
+we have preferred keeping this section a little imprecise, in order to save the
+rest of the article from the non-trivial extra tedium that the more precise
 presentation entails.
 
 Furthermore we shall require that for every $[[Q1]]$ and $[[Q2]]$
@@ -2174,28 +2168,44 @@ $$
 We will often omit the $[[Q]]$ in $[[urify(Q;e)]]$, and write
 $[[urify(e)]]$ when it can be easily inferred from the context.
 
-With this we can desugar a type $[[t]]$ of the qualified system into
-a type $[[Ds(t)]]$ of the core calculus.\unsure{confusion type vs type
-  scheme aka polytype. Probably not a problem, but it should be
-  explained somewhere.}
+\noindent Let us now define a family of functions $[[Ds(Hole)]]$ to translate
+the type schemes, types, and typing derivations of the qualified system into the
+types, type schemes, and terms of the Core Calculus respectively.
+
+\subsubsection{Translating types}
+Type schemes $[[s]]$ are translated by turning the implicit argument $[[Q]]$
+into a function that takes the evidence of $[[Q]]$.
 
 $$
 \left\{
   \begin{array}{lcl}
     [[Ds(forall as. Q =o t)]] & = & [[forall as. Ev(Q) ->_1 Ds(t)]] \\
+  \end{array}
+\right.
+$$
+
+\noindent
+Translating types $[[t]]$ proceeds as expected.
+
+$$
+\left\{
+  \begin{array}{lcl}
     [[Ds(t1 ->_pi t2)]] & = & [[Ds(t1) ->_pi Ds(t2)]] \\
     [[Ds(exists as. t o= Q)]] & = & [[exists as. Ds(t) o- Ev(Q)]]
   \end{array}
 \right.
 $$
 
-Let us finally build, given a derivation $[[Q;G |- e : t]]$, an
-expression $[[Ds(z;Q;G |- e : t)]]$, such that
-$[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for a distinguished
-variable $[[z]]$).
+\subsubsection{Translating terms}
+Let us finally build, given a derivation $[[Q;G |- e : t]]$, an expression
+$[[Ds(z;Q;G |- e : t)]]$, such that
+$[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for a distinguished variable
+$[[z]]$). The translation is defined recursively on the typing derivation, and
+maintains a special value $[[z]]$, which corresponds to the evidence of the
+entire qualified context. The shape of this value is dictated by the rule used
+in the derivation.
 
-\unsure{Explain how to read the recursive definition, because it's not
-  really obvious}
+%if full
 $$
 \left\{
   \begin{array}{lcl}
@@ -2243,6 +2253,38 @@ $$
   \end{array}
 \right.
 $$
+%else
+\noindent
+We present some of the interesting cases.
+
+$$
+\left\{
+\begin{array}{lcl}
+  [[ Ds(z;Q;G |- x : u[ts/as]) ]] & = & [[ x z ]] \\
+  [[ Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t) ]]
+      & = & [[ case_1 z of { (z1, z2) -> unpack (z',x) =
+            Ds(z';Q1;G1 |- e1 : exists as. t1 o= Q) in let_1 z2' =
+            (z2,z') in Ds(z2';Q2 * Q;G2,x:_1 t1 |- e2 : t)
+            } ]] \\
+  [[ Ds(z;Q;G |- e : t) ]] & = & [[ let_1 z' = Ev(Q ||- Q1) z in
+                                 Ds(z';Q1;G |- e : t) ]] \\
+  ...
+
+\end{array}
+\right.
+$$
+
+\noindent
+The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, in order.
+Variables are stored with qualified types in the environment, so they get
+translated to functions that take the evidence as argument. Accordingly, the evidence
+is inserted  passing $[[z]]$ as an argument.
+Handling $\kunpack$ requires splitting the context into two. $[[e1]]$ is desugared as a pair, and the evidence
+it contains is passed to $[[e2]]$. Finally, subsumption summons the function corresponding to the entailment relation $[[Q ||- Q1]]$
+and applies it to $[[z]]$ : $[[Ev(Q)]]$ then proceeds to desugar $[[e]]$ with the resulting evidence for $[[Q1]]$.
+Crucially, since $[[Ds(Hole)]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
+Namely, $[[Q1]]$ is available in this last case from the~\rref*{E-Sub} rule's premise.
+%endif
 
 It is straightforward by induction, to verify that, indeed,
 $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
