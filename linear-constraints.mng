@@ -2137,7 +2137,7 @@ This is a bit imprecise. It's not actually hard to fix the
 imprecision: give a name to each atomic constraint, when tensoring two
 simple constraints together merge constraints with the same name. Much
 like we do for type context. This is actually essentially how
-\textsc{gch} deals with constraints today. It is also the mechanism
+\textsc{ghc} deals with constraints today. It is also the mechanism
 that our prototype implementation (see
 Section~\ref{sec:implementation}) uses. However, we have preferred
 keeping this section a little imprecise, in order to save the rest of
