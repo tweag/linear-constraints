@@ -2244,17 +2244,17 @@ the capabilities (known as \emph{stateful views}) being a part of a
 bigger language. However, \textsc{ats} doesn't have full inference of
 capabilities, which the programmer may have to fill in.
 
-Other than that, both system have a lot of similarities. They have a
+Other than that, both systems have a lot of similarities. They have a
 finer grain capability system than is expressible in Rust (or our
 Section~\ref{sec:memory-ownership}) which makes it possible to change
 the type of a reference cell on write. They also eschew scoped
-borrowing in favour of more traditional read and write accesses. In
+borrowing in favour of more traditional read and write access. In
 exchange, neither Mezzo nor \textsc{ats} support $O(1)$ freezing like
 in Section~\ref{sec:memory-ownership} and Rust.
 
 Mezzo, being geared towards functional programming does support
-freezing, but freezing a nested data structure requires traversing the
-data structure. As far as we know, \textsc{ats} doesn't support
+freezing, but freezing a nested data structure requires traversing it.
+As far as we know, \textsc{ats} doesn't support
 freezing. \textsc{Ats} is more oriented towards system programming,
 and, interestingly, supports pointer arithmetic.
 
@@ -2318,13 +2318,13 @@ general purpose linearly typed language and language with dedicated
 linear-like typing disciplines such as Rust's, Mezzo's, or
 \textsc{ats}'s.
 
-In some case, like the file example of Section~\ref{sec:introduction},
-linear constraints are a mere convenience, reducing line noise and
-making code more idiomatic. But the memory management \textsc{api} of
-Section~\ref{sec:memory-ownership} is probably not feasible without
-linear constraints. Sure, we could manage the proofs of ownership
-manually, but it is hard to imagine a circumstance where such a
-tedious task would be worth the cost.
+In some cases, like the file example of Section~\ref{sec:introduction},
+linear constraints are a mere convenience that reduce line noise and
+make code more idiomatic. But the memory management \textsc{api} of
+Section~\ref{sec:memory-ownership} is not easily feasible without
+linear constraints. Surely, ownership proofs could be managed manually, but
+it is hard to imagine a circumstance where this tedious task would be worth
+the cost.
 
 And, this, really, is the philosophy of linear constraints: lowering
 the cost of linear types so that more theoretical application become
