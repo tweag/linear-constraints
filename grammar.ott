@@ -24,7 +24,7 @@ grammar
 Q :: 'Ct_' ::= {{ com Constraints }}
 | q                  ::   :: Atom
 | Q1 * Q2            ::   :: Tensor
-| Empty              ::   :: Empty  {{tex \mathbf{1} }}
+| Empty              ::   :: Empty  {{tex \mathbf{\varepsilon} }}
 | ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
 | pi . Q             :: M :: Scale  {{tex [[pi]]{\cdot}[[Q]]}}

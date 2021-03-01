@@ -970,6 +970,10 @@ we only require that it adheres to the interface given in
 Section~\ref{sec:constraint-solver}. But for the sake of this section,
 we only need that the domain be equipped with the entailment relation.
 
+$[[Empty]]$ represents the empty constraint. Those familiar with linear logic
+will recognise this as the multiplicative truth $\mathbf{1}$, but we chose this
+notation because it is more distinct from the $[[1]]$ multiplicity.
+
 OutsideIn introduces, as part of the constraint domain, a generalised
 kind of constraint $\mathcal{Q}$, which include top-level axioms, such
 as type-class instance declarations. Such top-level axioms
@@ -978,13 +982,9 @@ Linear Haskell~\cite{LinearHaskell}\,--\,and as such they don't have
 interesting interactions with the rest of the system, and we choose to
 omit them for simplicity.
 
-We consider simple constraints to be equal up to associativity and
-commutativity of tensor products, as well as idempotence of the
-unrestricted constraints. That is: \rae{What is the meaning of these equations?
-Are we saying that we require the entailment relation to treat the two sides
-as logically equivalent (that is, in bi-implication)? I think so, but if that's
-right, we should be more explicit about this, as these then become further requirements
-on our concrete solver.}
+We consider simple constraints to be equal up to associativity and commutativity
+of tensor products, as well as idempotence of the unrestricted constraints. We
+require the entailment relation to respect these properties. That is:
 $$
 \begin{array}{rcl}
   [[Q1 * Q2]] & = & [[Q2 * Q1]] \\
