@@ -995,9 +995,6 @@ $$
 $$
 %
 Scaling is extended to all constraints as follows: 
-\rae{It's very, very confusing to have $[[1]]$ and $[[Empty]]$ be distinct
-concepts with very similar appearances. How about changing $[[Empty]]$ to
-$\top$?}
 %
 $$
 \left\{
