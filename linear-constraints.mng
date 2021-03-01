@@ -970,9 +970,9 @@ we only require that it adheres to the interface given in
 Section~\ref{sec:constraint-solver}. But for the sake of this section,
 we only need that the domain be equipped with the entailment relation.
 
-$[[Empty]]$ represents the empty constraint. Those familiar with linear logic
-will recognise this as the multiplicative truth $\mathbf{1}$, but we chose this
-notation because it is more distinct from the $[[1]]$ multiplicity.
+The empty constraint is written as $[[Empty]]$. This corresponds to the
+multiplicative truth $\mathbf{1}$ of linear logic, but we chose this notation
+because it is more distinct from the $[[1]]$ multiplicity.
 
 OutsideIn introduces, as part of the constraint domain, a generalised
 kind of constraint $\mathcal{Q}$, which include top-level axioms, such
