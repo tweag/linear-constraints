@@ -134,6 +134,7 @@ import GHC.Base
 
       \newcommand{\csongor}[2][1=]{}
       \newcommand{\jp}[2][1=]{}
+      \newcommandx{\rae}[2][1=]{}
   \fi
 
 %%%%%%%%%%%%%%%%% /Editing marks %%%%%%%%%%%%%%%%%
