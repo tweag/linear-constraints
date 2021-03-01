@@ -961,7 +961,7 @@ The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
 It indicates whether the constraint is to be used linearly
 ($[[1]]$) or without restriction ($[[omega]]$).
 
-Atomic constraints are treated abstractly\jp{Seems wrong, we just defined simple constraints by structural induction; is it only to ignore this structure and treat all of them abstractly? Confusing.}\rae{I changed ``simple'' to ``atomic''. Better?} by our system
+Atomic constraints are treated abstractly by our system
 (just like they are in OutsideIn). For
 inference, in Section~\ref{sec:type-inference}, we will need a domain-specific solver, of which
 we only require that it adheres to the interface given in
