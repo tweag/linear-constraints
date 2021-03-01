@@ -107,6 +107,7 @@ import GHC.Base
 
       \newcommandx{\jp}[2][1=]{\todo[linecolor=purple,backgroundcolor=purple!25,bordercolor=purple,#1]{#2}}
       \newcommandx{\csongor}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=purple,#1]{#2}}
+      \newcommandx{\rae}[2][1=]{\todo[linecolor=magenta,backgroundcolor=magenta!25,bordercolor=magenta,#1]{RAE: #2}}
 
       \newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
       \newcommandx{\info}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
@@ -191,7 +192,7 @@ import GHC.Base
   \city{Paris}
   \country{France}
 }
-\email{richard.eisenberg@@tweag.io}
+\email{rae@@richarde.dev}
 \author{Csongor Kiss}
 \affiliation{
   \institution{Imperial College London}
@@ -242,8 +243,9 @@ import GHC.Base
 \ccsdesc[300]{Software and its engineering~Formal language definitions}
 
 \begin{abstract}
-  This paper presents \emph{linear constraints}, a front-end feature to
-  linear typing which lets the compiler discharge some of the difficutly
+\rae{This is a little rocky still}
+  This paper presents \emph{linear constraints}, a front-end feature for
+  linear typing that lets the compiler discharge some of the difficulty
   associated with programming with linear types.
   Just as with class constraints, linear constraints provide context that is to
   be filled in implicitly by the compiler.
@@ -252,7 +254,7 @@ import GHC.Base
   constraints are solved according to the rules of linear logic.
   %
   Linear constraints are presented as a qualified type system,
-  together with an inference algorithm which extends of OutsideIn,
+  together with an inference algorithm which extends OutsideIn,
   \textsc{ghc}'s existing constraint solver algorithm. Soundness of
   linear constraints is ensured by the fact that they desugar into
   Linear Haskell.
@@ -279,11 +281,11 @@ ownership, but it doesn't naturally scale beyond this use case.
 Linear Haskell, on the other hand, supports general purpose linear types, but
 using them to emulate Rust's ownership model is a painful exercise, because the
 compiler doesn't know how to help, requiring the programmer to manually supply
-proof objects.
+proof objects. \rae{How so? This claim surprises me. I don't know of proof objects
+that the programmer has to supply here.}
 
 To get a sense of the power and the pain of using linear types, consider the
-following example from the Linear Haskell
-article~\cite{LinearHaskell}\footnote{|IOL| is the linear IO monad}:
+following example from~\citet{LinearHaskell}\footnote{|IOL| is the linear IO monad}:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =   do  {  h <- openFile fp
