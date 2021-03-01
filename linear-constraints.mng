@@ -601,7 +601,8 @@ Now consider the type of the linear version of |const|:
 \begin{spec}
 const :: a ->. b -> a
 \end{spec}
-This function uses its first argument linearly, and ignores the second.
+This function uses its first argument linearly, and ignores the second. Thus,
+the multiplicity of the second arrow is $[[omega]]$.
 
 One way to improperly use the linear |const| is by neglecting a linear variable:
 \begin{code}
@@ -610,7 +611,8 @@ neglecting = const 10 useC
 \end{code}
 The problem with |neglecting| is that although |useC| is mentioned in this program,
 it is never evaluated because |const| does not use its second argument.
-The constraint |C| is never consumed so this program ought to be rejected.\jp{Rather, it is consumed ω times. Not sure how this fits the exposition. Maybe this example needs moving somewhere else. What follow suggests a funny definition of consumed, where ``consumed ω times'' is a special case of ``not consumed''. That's confusing to me. But I can accept it if it made very explicit. As it stands it seems implicit, or only defined by examples.}
+The constraint |C| is thus consumed $[[omega]]$ times so this program ought to
+be rejected.
 
 The rule is that a linear constraint is only consumed in a linear context. For
 example,
