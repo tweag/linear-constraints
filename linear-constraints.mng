@@ -1195,7 +1195,6 @@ simplification for two reasons:
 \noindent
 Our current focus is more narrow than a general typechecking algorithm for
 all of \textsc{ghc}'s features.
-Secondly,
 As a consequence of these two restrictions (no linear equalities and no
 multiplicity polymorphic constraints), type inference and (linear) class
 constraint resolution are completely orthogonal. Therefore, the syntax-directed
