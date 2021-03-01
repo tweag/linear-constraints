@@ -74,6 +74,7 @@ x :_1 s \in omega.D+G
 
 defn
 pi . G = D :: :: Scale :: 'S_'  {{ com Context scaling }}
+  {{ tex [[pi]] {\cdot} [[G]] = [[D]] }}
 by
 
 ---------------------- :: Empty

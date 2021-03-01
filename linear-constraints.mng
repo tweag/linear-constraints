@@ -272,8 +272,8 @@ import GHC.Base
 
 Linear type systems have seen somewhat of a renaissance in recent years in
 various mainstream programming communities. Rust's ownership system guarantees
-memory safety for systems programmers, Haskell's \textsc{ghc} recently
-added support for linear types, and even
+memory safety for systems programmers, Haskell's \textsc{ghc}~9.0 includes
+support for linear types, and even
 dependently typed programmers can now use linear types with Idris 2.
 All of these systems are vastly different in ergonomics and scope. In fact,
 there seems to be a tradeoff between these two aspects. Rust's \emph{borrow-checker} is
@@ -854,19 +854,16 @@ Surely it can be. So what do the linear constraints do for us?}
 \label{sec:qualified-type-system}
 
 Let us now describe the technical material which supports the
-examples of Section~\ref{sec:examples}. The presentation in this
+examples we explored above. The presentation in this
 section, as well as Section~\ref{sec:type-inference}, strongly mirrors
-the presentation of OutsideIn~\cite{OutsideIn}. OutsideIn is a
-foundation of the type inference algorithm of \textsc{ghc}, the most
-popular Haskell compiler where Linear Haskell~\cite{LinearHaskell} is being
-implemented\footnote{A version of Linear Haskell has been released as
-  part of version 9.0.1 of \textsc{ghc}}, as such we choose to frame
-this presentation in terms of OutsideIn. By using such a
-framing, we intend to highlight the concrete changes required to
-\textsc{ghc}, or similar compilers, to support linear constraints.
+the presentation of OutsideIn~\cite{OutsideIn}. OutsideIn is the
+foundation of the type inference algorithm of \textsc{ghc}. By building
+from this base, we can highlight the concrete changes required in
+\textsc{ghc}, or similar compilers, \rae{Is anything similar to GHC? I
+would drop this bit.} to support linear constraints.
 However, we have chosen, for the sake of clarity of the exposition, to
 omit details of OutsideIn which do not interact meaningfully with
-linear constraints. We shall point out such simplifications where they
+linear constraints. We shall point out such simplifications as they
 arise.
 
 \subsection{Multiplicities}
@@ -874,8 +871,8 @@ arise.
 
 Like in Linear Haskell~\cite{LinearHaskell} we make use of a
 system of \emph{multiplicities}, which describe how
-many times a function consumes its input. Linear Haskell has a system
-of multiplicity which supports multiplicity polymorphism. However, in this article, we will use only the
+many times a function consumes its input. Linear Haskell additionally supports
+multiplicity polymorphism. However, in this article, we will use only the
 simplest system of multiplicity: that composed of only $[[1]]$ (representing
 linear functions) and $[[omega]]$ (representing
 regular Haskell functions).
@@ -885,10 +882,13 @@ $$
 \end{array}
 $$
 The idea of multiplicity goes back at least
-to~\cite{ghica_bounded_2014}, where they are dubbed a \emph{resource
+to \citet{ghica_bounded_2014}, where it is dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
 structural rules of linear logic with only semiring
-operations (that is, addition and multiplication).
+operation---addition and multiplication.
+\rae{What is the role of the big braces in this figure? And would
+it be wrong to define multiplication with two equations $[[1 . pi]] = [[pi]]$
+and $[[omega . pi]] = [[omega]]$?}
 
 \smallskip
 \begin{minipage}[c]{0.4\linewidth}
@@ -913,35 +913,40 @@ $$
 \end{minipage}
 \smallskip
 
-Polymorphism of multiplicity, in Linear Haskell, is used to avoid
-duplicating the definition of higher-order functions (such as |map| and
-|fold|). First-order functions do not need polymorphism, because
+Though we do not support multiplicity polymorphism on constraint
+arguments, we believe that such a feature would not be very useful.
+Multiplicity polymorphism of regular function arguments is used to avoid
+duplicating the definition of higher-order functions. The poster child
+is |map :: (a %m-> b) -> [a] %m-> [b]|,
+where |% m ->| is the notation for a function arrow of multiplicity |m|.
+ First-order functions, on the other hand, do not need multiplicity 
+polymorphism, because
 linear functions can be $\eta$-expanded into unrestricted function as
-explained in Section~\ref{sec:linear-types}. Functions taking
-constraint-qualified arguments are much rarer for non-linear
-constraints. So multiplicity-polymorphic constraints don't seem very
-useful, and it is not clear how to extend the constraint solver of
+explained in Section~\ref{sec:linear-types}. Higher-order functions
+whose arguments are themselves constrained functions are rare,
+so we do not yet see the need to lift the multiplicity polymorphism
+present for normal arguments to apply to constraints.
+Futhermore, it is not clear how to extend the constraint solver of
 Section~\ref{sec:constraint-solver} to multiplicity-polymorphic
 constraints.
 
 \subsection{Simple constraints}
 \label{sec:constraint-domain}
 
-Following OutsideIn (see~\cite[Section 3.2, in particular Figure
-3]{OutsideIn}), we parameterise our entire type system by a constraint
-domain\,--\,the $X$ in OutsideIn($X$). Such a domain is characterised by
+Following OutsideIn~\cite[Section 3.2, in particular Figure
+3]{OutsideIn}, we parameterise our entire type system by a constraint
+domain: the $X$ in OutsideIn($X$). Such a domain is characterised by
 a set of \emph{atomic constraints} written $[[q]]$ and an entailment
 relation $[[Q1 ||- Q2]]$, with properties specified in
-Figure~\ref{fig:entailment-relation}. Let us adopt \textsc{ghc}'s
+Figure~\ref{fig:entailment-relation}. We adopt \textsc{ghc}'s
 terminology and call these \emph{simple constraints} to distinguish
 them from the richer constraints of Section~\ref{sec:wanteds}.
 
 For instance, in \textsc{ghc},
 the domain includes type classes, and the entailment relation describes
-instance resolution.
-In the examples of Section~\ref{sec:examples}, only the simplest kind
-constraints are needed, whereby we mean that atomic constraints are treated
-as uninterpreted symbols by the entailment relation. Being parameterised by the domain therefore
+instance resolution. However, our needs here are more modest:
+atomic constraints uninterpreted by the entailment relation are
+sufficient. Parameterising over the domain therefore
 only serves to support the rest of Haskell, or future extensions.
 %
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
@@ -958,7 +963,7 @@ The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
 It indicates whether the constraint is to be used linearly
 ($[[1]]$) or without restriction ($[[omega]]$).
 
-Simple constraints are treated abstractly\jp{Seems wrong, we just defined simple constraints by structural induction; is it only to ignore this structure and treat all of them abstractly? Confusing.} by our system
+Atomic constraints are treated abstractly\jp{Seems wrong, we just defined simple constraints by structural induction; is it only to ignore this structure and treat all of them abstractly? Confusing.}\rae{I changed ``simple'' to ``atomic''. Better?} by our system
 (just like they are in OutsideIn). For
 inference, in Section~\ref{sec:type-inference}, we will need a domain-specific solver, of which
 we only require that it adheres to the interface given in
@@ -969,13 +974,17 @@ OutsideIn introduces, as part of the constraint domain, a generalised
 kind of constraint $\mathcal{Q}$, which include top-level axioms, such
 as type-class instance declarations. Such top-level axioms
 are never linear\,--\,just like how top-level definitions are never linear in
-Linear Haskell~\cite{LinearHaskell}\,--\,as such they don't have
+Linear Haskell~\cite{LinearHaskell}\,--\,and as such they don't have
 interesting interactions with the rest of the system, and we choose to
 omit them for simplicity.
 
 We consider simple constraints to be equal up to associativity and
 commutativity of tensor products, as well as idempotence of the
-unrestricted constraints. That is
+unrestricted constraints. That is: \rae{What is the meaning of these equations?
+Are we saying that we require the entailment relation to treat the two sides
+as logically equivalent (that is, in bi-implication)? I think so, but if that's
+right, we should be more explicit about this, as these then become further requirements
+on our concrete solver.}
 $$
 \begin{array}{rcl}
   [[Q1 * Q2]] & = & [[Q2 * Q1]] \\
@@ -985,7 +994,10 @@ $$
 \end{array}
 $$
 %
-Scaling is extended to all constraints as follows:
+Scaling is extended to all constraints as follows: 
+\rae{It's very, very confusing to have $[[1]]$ and $[[Empty]]$ be distinct
+concepts with very similar appearances. How about changing $[[Empty]]$ to
+$\top$?}
 %
 $$
 \left\{
@@ -1005,9 +1017,9 @@ the overall presentation a bit simpler. Note, in particular, that $[[1.Q]] = [[Q
 $[[omega.Q * omega.Q]] = [[omega.Q]]$.
 
 We will often omit the scaling factor for linear atomic constraints
-and write $[[q]]$ for $[[1.q]]$. This convention does not induce any
-ambiguity Indeed the only potential ambiguity is between $[[pi.q]]$
-and $[[pi.(1.q)]]$, which are in fact equal.
+and write $[[q]]$ for $[[1.q]]$. %% This convention does not induce any
+%% ambiguity. Indeed the only potential ambiguity is between $[[pi.q]]$
+%% and $[[pi.(1.q)]]$, which are  equal.
 
 \begin{definition}[Requirements for the entailment relation]\label{def:entailment-relation}
   The constraint entailment relation must satisfy the properties
@@ -1035,7 +1047,7 @@ Section~\ref{sec:type-inference}.
       \text{if } [[Q1 ||- Q2]] \text{ then for all } [[Q']], [[omega.Q' * Q1 ||- Q2]]
     \end{array}
   $$
-\caption{Requirements for the entailent relation $[[Q ||- Q]]$}
+\caption{Requirements for the entailent relation $[[Q1 ||- Q2]]$}
 \label{fig:entailment-relation}
 \end{figure}
 
@@ -1052,6 +1064,9 @@ of scaling extend to scaling of arbitrary constraints.
   \label{lem:q:scaling-inversion}
   If $[[Q1 ||- pi.Q2]]$, then $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- Q2]]$ for some $[[Q']]$.
 \end{lemma}
+
+Proofs of these lemmas (and others) appear in our anonymized supplementary material.
+\rae{Make sure this sentence is true.}
 
 \subsection{Typing rules}
 \label{sec:typing-rules}
@@ -1095,9 +1110,23 @@ typing rules in Figure~\ref{fig:typing-rules}.
   \label{fig:typing-rules}
 \end{figure}
 
+  \rae{E-Var seems to assume $[[Q1]]$ as a given. It should be a wanted. The
+rule looks very wrong. There needs to be an entailment there. EDIT: OK. I'm understanding
+this better after more staring. Because of E-Sub, we can make sure that the given
+is just right for proving the wanted. But why have $[[omega.Q]]$ in E-Pack but
+omit it from E-Var? I think we don't need it at all, given E-Sub.
+This type system also has no unrestricted constraints---they don't appear in the
+grammar. Is this intentional? I do think some text needs to be written about what
+puzzled me in this comment. I'm happy to write the text if someone confirms that
+it seems I understand it now.}
+\rae{I think E-Unpack needs a check to prevent skolem-escape.}
+\rae{E-Let is strange. It does constraint-generalization but not
+traditional let-generalization. Is there a reason not to do let-generalization?
+That would look more normal.}
+
 Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system of Figure~\ref{fig:typing-rules} is
 a \emph{qualified type system} in the style first introduced
-by~\cite{QualifiedTypes}. Such a qualified type system introduces a
+by \citet{QualifiedTypes}. Such a qualified type system introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
 type context, and $[[Q]]$ is a simple constraint as in
 Section~\ref{sec:constraint-domain}. $[[Q]]$ behaves
@@ -1110,50 +1139,46 @@ The type system of Figure~\ref{fig:typing-rules} is purely
 declarative: it doesn't have any algorithmic properties. We will see
 how to infer constraints in Section~\ref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
-definition that programmers can reason about typing. Another
-thing of note is that we will not attempt to directly give a dynamic
-semantics to this language: instead we will give it meaning via
+definition that programmers can reason about typing. We do not 
+directly give a dynamic
+semantics to this language; instead, we will give it meaning via
 desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 
 The main differences with OutsideIn, either for simplification, or for
 linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \begin{itemize}
 \item The type system has linear functions (written $[[a ->_1 b]]$ in
-  Figure~\ref{fig:typing-rules}). It is not necessarily obvious why:
-  after all we seem to be mostly concerned about linearity in
-  constraints, maybe it's all we need and we can forgo linear
-  functions. But we are not that lucky. Actually, just to define the
-  bind combinator for the |IOL| monad from
-  Section~\ref{sec:introduction}, we need linear arrows: |(>>=) :: IOL
-  a ->. (a ->. IOL b) ->. IOL b|.
+  Figure~\ref{fig:typing-rules}). Despite our focus on linear constraints,
+  we still need to retain linearity in ordinary arguments.
+  For example, defining the bind combinator for |IOL| (\S\ref{sec:introduction}),
+  requires linear arrows: |(>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b|.
 
-  So, linear arrows really can't be escaped. What's more, even moving
-  away from |IOL|, the linearity of arrows interact in interesting
+  Furthermore, the linearity of arrows interacts in interesting
   ways with linear constraints. Consider $[[f : a ->_omega b]]$ and
   $[[x : q =o a]]$, then calling $[[f x]]$ would actually use $[[q]]$
   many times! That is, it must be impossible to derive
-  $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$,
-  otherwise we could make, for instance, the |overusing| function from
-  Section~\ref{sec:overusing}. You can check that $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$ indeed doesn't
+  $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$.
+  Otherwise we could make, for instance, the |overusing| function from
+  Section~\ref{sec:overusing}.
+  You can check that $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$
+  indeed doesn't
   type check, because the scaling of $[[Q2]]$ in \rref{E-App} ensures that
   the constraint would be $[[omega.q]]$ instead. On the other hand,
   it's perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
   =o a |- f x : b]]$ when $[[f]]$ is a linear function.
-\item In the \rref*{E-Let} rule we added support for local
-  assumptions. This gives us the possibility to generalise a subset of
+\item \Rref{E-Let} includes support for local
+  assumptions. We thus have the ability to generalise a subset of
   the constraints needed by $[[e1]]$. The inference algorithm of
   Section~\ref{sec:type-inference} will not make use of this
-  possibility, but we will revisit it in
-  Section~\ref{sec:let-generalisation}.
-\item Data types are not \textsc{gadt}s. Instead they are plain data
-  types. This serves to considerably simplify the \rref*{E-Case}
-  rule. This is another case of simplifying away the bits of OutsideIn
-  which don't meaningfully impact the system. It would be
-  straightforward, yet tedious, to extend data types to full
+  possibility, but we revisit this capability in Section~\ref{sec:let-generalisation}.
+\item Data types are uniform; that is, they are not \textsc{gadt}s. 
+  This serves to considerably simplify the \rref*{E-Case}
+  rule. It would be
+  straightforward, yet tedious, to extend the uniform data types here to full
   \textsc{gadt}s.
-\item On the other hand, we have the type $[[exists as. t o= Q]]$, as
+\item However, we include $[[exists as. t o= Q]]$, as
   introduced in Section~\ref{sec:what-it-looks-like}, together with
-  the $\kpack$ and $\kunpack$ constructions. It acts as a sort of
+  the $\kpack$ and $\kunpack$ constructions. These existentials act as roughly a
   \textsc{gadt} with a single constructor (see rules~\rref*{E-Pack} and
   \rref*{E-Unpack}).
 \item A more minor difference with OutsideIn is that we have an

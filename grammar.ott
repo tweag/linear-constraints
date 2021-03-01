@@ -27,7 +27,7 @@ Q :: 'Ct_' ::= {{ com Constraints }}
 | Empty              ::   :: Empty  {{tex \mathbf{1} }}
 | ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
-| pi . Q             :: M :: Scale  {{tex [[pi]]{⋅}[[Q]]}}
+| pi . Q             :: M :: Scale  {{tex [[pi]]{\cdot}[[Q]]}}
 | ( Q )              :: S :: Paren
 % Constraint solver
 | ctx ( UCtx )       :: M :: USolverCtx  {{ tex [[UCtx]] }}
@@ -46,7 +46,7 @@ C :: 'Ctg_' ::= {{ com Generated constraints}}
 | C1 & C2            ::   :: With
 | Q => C             ::   :: Impl  {{ tex [[Q]] \Lolly [[C]]}}
 | ! C                ::   :: Unrestricted
-| pi . C             :: M :: Scale  {{tex [[pi]]{⋅}[[C]]}}
+| pi . C             :: M :: Scale  {{tex [[pi]]{\cdot}[[C]]}}
 | && C               :: M :: BigWith
 | C [ theta ]        :: M :: Subst
 | ( C )              :: S :: Paren
