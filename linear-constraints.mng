@@ -282,9 +282,8 @@ a domain-specific typechecker that aids the programmer in reasoning about memory
 ownership, but it doesn't naturally scale beyond this use case.
 Linear Haskell, on the other hand, supports general purpose linear types, but
 using them to emulate Rust's ownership model is a painful exercise, because the
-compiler doesn't know how to help, requiring the programmer to manually supply
-proof objects. \rae{How so? This claim surprises me. I don't know of proof objects
-that the programmer has to supply here.}
+compiler doesn't know how to help, requiring the programmer to carefully thread
+resource tokens.
 
 To get a sense of the power and the pain of using linear types, consider the
 following example from~\citet{LinearHaskell}\footnote{|IOL| is the linear IO monad}:
