@@ -70,6 +70,7 @@ import GHC.Base
 %if style == poly
 %format ->. = "⊸"
 %format =>. = "\Lolly "
+%format poly_arrow = "\mathop{\to_{m}}"
 %format .<= = "\RLolly"
 %format <== = "\Leftarrow"
 %format IOL = "IO_L"
@@ -914,8 +915,8 @@ Though we do not support multiplicity polymorphism on constraint
 arguments, we believe that such a feature would not be very useful.
 Multiplicity polymorphism of regular function arguments is used to avoid
 duplicating the definition of higher-order functions. The poster child
-is |map :: (a %m-> b) -> [a] %m-> [b]|,
-where |% m ->| is the notation for a function arrow of multiplicity |m|.
+is |map :: (a poly_arrow b) -> [a] poly_arrow [b]|,
+where |poly_arrow| is the notation for a function arrow of multiplicity |m|.
  First-order functions, on the other hand, do not need multiplicity 
 polymorphism, because
 linear functions can be $\eta$-expanded into unrestricted function as
