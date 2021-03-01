@@ -886,9 +886,7 @@ to \citet{ghica_bounded_2014}, where it is dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
 structural rules of linear logic with only semiring
 operation---addition and multiplication.
-\rae{What is the role of the big braces in this figure? And would
-it be wrong to define multiplication with two equations $[[1 . pi]] = [[pi]]$
-and $[[omega . pi]] = [[omega]]$?}
+\rae{What is the role of the big braces in this figure?}
 
 \smallskip
 \begin{minipage}[c]{0.4\linewidth}
@@ -905,8 +903,7 @@ $$
 \left\{
   \begin{array}{lcl}
     [[1 . pi]] & = & [[pi]] \\
-    [[pi . 1]] & = & [[pi]] \\
-    [[omega . omega]] & = & [[omega]]
+    [[omega . pi]] & = & [[omega]]
   \end{array}
 \right.
 $$
