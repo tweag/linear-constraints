@@ -82,6 +82,7 @@ import GHC.Base
 %format a1
 %format a_n
 %format an = a_n
+%format ^^ = "\,"
 %endif
 
 %let full = False
@@ -677,8 +678,11 @@ Let us now turn to a more substantial example: manual memory
 management.
 In Haskell, memory deallocation is normally the responsibility of a
 garbage collector. However, garbage collection comes with runtime
-costs which not all applications can afford: one must then resort to
-explict memory allocation and deallocation. This task is error
+costs that not all applications can afford. Another realistic scenario
+is to imagine a Haskell program calling foreign functions that reside
+in a manually-managed runtime system. \rae{Cite the Tweag blog post here?
+It's a very nice example of all this.} In either case, one must then resort to
+explicit memory allocation and deallocation. This task is error
 prone: one can easily forget a deallocation (causing a memory leak) or
 deallocate several times (corrupting data).
 
@@ -687,7 +691,7 @@ enforce correct deallocation of memory.  The approach is to use a
 linear constraint to represent \emph{ownership} of a memory location,
 i.e. the responsibility to deallocate it. We use a linear constraint
 |Own n|, such that a program which has an |Own n| constraint in
-context is responsible to deallocate the memory area(s) associated
+context is responsible to deallocate the memory associated
 with a memory location |n|.  Because of linearity, this constraint
 must be discharged exactly once, so it is guaranteed that the memory
 is deallocated correctly.
@@ -697,7 +701,7 @@ which represents a memory location. Locations mediate
 the relationship between references and ownership constraints.
 
 For more granular control, we will be using three linear constraints:
-one for reading, one for writing, and one for ownership:
+one for reading, one for writing, and one for ownership.
 
 \begin{minipage}{0.3\linewidth}
 > class Read (n :: Location)
@@ -710,9 +714,12 @@ one for reading, one for writing, and one for ownership:
 \end{minipage}
 
 \noindent
-Thanks to this extended set of constraints, programs are able to read or write
-to a memory reference without necessarily owning it. To ensure consistency,
-writes can only be done when we are sure that no one else is reading. Therefore,
+Thanks to this extended set of constraints, programs are able to read from or write
+to a memory reference without owning it. To ensure consistency,
+writes can be done only when we are sure that no one else is reading.
+\rae{This is about thread safety, right? We should be explicit about that.
+If it's not about thread safety, then I'm not sure why we need to pair
+the constraints.} Therefore,
 writing also requires owning the read capability.
 We will systematically use the |RW| set of constraints, defined below, instead
 of |Write|.
@@ -730,11 +737,11 @@ references.
 
 > data AtomRef (a :: Type) (n :: Location)
 
-The type |AtomRef| is a type of references to a pure type |a| with
+The type |AtomRef| is the type of references to values of a type |a| with
 location |n|. Allocation of a reference can be done using the
 following function.
 
-> newRef :: (forall n. O n =>. AtomRef a n -> Ur b) ⊸ Ur b
+> newRef :: (forall n. ^^ O n =>. AtomRef a n -> Ur b) ⊸ Ur b
 
 The reference is made available in a function which we call the
 \emph{scope} of the reference. The return type of the scope is,
@@ -754,6 +761,11 @@ Note that the above primitives do not need to explicitly declare
 effects in terms of a monad or another higher-order effect-tracking
 device: because the |RW n| constraint is linear, passing it suffices
 to ensure proper sequencing of effects concerning location |n|.
+\rae{I don't believe that claim. Suppose I have all the capabilities.
+Then I can write |let pack! x1 = readRef ref; pack! () = writeRef ref 3|,
+and I don't see what tells me whether the write happens before or after
+the read. I know that we don't yet support linear |let|, but is that
+a fundamental property?} 
 Deallocation consumes all linear constraints associated with |O n|.
 
 > freeRef :: O n =>. AtomRef a n -> ()
@@ -769,7 +781,8 @@ But what about references to references; or,
 indeed, arrays of arrays? A common example of plain Linear Haskell is
 a pure interface to mutable arrays, but it's terribly
 inconvenient to make mutable arrays of mutable arrays, at least if we
-want to freeze them in $O(1)$.
+want to freeze them in $O(1)$. \rae{Is there a reference to some text
+that explains what the problem is?}
 
 The |AtomRef| \textsc{api} above is not quite enough to handle nested
 references. Indeed if we have |r :: AtomRef (AtomRef a s) r| and |s ::
@@ -780,7 +793,7 @@ relinquish the ownership of |s| to |r| so that |r| becomes responsible
 for deallocating |s|. This is what the type |PArray| lets us do
 
 > data PArray (a :: Location -> Type) (n :: Location)
-> newPArray    :: (forall n. O n =>. PArray a n -> Ur b) ⊸ Ur b
+> newPArray    :: (forall n. ^^ O n =>. PArray a n -> Ur b) ⊸ Ur b
 
 The key is that the kind of |a| is |Location ->
 Type|. This way we can easily enforce that each reference in the
@@ -800,7 +813,7 @@ reference inside the array (and deallocate any previous reference at that index)
 We still want to have read and write access to inner references, of
 course, so we use |lendPArrayElt|:
 
-> lendPArrayElt  :: RW n =>. PArray a n -> Int -> (forall p. RW p =>. a p -> r .<= RW p) ⊸ r .<= RW n
+> lendPArrayElt  :: RW n =>. PArray a n -> Int -> (forall p. ^^ RW p =>. a p -> r .<= RW p) ⊸ r .<= RW n
 
 The |lendPArrayElt a i k| primitive lends access to the reference at index |i| in
 |a|, to a scope function |k| (in Rust terminology, the scope
@@ -817,14 +830,14 @@ Indeed, when called from a context where the program owns |n|,
 |n| could immediately be deallocated, even though |RW
 p| would remain available, letting us write to free memory. For the same reason,
 gaining read access to an element needs to be done using a
-scope \textsc{api} as well:
+scoped \textsc{api} as well:
 
-> lendPArrayEltRead    :: Read n =>. PArray a n -> Int
->                      -> (forall p. Read p =>. a p -> r .<= Read p)
->                      ⊸ r .<= Read n
+> lendPArrayEltRead  ::  Read n =>. PArray a n -> Int
+>                    ->  (forall p. ^^ Read p =>. a p -> r .<= Read p)
+>                    ⊸   r .<= Read n
 
 Finally, we can freeze arrays, and arrays of arrays or more, using the
-following primitive
+following primitive:
 
 > freezePArray :: O n =>. PArray a n -> () <== Read n
 
@@ -832,6 +845,10 @@ After |freezePArray n|, we have unrestricted read access to |n| (and
 any element of |n|), as expected.
 
 > readArray :: Read n => PArray a n -> Int -> a n
+
+\rae{I want a few sentences here reflecting on what we've gained 
+from the linear constraints. Can this be done without linear constraints?
+Surely it can be. So what do the linear constraints do for us?}
 
 \section{A qualified type system}
 \label{sec:qualified-type-system}
