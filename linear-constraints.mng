@@ -559,8 +559,7 @@ data PackHandle where
 \end{code}
 That is, while this paper introduces special-purpose existential types,
 in the implementation as a \textsc{ghc} extension, packed linear constraints will
-piggy-back on the standard \textsc{gadt} syntax.\unsure{Though, see the
-  existential type paper}. Correspondingly, existential types are
+piggy-back on the standard \textsc{gadt} syntax. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
 
 When pattern-matching on a |pack| all the existentially quantified
