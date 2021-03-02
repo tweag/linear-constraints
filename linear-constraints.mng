@@ -1282,7 +1282,7 @@ $[[C1]]$ and $[[C2]]$ were branches in a $\kcase$-expression. Not
 coincidentally, $[[C1&C2]]$ will be used to generate constraints for
 $\kcase$-expressions.
 
-Finally, implication constraints differ in two ways. First they are
+Finally, implication constraints differ\jp{differ from what?} in two ways. First they are
 linear implications (an implication which must consume its
 assumption exactly once), where in OutsideIn they are intuitionistic implications.
 Additionally, there is a scaling factor $[[pi]]$ on implication. This scaling prescribes how
@@ -1329,7 +1329,7 @@ Note that simple constraints always entail a wanted: we
 generate wanted constraints, but programs only mention simple
 constraints, and the left-hand side does come from the program. It is
 possible to relax the syntax of the left-hand side,
-though~\cite{quantified-constraints}, which \textsc{ghc} does.
+though~\cite{quantified-constraints}\jp{grammar?}, which \textsc{ghc} does.
 
 Before we move on to constraint generation proper, let us prove a few
 technical, yet essential, lemmas about the wanted-constraint
@@ -1374,7 +1374,7 @@ entailment relation.
   in~\cite{hh-ll}. They prove for a fragment of linear
   logic\,--\,which includes quantified constraints and linear
   generalisations thereof\,--\,that all provable sequents can be proved
-  by a uniform proof. So this lemma, is, in fact, quite robust.
+  by a uniform proof. So this lemma, is, in fact, quite robust.\jp{I don't understand the first thing about this argument: neither the potential problem (why does  "non-atomic conclusions which do not introduce a connective" make it fragile? What's implied by the current implementation of GHC?  The intended resolution is also impenetrable.)}
 \end{proof}
 
 \begin{lemma}[Promotion]
@@ -1420,7 +1420,7 @@ The rules of Figure~\ref{fig:constraint-generation} are a mostly
 unsurprising translation of the rules of Figure~\ref{fig:typing-rules}
 in the style of OutsideIn~\cite[Section 5.4]{OutsideIn}, the operation
 on typing contexts, in particular are the same as in
-Figure~\ref{fig:typing-rules}, and are not repeated here. Still, a few
+Figure~\ref{fig:typing-rules}, and are not repeated here.\jp{run-away sentence} Still, a few
 remarks are in order
 \begin{itemize}
 \item The most conspicuous difference is that, as we explained in
@@ -1437,7 +1437,7 @@ the other branches too.
   Otherwise, after the case its state will be unknown to the type system.
 
   The reason this distinction is not made in an intuitionistic
-  system like the original OutsideIn is somewhat elucidated by the
+  system like the original OutsideIn is somewhat\jp{weasel word} elucidated by the
   fact that $[[omega.(C1&C2)]] = [[omega.C1 * omega.C2]]$. In other
   words, in a purely unrestricted context, linear constraints don't
   need two kinds of conjunctions either.
@@ -1456,7 +1456,7 @@ the other branches too.
   inference in the constraint generation algorithm significantly
   simplifies the presentation. There is no particular difficulty
   involved, however, in combining type inference and linear
-  constraint; keeping in mind that equality constraints should never
+  constraints; keeping in mind that equality constraints should never
   be linear.
 \end{itemize}
 
