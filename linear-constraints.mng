@@ -171,7 +171,7 @@ import GHC.Base
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
-\acmConference[ICFP'21]{ICFP}{2021}{} 
+\acmConference[ICFP'21]{ICFP}{2021}{}
 \acmYear{2021}
 \copyrightyear{2021}
 \setcopyright{none}
@@ -321,7 +321,7 @@ file handle. But it is also
 simpler: apparently, using a linear language means trading clarity for safety. When
 modelling a handle as a linear resource, the type system must know at all
 times where it is being consumed, so the file handle is passed around
-manually, resulting in extra noise. 
+manually, resulting in extra noise.
 %
 But when reading the non-linear version, it is clear where the
 handle is used, and ultimately, consumed. Couldn't the compiler
@@ -530,7 +530,7 @@ Since the handle is unrestricted it can be freely passed around. When it is,
 the |Open h| constraint implicitly tracks its state.
 
 We must also ensure that |readLine| can both promise to only operate on an open
-file, and keep that file open after reading. To do so, its signature 
+file, and keep that file open after reading. To do so, its signature
 indicates that given a handle |h|, it consumes and produces the implicit |Open h|
 constraint, while also producing an unrestricted |String|.
 \begin{code}
@@ -654,7 +654,7 @@ The file handling example discussed in sections~\ref{sec:linear-types}
 and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
 There are two main modifications compared to the traditional |IO|. Firstly, the
 type of the monadic operations |>>=| and |return| are changed to
-use linear arrows. 
+use linear arrows.
 %
 \begin{code}
 (>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b
@@ -682,16 +682,18 @@ In Haskell, memory deallocation is normally the responsibility of a
 garbage collector. However, garbage collection comes with runtime
 costs that not all applications can afford. Another realistic scenario
 is to imagine a Haskell program calling foreign functions that reside
-in a manually-managed runtime system. \rae{Cite the Tweag blog post here?
-It's a very nice example of all this.} In either case, one must then resort to
+in a different runtime system~\cite{linear-inline-java}.
+In either case, one must then resort to
 explicit memory allocation and deallocation. This task is error
 prone: one can easily forget a deallocation (causing a memory leak) or
 deallocate several times (corrupting data).
 
-With linear constraints, it is possible to use the type system to
-enforce correct deallocation of memory.  The approach is to use a
-linear constraint to represent \emph{ownership} of a memory location,
-i.e. the responsibility to deallocate it. We use a linear constraint
+With linear constraints, it is possible to give a \emph{pure} interface for
+manual memory management, which
+enforces correct deallocation of memory.  The approach is to use a
+linear constraint to represent \emph{ownership} of a memory location
+in the style of Rust,
+\emph{i.e.} the responsibility to deallocate it. We use a linear constraint
 |Own n|, such that a program which has an |Own n| constraint in
 context is responsible to deallocate the memory associated
 with a memory location |n|.  Because of linearity, this constraint
@@ -852,7 +854,18 @@ any element of |n|), as expected.
 
 > readArray :: Read n => PArray a n -> Int -> a n
 
-\rae{I want a few sentences here reflecting on what we've gained 
+Crucially, |freezePArray| does not require changing the
+type of the array: mutable arrays and immutable arrays have the same
+type, only the permissions change. In contrast, without
+linear constraints, where the mutable array itself is the linear
+quantity~\cite[Section 2.2]{LinearHaskell}, the type of freeze is
+|MArray a ->. Ur (Array a)|. If we wanted to freeze an array of array,
+we would have to freeze the inner array recursively, which we can't do
+in $O(1)$. And if we were to write the ownership
+\textsc{api} without linear constraints, it would be incredibly
+painful to use.
+
+\rae{I want a few sentences here reflecting on what we've gained
 from the linear constraints. Can this be done without linear constraints?
 Surely it can be. So what do the linear constraints do for us?}
 
@@ -923,7 +936,7 @@ Multiplicity polymorphism of regular function arguments is used to avoid
 duplicating the definition of higher-order functions. The poster child
 is |map :: (a poly_arrow b) -> [a] poly_arrow [b]|,
 where |poly_arrow| is the notation for a function arrow of multiplicity |m|.
- First-order functions, on the other hand, do not need multiplicity 
+ First-order functions, on the other hand, do not need multiplicity
 polymorphism, because
 linear functions can be $\eta$-expanded into unrestricted function as
 explained in Section~\ref{sec:linear-types}. Higher-order functions
@@ -998,7 +1011,7 @@ $$
 \end{array}
 $$
 %
-Scaling is extended to all constraints as follows: 
+Scaling is extended to all constraints as follows:
 %
 $$
 \left\{
@@ -1031,7 +1044,7 @@ don't require the presence of equality constraints. We come back to
 the motivation for this simplification in
 Section~\ref{sec:type-inference}.
 
-  
+
 \begin{figure}
   $$
     \begin{array}{l}
@@ -1130,7 +1143,7 @@ The type system of Figure~\ref{fig:typing-rules} is purely
 declarative: it doesn't have any algorithmic properties. We will see
 how to infer constraints in Section~\ref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
-definition that programmers can reason about typing. We do not 
+definition that programmers can reason about typing. We do not
 directly give a dynamic
 semantics to this language; instead, we will give it meaning via
 desugaring to a simpler core language in Section~\ref{sec:desugaring}.
@@ -1162,7 +1175,7 @@ linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
   the constraints needed by $[[e1]]$. The inference algorithm of
   Section~\ref{sec:type-inference} will not make use of this
   possibility, but we revisit this capability in Section~\ref{sec:let-generalisation}.
-\item Data types are uniform; that is, they are not \textsc{gadt}s. 
+\item Data types are uniform; that is, they are not \textsc{gadt}s.
   This serves to considerably simplify the \rref*{E-Case}
   rule. It would be
   straightforward, yet tedious, to extend the uniform data types here to full
