@@ -797,8 +797,7 @@ arrays~\cite[Section 2.2]{LinearHaskell}. There we have two types
 |MArray a|, used linearly, for mutable arrays, and |Array a|, used
 unrestrictedly, for immutable arrays. Mutable arrays can be frozen
 using |freeze :: MArray a ->. Ur (Array a)|. Note that this version of |freeze|
-can not support mutable arrays of mutable arrays. Indeed, freezing the outer
-array would require placing the inner (linear) arrays into an unrestricted context.
+can not support mutable arrays of mutable arrays.
 The core of the issue is that mutable arrays and immutable arrays have different
 types.
 
