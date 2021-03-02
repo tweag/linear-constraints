@@ -1784,11 +1784,6 @@ In addition, we shall assume the existence of data types
 These are regular data types and constructors of the language, they
 are consumed with $\kcase$.
 
-For the sake of concision, we will allow ourselves to write nested patterns in
-case expressions. Desugaring nested patterns into atomic case expression is
-routine, and this does not interfere with constraint generation because \((&)\) is associative.
-\jp{Arnaud: move this to the appendix.}
-
 \subsection{Inferred constraints}
 \label{sec:ds:inferred-constraints}
 
@@ -2351,6 +2346,9 @@ Figure~\ref{fig:full:core-typing-rules}.
 The complete definition of the desugaring function from
 Section~\ref{sec:desugaring} can be found in
 Figure~\ref{fig:full:desugaring}.
+For the sake of concision, we will allow ourselves to write nested patterns in
+case expressions. Desugaring nested patterns into atomic case expression is
+routine, and this does not interfere with constraint generation because $[[&]]$ is associative.
 
 \begin{figure}
   \centering\small
