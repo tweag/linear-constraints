@@ -1120,11 +1120,6 @@ typing rules in Figure~\ref{fig:typing-rules}.
   \label{fig:typing-rules}
 \end{figure}
 
-\rae{E-Let is strange. It does constraint-generalization but not
-traditional let-generalization. Is there a reason not to do let-generalization?
-That would look more normal. Richard: Say in the dedicated paragraph, that the
-non-generalisation of variables is on purpose.}
-
 Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system of Figure~\ref{fig:typing-rules} is
 a \emph{qualified type system} in the style first introduced
 by \citet{QualifiedTypes}. Such a qualified type system introduces a
@@ -1169,7 +1164,7 @@ linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
   =o a |- f x : b]]$ when $[[f]]$ is a linear function.
 \item \Rref{E-Let} includes support for local
   assumptions. We thus have the ability to generalise a subset of
-  the constraints needed by $[[e1]]$. The inference algorithm of
+  the constraints needed by $[[e1]]$ (but not the type variables). The inference algorithm of
   Section~\ref{sec:type-inference} will not make use of this
   possibility, but we revisit this capability in Section~\ref{sec:let-generalisation}.
 \item Data types are uniform; that is, they are not \textsc{gadt}s.
