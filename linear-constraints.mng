@@ -642,7 +642,7 @@ constraint. Our system is designed so that the order of resolution is
 non-deterministic. This corresponds to the assumption that all
 instances of a linear constraint are equivalent. Consequently, if an
 \textsc{api} uses linear constraints, it must be designed to ensure that the
-runtime behaviour is not dependent on the order of constraint
+runtime behaviour is not dependent on the order of constraint\jp{Unfortunately, as far as I can tell, this is the case only if effects associated with a linear constraint are commutative. And this means that the 'borrowing' example does not apply.}
 resolution.  \unsure{Linear constraints have no runtime payload, or
   even if they did, they would not be observable (safely) as
   dictionary methods use the dictionary in an unrestricted way.}
