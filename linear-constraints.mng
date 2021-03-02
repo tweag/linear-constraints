@@ -432,7 +432,6 @@ Our definition is based on the type of the value concerned:
 \end{itemize}
 \end{definition}
 %
-\noindent
 Note that a linear arrow specifies \emph{how the function uses its argument}. It does not
 restrict \emph{the arguments to which the function can be applied}.
 In particular, a linear function cannot assume that it is given the
@@ -714,8 +713,7 @@ one for reading, one for writing, and one for ownership.
 \begin{minipage}{0.3\linewidth}
 > class Own (n :: Location)
 \end{minipage}
-
-\noindent
+\\
 Thanks to this extended set of constraints, programs are able to read from or write
 to a memory reference without owning it. To ensure consistency,
 writes can be done only when we are sure that no one else is reading.
@@ -1240,8 +1238,7 @@ simplification for two reasons:
   unrestricted. This way, no equality constraints can interfere with
   constraint resolution.
 \end{itemize}
-
-\noindent
+%
 Our current focus is more narrow than a general typechecking algorithm for
 all of \textsc{ghc}'s features.
 As a consequence of these two restrictions (no linear equalities and no
