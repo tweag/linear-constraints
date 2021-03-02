@@ -642,9 +642,7 @@ non-deterministic. This corresponds to the assumption that all
 instances of a linear constraint are equivalent. Consequently, if an
 \textsc{api} uses linear constraints, it must be designed to ensure that the
 runtime behaviour is not dependent on the order of constraint
-resolution.  \unsure{Linear constraints have no runtime payload, or
-  even if they did, they would not be observable (safely) as
-  dictionary methods use the dictionary in an unrestricted way.}
+resolution.
 
 \subsection{Linear IO}
 \label{sec:linear-io}
