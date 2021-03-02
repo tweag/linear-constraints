@@ -715,19 +715,15 @@ one for reading, one for writing, and one for ownership.
 > class Own (n :: Location)
 \end{minipage}
 \\
-\unsure{Talk about purity and referential transparency. Write in a
-  referentially transparent way.}
-\unsure{Talk about Rust explicitly.}
 Thanks to this extended set of constraints, programs are able to read from or write
-to a memory reference without owning it. To ensure consistency,
-writes can be done only when we are sure that no one else is reading.
-\rae{This is about thread safety, right? We should be explicit about that.
-If it's not about thread safety, then I'm not sure why we need to pair
-the constraints. Discussion: when we write, we must know that nobody
-else has an alias.} Therefore,
-writing also requires owning the read capability.
-We will systematically use the |RW| set of constraints, defined below, instead
-of |Write|.
+to a memory reference without owning it. To ensure referential transparency,
+writes can be done only when we are sure that no other part of the program has
+read access to the reference. Rust disallows mutable aliasing for the same
+reason: ensuring that writes cannot be observed through other references is what
+allows treating mutable structures as ``pure''.
+Therefore, writing also requires owning the read capability.  We
+systematically use the |RW| set of constraints, defined below, instead of
+|Write|.
 
 > type RW n = (Read n, Write n)
 
