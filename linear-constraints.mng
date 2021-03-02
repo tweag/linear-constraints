@@ -903,7 +903,7 @@ The idea of multiplicity goes back at least
 to \citet{ghica_bounded_2014}, where it is dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
 structural rules of linear logic with only semiring
-operation---addition and multiplication.
+operation---addition and multiplication.\footnote{We adopt the notation that equations defining a function by pattern matching are marked with a $\left\{\right.$ to their left}
 \rae{What is the role of the big braces in this figure? Richard: if we
 want to keep this notation, we should introduce the notation, e.g. in
 a footnote}
