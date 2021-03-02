@@ -642,7 +642,7 @@ constraint. Our system is designed so that the order of resolution is
 non-deterministic. This corresponds to the assumption that all
 instances of a linear constraint are equivalent. Consequently, if an
 \textsc{api} uses linear constraints, it must be designed to ensure that the
-runtime behaviour is not dependent on the order of constraint\jp{Unfortunately, as far as I can tell, this is the case only if effects associated with a linear constraint are commutative. And this means that the 'borrowing' example does not apply.}
+runtime behaviour is not dependent on the order of constraint
 resolution.  \unsure{Linear constraints have no runtime payload, or
   even if they did, they would not be observable (safely) as
   dictionary methods use the dictionary in an unrestricted way.}
@@ -764,11 +764,23 @@ Note that the above primitives do not need to explicitly declare
 effects in terms of a monad or another higher-order effect-tracking
 device: because the |RW n| constraint is linear, passing it suffices
 to ensure proper sequencing of effects concerning location |n|.
+This is ensured by the combination of the language and library
+behaviour. To see it, consider how the writing several values (|a|,
+|b|) to the same reference |x| is done:
+
+> case writeRef x a of
+>   pack _ -> case writeRef x b of
+>     pack _ -> ...
+
+The language semantics forces the programmer to do case analysis to
+access the returned |Write| constraints, and |writeRef| must be strict
+in the |Write| constraint that it consumes.
+
 \rae{I don't believe that claim. Suppose I have all the capabilities.
 Then I can write |let pack! x1 = readRef ref; pack! () = writeRef ref 3|,
 and I don't see what tells me whether the write happens before or after
 the read. I know that we don't yet support linear |let|, but is that
-a fundamental property?} 
+a fundamental property?}
 Deallocation consumes all linear constraints associated with |O n|.
 
 > freeRef :: O n =>. AtomRef a n -> ()
@@ -2251,7 +2263,7 @@ constraints providing the general inference mechanism.
 Though both Mezzo and \textsc{ats} have an advantage that we don't:
 they assume that their instructions are properly sequenced, whereas
 basing linear constraints on Haskell, a lazy language, we are forced
-to make sequencing explicit in \textsc{api}s.\jp{Indeed. However the borrowing section does not do this. So it's wrong :-(}
+to make sequencing explicit in \textsc{api}s.
 
 \paragraph{Logic programming}
 
@@ -2761,6 +2773,11 @@ $$
   $[[C]]=[[Q]]$.
 \end{proof}
 \end{document}
+
+% Local Variables:
+% ispell-dictionary: "british"
+% End:
+
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable
