@@ -551,7 +551,6 @@ empty.
 Haskell doesn't have an existential quantifier, however it can
 be encoded as a \textsc{gadt}. For instance |exists h. Ur (Handle h) .<= Open h| can
 be implemented as
-\jp{The following type should be called |OpenFileHandle| ? }
 \begin{code}
 data PackHandle where
   Pack :: Open h =>. Handle h -> PackHandle
@@ -656,7 +655,6 @@ and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
 There are two main modifications compared to the traditional |IO|. Firstly, the
 type of the monadic operations |>>=| and |return| are changed to
 use linear arrows. 
-% In the case of |>>=|, its argument also must be a linear function: \jp{I could not tell what this was saying which was not already said. Commented out.}
 %
 \begin{code}
 (>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b
@@ -1375,19 +1373,23 @@ entailment relation.
     the definition of the entailment relation.
   \end{itemize}
 
-  This proof may look very fragile, in the sense that a slight change in the hypotheses would invalidate it.
+  It may look like a slight change in the hypotheses would invalidate this proof.
   After all in a system with
   quantified constraints~\cite{quantified-constraints}, such as the
   current implementation of \textsc{ghc}, there are rules with
-  non-atomic conclusions which do not introduce a connective.
+  non-atomic wanteds which do not introduce a connective. So, does
+  this proof break when moving to the full \textsc{ghc}? Fortunately
+  not!
 
-  \jp{Clarify the following}
-  Proofs where each non-atomic goal is the conclusion of a
-  corresponding introduction rule has been called \emph{uniform}
-  in~\cite{hh-ll}. They prove for a fragment of linear
-  logic\,--\,which includes quantified constraints and linear
-  generalisations thereof\,--\,that all provable sequents can be proved
-  by a uniform proof. So this lemma, is, in fact, quite robust.
+  What we really need is that any proof can be \emph{rewritten} into a
+  proof which ends in an introduction rule. Such proofs have been
+  called \emph{uniform} in~\cite{hh-ll}. More precisely a uniform
+  proof is a proof where every rule whose conclusion has a non-atomic
+  wanted is an introduction rule. The authors prove that all proofs in
+  a fragment of linear logic can be rewritten into a uniform
+  proof. This fragment includes quantified constraints and linear
+  generalisations thereof. So, we can conclude that this lemma indeed
+  extends to the complete \textsc{ghc}.
 \end{proof}
 
 \begin{lemma}[Promotion]
@@ -1826,26 +1828,6 @@ Furthermore we shall require that for every $[[Q1]]$ and $[[Q2]]$
 such that $[[Q1 ||- Q2]]$, there is a (linear) function
 $[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
 
-We will need to define one more device. Namely, we'll need a way to turn every
-$[[Ev(omega.Q)]]$ into an $[[Ur(Ev(Q))]]$. For any
-$[[e : Ev(omega.Q)]]$, we shall write $[[urify(Q;e) :
-Ur(Ev(omega.Q))]]$. As a shorthand, particularly useful in nested
-patterns, we will write $[[case_pi e of {urified(Q;x) -> e'}]]$ for
-$[[case_pi urify(Q;e) of {Ur x -> e'}]]$.
-%
-$$
-\left\{
-  \begin{array}{lcl}
-    [[urify(Empty;e)]]& = & [[case_1 e of {() -> Ur ()}]] \\
-    [[urify(1.q;e)]] & = & [[e]] \\
-    [[urify(omega.q;e)]] & = & [[case_1 e of {Ur x -> Ur (Ur x)}]] \\
-    [[urify(Q1*Q2;e)]] & = & [[case_1 e of {(urified(Q1;x), urified(Q2;y)) -> Ur (x,y)}]]
-  \end{array}
-\right.
-$$
-We will often omit the $[[Q]]$ in $[[urify(Q;e)]]$, and write
-$[[urify(e)]]$ when it can be easily inferred from the context.
-
 Let us now define a family of functions $[[Ds(Hole)]]$ to translate
 the type schemes, types, and typing derivations of the qualified system into the
 types, type schemes, and terms of the Core Calculus.
@@ -2178,8 +2160,7 @@ handling).
 Section~\ref{sec:memory-ownership} shows how to make a
 Rust-like \textsc{dsl} in Haskell with linear constraints. It is not
 clear that it is possible at all to make a Linear-Haskell-like
-\textsc{dsl} in Rust. So, it would seem that linear constraints are
-more general.\jp{weak claim. Delete?}
+\textsc{dsl} in Rust.
 
 \paragraph{Languages with capabilities}
 
@@ -2245,7 +2226,7 @@ the authors coin the notion of \emph{uniform} proof. A fragment where
 uniform proofs are complete supports goal-oriented proof search, like
 Prolog does.
 
-Uniformity is used implicitly in the proof of
+Uniformity is used in the proof of
 Lemma~\ref{lem:inversion}, which, in turn is used in the proof of the
 soundness lemma~\ref{lem:generation-soundness}. This seems to indicate
 that goal-oriented search is baked in the definition of OutsideIn. An
@@ -2348,6 +2329,32 @@ Figure~\ref{fig:full:desugaring}.
 For the sake of concision, we will allow ourselves to write nested patterns in
 case expressions. Desugaring nested patterns into atomic case expression is
 routine, and this does not interfere with constraint generation because $[[&]]$ is associative.
+
+For the sake of concision, we allow ourselves to write nested patterns
+in case expressions of the core language. Desugaring nested patterns
+into atomic case expression is routine.
+
+In the complete description, we use a device which was omitted in the
+main body of the article. Namely, we'll need a way to turn every
+$[[Ev(omega.Q)]]$ into an $[[Ur(Ev(Q))]]$. For any
+$[[e : Ev(omega.Q)]]$, we shall write $[[urify(Q;e) :
+Ur(Ev(omega.Q))]]$. As a shorthand, particularly useful in nested
+patterns, we will write $[[case_pi e of {urified(Q;x) -> e'}]]$ for
+$[[case_pi urify(Q;e) of {Ur x -> e'}]]$.
+%
+$$
+\left\{
+  \begin{array}{lcl}
+    [[urify(Empty;e)]]& = & [[case_1 e of {() -> Ur ()}]] \\
+    [[urify(1.q;e)]] & = & [[e]] \\
+    [[urify(omega.q;e)]] & = & [[case_1 e of {Ur x -> Ur (Ur x)}]] \\
+    [[urify(Q1*Q2;e)]] & = & [[case_1 e of {(urified(Q1;x), urified(Q2;y)) -> Ur (x,y)}]]
+  \end{array}
+\right.
+$$
+We will omit the $[[Q]]$ in $[[urify(Q;e)]]$ and write
+$[[urify(e)]]$ when it can be easily inferred from the context.
+
 
 \begin{figure}
   \centering\small
@@ -2748,5 +2755,5 @@ $$
 % LocalWords:  sequent typechecker idempotence polymorphism desugar
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
-% LocalWords:  sequents implicational deallocate deallocating
+% LocalWords:  sequents implicational deallocate deallocating monadic
 % LocalWords:  deallocated instantiations desugars
