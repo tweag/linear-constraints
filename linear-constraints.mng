@@ -548,7 +548,7 @@ omit the |exists a1 ... an.| or |.<= Q| parts when they are
 empty.
 
 
-Haskell doesn't have existential quantification, however it can
+Haskell doesn't have an existential quantifier, however it can
 be encoded as a \textsc{gadt}. For instance |exists h. Ur (Handle h) .<= Open h| can
 be implemented as
 \jp{The following type should be called |OpenFileHandle| ? }
@@ -556,8 +556,9 @@ be implemented as
 data PackHandle where
   Pack :: Open h =>. Handle h -> PackHandle
 \end{code}
-Therefore, the existential types of this article are really a
-convenience for the sake of exposition\jp{But if this section is a pedagogical description, the presentation as GADT should come first. The theoretical device can come as an afterthought. One can also argue that the GADT is less pedagogical, then this paragraph should be deleted.}\unsure{Though, see the
+That is, while this paper introduces special-purpose existential types,
+in the implementation as a \textsc{ghc} extension, packed linear constraints will
+piggy-back on the standard \textsc{gadt} syntax.\unsure{Though, see the
   existential type paper}. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
 
@@ -1260,7 +1261,7 @@ Like OutsideIn~\cite[Figure~11, page~37]{OutsideIn}, the constraints
 generated in Section~\ref{sec:constraint-generation} have a richer
 logical structure than the simple constraints. Let us follow
 \textsc{ghc}'s terminology and call these \emph{wanted constraints}:
-they are constraints which we\jp{Who is 'we'? program or caller?} \emph{want} to hold.
+they are constraints which the constraint solver \emph{wants} to prove.
 %
 $$
 \begin{array}{lcll}
@@ -1283,17 +1284,17 @@ that every connective from classical or intuitionistic logic tends to
 appear in two flavours in linear logic. Where $[[C1*C2]]$ is the
 \emph{multiplicative} conjunction, $[[C1&C2]]$ is the \emph{additive}
 conjunction. Both connectives are conjunctions, but they differ rather
-dramatically in meaning: $[[C1*C2]]$ consumes\jp{this language is weird; types don't consume anything. Rather, to consume the product, you have to consume both?} both the (linear)
-assumptions consumed by $[[C1]]$ and that consumed by $[[C2]]$. On the
-other hand in $[[C1&C2]]$, both $[[C1]]$ and $[[C2]]$ \emph{must}
-consume the same assumptions, and $[[C1 & C2]]$ will consume the same
-assumptions once\jp{I'd rather say that the program (or context?) has to be able to deal with both C1 and C2. But because the constraints are manipulated implicitly, the only solution is to have the same set of (atomic) constraints.}. The intuition, here, is that in $[[C1 & C2]]$, only
+dramatically in meaning: a proof of $[[C1*C2]]$ consumes both the (linear)
+assumptions consumed by a proof of $[[C1]]$ and a proof of $[[C2]]$. On the
+other hand in $[[C1&C2]]$, both the proof of $[[C1]]$ and the proof of $[[C2]]$ \emph{must}
+consume the same assumptions, and that of $[[C1 & C2]]$ will consume the same
+assumptions. The intuition, here, is that in $[[C1 & C2]]$, only
 one of $[[C1]]$ or $[[C2]]$ will be eventually used. Much like if
 $[[C1]]$ and $[[C2]]$ were branches in a $\kcase$-expression. Not
 coincidentally, $[[C1&C2]]$ will be used to generate constraints for
 $\kcase$-expressions.
 
-Finally, implication constraints differ\jp{differ from what?} in two ways. First they are
+Finally, implication constraints differ from those of OutsideIn in two ways. First they are
 linear implications (an implication which must consume its
 assumption exactly once), where in OutsideIn they are intuitionistic implications.
 Additionally, there is a scaling factor $[[pi]]$ on implication. This scaling prescribes how
@@ -1339,8 +1340,8 @@ simpler.
 Note that simple constraints always entail a wanted: we
 generate wanted constraints, but programs only mention simple
 constraints, and the left-hand side does come from the program. It is
-possible to relax the syntax of the left-hand side,
-though~\cite{quantified-constraints}\jp{grammar?}, which \textsc{ghc} does.
+possible to relax the syntax of the left-hand side
+though, which \textsc{ghc} does~\cite{quantified-constraints}.
 
 Before we move on to constraint generation proper, let us prove a few
 technical, yet essential, lemmas about the wanted-constraint
@@ -1375,17 +1376,19 @@ entailment relation.
     the definition of the entailment relation.
   \end{itemize}
 
-  This proof may look very fragile. After all in a system with
+  This proof may look very fragile, in the sense that a slight change in the hypotheses would invalidate it.
+  After all in a system with
   quantified constraints~\cite{quantified-constraints}, such as the
   current implementation of \textsc{ghc}, there are rules with
   non-atomic conclusions which do not introduce a connective.
 
+  \jp{Clarify the following}
   Proofs where each non-atomic goal is the conclusion of a
   corresponding introduction rule has been called \emph{uniform}
   in~\cite{hh-ll}. They prove for a fragment of linear
   logic\,--\,which includes quantified constraints and linear
   generalisations thereof\,--\,that all provable sequents can be proved
-  by a uniform proof. So this lemma, is, in fact, quite robust.\jp{I don't understand the first thing about this argument: neither the potential problem (why does  "non-atomic conclusions which do not introduce a connective" make it fragile? What's implied by the current implementation of GHC?  The intended resolution is also impenetrable.)}
+  by a uniform proof. So this lemma, is, in fact, quite robust.
 \end{proof}
 
 \begin{lemma}[Promotion]
@@ -1429,9 +1432,9 @@ constraint $[[C]]$.
 
 The rules of Figure~\ref{fig:constraint-generation} are a mostly
 unsurprising translation of the rules of Figure~\ref{fig:typing-rules}
-in the style of OutsideIn~\cite[Section 5.4]{OutsideIn}, the operation
-on typing contexts, in particular are the same as in
-Figure~\ref{fig:typing-rules}, and are not repeated here.\jp{run-away sentence} Still, a few
+in the style of OutsideIn~\cite[Section 5.4]{OutsideIn}. In particular, the operations
+on typing contexts are the same as in
+Figure~\ref{fig:typing-rules}, and are not repeated here. Still, a few
 remarks are in order
 \begin{itemize}
 \item The most conspicuous difference is that, as we explained in
@@ -1448,7 +1451,7 @@ the other branches too.
   Otherwise, after the case its state will be unknown to the type system.
 
   The reason this distinction is not made in an intuitionistic
-  system like the original OutsideIn is somewhat\jp{weasel word} elucidated by the
+  system like the original OutsideIn is elucidated by the
   fact that $[[omega.(C1&C2)]] = [[omega.C1 * omega.C2]]$. In other
   words, in a purely unrestricted context, linear constraints don't
   need two kinds of conjunctions either.
@@ -1723,37 +1726,6 @@ the spirit of OutsideIn, |bad| is rejected.
 \section{Desugaring}
 \label{sec:desugaring}
 
-\info{
-  On unicity of tokens:
-
-  A constraint like ``Open'' (no argument), does not make much sense
-  to use as a linear constraint. Because if we can make it once, then
-  we can make it omega times, and it's useless (it's similar to linear
-  constants in linear haskell. They were not supported.)
-
-  So, we're using something like ``Open f'' instead. Together with a
-  an existential variable f. Then the \textsc{api} can ensure that there is a
-  single token for this constraint at any given point. The \textsc{api} can
-  however create several copies --- but then it's up to the \textsc{api} to
-  make sure that the order of picking the constraints is
-  computationally irrelevant. (Label constraints as computationally
-  relevant? Then \textsc{ghc} could issue errors if there is computational
-  relevance and it ends up making a choice.)
-
-  [arnaud] maybe reject all programs which force the constraint solver
-  to make an ordering choice
-  
-  [jp] still worried about the order of treating arguments: if we have
-  writeFile f x >> writeFile f y then the arguments of could be
-  handled in any order (for constraints!), and it's a shame to reject
-  this.
-
-  [arnaud] I don't think so, because in this case, writeFile f y is
-  forced to use the most nested evidence, which is that given by
-  writeFile f x
-  
-}
-
 The semantics of our language is given by desugaring it into
 a simpler core language: a mild variant of the $λ^q$
 calculus~\cite{LinearHaskell}. We
@@ -1788,8 +1760,7 @@ highlights the differences from the qualified system:
   \item Existentially quantified types $[[exists as. t2 o- t1]]$ now represent a
 (linear) pair of values. Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
 \end{itemize}
-
-\noindent
+%
 The differences between our core calculus and $λ^q$ from Linear Haskell~\cite{LinearHaskell} are as follows
 \begin{itemize}
 \item We don't have multiplicity polymorphism.
@@ -1799,7 +1770,7 @@ The differences between our core calculus and $λ^q$ from Linear Haskell~\cite{L
 \item We have existential types. These can be realised in regular Haskell as a
   family of \textsc{gadt}s.
 \end{itemize}
-\noindent
+%
 In addition, we shall assume the existence of data types
 \begin{itemize}
 \item $[[t1 * t2]]$ with sole constructor
@@ -1813,10 +1784,10 @@ In addition, we shall assume the existence of data types
 These are regular data types and constructors of the language, they
 are consumed with $\kcase$.
 
-\noindent
 For the sake of concision, we will allow ourselves to write nested patterns in
 case expressions. Desugaring nested patterns into atomic case expression is
-routine.\jp{To be complete, we should remark that the generated constraints of a 'case' are joined together by an associative operator. So all reasonable 'routine' algorithm will work.}
+routine, and this does not interfere with constraint generation because \((&)\) is associative.
+\jp{Arnaud: move this to the appendix.}
 
 \subsection{Inferred constraints}
 \label{sec:ds:inferred-constraints}
@@ -2238,8 +2209,7 @@ in Section~\ref{sec:memory-ownership} and Rust.
 Mezzo, being geared towards functional programming, does support
 freezing, but freezing a nested data structure requires traversing it.
 As far as we know, \textsc{ats} doesn't support
-freezing. \textsc{Ats} is more oriented towards system programming,
-and, interestingly, supports pointer arithmetic.\jp{pointer arithmetic seems outside the scope here?}
+freezing. \textsc{Ats} is more oriented towards system programming.
 
 %if False
 We chose an example in the style of rust for
