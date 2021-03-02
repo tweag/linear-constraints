@@ -715,12 +715,16 @@ one for reading, one for writing, and one for ownership.
 > class Own (n :: Location)
 \end{minipage}
 \\
+\unsure{Talk about purity and referential transparency. Write in a
+  referentially transparent way.}
+\unsure{Talk about Rust explicitly.}
 Thanks to this extended set of constraints, programs are able to read from or write
 to a memory reference without owning it. To ensure consistency,
 writes can be done only when we are sure that no one else is reading.
 \rae{This is about thread safety, right? We should be explicit about that.
 If it's not about thread safety, then I'm not sure why we need to pair
-the constraints.} Therefore,
+the constraints. Discussion: when we write, we must know that nobody
+else has an alias.} Therefore,
 writing also requires owning the read capability.
 We will systematically use the |RW| set of constraints, defined below, instead
 of |Write|.
@@ -773,11 +777,6 @@ The language semantics forces the programmer to do case analysis to
 access the returned |Write| constraints, and |writeRef| must be strict
 in the |Write| constraint that it consumes.
 
-\rae{I don't believe that claim. Suppose I have all the capabilities.
-Then I can write |let pack! x1 = readRef ref; pack! () = writeRef ref 3|,
-and I don't see what tells me whether the write happens before or after
-the read. I know that we don't yet support linear |let|, but is that
-a fundamental property?}
 Deallocation consumes all linear constraints associated with |O n|.
 
 > freeRef :: O n =>. AtomRef a n -> ()
@@ -896,7 +895,9 @@ to \citet{ghica_bounded_2014}, where it is dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
 structural rules of linear logic with only semiring
 operation---addition and multiplication.
-\rae{What is the role of the big braces in this figure?}
+\rae{What is the role of the big braces in this figure? Richard: if we
+want to keep this notation, we should introduce the notation, e.g. in
+a footnote}
 
 \smallskip
 \begin{minipage}[c]{0.4\linewidth}
@@ -1113,19 +1114,10 @@ typing rules in Figure~\ref{fig:typing-rules}.
   \label{fig:typing-rules}
 \end{figure}
 
-  \rae{E-Var seems to assume $[[Q1]]$ as a given. It should be a wanted. The
-rule looks very wrong. There needs to be an entailment there. EDIT: OK. I'm understanding
-this better after more staring. Because of E-Sub, we can make sure that the given
-is just right for proving the wanted. But why have $[[omega.Q]]$ in E-Pack but
-omit it from E-Var? I think we don't need it at all, given E-Sub.
-This type system also has no unrestricted constraints---they don't appear in the
-grammar. Is this intentional? I do think some text needs to be written about what
-puzzled me in this comment. I'm happy to write the text if someone confirms that
-it seems I understand it now.}
-\rae{I think E-Unpack needs a check to prevent skolem-escape.}
 \rae{E-Let is strange. It does constraint-generalization but not
 traditional let-generalization. Is there a reason not to do let-generalization?
-That would look more normal.}
+That would look more normal. Richard: Say in the dedicated paragraph, that the
+non-generalisation of variables is on purpose.}
 
 Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system of Figure~\ref{fig:typing-rules} is
 a \emph{qualified type system} in the style first introduced
