@@ -1774,7 +1774,7 @@ Figure~\ref{fig:core-typing-rules}
 highlights the differences from the qualified system:
 \begin{itemize}
   \item Type schemes $[[s]]$ do not support qualified types.
-  \item Exisentially quantified types $[[exists as. t2 o- t1]]$ now represent a
+  \item Existentially quantified types $[[exists as. t2 o- t1]]$ now represent a
 (linear) pair of values. Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
 \end{itemize}
 
