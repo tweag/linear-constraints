@@ -790,8 +790,7 @@ But what about references to references; or,
 indeed, arrays of arrays? A common example of plain Linear Haskell is
 a pure interface to mutable arrays, but it's terribly
 inconvenient to make mutable arrays of mutable arrays, at least if we
-want to freeze them in $O(1)$. \rae{Is there a reference to some text
-that explains what the problem is?}
+want to freeze them in $O(1)$.
 
 The |AtomRef| \textsc{api} above is not quite enough to handle nested
 references. Indeed if we have |r :: AtomRef (AtomRef a s) r| and |s ::
