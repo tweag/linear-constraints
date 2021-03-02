@@ -766,8 +766,7 @@ effects in terms of a monad or another higher-order effect-tracking
 device: because the |RW n| constraint is linear, passing it suffices
 to ensure proper sequencing of effects concerning location |n|.
 This is ensured by the combination of the language and library
-behaviour. To see it, consider how the writing several values (|a|,
-|b|) to the same reference |x| is done:
+behaviour. For example, here is how to write two values (|a| and |b|) to the same reference |x|:
 
 > case writeRef x a of
 >   pack _ -> case writeRef x b of
