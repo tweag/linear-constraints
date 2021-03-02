@@ -688,6 +688,9 @@ explicit memory allocation and deallocation. This task is error
 prone: one can easily forget a deallocation (causing a memory leak) or
 deallocate several times (corrupting data).
 
+\subsection{Ownership constraints}
+\label{sec:atomic-references}
+
 With linear constraints, it is possible to give a \emph{pure} interface for
 manual memory management, which
 enforces correct deallocation of memory.  The approach is to use a
@@ -785,26 +788,28 @@ sometimes called ``freezing'':
 
 > freezeRef :: O n =>. AtomRef a n -> Ur a
 
-The toolkit we set up handles references to base types just fine.
-But what about references to references; or,
-indeed, arrays of arrays? A common example of plain Linear Haskell is
-a pure interface to mutable arrays, but it's terribly
-inconvenient to make mutable arrays of mutable arrays, at least if we
-want to freeze them in $O(1)$.
+\subsection{Arrays}
+\label{sec:arrays}
 
-The |AtomRef| \textsc{api} above is not quite enough to handle nested
-references. Indeed if we have |r :: AtomRef (AtomRef a s) r| and |s ::
-AtomRef a s|, we can |writeRef r s|; however we would then be stuck
-with the |Own s| constraint, which can only be consumed by
-deallocating |s|. What we really need here, is a way to
-relinquish the ownership of |s| to |r| so that |r| becomes responsible
-for deallocating |s|. This is what the type |PArray| lets us do
+The toolkit we set up handles references to base types just fine.  But
+what about references to references; or, indeed, arrays of arrays? A
+common example of plain Linear Haskell is a pure interface to mutable
+arrays~\cite[Section 2.2]{LinearHaskell}. There we have two types
+|MArray a|, used linearly, for mutable arrays, and |Array a|, used
+unrestrictedly, for immutable arrays. Mutable arrays can be frozen
+using |freeze :: MArray a ->. Ur (Array a)|. Which doesn't support
+mutable arrays of mutable arrays. The core of the issue is that
+mutable arrays and immutable arrays have different types.
+
+The ownership \textsc{api}, on the other hand, is readily extended to
+nested mutable arrays. The key ingredient is for inner arrays to
+relinquish their ownership to the outer array.
 
 > data PArray (a :: Location -> Type) (n :: Location)
 > newPArray    :: (forall n. ^^ O n =>. PArray a n -> Ur b) ⊸ Ur b
 
-The key is that the kind of |a| is |Location ->
-Type|. This way we can easily enforce that each reference in the
+The kind of |a| is |Location ->
+Type|: this way we can easily enforce that each reference in the
 array refers to the same location |n|. Both types |AtomRef a| and
 |PArray a| have kind |Location -> Type|, and therefore one can allocate, and
 manipulate arrays of arrays with this \textsc{api}.
@@ -854,20 +859,10 @@ any element of |n|), as expected.
 
 > readArray :: Read n => PArray a n -> Int -> a n
 
-Crucially, |freezePArray| does not require changing the
-type of the array: mutable arrays and immutable arrays have the same
-type, only the permissions change. In contrast, without
-linear constraints, where the mutable array itself is the linear
-quantity~\cite[Section 2.2]{LinearHaskell}, the type of freeze is
-|MArray a ->. Ur (Array a)|. If we wanted to freeze an array of array,
-we would have to freeze the inner array recursively, which we can't do
-in $O(1)$. And if we were to write the ownership
-\textsc{api} without linear constraints, it would be incredibly
-painful to use.
-
-\rae{I want a few sentences here reflecting on what we've gained
-from the linear constraints. Can this be done without linear constraints?
-Surely it can be. So what do the linear constraints do for us?}
+Crucially, and in contrast to the plain linear types \textsc{api} the
+type |PArray| is both the type of mutable arrays and immutable arrays,
+|freezePArray| only changes the permissions. And since permissions are
+linear constraints, this is all managed automatically by the compiler.
 
 \section{A qualified type system}
 \label{sec:qualified-type-system}
