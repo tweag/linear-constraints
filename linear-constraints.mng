@@ -874,8 +874,7 @@ section, as well as Section~\ref{sec:type-inference}, strongly mirrors
 the presentation of OutsideIn~\cite{OutsideIn}. OutsideIn is the
 foundation of the type inference algorithm of \textsc{ghc}. By building
 from this base, we can highlight the concrete changes required in
-\textsc{ghc}, or similar compilers, \rae{Is anything similar to GHC? I
-would drop this bit.} to support linear constraints.
+\textsc{ghc} to support linear constraints.
 However, we have chosen, for the sake of clarity of the exposition, to
 omit details of OutsideIn which do not interact meaningfully with
 linear constraints. We shall point out such simplifications as they
