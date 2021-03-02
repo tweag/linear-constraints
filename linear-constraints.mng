@@ -1799,14 +1799,13 @@ In addition, we shall assume the existence of data types
   Ur a]]$
 \end{itemize}
 %
-\noindent
 These are regular data types and constructors of the language, they
 are consumed with $\kcase$.
 
 \noindent
 For the sake of concision, we will allow ourselves to write nested patterns in
 case expressions. Desugaring nested patterns into atomic case expression is
-routine.
+routine.\jp{To be complete, we should remark that the generated constraints of a 'case' are joined together by an associative operator. So all reasonable 'routine' algorithm will work.}
 
 \subsection{Inferred constraints}
 \label{sec:ds:inferred-constraints}
@@ -1817,7 +1816,7 @@ $[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C~> empty ]]$, then
 $[[ctx(UCtx) * ctx(LCtx)  ; G |- e : t]]$.
 
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
-Core Calculus. Let us dedicate the rest of this section to describe
+Core Calculus. The rest of this section describes
 this last step.
 
 \subsection{From qualified to core}
@@ -1984,8 +1983,8 @@ $$
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
-is inserted  passing $[[z]]$ as an argument.
-Handling $\kunpack$ requires splitting the context into two: $[[e1]]$ is desugared as a pair, and the evidence
+is inserted by passing $[[z]]$ as an argument.
+Handling $\kunpack$ requires splitting the context in two: $[[e1]]$ is desugared as a pair, and the evidence
 it contains is passed to $[[e2]]$. Finally, subsumption summons the function corresponding to the entailment relation $[[Q ||- Q1]]$
 and applies it to $[[z]]$ : $[[Ev(Q)]]$ then proceeds to desugar $[[e]]$ with the resulting evidence for $[[Q1]]$.
 Crucially, since $[[Ds(Hole)]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
@@ -2003,15 +2002,15 @@ types, such as $λ^q$, or indeed, \textsc{ghc} Core.
 \label{sec:implementation}
 
 We have written a prototype implementation of linear constraints on top of \textsc{ghc} 9.1, a version that already
-ships with the LinearTypes extension. Function arrows (|->|) and context arrows
+ships with the \emph{LinearTypes} extension. Function arrows (|->|) and context arrows
 (|=>|) share the same internal representation in the typechecker, differentiated
-only by a boolean flag. Thus, the LinearTypes implementation effort has already
+only by a boolean flag. Thus, the \emph{LinearTypes} implementation effort has already
 laid down the bureaucratic ground work of annotating these arrows with
 multiplicity information.
 
 The key changes affect constraint generation and constraint solving. Constraints
 are now annotated with a multiplicity, scaled according to the usage environment
-from which they arise. With LinearTypes, \textsc{ghc} already does scaling for the usage
+from which they arise. With \emph{LinearTypes}, \textsc{ghc} already does scaling for the usage
 of term variables, we simply needed to modify the scaling function to capture all
 the generated constraints and re-emit a scaled version of them -- a fairly local
 change.
@@ -2183,8 +2182,8 @@ requirements (namely a pure interface for a mutable array, and the
 ability to freeze arrays into an immutable but shareable). It is not
 clear that any other \textsc{api} could be essentially different.
 
-Rust is built around ownership and borrows for memory
-management. As a consequence, they have a much more convenient syntax
+Rust is built with ownership and borrows for memory
+management from the ground up. As a consequence, they have a much more convenient syntax
 than Linear Haskell with linear constraints can propose. Rust's
 convenient syntax comes at the price that it is almost impossible to
 write tail-recursive functions in Rust, which is surprising from the
@@ -2192,19 +2191,19 @@ perspective of functional programming.
 
 On the other hand, the focus of Linear Haskell as well as linear
 constraints is to provide programmers with the tools to create safe
-interfaces in libraries. The language itself is agnostic about what
+interfaces and libraries. The language itself is agnostic about what
 linear constraints mean. Although linear constraints don't have
 the convenience of Rust's syntax, we expect that they will
 support a greater variety of abstraction. It is worth noting, though,
-that Rust programmers have come up with varied abstraction leveraging
-borrowing which go beyond memory management (for instance, safe file
+that Rust programmers have come up with varied abstractions which leverage
+borrowing, going beyond memory management (for instance, safe file
 handling).
 
 Section~\ref{sec:memory-ownership} shows how to make a
 Rust-like \textsc{dsl} in Haskell with linear constraints. It is not
 clear that it is possible at all to make a Linear-Haskell-like
 \textsc{dsl} in Rust. So, it would seem that linear constraints are
-more general.
+more general.\jp{weak claim. Delete?}
 
 \paragraph{Languages with capabilities}
 
@@ -2220,8 +2219,8 @@ capabilities. % , which the programmer may have to fill in.
 Other than that, both systems have a lot of similarities. They have a
 finer grain capability system than is expressible in Rust (or our
 Section~\ref{sec:memory-ownership}) which makes it possible to change
-the type of a reference cell on write. They also eschew scoped
-borrowing in favour of more traditional read and write access. In
+the type of a reference cell upon write. They also eschew scoped
+borrowing in favour of more traditional read and write capabilities. In
 exchange, neither Mezzo nor \textsc{ats} support $O(1)$ freezing like
 in Section~\ref{sec:memory-ownership} and Rust.
 
@@ -2229,7 +2228,7 @@ Mezzo, being geared towards functional programming, does support
 freezing, but freezing a nested data structure requires traversing it.
 As far as we know, \textsc{ats} doesn't support
 freezing. \textsc{Ats} is more oriented towards system programming,
-and, interestingly, supports pointer arithmetic.
+and, interestingly, supports pointer arithmetic.\jp{pointer arithmetic seems outside the scope here?}
 
 %if False
 We chose an example in the style of rust for
@@ -2239,8 +2238,8 @@ a Mezzo or \textsc{ats} style of capabilities could certainly be
 encoded within linear constraints.
 %endif
 
-Linear constraints are more general than either Mezzo or \textsc{ats},
-while maintaining a considerably simpler inference algorithm than either, and at
+Haskell with Linear constraints is more general than either Mezzo or \textsc{ats},
+while maintaining a considerably simpler inference algorithm, and at
 the same time supporting a richer set of constraints (for instance, being based
 on OutsideIn makes linear constraints compatible with \textsc{gadt}s for almost
 free). This
@@ -2252,7 +2251,7 @@ constraints providing the general inference mechanism.
 Though both Mezzo and \textsc{ats} have an advantage that we don't:
 they assume that their instructions are properly sequenced, whereas
 basing linear constraints on Haskell, a lazy language, we are forced
-to make sequencing explicit in \textsc{api}s.
+to make sequencing explicit in \textsc{api}s.\jp{Indeed. However the borrowing section does not do this. So it's wrong :-(}
 
 \paragraph{Logic programming}
 
