@@ -1686,8 +1686,8 @@ In this example it is quite clear, that the programmer meant for
 |closeFile| to use |Open h| introduced locally in |cl|. In fact this
 is the only possible way to attribute constraints.
 
-Another interesting feature of Figure~\ref{fig:simpl-solver} is that
-no rule apply to solve a linear constraint if it appears both in the
+Another interesting feature of the solver (Figure~\ref{fig:simpl-solver}) is that
+no rule solves a linear constraint if it appears both in the
 unrestricted and the linear context.
 Consider the following (contrived) \textsc{api}:
 \begin{code}
