@@ -2099,13 +2099,13 @@ That is $[[Top]]$ is unconditionally true, and can consume any number
 of linear given constraints. The \rref*{C-Top} rule thus induces a
 considerable amount of non-determinism. Eliminating the
 non-determinism induced by $[[Top]]$ is ultimately
-what~\cite{resource-management-for-ll-proof-search} builds up
+what~\citet{resource-management-for-ll-proof-search} builds up
 to. Their methods can be adapted to the constraint solver of
 Section~\ref{sec:constraint-solver} without any technical
 difficulty. We chose, however, to keep empty cases out the
 presentation because has a very high overhead and would distract from
 the point. Instead, we refer readers
-to~\cite[Section 4]{resource-management-for-ll-proof-search} for a
+to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
 careful treatment of $[[Top]]$.
 
 \section{Related work}
