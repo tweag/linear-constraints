@@ -593,7 +593,7 @@ dithering :: C =>. Bool -> Int
 dithering x = if x then useC else 10
 \end{code}
 The problem with |dithering| is that it does not commit properly to how much
-resource it requires: the branch where |x| holds will use the resource in |C|
+resource it requires: the branch where |x| holds will use the resource |C|
 whereas the other does not.
 
 \subsubsection{Neglecting}
