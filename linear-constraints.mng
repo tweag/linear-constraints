@@ -275,7 +275,7 @@ import GHC.Base
 \info{There  is an Appendix section with unorganised thoughts and
   examples.}
 
-Linear type systems have seen somewhat of a renaissance in recent years in
+Linear type systems have seen a renaissance in recent years in
 various mainstream programming communities. Rust's ownership system guarantees
 memory safety for systems programmers, Haskell's \textsc{ghc}~9.0 includes
 support for linear types, and even
@@ -308,7 +308,7 @@ used in further interactions with the file. The line's content is a string
 |xs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
 signify that it can be used arbitrary many times.
 %
-Compare this function with one would write in a non-linear language:
+Compare this function with what one would write in a non-linear language:
 \begin{code}
 firstLine :: FilePath -> IO String
 firstLine fp = do  {  h <- openFile fp
@@ -318,7 +318,7 @@ firstLine fp = do  {  h <- openFile fp
 \end{code}
 This style is less safe, because the type system does not keep track of the
 file handle. But it is also
-simpler: apparently, using a linear language means trading clarity for safety. When
+simpler. It would seem that using a linear language means trading clarity for safety. When
 modelling a handle as a linear resource, the type system must know at all
 times where it is being consumed, so the file handle is passed around
 manually, resulting in extra noise.
@@ -415,7 +415,7 @@ dubbed \emph{linear functions}, and written |a ⊸ b|\footnote{The linear functi
   literature amount to adding such a linear function type, but details
   can vary wildly. See~\cite[Section 6]{LinearHaskell} for an analysis
   of alternative approaches.}. A linear function consumes its
-  argument exactly once, more precisely, Linear Haskell~\cite[Section
+  argument exactly once. More precisely, Linear Haskell~\cite[Section
   2.1]{LinearHaskell} defines linear functions as:
 
 \begin{quote}
@@ -499,8 +499,7 @@ closeFile :: Open h =>. Handle h -> IOL ()
 
 There are a few things to notice:
 \begin{itemize}
-\item First, there is a type variable |h| which did not exist in
-  previous representation. In the representation of the Linear Haskell
+\item First, there is now a type variable |h|. In the representation of the Linear Haskell
   paper, for instance, |closeFile| had type |closeFile :: File ->. IOL
   ()|. This |h| is a type-level name for the file handle which we are
   closing.
@@ -508,7 +507,7 @@ There are a few things to notice:
   While giving a name to a function argument is the bread and butter of more
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
   Haskell~\cite{liquid-haskell-abstract-refinement-types}, Haskell doesn't have such a
-  naming mechanism built in, so we have resort to a type variable to mediate the
+  naming mechanism built in, so we have to resort to a type variable to mediate the
   link between handles and linear constraints.
 \item Second, if  we have a single, linear, |Open h|
   available, then after |closeFile| there will not be any |Open h|
@@ -539,10 +538,10 @@ readLine   :: Open h =>. Handle h -> IOL (Ur String .<= Open h)
 
 The fact that existential quantification generates new type-level names
 is folklore. It's used crucially in the interface of the
-|ST| monad~\cite{st-monad} and of type-class
+|ST| monad~\cite{st-monad} and in type-class
 reflection~\cite{type-class-reflection} (in both of these cases, existential
 quantification is encoded as a rank-2 universal quantification). We
-shall use it exactly this way: |openFile| uses an existential
+shall use it in exactly this way: |openFile| uses an existential
 quantifier to generate the type-level name of the file
 handle. Existentially quantified types are paired with a constraint |Q|
 which we understand as being returned by functions. We will freely
