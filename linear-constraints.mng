@@ -1449,7 +1449,7 @@ the other branches too.
   like in OutsideIn~\cite[Section 4.2]{OutsideIn}, a $\klet$ without a
   signature is not generalised. That being said, while not
   generalising is the easiest choice, here, it is not clear that it is
-  the best in the presence of linear constraint, as we discuss in
+  the best in the presence of linear constraints, as we discuss in
   Section~\ref{sec:let-generalisation}
 \item As we've observed throughout this section, not including type
   inference in the constraint generation algorithm significantly
