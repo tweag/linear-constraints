@@ -2232,7 +2232,7 @@ typed languages and dedicated linear-like typing disciplines such as Rust's,
 Mezzo's, or \textsc{ats}'s.
 
 We also demonstrate how an existing constraint solver can be extended to handle
-linearity without messing up inference of existing programs. Our design of
+linearity. Our design of
 linear constraints fits nicely into Haskell. Indeed, linear constraints can be
 thought of as an extension of Haskell's type class mechanism. This way, the
 design also integrates well into \textsc{ghc}, as demonstrated by our prototype
