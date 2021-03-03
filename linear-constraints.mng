@@ -2227,7 +2227,7 @@ break our proofs.
 We showed how a simple linear type system like that of Linear
 Haskell can be extended with an inference mechanism which lets the
 compiler manage some of the additional complexity of linear types
-instead of the programmer. Linear constraints narrow the gap between a linearly
+instead of the programmer. Linear constraints narrow the gap between linearly
 typed languages and dedicated linear-like typing disciplines such as Rust's,
 Mezzo's, or \textsc{ats}'s.
 
