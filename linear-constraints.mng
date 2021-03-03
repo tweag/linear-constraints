@@ -564,7 +564,7 @@ introduced by a data constructor, which we write as |pack|.
 
 When pattern-matching on a |pack| all the existentially quantified
 names are introduced in scope and all the returned constraints are
-made available. We also use |pack' x| as a shorthand for
+made available. We also use |pack' x| as a shorthand
 for |pack (Ur x)|. With all these ingredients we can indeed write
 the example given in the introduction.
 
