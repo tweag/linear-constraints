@@ -331,7 +331,7 @@ Rust introduces the borrow checker for this very purpose. But it turns
 out that all you need is to generalise Haskell's type class
 constraints to \emph{linear constraints}. Like class constraints,
 linear constraints are passed around implicity by the compiler, and
-like linear arguments, they can be used to track resources like file
+like linear arguments, they can be used to track resources such as file
 handles. The beauty of linear constraints is their simplicity: all we
 need to do, really, is to pull together the threads of four papers
 (\cite{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}).
