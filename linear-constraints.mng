@@ -500,15 +500,15 @@ closeFile :: Open h =>. Handle h -> IOL ()
 
 There are a few things to notice:
 \begin{itemize}
-\item First, there is now a type variable |h|. In the representation of the Linear Haskell
-  paper, for instance, |closeFile| had type |closeFile :: File ->. IOL
-  ()|. This |h| is a type-level name for the file handle which we are
-  closing.
+\item First, there is now a type variable |h|. In contrast,
+  the version in Figure~\ref{fig:linear-interface} without linear
+  constraints  has type |closeFile :: Handle ->. IOL ()|.
+  The type variable |h| is a type-level name for the file handle which we are closing.
   Ideally, we'd like the linear constraint to refer directly to the handle value, and have the type |closeFile :: (h :: Handle) -> Open h =>. IOL ()|.
   While giving a name to a function argument is the bread and butter of more
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
   Haskell~\cite{liquid-haskell-abstract-refinement-types}, Haskell doesn't have such a
-  naming mechanism built in, so we have to resort to a type variable to mediate the
+  naming mechanism built in yet, so we have to resort to a type variable to mediate the
   link between handles and linear constraints.
 \item Second, if  we have a single, linear, |Open h|
   available, then after |closeFile| there will not be any |Open h|
