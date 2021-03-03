@@ -1745,7 +1745,7 @@ highlights the differences from the qualified system:
 (linear) pair of values. Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
 \end{itemize}
 %
-The differences between our core calculus and $λ^q$ from Linear Haskell~\cite{LinearHaskell} are as follows
+The differences between our core calculus and $λ^q$ are as follows
 \begin{itemize}
 \item We don't have multiplicity polymorphism.
 \item We need, on the other hand, type polymorphism.
