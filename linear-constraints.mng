@@ -742,7 +742,7 @@ references.
 
 > data AtomRef (a :: Type) (n :: Location)
 
-The type |AtomRef| is the type of references to values of a type |a| with
+The type |AtomRef| is the type of references to values of a type |a| at
 location |n|. Allocation of a reference can be done using the
 following function.
 
@@ -753,8 +753,8 @@ The reference is made available in a function which we call the
 crucially, |Ur b|.  Indeed, if we would allow returning any type |b|
 then the |O n| constraint could be embedded in |b|, and therefore
 escape from the scope.
-This effectively lets |O n| be an unrestricted constraint, and
-would no longer guarantee that the reference has a unique owner.
+This would effectively let |O n| be an unrestricted constraint, and
+no longer guarantee that the reference has a unique owner.
 
 To read a reference, a simple |Read| constraint is demanded, and
 immediately returned. Writing is handled similarly.
@@ -793,7 +793,7 @@ sometimes called ``freezing'':
 The toolkit we set up handles references to base types just fine.  But
 what about references to references; or, indeed, arrays of arrays? A
 common example of plain Linear Haskell is a pure interface to mutable
-arrays~\cite[Section 2.2]{LinearHaskell}. There we have two types
+arrays~\cite[Section 2.2]{LinearHaskell}. There we have two types,
 |MArray a|, used linearly, for mutable arrays, and |Array a|, used
 unrestrictedly, for immutable arrays. Mutable arrays can be frozen
 using |freeze :: MArray a ->. Ur (Array a)|. Note that this version of |freeze|
