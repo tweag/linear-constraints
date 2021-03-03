@@ -1952,18 +1952,18 @@ laid down the bureaucratic ground work of annotating these arrows with
 multiplicity information.
 
 The key changes affect constraint generation and constraint solving. Constraints
-are now annotated with a multiplicity, scaled according to the usage environment
-from which they arise. With \emph{LinearTypes}, \textsc{ghc} already does scaling for the usage
-of term variables, we simply needed to modify the scaling function to capture all
-the generated constraints and re-emit a scaled version of them -- a fairly local
+are now annotated with a multiplicity, according to the usage environment from
+which they arise. With \emph{LinearTypes}, \textsc{ghc} already scales the usage
+of term variables. We simply modified the scaling function to capture all the
+generated constraints and re-emit a scaled version of them -- a fairly local
 change.
 
-The constraint solver maintains a set of givens, called the \emph{inert} set,
+The constraint solver maintains a set of givens (the \emph{inert} set),
 which corresponds to the $[[UCtx]]$ and $[[LCtx]]$ contexts in our solver
 judgements in Section~\ref{sec:constraint-solver}. A property of the inert set
-is that no pairwise interactions between the constraints contained in it can
-happen. These interactions are dictated by the constraint domain. For example,
-equality constraints interact with other constraints by applying a substitution.
+is that constraints contained do not pairwise interact. These interactions are
+dictated by the constraint domain. For example, equality constraints interact
+with other constraints by applying a substitution.
 
 The treatment of implication constraints is of particular interest.
 Implications, by their nature, introduce assumptions which do not necessarily
