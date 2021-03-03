@@ -2250,7 +2250,7 @@ This, really, is the philosophy of linear constraints: lowering
 the cost of linear types so that more theoretical applications become
 practical applications. And we achieved this at a pretty low price: teaching
 linear logic to \textsc{ghc}'s constraint solver. It is quite
-remarkable to do so, we all we needed to was to
+remarkable that to do so, all we needed was to
 adapt~\cite{resource-management-for-ll-proof-search} to the OutsideIn
 framework. It is also quite serendipitous that the notion of uniform
 proof from~\cite{hh-ll}, which was introduced to prove the
