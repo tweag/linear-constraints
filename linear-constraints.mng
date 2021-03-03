@@ -2236,7 +2236,13 @@ linearity without messing up inference of existing programs. Our design of
 linear constraints fits nicely into Haskell. Indeed, linear constraints can be
 thought of as an extension of Haskell's type class mechanism. This way, the
 design also integrates well into \textsc{ghc}, as demonstrated by our prototype
-implementation, which required modest changes to the compiler.
+implementation, which required modest changes to the compiler. It is quite
+remarkable that to do so, all we needed was to
+adapt~\cite{resource-management-for-ll-proof-search} to the OutsideIn
+framework. It is also quite serendipitous that the notion of uniform
+proof from~\cite{hh-ll}, which was introduced to prove the
+completeness of a proof search strategy ends up being crucial to the
+soundness of constraint generation.
 
 In some cases, like the file example of Section~\ref{sec:introduction},
 linear constraints are a mere convenience that reduce line noise and
@@ -2249,13 +2255,7 @@ cost.
 This, really, is the philosophy of linear constraints: lowering
 the cost of linear types so that more theoretical applications become
 practical applications. And we achieved this at a pretty low price: teaching
-linear logic to \textsc{ghc}'s constraint solver. It is quite
-remarkable that to do so, all we needed was to
-adapt~\cite{resource-management-for-ll-proof-search} to the OutsideIn
-framework. It is also quite serendipitous that the notion of uniform
-proof from~\cite{hh-ll}, which was introduced to prove the
-completeness of a proof search strategy ends up being crucial to the
-soundness of constraint generation.
+linear logic to \textsc{ghc}'s constraint solver.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
