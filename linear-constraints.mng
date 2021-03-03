@@ -2246,9 +2246,16 @@ linear constraints. Certainly, ownership proofs could be managed manually, but
 it is hard to imagine a circumstance where this tedious task would be worth the
 cost.
 
-And, this, really, is the philosophy of linear constraints: lowering
+This, really, is the philosophy of linear constraints: lowering
 the cost of linear types so that more theoretical applications become
-practical applications.
+practical applications. And we achieved this at a pretty low price: teaching
+linear logic to \textsc{ghc}'s constraint solver. It is quite
+remarkable to do so, we all we needed to was to
+adapt~\cite{resource-management-for-ll-proof-search} to the OutsideIn
+framework. It is also quite serendipitous that the notion of uniform
+proof from~\cite{hh-ll}, which was introduced to prove the
+completeness of a proof search strategy ends up being crucial to the
+soundness of constraint generation.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
