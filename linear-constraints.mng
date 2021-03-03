@@ -2228,7 +2228,7 @@ We showed how a simple linear type system like that of Linear
 Haskell can be extended with an inference mechanism which lets the
 compiler manage some of the additional complexity of linear types
 instead of the programmer. Linear constraints narrow the gap between a linearly
-typed language and dedicated linear-like typing disciplines such as Rust's,
+typed languages and dedicated linear-like typing disciplines such as Rust's,
 Mezzo's, or \textsc{ats}'s.
 
 We also demonstrate how an existing constraint solver can be extended to handle
