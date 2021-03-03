@@ -921,8 +921,8 @@ $$
 \end{minipage}
 \smallskip
 
-Though we do not support multiplicity polymorphism on constraint
-arguments, we believe that such a feature would not be very useful.
+We do not support multiplicity polymorphism on constraint
+arguments, and we believe that such a feature would not be very useful.
 Multiplicity polymorphism of regular function arguments is used to avoid
 duplicating the definition of higher-order functions. The poster child
 is |map :: (a poly_arrow b) -> [a] poly_arrow [b]|,
@@ -932,10 +932,10 @@ polymorphism, because
 linear functions can be $\eta$-expanded into unrestricted function as
 explained in Section~\ref{sec:linear-types}. Higher-order functions
 whose arguments are themselves constrained functions are rare,
-so we do not yet see the need to lift the multiplicity polymorphism
-present for normal arguments to apply to constraints.
+so we do not yet see the need to extend multiplicity polymorphism
+to apply to constraints.
 Futhermore, it is not clear how to extend the constraint solver of
-Section~\ref{sec:constraint-solver} to multiplicity-polymorphic
+Section~\ref{sec:constraint-solver} to support multiplicity-polymorphic
 constraints.
 
 \subsection{Simple constraints}
@@ -944,7 +944,7 @@ constraints.
 Following OutsideIn~\cite[Section 3.2, in particular Figure
 3]{OutsideIn}, we parameterise our entire type system by a constraint
 domain: the $X$ in OutsideIn($X$). Such a domain is characterised by
-a set of \emph{atomic constraints} written $[[q]]$ and an entailment
+a set of \emph{atomic constraints}, written $[[q]]$, and an entailment
 relation $[[Q1 ||- Q2]]$, with properties specified in
 Figure~\ref{fig:entailment-relation}. We adopt \textsc{ghc}'s
 terminology and call these \emph{simple constraints} to distinguish
@@ -1122,8 +1122,8 @@ type context, and $[[Q]]$ is a simple constraint as in
 Section~\ref{sec:constraint-domain}. $[[Q]]$ behaves
 much like $[[G]]$, which will be instrumental for
 desugaring in Section~\ref{sec:desugaring}; the main difference is
-that $[[G]]$ is addressed explicitly with variables, whereas $[[Q]]$
-is used implicitly in \rref{E-Var}.
+that $[[G]]$ is addressed explicitly, whereas $[[Q]]$
+is used implicitly in the \rref{E-Var}.
 
 The type system of Figure~\ref{fig:typing-rules} is purely
 declarative: it doesn't have any algorithmic properties. We will see
@@ -1140,7 +1140,7 @@ linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \item The type system has linear functions ($[[a ->_1 b]]$ in
   Figure~\ref{fig:typing-rules}). Despite our focus on linear constraints,
   we still need linearity in ordinary arguments.
-  For example, the bind combinator for |IOL| (Section~\ref{sec:introduction}),
+  For example, the bind combinator for |IOL| (Section~\ref{sec:introduction})
   requires linear arrows: |(>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b|.
 
   Furthermore, the linearity of arrows interacts in interesting
