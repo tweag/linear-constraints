@@ -1999,9 +1999,9 @@ unrestricted before interacting with the inert set. \textsc{ghc} core already re
 the equality constraint as a boxed type, so we can simply modify it to store an
 unrestricted payload.
 
-As constraint solving proceeds, the compiler pipeline constructs a term in the
-intrinsically typed core language System FC~\cite{system-fc}, also
-known as \textsc{ghc} Core.
+As constraint solving proceeds, the compiler pipeline constructs a term in an
+intrinsically typed language
+known as \textsc{ghc} Core~\cite{system-fc}.
 In Core, type class constraints are turned into
 explicit evidence (see Section~\ref{sec:desugaring}). Thanks to being fully
 annotated, Core has decidable typechecking which is useful in sanity
