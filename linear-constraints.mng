@@ -451,14 +451,14 @@ The example in the previous section, when calling |readLine|, consumes
 the linear handle |h| created by |openFile|, |h| can therefore no longer be used to close the file:
 doing so would result in a type error.  To resolve this, a new handle for the
 same file is produced that can be used with |closeFile|. In the code, the same
-name |h| is given to the new handler, thus shadowing the old |h| that can no
+name |h| is given to the new handle, thus shadowing the old |h| that can no
 longer be used anyway, and to give the illusion that it is being passed around.
 
 From the perspective of the programmer, this is unwanted boilerplate. Using
 shadowing is a trick that hides an underlying problem that should not exist:
-it is not the handler that should be consumed by |readLine| at all.  Rather, it
-is its implicit state as a handler for an open file  that should be consumed
-exactly once. Once this open state is consumed, the handler can no longer be read
+it is not the handle that should be consumed by |readLine| at all.  Rather, it
+is its implicit state as a handle for an open file  that should be consumed
+exactly once. Once this open state is consumed, the handle can no longer be read
 from or closed without triggering a compile time error.
 
 \subsection{Working With Linear Constraints}
@@ -482,9 +482,9 @@ intervention from the programmer.
 Thus, constraints are a convenient mechanism that allow the compiler
 to automatically fill in implicit arguments.
 
-For our |readLine| example, the implicit argument is the state of a handler |h|.
+For our |readLine| example, the implicit argument is the state of a handle |h|.
 This can be managed as a constraint called |Open h|, which indicates that the
-file associated to the handler is open. The idea is that this constraint
+file associated to the handle is open. The idea is that this constraint
 should be a linear value, so that it can only be consumed exactly once.
 In order to manage linearity implicitly, this article introduces a
 linear fat arrow |=>.|, much like Linear Haskell introduced a linear
@@ -516,7 +516,7 @@ There are a few things to notice:
   twice. This is precisely what we were trying to achieve.
 \end{itemize}
 
-This deals with closing files and ensuring that a handler cannot be closed more
+This deals with closing files and ensuring that a handle cannot be closed more
 than once.  However, we still need to explain how a constraint |Open h| can come
 into existence. For this, we introduce a type construction |exists a1 ... an. t
 .<= Q|, where |Q| is some (linear) constraint that is created.  The type of
@@ -537,7 +537,7 @@ constraint, while also producing an unrestricted |String|.
 readLine   :: Open h =>. Handle h -> IOL (Ur String .<= Open h)
 \end{code}
 
-The fact that existential quantification generate new type-level names
+The fact that existential quantification generates new type-level names
 is folklore. It's used crucially in the interface of the
 |ST| monad~\cite{st-monad} and of type-class
 reflection~\cite{type-class-reflection} (in both of these cases, existential
@@ -2003,7 +2003,7 @@ As constraint solving proceeds, the compiler pipeline constructs a term in the
 intrinsically typed core language System FC~\cite{system-fc}, also
 known as \textsc{ghc} Core.
 In Core, type class constraints are turned into
-explicit evidences (see Section~\ref{sec:desugaring}). Thanks to being fully
+explicit evidence (see Section~\ref{sec:desugaring}). Thanks to being fully
 annotated, Core has decidable typechecking which is useful in sanity
 checking modifications to the compiler. Thus, the soundness of our
 implementation is verified by the Core typechecker, which already supports
