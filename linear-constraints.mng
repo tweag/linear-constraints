@@ -1952,7 +1952,7 @@ laid down the bureaucratic ground work of annotating these arrows with
 multiplicity information.
 
 The key changes affect constraint generation and constraint solving. Constraints
-are now annotated with a multiplicity, according to the usage environment from
+are now annotated with a multiplicity, according to the context from
 which they arise. With \emph{LinearTypes}, \textsc{ghc} already scales the usage
 of term variables. We simply modified the scaling function to capture all the
 generated constraints and re-emit a scaled version of them -- a fairly local
