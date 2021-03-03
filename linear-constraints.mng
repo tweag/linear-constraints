@@ -1537,7 +1537,7 @@ multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists.
 
 Linearity requires treating constraints as consumable resources. This
 is what $[[LCtx_o]]$ is for: it is the list of the hypotheses of
-$[[LCtx_i]]$ which haven't been consumed to prove $[[Q_w]]$. As
+$[[LCtx_i]]$ which haven't been consumed when proving $[[Q_w]]$. As
 suggested by the notation, it is an output of the algorithm.
 
 There are three simplifications compared to OutsideIn's solver:
@@ -1582,7 +1582,7 @@ constraints. Though the solver is parameterised in the particular choice of this
 simple-constraint solver, we will give an instantiation in
 Section~\ref{sec:simple-constr-solv}.
 
-\begin{definition}[Simple constraint solver]
+\begin{definition}[Simple-constraint solver]
 \label{def:solver-soundness} The simple constraint solver must verify
 that whenever $[[UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]$, we have
 $[[LCtx_o]]\subseteq [[LCtx_i]]$ and $[[ctx(UCtx) * ctx(LCtx_i) ||-
@@ -1606,7 +1606,7 @@ presents the rules of the constraint solver.
 \end{figure}
 
 \begin{itemize}
-  \item The~\rref*{S-Mult} rule first proceeds by solving one side of a
+  \item The~\rref*{S-Mult} rule proceeds by solving one side of a
 conjunction first, then passing the output constraint to the other side.
 The unrestricted context is shared between both sides.
   \item The~\rref*{S-Add} rule handles additive conjunction. Here, the linear
