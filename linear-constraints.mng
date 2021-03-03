@@ -1254,9 +1254,9 @@ $$
 The wanteds for linear constraints differ a little from the wanteds of
 OutsideIn.
 The first, superficial, difference is that our wanteds don't need existential
-quantification, this is one of the benefits that not doing type inference
-affords. Existential quantification, in OutsideIn, constrains which variables
-can be unified with which; but we are not doing any unification.
+quantification. This is one of the benefits that not doing type inference
+affords. In OutsideIn, existential quantifiation restricts which variables can
+be unified with which; but we are not doing any unification.
 
 The more interesting difference is the presence of the extra
 $[[C1 & C2]]$ construction (read $[[C1]]$ \emph{with} $[[C2]]$). This is a
