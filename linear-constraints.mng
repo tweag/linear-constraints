@@ -874,10 +874,9 @@ the presentation of OutsideIn~\cite{OutsideIn}. OutsideIn is the
 foundation of the type inference algorithm of \textsc{ghc}. By building
 from this base, we can highlight the concrete changes required in
 \textsc{ghc} to support linear constraints.
-However, we have chosen, for the sake of clarity of the exposition, to
-omit details of OutsideIn which do not interact meaningfully with
-linear constraints. We shall point out such simplifications as they
-arise.
+However, we have chosen, for the sake of clarity, to omit details of OutsideIn
+which do not interact meaningfully with linear constraints. We shall point out
+such simplifications as they arise.
 
 \subsection{Multiplicities}
 \label{sec:multiplicities}
@@ -885,7 +884,7 @@ arise.
 Like in Linear Haskell~\cite{LinearHaskell} we make use of a
 system of \emph{multiplicities}, which describe how
 many times a function consumes its input. Linear Haskell additionally supports
-multiplicity polymorphism. However, in this article, we will use only the
+multiplicity polymorphism. For our purposes, we need only the
 simplest system of multiplicity: that composed of only $[[1]]$ (representing
 linear functions) and $[[omega]]$ (representing
 regular Haskell functions).
