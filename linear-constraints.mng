@@ -2179,11 +2179,9 @@ a Mezzo or \textsc{ats} style of capabilities could certainly be
 encoded within linear constraints.
 %endif
 
-Haskell with Linear constraints is more general than either Mezzo or \textsc{ats},
+Linear constraints are more general than either Mezzo or \textsc{ats},
 while maintaining a considerably simpler inference algorithm, and at
-the same time supporting a richer set of constraints (for instance, being based
-on OutsideIn makes linear constraints compatible with \textsc{gadt}s for almost
-free). This
+the same time supporting a richer set of constraints (such as \textsc{gadt}s). This
 simplicity is a benefit of abstracting over the simple-constraint
 domain. In fact, it should be possible to see Mezzo or \textsc{ats} as
 particular instantiations of the simple-constraint domain, with linear
