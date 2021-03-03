@@ -448,7 +448,7 @@ The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
 The example in the previous section, when calling |readLine|, consumes
-the linear handle |h| created by |openFile|, |h| can therefore no longer be used to close the file:
+the linear handle |h| created by |openFile|. Therefore |h| can no longer be used to close the file:
 doing so would result in a type error.  To resolve this, a new handle for the
 same file is produced that can be used with |closeFile|. In the code, the same
 name |h| is given to the new handle, thus shadowing the old |h| that can no
@@ -477,21 +477,21 @@ as equality constraints or implicit parameter constraints.
 
 What is crucial, for our purpose, is that constraints are handled implicitly by
 the typechecker. That is, if we want to |show| an integer we would write |show
-42|, and the typechecker would handle proving that |Show Int| without
+42|, and the typechecker would handle proving that |Show Int| holds without
 intervention from the programmer.
 Thus, constraints are a convenient mechanism that allow the compiler
 to automatically fill in implicit arguments.
 
 For our |readLine| example, the implicit argument is the state of a handle |h|.
 This can be managed as a constraint called |Open h|, which indicates that the
-file associated to the handle is open. The idea is that this constraint
+file associated with the handle is open. The idea is that this constraint
 should be a linear value, so that it can only be consumed exactly once.
 In order to manage linearity implicitly, this article introduces a
 linear fat arrow |=>.|, much like Linear Haskell introduced a linear
 function arrow |->.|. We dub constraints to the left of a linear fat
 arrow \emph{linear constraints}.
-Using the linear constraint |Open h| to represent that a file is, indeed, open.
-Using it, we can give the following type to |closeFile|:
+Using the linear constraint |Open h| to represent that a file is open, we can give
+the following type to |closeFile|:
 
 \begin{code}
 closeFile :: Open h =>. Handle h -> IOL ()
