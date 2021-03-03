@@ -282,7 +282,7 @@ support for linear types, and even
 dependently typed programmers can now use linear types with Idris 2.
 All of these systems are vastly different in ergonomics and scope. In fact,
 there seems to be a tradeoff between these two aspects. Rust has
-a domain-specific typechecker\footnote{sometimes called the \emph{borrow-checker}} that aids the programmer in reasoning about memory
+a domain-specific \emph{borrow-checker} that aids the programmer in reasoning about memory
 ownership, but it doesn't naturally scale beyond this use case.
 Linear Haskell, on the other hand, supports general purpose linear types, but
 using them to emulate Rust's ownership model is a painful exercise, because the
