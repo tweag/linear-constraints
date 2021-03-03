@@ -1367,7 +1367,7 @@ entailment relation.
 
   What we really need is that any proof can be \emph{rewritten} into a
   proof which ends in an introduction rule. Such proofs have been
-  called \emph{uniform} in~\cite{hh-ll}. More precisely a uniform
+  called \emph{uniform} in~\citet{hh-ll}. More precisely a uniform
   proof is a proof where every rule whose conclusion has a non-atomic
   wanted is an introduction rule. The authors prove that all proofs in
   a fragment of linear logic can be rewritten into a uniform
