@@ -251,7 +251,7 @@ import GHC.Base
   A linear type system can verify the
   correct usage of resources such as file handles and manually managed
   memory. But this verification requires bureaucracy.
-
+  %
   This paper presents \emph{linear constraints}, a front-end feature for
   linear typing that
   decreases the bureaucracy of working with linear types.
