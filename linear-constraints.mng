@@ -2051,7 +2051,7 @@ generalisation, the only way to give |closer| the type |Open h =>. IOL
 ()| is to give |closer| a type signature. In current \textsc{ghc}, we
 can't write that signature down, since the type variable |h| is not
 bound in the program text, and there is no syntax for binding it
-(though see~\cite{variables-in-patterns} for a proposed syntax). But
+(though see~\citet{variables-in-patterns} for a proposed syntax). But
 even ignoring this, it would be rather unfortunate that the default
 behaviour of |let|, in presence of linear constraints, almost never be
 what the programmer wants.
