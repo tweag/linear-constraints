@@ -526,8 +526,8 @@ openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= Open h)
 \end{code}
 The output of this function is a new handle that is unrestricted,
 along with a new constraint that indicates that the handle is open.
-Since the handle is unrestricted it can be freely passed around. When it is,
-the |Open h| constraint implicitly tracks its state.
+Since the handle is unrestricted it can be freely passed around. Then, the
+handle's state is implicitly tracked by the |Open h| constraint.
 
 We must also ensure that |readLine| can both promise to only operate on an open
 file, and keep that file open after reading. To do so, its signature
