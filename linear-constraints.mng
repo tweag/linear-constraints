@@ -695,13 +695,13 @@ manual memory management, which
 enforces correct deallocation of memory.  The approach is to use a
 linear constraint to represent \emph{ownership} of a memory location
 in the style of Rust,
-\emph{i.e.} the responsibility to deallocate it. We use a linear constraint
+\emph{i.e.} the responsibility of deallocating it. We use a linear constraint
 |Own n|, such that a program which has an |Own n| constraint in
-context is responsible to deallocate the memory associated
+context is responsible of deallocating the memory associated
 with a memory location |n|.  Because of linearity, this constraint
-must be consumed once, so it is guaranteed that the memory
+must be consumed exactly once, so it is guaranteed that the memory
 is deallocated correctly.
-
+%
 In the above, |n| is a type variable (of a special kind |Location|)
 which represents a memory location. Locations mediate
 the relationship between references and ownership constraints.
