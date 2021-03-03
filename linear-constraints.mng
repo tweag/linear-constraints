@@ -2073,7 +2073,7 @@ constraints''. But it's not clear how to make it formal.
 Any predictable strategy would do: as long as it's an instance of the
 \rref*{G-LetGen} rule, constraint generation will be sound. Experience
 will tell whether we can find a better suited strategy than the current
-one, which never generalise any constraint.
+one, which never generalises any constraint.
 
 \subsection{Empty cases}
 \label{sec:empty-cases}
