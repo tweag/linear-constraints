@@ -1777,7 +1777,7 @@ $[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C~> empty ]]$, then
 $[[ctx(UCtx) * ctx(LCtx)  ; G |- e : t]]$.
 %
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
-Core Calculus.
+core calculus.
 
 \subsection{From qualified to core}
 \label{sec:ds:from-qualified-core}
@@ -1812,7 +1812,7 @@ $[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
 
 Let us now define a family of functions $[[Ds(Hole)]]$ to translate
 the type schemes, types, and typing derivations of the qualified system into the
-types, type schemes, and terms of the Core Calculus.
+types, type schemes, and terms of the core calculus.
 
 \subsubsection{Translating types}
 Type schemes $[[s]]$ are translated by turning the implicit argument $[[Q]]$
