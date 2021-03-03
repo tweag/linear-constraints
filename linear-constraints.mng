@@ -2235,7 +2235,7 @@ implementation, which required modest changes to the compiler. Remarkably, all w
 adapt~\citet{resource-management-for-ll-proof-search} to the OutsideIn
 framework. It is also quite serendipitous that the notion of uniform
 proof from~\citet{hh-ll}, which was introduced to prove the
-completeness of a proof search strategy ends up being crucial to the
+completeness of a proof search strategy, ends up being crucial to the
 soundness of constraint generation.
 
 In some cases, like the file example of Section~\ref{sec:introduction},
