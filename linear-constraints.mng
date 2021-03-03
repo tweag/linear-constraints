@@ -2122,12 +2122,12 @@ requirements (namely a pure interface for mutable arrays with the
 ability to freeze arrays). It is not
 clear that any other \textsc{api} could be essentially different.
 
-Rust is built with ownership and borrows for memory
-management from the ground up. As a consequence, they have a much more convenient syntax
+Rust is built with ownership and borrowing for memory
+management from the ground up. As a consequence, it has a much more convenient syntax
 than Linear Haskell with linear constraints can propose. Rust's
 convenient syntax comes at the price that it is almost impossible to
 write tail-recursive functions, which is surprising from the
-perspective of functional programming.
+perspective of a functional programmer.
 
 On the other hand, the focus of Linear Haskell as well as linear
 constraints is to provide programmers with the tools to create safe
