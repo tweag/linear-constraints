@@ -2253,7 +2253,7 @@ cost.
 
 This, really, is the philosophy of linear constraints: lowering
 the cost of linear types so that more theoretical applications become
-practical applications. And we achieved this at a pretty low price: teaching
+practical applications. And we achieved this at a surprisingly low price: teaching
 linear logic to \textsc{ghc}'s constraint solver.
 
 \bibliographystyle{ACM-Reference-Format}
