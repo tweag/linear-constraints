@@ -307,7 +307,7 @@ file handle, and returns a fresh |h| that shadows the previous version, to be
 used in further interactions with the file. The line's content is a string
 |xs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
 signify that it can be used arbitrary many times.
-
+%
 Compare this function with one would write in a non-linear language:
 \begin{code}
 firstLine :: FilePath -> IO String
@@ -699,7 +699,7 @@ in the style of Rust,
 |Own n|, such that a program which has an |Own n| constraint in
 context is responsible to deallocate the memory associated
 with a memory location |n|.  Because of linearity, this constraint
-must be discharged exactly once, so it is guaranteed that the memory
+must be consumed once, so it is guaranteed that the memory
 is deallocated correctly.
 
 In the above, |n| is a type variable (of a special kind |Location|)
@@ -1138,10 +1138,10 @@ desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 The main differences with OutsideIn, either for simplification, or for
 linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \begin{itemize}
-\item The type system has linear functions (written $[[a ->_1 b]]$ in
+\item The type system has linear functions ($[[a ->_1 b]]$ in
   Figure~\ref{fig:typing-rules}). Despite our focus on linear constraints,
-  we still need to retain linearity in ordinary arguments.
-  For example, defining the bind combinator for |IOL| (\S\ref{sec:introduction}),
+  we still need linearity in ordinary arguments.
+  For example, the bind combinator for |IOL| (Section~\ref{sec:introduction}),
   requires linear arrows: |(>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b|.
 
   Furthermore, the linearity of arrows interacts in interesting
@@ -1162,10 +1162,10 @@ linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
   the constraints needed by $[[e1]]$ (but not the type variables). The inference algorithm of
   Section~\ref{sec:type-inference} will not make use of this
   possibility, but we revisit this capability in Section~\ref{sec:let-generalisation}.
-\item Data types are uniform; that is, they are not \textsc{gadt}s.
+\item Data types are not \textsc{gadt}s.
   This serves to considerably simplify the \rref*{E-Case}
   rule. It would be
-  straightforward, yet tedious, to extend the uniform data types here to full
+  straightforward, yet tedious, to extend data types here to full
   \textsc{gadt}s.
 \item However, we include $[[exists as. t o= Q]]$, as
   introduced in Section~\ref{sec:what-it-looks-like}, together with
@@ -1637,9 +1637,9 @@ times.
 \subsubsection{A simple-constraint solver}
 \label{sec:simple-constr-solv}
 
-In the entire article, so far, the simple-constraint domain has been
+So far, the simple-constraint domain has been
 an abstract parameter. In this section, though, let us give a concrete
-domain which can support our examples.
+domain which supports our examples.
 
 For the sake of our examples, we really need very little: linear
 constraints are simply names as far as the type checker is
