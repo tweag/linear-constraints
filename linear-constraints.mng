@@ -1924,7 +1924,7 @@ The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} r
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
 is inserted by passing $[[z]]$ as an argument.
-Handling $\kunpack$ requires splitting the context in two: $[[e1]]$ is desugared as a pair, and the evidence
+Handling $\kunpack$ requires splitting the context into two: $[[e1]]$ is desugared as a pair, and the evidence
 it contains is passed to $[[e2]]$. Finally, subsumption summons the function corresponding to the entailment relation $[[Q ||- Q1]]$
 and applies it to $[[z]]$ : $[[Ev(Q)]]$ then proceeds to desugar $[[e]]$ with the resulting evidence for $[[Q1]]$.
 Crucially, since $[[Ds(Hole)]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
