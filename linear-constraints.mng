@@ -541,7 +541,7 @@ The fact that existential quantification generates new type-level names
 is folklore. It's used crucially in the interface of the
 |ST| monad~\cite{st-monad} and in type-class
 reflection~\cite{type-class-reflection} (in both of these cases, existential
-quantification is encoded as a rank-2 universal quantification). We
+quantification is encoded as rank-2 universal quantification). We
 shall use it in exactly this way: |openFile| uses an existential
 quantifier to generate the type-level name of the file
 handle. Existentially quantified types are paired with a constraint |Q|
