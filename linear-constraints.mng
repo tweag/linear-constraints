@@ -2150,7 +2150,7 @@ clear that it is possible at all to make a Linear-Haskell-like
 \paragraph{Languages with capabilities}
 
 Both Mezzo~\cite{mezzo-permissions} and
-\textsc{ats}~\cite{AtsLinearViews} were big inspiration for the design
+\textsc{ats}~\cite{AtsLinearViews} were big inspirations for the design
 of linear constraints. Of the two, Mezzo is more specialised, being
 entirely built around its system of capabilities, and \textsc{ats} is
 the closest to our system with an explicit appeal to linear logic, and
