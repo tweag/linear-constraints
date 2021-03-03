@@ -1992,7 +1992,7 @@ When a linear equality constraint is encountered, it is automatically promoted
 to an unrestricted one and handled accordingly. This may happen in many
 different scenarios, as the entailment relation of \textsc{ghc}'s constraint domain does
 produce many equalities, thus we need to ensure they are turned into
-unrestricted before interacting with the inert set. \textsc{ghc} core already represents
+unrestricted before interacting with the inert set. \textsc{ghc} Core already represents
 the equality constraint as a boxed type, so we can simply modify it to store an
 unrestricted payload.
 
