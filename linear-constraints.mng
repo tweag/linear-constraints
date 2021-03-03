@@ -1123,7 +1123,7 @@ Section~\ref{sec:constraint-domain}. $[[Q]]$ behaves
 much like $[[G]]$, which will be instrumental for
 desugaring in Section~\ref{sec:desugaring}; the main difference is
 that $[[G]]$ is addressed explicitly, whereas $[[Q]]$
-is used implicitly in the \rref{E-Var}.
+is used implicitly in \rref{E-Var}.
 
 The type system of Figure~\ref{fig:typing-rules} is purely
 declarative: it doesn't have any algorithmic properties. We will see
