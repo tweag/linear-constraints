@@ -2236,8 +2236,7 @@ linearity without messing up inference of existing programs. Our design of
 linear constraints fits nicely into Haskell. Indeed, linear constraints can be
 thought of as an extension of Haskell's type class mechanism. This way, the
 design also integrates well into \textsc{ghc}, as demonstrated by our prototype
-implementation, which required modest changes to the compiler. It is quite
-remarkable that to do so, all we needed was to
+implementation, which required modest changes to the compiler. Remarkably, all we needed was to
 adapt~\cite{resource-management-for-ll-proof-search} to the OutsideIn
 framework. It is also quite serendipitous that the notion of uniform
 proof from~\cite{hh-ll}, which was introduced to prove the
