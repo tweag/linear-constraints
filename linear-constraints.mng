@@ -1776,10 +1776,9 @@ Using Lemma~\ref{sec:constraint-generation-soundness} together with
 Definition~\ref{def:solver-soundness} we know that if
 $[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C~> empty ]]$, then
 $[[ctx(UCtx) * ctx(LCtx)  ; G |- e : t]]$.
-
+%
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
-Core Calculus. The rest of this section describes
-this last step.
+Core Calculus.
 
 \subsection{From qualified to core}
 \label{sec:ds:from-qualified-core}
