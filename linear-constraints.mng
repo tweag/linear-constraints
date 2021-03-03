@@ -2134,7 +2134,7 @@ constraints is to provide programmers with the tools to create safe
 interfaces and libraries. The language itself is agnostic about what
 linear constraints mean. Although linear constraints don't have
 the convenience of Rust's syntax, we expect that they will
-support a greater variety of abstraction. It is worth noting, though,
+support a greater variety of abstractions. It is worth noting, though,
 that Rust programmers have come up with varied abstractions which leverage
 borrowing, going beyond memory management (for instance, safe file
 handling).
@@ -2156,7 +2156,7 @@ bigger language. However, \textsc{ats} does not have full inference of
 capabilities. % , which the programmer may have to fill in.
 
 Other than that, both systems have a lot of similarities. They have a
-finer grain capability system than is expressible in Rust (or our
+finer-grained capability system than is expressible in Rust (or our
 Section~\ref{sec:memory-ownership}) which makes it possible to change
 the type of a reference cell upon write. They also eschew scoped
 borrowing in favour of more traditional read and write capabilities. In
@@ -2208,7 +2208,7 @@ Prolog does.
 Uniformity is used in the proof of
 Lemma~\ref{lem:inversion}, which, in turn is used in the proof of the
 soundness lemma~\ref{lem:generation-soundness}. This seems to indicate
-that goal-oriented search is baked in the definition of OutsideIn. An
+that goal-oriented search is baked into the definition of OutsideIn. An
 immediate consequence of this observation, however, is that the fact
 that that the fragment of linear logic described by~\citet{hh-ll} (and
 for which~\citet{resource-management-for-ll-proof-search} provides a
