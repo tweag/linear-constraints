@@ -48,7 +48,7 @@ linear-constraints-supplementary.pdf: linear-constraints.pdf
 linear-constraints.tar.gz: linear-constraints.tex linear-constraints.bbl newunicodedefs.tex ott.tex ottalt.sty listproc.sty acmart.cls
 	tar -cvzf $@ $^
 
-%.pdf %.bbl &: %.tex bibliography.bib $(OTT_TEX)
+%.pdf %.bbl : %.tex bibliography.bib $(OTT_TEX)
 	cd $(dir $<) && latexmk $(notdir $*)
 
 nix::
