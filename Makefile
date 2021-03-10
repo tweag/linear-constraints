@@ -9,6 +9,17 @@ submission:
 	$(MAKE) clean
 	$(MAKE) linear-constraints-submission.pdf linear-constraints-supplementary.pdf
 
+# Manual steps to submit to Arxiv:
+# - the no-editing-mark trick isn't used on Arxiv submission. Make
+#   sure that the editing marks are deactivated. Or that there is no
+#   mark left in the pdf.
+arxiv:
+	$(MAKE) clean
+	$(MAKE) linear-constraints.tar.gz
+
+arxiv-nix:
+	nix-shell --pure --run "make arxiv"
+
 submission-nix:
 	nix-shell --pure --run "make submission"
 
@@ -34,7 +45,10 @@ linear-constraints-submission.pdf: linear-constraints.pdf
 linear-constraints-supplementary.pdf: linear-constraints.pdf
 	pdftk $< cat 27-end output $@
 
-%.pdf: %.tex bibliography.bib $(OTT_TEX)
+linear-constraints.tar.gz: linear-constraints.tex linear-constraints.bbl newunicodedefs.tex ott.tex ottalt.sty listproc.sty acmart.cls
+	tar -cvzf $@ $^
+
+%.pdf %.bbl &: %.tex bibliography.bib $(OTT_TEX)
 	cd $(dir $<) && latexmk $(notdir $*)
 
 nix::

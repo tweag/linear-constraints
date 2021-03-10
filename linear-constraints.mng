@@ -17,7 +17,7 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,review,anonymous]{acmart}
+\documentclass[acmsmall]{acmart}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 
