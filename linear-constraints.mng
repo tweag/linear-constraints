@@ -651,7 +651,7 @@ resolution.
 
 The file handling example discussed in sections~\ref{sec:linear-types}
 and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
-There are two main modifications compared to the traditional |IO|. Firstly, the
+Compared to the traditional |IO| monad, the
 type of the monadic operations |>>=| and |return| are changed to
 use linear arrows.
 %
@@ -660,9 +660,9 @@ use linear arrows.
 return :: a ->. IOL a
 \end{code}
 %
-Bind must be linear because, as explained in the previous
-section, a linear constraint can only be consumed in a linear context. For the
-following program to typecheck, bind must be linear:
+Bind must be linear because, as explained in the previous section, a linear
+constraint can only be consumed in a linear context. This is required for the
+following program to typecheck:
 \begin{code}
 readTwo ::  Open h =>. Handle h -> IOL (Ur (String, String) .<= Open h)
 readTwo h =  readLine h >>= \case pack' xs ->
