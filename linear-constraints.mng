@@ -159,8 +159,8 @@ import GHC.Base
   \newcommand{\constraintop}[1]{\mathop{\constraintfont{#1}}}
   \newcommand{\aand}{\constraintop{\&}}
   \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\constraintfont{\&}}}}
-  \newcommand{\lollycirc}{\raisebox{-0.2ex}{\scalebox{1.4}{$\circ$}}}
-  \newcommand{\Lolly}{\constraintop{=\!\!\!{\lollycirc}}}
+  \newcommand{\lollycirc}{\raisebox{-0.255ex}{\scalebox{1.4}{$\circ$}}}
+  \newcommand{\Lolly}{\constraintop{=\kern-4.1pt \lollycirc}}
   \newcommand{\RLolly}{\revop{\Lolly}}
   \newcommand{\qtensor}{\constraintop{\otimes}}
   \newcommand{\qscale}{\constraintop{\cdot}}
