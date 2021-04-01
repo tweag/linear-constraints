@@ -141,18 +141,30 @@ import GHC.Base
 
 %%%%%%%%%%%%%%%%% Domain-specific macros %%%%%%%%%%%%%%%%%
 
+  % Fonts and colours
+  \newcommand{\constraintfont}[1]{{\color{RoyalBlue}#1}}
+
+  % Utilities
+  \newcommand{\revop}[1]{\mathop{\reflectbox{\ensuremath{#1}}}}
+
+  % Notations
   \newcommand{\cscheme}[1]{\mathcal{#1}}
-  \newcommand{\aand}{\mathop{\&}}
-  \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
-  \newcommand{\lollycirc}{\raisebox{-0.2ex}{\scalebox{1.4}{$\circ$}}}
-  \newcommand{\Lolly}{\mathop{=\!\!\!{\lollycirc}}}
-  \newcommand{\RLolly}{\mathop{\lollycirc\!\!\!=}}
-  \newcommand{\rlolly}{\mathop{\reflectbox{$\multimap$}}}
+  \newcommand{\rlolly}{\mathop{\revop{\multimap}}}
   \newcommand{\subst}[2]{[#1]#2}
   \newcommand{\sby}[2]{#1 ↦ #2}
   \newcommand{\vdashi}{⊢_{\mathsf{i}}}
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
   \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{simp}}}
+  %% Constraint notations
+  \newcommand{\constraintop}[1]{\mathop{\constraintfont{#1}}}
+  \newcommand{\aand}{\constraintop{\&}}
+  \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\constraintfont{\&}}}}
+  \newcommand{\lollycirc}{\raisebox{-0.2ex}{\scalebox{1.4}{$\circ$}}}
+  \newcommand{\Lolly}{\constraintop{=\!\!\!{\lollycirc}}}
+  \newcommand{\RLolly}{\revop{\Lolly}}
+  \newcommand{\qtensor}{\constraintop{\otimes}}
+  \newcommand{\qscale}{\constraintop{\cdot}}
+
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}

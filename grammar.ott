@@ -21,13 +21,13 @@ grammar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraints  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Q :: 'Ct_' ::= {{ com Constraints }}
-| q                  ::   :: Atom
+Q :: 'Ct_' ::= {{ tex \constraintfont{[[Q]]} }} {{ com Constraints }}
+| q                  ::   :: Atom   {{ tex \constraintfont{ \mathbf{q} } }}
 | Q1 * Q2            ::   :: Tensor
 | Empty              ::   :: Empty  {{tex \mathbf{\varepsilon} }}
 | ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
-| pi . Q             :: M :: Scale  {{tex [[pi]]{\cdot}[[Q]]}}
+| pi . Q             :: M :: Scale  {{tex [[pi]]{\qscale}[[Q]]}}
 | ( Q )              :: S :: Paren
 % Constraint solver
 | ctx ( UCtx )       :: M :: USolverCtx  {{ tex [[UCtx]] }}
@@ -40,13 +40,13 @@ QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
 | QQ & Q           ::   :: With
 | QQ1 * QQ2        ::   :: Tensor
 
-C :: 'Ctg_' ::= {{ com Generated constraints}}
+C :: 'Ctg_' ::= {{ tex \constraintfont{[[C]]} }} {{ com Generated constraints}}
 | Q                  ::   :: Simple
 | C1 * C2            ::   :: Tensor
 | C1 & C2            ::   :: With
 | Q => C             ::   :: Impl  {{ tex [[Q]] \Lolly [[C]]}}
 | ! C                ::   :: Unrestricted
-| pi . C             :: M :: Scale  {{tex [[pi]]{\cdot}[[C]]}}
+| pi . C             :: M :: Scale  {{tex [[pi]]{\qscale}[[C]]}}
 | && C               :: M :: BigWith
 | C [ theta ]        :: M :: Subst
 | ( C )              :: S :: Paren
@@ -209,7 +209,7 @@ UCtx {{ tex \Phi }} :: 'UrCtx_' ::= {{ com Unrestricted contexts }}
 terminals :: 'terminals_' ::=
 | &           ::   :: With    {{ tex \aand }}
 | &&          ::   :: BigWith {{ tex \bigaand }}
-| *           ::   :: Tensor  {{ tex \otimes }}
+| *           ::   :: Tensor  {{ tex \qtensor }}
 | |-          ::   :: entails {{ tex \vdash }}
 | |->         ::   :: infer {{ tex \vdashi }}
 | |-s         ::   :: solve {{ tex \vdashs }}
@@ -228,7 +228,7 @@ terminals :: 'terminals_' ::=
 | omega       ::   :: Many    {{ tex \omega }}
 | Sum         ::   :: BigSum  {{ tex \sum }}
 | empty       ::   :: emptyseq {{ tex ∙ }} % alternative: ϵ
-| Top         ::   :: Top     {{ tex ⊤ }}
+| Top         ::   :: Top     {{ tex \constraintfont{⊤} }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
