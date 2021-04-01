@@ -180,7 +180,7 @@ import GHC.Base
   \newcommand{\kof}{\keyword{of}}
 
   % defining grammars
-  \newcommand{\bnfeq}{\mathrel{{:}{:}{=}}}
+  \newcommand{\bnfeq}{\mathrel{\Coloneqq}}
   \newcommand{\bnfor}{\mathrel{\mid}}
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
