@@ -142,7 +142,8 @@ import GHC.Base
 %%%%%%%%%%%%%%%%% Domain-specific macros %%%%%%%%%%%%%%%%%
 
   % Fonts and colours
-  \newcommand{\constraintfont}[1]{{\color{RoyalBlue}#1}}
+  \newcommand{\constraintcolour}{\color{RoyalBlue}}
+  \newcommand{\constraintfont}[1]{{\constraintcolour#1}}
 
   % Utilities
   \newcommand{\revop}[1]{\mathop{\reflectbox{\ensuremath{#1}}}}
@@ -164,6 +165,8 @@ import GHC.Base
   \newcommand{\RLolly}{\revop{\Lolly}}
   \newcommand{\qtensor}{\constraintop{\otimes}}
   \newcommand{\qscale}{\constraintop{\cdot}}
+  \newcommand{\qlparen}{\colorlet{env}{.}\constraintcolour\left(\color{env}}
+  \newcommand{\qrparen}{\colorlet{env}{.}\constraintcolour\right)\color{env}}
 
 
   % language keywords

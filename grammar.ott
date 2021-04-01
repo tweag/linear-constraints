@@ -28,7 +28,7 @@ Q :: 'Ct_' ::= {{ tex \constraintfont{[[Q]]} }} {{ com Constraints }}
 | ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
 | pi . Q             :: M :: Scale  {{tex [[pi]]{\qscale}[[Q]]}}
-| ( Q )              :: S :: Paren
+| ( Q )              :: S :: Paren  {{ tex \qlparen [[Q]] \qrparen }}
 % Constraint solver
 | ctx ( UCtx )       :: M :: USolverCtx  {{ tex [[UCtx]] }}
 | ctx ( LCtx )       :: M :: LSolverCtx  {{ tex [[LCtx]] }}
@@ -49,7 +49,7 @@ C :: 'Ctg_' ::= {{ tex \constraintfont{[[C]]} }} {{ com Generated constraints}}
 | pi . C             :: M :: Scale  {{tex [[pi]]{\qscale}[[C]]}}
 | && C               :: M :: BigWith
 | C [ theta ]        :: M :: Subst
-| ( C )              :: S :: Paren
+| ( C )              :: S :: Paren  {{ tex \qlparen [[C]] \qrparen }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Types  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
