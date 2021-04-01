@@ -21,19 +21,22 @@ grammar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraints  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Q :: 'Ct_' ::= {{ tex \constraintfont{[[Q]]} }} {{ com Constraints }}
-| q                  ::   :: Atom   {{ tex \constraintfont{ \mathbf{q} } }}
+Q :: 'Ct_' ::=  {{ com Constraints }}
+| q                  ::   :: Atom
 | Q1 * Q2            ::   :: Tensor
 | Empty              ::   :: Empty  {{tex \mathbf{\varepsilon} }}
 | ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
-| pi . Q             :: M :: Scale  {{tex [[pi]]\qscale[[Q]]}}
-| ( Q )              :: S :: Paren  {{ tex \qlparen [[Q]] \qrparen }}
+| piF . Q            :: M :: Scale  {{tex [[piF]]\scale[[Q]]}}
+| ( Q )              :: S :: Paren
 % Constraint solver
 | ctx ( UCtx )       :: M :: USolverCtx  {{ tex [[UCtx]] }}
 | ctx ( LCtx )       :: M :: LSolverCtx  {{ tex [[LCtx]] }}
 % Empty case
 | Top                ::   :: Top
+
+QF :: 'Ct_' ::= {{ com Formatted constraints }}
+| Q              ::   :: Formatted   {{ tex \constraintfont{[[Q]]} }}
 
 QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
 | Q                ::   :: GivenConstraint
@@ -46,18 +49,20 @@ C :: 'Ctg_' ::= {{ tex \constraintfont{[[C]]} }} {{ com Generated constraints}}
 | C1 & C2            ::   :: With
 | Q => C             ::   :: Impl  {{ tex [[Q]] \Lolly [[C]]}}
 | ! C                ::   :: Unrestricted
-| pi . C             :: M :: Scale  {{tex [[pi]]\qscale[[C]]}}
+| piF . C            :: M :: Scale  {{tex [[piF]]\scale[[C]]}}
 | && C               :: M :: BigWith
 | C [ theta ]        :: M :: Subst
-| ( C )              :: S :: Paren  {{ tex \qlparen [[C]] \qrparen }}
+| ( C )              :: S :: Paren
 
+CF :: 'Ctg_' ::=  {{ com Generated constraints}}
+| C                  ::   :: Formatted {{ tex \constraintfont{[[C]]} }}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Types  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com Types }}
 | a                      ::   :: Var
-| Q =o t                 ::   :: Qual
-| t o= Q                 ::   :: Carry
+| QF =o t                ::   :: Qual
+| t o= QF                ::   :: Carry
 | forall as . t          ::   :: ForallNested
   {{ tex [[forall]] [[as]]. [[t]] }}
 | exists as . t          ::   :: ExistsNested
@@ -69,7 +74,7 @@ t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com 
 | ( t )                  :: S :: Paren
 % Desugared types (see also expressions)
 | Ds ( t )               :: M :: Desugared
-| Ev ( Q )               :: M :: Evidence
+| Ev ( QF )              :: M :: Evidence
 | Ur t                   ::   :: Unrestricted
 | unit                   ::   :: Unit   {{ tex \mathbf{1} }}
 | t1 * t2                ::   :: Prod
@@ -95,6 +100,9 @@ pi {{ tex \pi }}, rho {{ tex \rho }} :: 'Mult_' ::= {{ com Multiplicities }}
   | ( pi )               :: S :: Paren
   % I'd like to avoid multiplicity variables if we can, as they are
   % not very relevant to our discussion
+
+piF :: 'Mult_' ::= {{ com Multiplicities formatted }}
+| pi   ::   :: Formatted {{ tex \multiplicityfont{[[pi]]} }}
 
 pis {{ tex \overline{\pi} }} :: 'Mults_' ::= {{ com Lists of multiplicities }}
 | empty                  ::   :: None
@@ -126,7 +134,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | Ev ( Q1 ||- Q2 )       :: M :: Evidence
 | Ds ( z ; Ty )          :: M :: Desugar
 | Ur                     :: M :: UnrestrictedCon
-| urify ( Q ; e )        :: M :: Urify  {{ tex \underline{[[e]]}_{[[Q]]} }}
+| urify ( QF ; e )       :: M :: Urify  {{ tex \underline{[[e]]}_{[[QF]]} }}
 | urify ( e )            :: M :: UrifyShortened {{ tex \underline{[[e]]} }}
 | (,)                    ::   :: ProdCon
 | ( e1 , e2 )            :: M :: Prod
@@ -148,7 +156,7 @@ pat :: 'Pat_' ::= {{ com Patterns }}
 | e0 xs                      ::   :: Con
 | ()                         ::   :: Unit
 | ( pat1 , pat2 )            :: M :: Prod
-| urified ( Q ; pat )        :: M :: Urified  {{ tex \underline{[[pat]]}_{[[Q]]} }}
+| urified ( QF ; pat )        :: M :: Urified  {{ tex \underline{[[pat]]}_{[[QF]]} }}
 | urified ( pat )            :: M :: UrifiedShortened  {{ tex \underline{[[pat]]} }}
 
 alts {{ tex \overline{\ottmv{K}_i\ \overline{\ottmv{x}_i } \to \ottnt{e}_i } }}
@@ -185,20 +193,20 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | G1 , .... , Gi    ::   :: Many
 | G1 + G2           :: M :: Add
 | Sum G2            :: M :: BigSum
-| pi . G            :: M :: Scale {{ tex [[pi]]\mathop{⋅}[[G]]}}
+| pi . G            :: M :: Scale {{ tex [[pi]]\scale[[G]]}}
 | < binding >       :: M :: Repeat  {{ tex \overline{[[binding]]} }}
 | ( G )             :: S :: Paren
 % Desugared contexts (see also expressions)
-| Evs ( Q )         :: M :: Evidence
+| Evs ( QF )        :: M :: Evidence
 
 LCtx {{ tex \Psi }} :: 'LinCtx_' ::= {{ com Linear contexts }}
 | empty             ::   :: None
-| Q                 ::   :: Atom
+| QF                ::   :: Atom
 | LCtx1 , .... , LCtxi :: :: Many
 
 UCtx {{ tex \Phi }} :: 'UrCtx_' ::= {{ com Unrestricted contexts }}
 | empty                :: :: None
-| pi . Q               :: M :: Atom {{tex [[pi]] \qscale [[Q]]}}
+| pi . QF               :: M :: Atom {{tex [[pi]] \scale [[QF]]}}
 | UCtx1 , .... , UCtxi :: :: Many
 
 
@@ -246,8 +254,8 @@ formula :: formula_ ::=
   {{ tex \overline{[[formula]]} }}
 | e : t                           ::   :: DataconTy
 | x \notin G                      ::   :: NotInCtx
-| Q \notin LCtx                   ::   :: notin_LCtx
-| Q \notin UCtx                   ::   :: notin_UCtx
+| QF \notin LCtx                  ::   :: notin_LCtx
+| QF \notin UCtx                  ::   :: notin_UCtx
 | LCtx1 ⊆ LCtx2                   ::   :: subcontext
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

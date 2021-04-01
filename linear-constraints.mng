@@ -144,6 +144,8 @@ import GHC.Base
   % Fonts and colours
   \newcommand{\constraintcolour}{\color{RoyalBlue}}
   \newcommand{\constraintfont}[1]{{\constraintcolour#1}}
+  \newcommand{\multiplicitycolour}{\color{Black}}
+  \newcommand{\multiplicityfont}[1]{{\multiplicitycolour#1}}
 
   % Utilities
   \newcommand{\revop}[1]{\mathop{\reflectbox{\ensuremath{#1}}}}
@@ -156,18 +158,15 @@ import GHC.Base
   \newcommand{\vdashi}{⊢_{\mathsf{i}}}
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
   \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{simp}}}
+  \newcommand{\scale}{\constraintop{\cdot}}
   %% Constraint notations
   \newcommand{\constraintop}[1]{\mathop{\constraintfont{#1}}}
-  \newcommand{\aand}{\constraintop{\&}}
-  \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\constraintfont{\&}}}}
+  \newcommand{\aand}{\mathop{\&}}
+  \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
   \newcommand{\lollycirc}{\raisebox{-0.255ex}{\scalebox{1.4}{$\circ$}}}
   \newcommand{\Lolly}{\constraintop{=\kern-1.1ex \lollycirc}}
   \newcommand{\RLolly}{\revop{\Lolly}}
-  \newcommand{\qtensor}{\constraintop{\otimes}}
-  \newcommand{\qscale}{\constraintop{\cdot}}
-  \newcommand{\qlparen}{\colorlet{env}{.}\constraintcolour\left(\color{env}}
-  \newcommand{\qrparen}{\colorlet{env}{.}\constraintcolour\right)\color{env}}
-
+  \newcommand{\qtensor}{\otimes}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
