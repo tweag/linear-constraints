@@ -27,7 +27,7 @@ Q :: 'Ct_' ::= {{ tex \constraintfont{[[Q]]} }} {{ com Constraints }}
 | Empty              ::   :: Empty  {{tex \mathbf{\varepsilon} }}
 | ! Q                ::   :: Unrestricted
 | Q [ theta ]        :: M :: Subst
-| pi . Q             :: M :: Scale  {{tex [[pi]]{\qscale}[[Q]]}}
+| pi . Q             :: M :: Scale  {{tex [[pi]]\qscale[[Q]]}}
 | ( Q )              :: S :: Paren  {{ tex \qlparen [[Q]] \qrparen }}
 % Constraint solver
 | ctx ( UCtx )       :: M :: USolverCtx  {{ tex [[UCtx]] }}
@@ -46,7 +46,7 @@ C :: 'Ctg_' ::= {{ tex \constraintfont{[[C]]} }} {{ com Generated constraints}}
 | C1 & C2            ::   :: With
 | Q => C             ::   :: Impl  {{ tex [[Q]] \Lolly [[C]]}}
 | ! C                ::   :: Unrestricted
-| pi . C             :: M :: Scale  {{tex [[pi]]{\qscale}[[C]]}}
+| pi . C             :: M :: Scale  {{tex [[pi]]\qscale[[C]]}}
 | && C               :: M :: BigWith
 | C [ theta ]        :: M :: Subst
 | ( C )              :: S :: Paren  {{ tex \qlparen [[C]] \qrparen }}
@@ -185,7 +185,7 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | G1 , .... , Gi    ::   :: Many
 | G1 + G2           :: M :: Add
 | Sum G2            :: M :: BigSum
-| pi . G            :: M :: Scale {{ tex [[pi]]{⋅}[[G]]}}
+| pi . G            :: M :: Scale {{ tex [[pi]]\mathop{⋅}[[G]]}}
 | < binding >       :: M :: Repeat  {{ tex \overline{[[binding]]} }}
 | ( G )             :: S :: Paren
 % Desugared contexts (see also expressions)
@@ -198,7 +198,7 @@ LCtx {{ tex \Psi }} :: 'LinCtx_' ::= {{ com Linear contexts }}
 
 UCtx {{ tex \Phi }} :: 'UrCtx_' ::= {{ com Unrestricted contexts }}
 | empty                :: :: None
-| pi . Q               :: M :: Atom {{tex [[pi]]{⋅}[[Q]]}}
+| pi . Q               :: M :: Atom {{tex [[pi]] \qscale [[Q]]}}
 | UCtx1 , .... , UCtxi :: :: Many
 
 
