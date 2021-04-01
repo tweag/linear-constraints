@@ -17,14 +17,13 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall]{acmart}
+\documentclass[acmsmall,usenames,dvipsnames]{acmart}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 
 
 \usepackage{amsmath}
 \usepackage{amsthm}
-\usepackage{xcolor}
 \usepackage{subcaption}
 \usepackage{hyperref}
 \hypersetup{
