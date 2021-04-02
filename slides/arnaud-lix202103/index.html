@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+	<html class="sl-root decks export offline loaded">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>Linear Constraints</title>
+
+		<meta name="description" content="In the past few years, I&#39;ve been involved in extending the type system of the Haskell programming language to support linear types. In one sentence, a linear argument must be consumed exactly once in the body of its function; a linear function is a function whose argument is linear. Such a linear type system comes from linear logic (or, in this particular case, intuitionistic linear logic, but who&#39;s counting?) seen through the lens of the Curry-Howard correspondence. Linear typing has two main families of applications: making pure interface to mutable data structures, such as arrays (“pure” means that functions are functions in the sense of mathematics); and enforcing protocol in the type level, for instance making sure file handles are eventually closed and not written to after being closed. An example that combines both aspects is safe manual memory management, much in the style that the Rust programming language allows.  This is all possible in the, latest, 9.0 release of GHC. However these applications, using GHC 9.0&#39;s linear types require quite a bit of additional syntactic bureaucracy, compared to their unsafe equivalent. In this talk, after introducing Haskell&#39;s linear types, I&#39;ll presents linear constraints, a front-end feature for linear typing that decreases the bureaucracy of working with linear types. Linear constraints are implicit linear arguments that are to be filled in automatically by the compiler. Linear constraints are presented as a qualified type system, together with an inference algorithm which extends OutsideIn, GHC&#39;s existing constraint solver algorithm. Soundness of linear constraints is ensured by the fact that they desugar into Linear Haskell. ">
+
+		<link rel="stylesheet" type="text/css" href="lib/offline-v2.css">
+
+
+
+	</head>
+	<body class="reveal-viewport theme-font-montserrat theme-color-white-blue">
+		<div class="reveal">
+			<div class="slides">
+				<section data-id="34845d8650c73545447de2a1448a7e71" data-auto-animate="" data-background-position="100% 100%" data-background-size="contain" data-background-image="lix202103/9e5a6475604bf993fbd1082762f37144.svg" data-background-color="#fee080"><div class="sl-block" data-block-type="text" style="width: 806px; left: 0px; top: 35px; height: auto;" data-block-id="d0d3147800d34ec4dd7b6c34ead2eb21" data-name="text-e33cbd"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text" style="z-index: 10;">
+<h1 style="text-align:left">Linear constraints</h1>
+</div></div>
+
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 3px; top: 295.5px;" data-name="text-28c4ed" data-block-id="e05106e6a39091ebd1d5b774e49007f6"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 11;">
+<p style="text-align: left;">Arnaud Spiwack</p>
+</div></div>
+<div class="sl-block" data-block-type="image" style="width: 366.682px; height: 37.1528px; left: 3px; top: 523.847px; min-width: 1px; min-height: 1px;" data-name="image-6d5159" data-block-id="ab9c6867330f062380edf7d8123a597b"><div class="sl-block-content" style="z-index: 12;" data-inline-svg="false"><img style="" data-natural-width="227" data-natural-height="23" data-lazy-loaded="" data-src="lix202103/184391ed400ac93fb1a3f14e5df03f76.svg"></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 0px; top: 340.5px;" data-block-id="f08094237a7fc57764d942bf269cf15e" data-name="text-1df80a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p style="text-align:left"><span style="font-size:0.7em">Joint with: Jean-Philippe Bernardy, Richard Eisenberg, Csongor Kiss, Ryan Newton, Simon Peyton Jones, Nicolas Wu</span></p>
+</div></div></section><section data-id="c2e0297d178b6e671b320b35bec0350c"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="218e2f1fe0016f250bfa8ac9aa98f05e"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Prolific literature…</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="67f99837ac6d4e8c37bf991fb1a00b9b"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+<div class="sl-block" data-block-type="image" style="width: 314.721px; height: 398.568px; left: 214.64px; top: 131.559px; min-width: 1px; min-height: 1px;" data-name="image-1a9591" data-block-id="8933fb423ae0cfc76c393d529b551d14"><div class="sl-block-style" style="z-index: 12; transform: rotate(-18deg);"><div class="sl-block-content" style="z-index: 12;"><img style="" data-natural-width="1066" data-natural-height="1350" data-lazy-loaded="" data-src="lix202103/cca865b5c876b374e5187308749fb611.png"></div></div></div>
+<div class="sl-block" data-block-type="image" style="width: 320.505px; height: 395.504px; left: 495.748px; top: 134.284px; min-width: 1px; min-height: 1px;" data-name="image-671461" data-block-id="bae2b5e6acef734f3146b7b72e4d6def"><div class="sl-block-style" style="z-index: 13; transform: rotate(17deg);"><div class="sl-block-content" style="z-index: 13;"><img style="" data-natural-width="1094" data-natural-height="1350" data-lazy-loaded="" data-src="lix202103/e0d381b6f7b842d5c23e66bf00529524.png"></div></div></div></section><section data-id="11e288b374eea5c8feec74a8be2f4d55"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="74050a9db17fe378b9680c59e07882a9"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>… but not much delivery</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="b9d820404581cefba0830ffb5a10a52e"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+<div class="sl-block" data-block-type="image" style="width: 612.862px; height: 303.806px; left: 43.93px; top: 113.969px; min-width: 1px; min-height: 1px;" data-name="image-26c59d" data-block-id="45837a1d3ad6e38f6bea8ff242b51b17"><div class="sl-block-content" style="z-index: 12;"><img style="" data-natural-width="817" data-natural-height="405" data-lazy-loaded="" data-src="lix202103/f4fad891124fced7fad970f761ab52bd.png"></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 252.839px; left: 571.581px; top: 440px;" data-name="text-0e8ab5" data-block-id="f4a89e46dc7f6ed3e7e176c086eed7ce"><div class="sl-block-style" style="z-index: 13; transform: rotate(-25deg);"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p><span style="font-size:1.2em">That's about it</span></p>
+</div></div></div></section><section data-id="49e7fdf38dc543cd33170ce2d88b4817"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="b28b9627b6bb1406a87966afa1dcb5fe"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>… until GHC 9.0</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="6349457cdd7e6f057d6d518f7dcb78b8"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+<div class="sl-block" data-block-type="image" style="width: 860.159px; height: 187.836px; left: 55.9205px; top: 216px; min-width: 1px; min-height: 1px;" data-name="image-30bd0c" data-block-id="603ab44d9956a30e957660409ecf20ae"><div class="sl-block-content" style="z-index: 12;"><img style="" data-natural-width="664" data-natural-height="145" data-lazy-loaded="" data-src="lix202103/79b2bb420a82d7da34907f40bb8417a9.png"></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 379px; left: 553px; top: 432px;" data-name="text-343d76" data-block-id="84d7a98abf2be534ec6a977a61ce641f"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p><a href="https://downloads.haskell.org/ghc/9.0.1/docs/html/users_guide/exts/linear_types.html#extension-LinearTypes" target="_blank">GHC 9.0.1 User's Guide</a></p>
+</div></div></section><section data-id="d5ac292bfb2c1d4638126634ff629c21"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="4e8f5f05b409d5a47a0fff7ce62b7391"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Linear Haskell</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="8687907ec92165f966b697e80674c8e6"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 189px; height: 59px; left: 763.25px; top: 244px;" data-name="code-d0931b" data-block-id="b122f084a9e251c0bde9022717f50d95"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 45px; line-height: 54px;"><code> a ⊸ b</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 566px; left: 424px; top: 519.5px;" data-name="text-d13a24" data-block-id="8abafde2fcbb103a6091483445b70e09"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13; font-size: 85%; text-align: right;">
+<p>Since GHC 9.0</p>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 779px; height: 74px; left: 84.5px; top: 144px;" data-block-id="7094d6988b63082f0acbdef68b94a7ec" data-name="code-10aaa8"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 14;"><pre class="haskell" style="font-size: 45px; line-height: 54px;"><code>{-# LANGUAGE LinearTypes #-}</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 716px; left: 71.75px; top: 251px;" data-name="text-3789d4" data-block-id="ba5d221119855389e2195aa700c0431a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15;">
+<p><span style="font-size:1.2em">Completely normal Haskell + an extra type</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 333px; left: 642.75px; top: 360px;" data-name="text-c09cac" data-block-id="a7b88abd96d53eb1f6b97c4bd3110e8d"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 16; color: rgb(34, 34, 34); --darkreader-inline-color:#d3cfc9;" data-darkreader-inline-color="">
+<p><span style="font-size:0.7em">(+ stuff for polymorphism)</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 255px; left: 735px; top: 389px;" data-name="text-f5d8c4" data-block-id="a1d2a42ad150f274aca0dfcc5384fa77"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17; color: rgb(34, 34, 34); --darkreader-inline-color:#d3cfc9;" data-darkreader-inline-color="">
+<p><span style="font-size:0.5em">(but we won't talk about it today)</span></p>
+</div></div></section><section data-id="197eef40c2455be0228de710bdabdb64"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="8f8056e45e3b4f25acfbcb57a088bd83"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Consume exactly once</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="8719a731886150fe191977373d1c433c"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 308.5px; height: 64px; left: 316px; top: 115px;" data-name="code-d0931b" data-block-id="7d054c3d18039998c4edc2fdb7bff6ab"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 45px; line-height: 54px;"><code>f :: A ⊸ B</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 688px; left: 336px; top: 523px;" data-name="text-d6fc61" data-block-id="314b65e8ab77876014c5e384ac531a7a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p><a href="https://arxiv.org/abs/1710.09756" target="_blank"><span style="font-size:0.5em">Linear Haskell — Jean-Philippe Bernardy, Richard Newton, Simon Peyton Jones, Arnaud Spiwack</span></a></p>
+</div></div>
+<div class="sl-block" data-block-type="shape" style="width: 49.5px; height: 69px; left: 439.5px; top: 180px;" data-name="shape-08a3d8" data-block-id="edf554b5825c9afd5edf6b951947e30e"><div class="sl-block-content" data-shape-type="arrow-up" data-shape-fill-color="#000000" data-shape-stretch="true" style="z-index: 14;"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="0 0 50 69"><polygon points="24.75,0 49.5,34.5 34.65,34.5 34.65,69 14.85,69 14.85,34.5 0,34.5 24.75,0" class="shape-element" fill="#000000" style="--darkreader-inline-fill:#e8e6e3;" data-darkreader-inline-fill=""></polygon></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 140px; height: auto; left: 237px; top: 256.5px;" data-block-id="cca626282a3d2ea1b1a558f1d0ba60da" data-name="code-23f33a"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 16;" data-code-autoheight="true"><pre class="haskell" style="font-size: 36px; line-height: 43px;"><code> f u</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 80px; height: 48px; left: 285.75px; top: 295.5px;" data-block-id="1f30264ee802b5b89678f5f71102ecf0" data-name="code-1453ac"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 15;"><pre class="haskell" style="font-size: 36px; line-height: 43px;"><code> u</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 170.25px; top: 261.5px;" data-name="text-01c443" data-block-id="3e44bd68e2dcdd38604d66332d3ec6c2"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17;" dir="ui">
+<p><span style="font-size:1.0em">If            is consumed exactly once<br>
+then      is consumed exactly once</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 11px; top: 392.5px;" data-name="text-489fbc" data-block-id="50ba2002236a78ebc043926a8ba84c32"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18; font-size: 80%;">
+<p style="text-align: left;">What does “consume exactly once” mean?</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 233.5px; left: 200px; top: 431.5px;" data-name="text-b8faad" data-block-id="d52e8573b58d9a94fb274d23c6f22d2d"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 19; font-size: 80%;">
+<p style="text-align:left">evaluate x</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 632px; left: 200px; top: 462.5px;" data-block-id="c985b4681d29d6e4b4e2900832152ffa" data-name="text-a459a8"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 20; font-size: 80%;">
+<p style="text-align:left">apply x and consume the result exactly once</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 824px; left: 200px; top: 494.5px;" data-block-id="d83b497b81d5e93885a021703bdfad6c" data-name="text-782ef1"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 21; font-size: 80%;">
+<p style="text-align:left">decompose x and consume both components exactly once</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 158px; left: 32px; top: 431.5px;" data-name="text-8c1962" data-block-id="c821a63d99ac1fa9fa0b14ce0677136a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 22; color: rgb(83, 115, 207); font-size: 80%; --darkreader-inline-color:#5f94d2;" data-darkreader-inline-color="">
+<p style="text-align:right">Base type</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 158px; left: 32px; top: 462.5px;" data-block-id="8c50626ed4b8bf8a7a21c25bf62afb8f" data-name="text-8fbdb1"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 23; color: rgb(83, 115, 207); font-size: 80%; --darkreader-inline-color:#5f94d2;" data-darkreader-inline-color="">
+<p style="text-align:right">Function</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 158px; left: 32px; top: 494.5px;" data-block-id="b1c7d7d098006667b582520b87a5176b" data-name="text-f67682"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 24; color: rgb(83, 115, 207); font-size: 80%; --darkreader-inline-color:#5f94d2;" data-darkreader-inline-color="">
+<p style="text-align:right">Pair</p>
+</div></div></section><section data-id="c51c971b66f11ecc673e272d0ff481ff"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="db2bdf3184e7cfca32aefaba53c20b06"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>The creative step</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="8c41f226e91a1328f908e941c73e73a8"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+<div class="sl-block" data-block-type="code" style="width: 448.5px; height: 182px; left: 25.5px; top: 159px;" data-name="code-10aaa8" data-block-id="7f35c8ade9712ebd78326d2f7cd9d6b0"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 12; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 26px; line-height: 31px;"><code style="padding: 13px;">f :: A ⊸ A ⊸ !Int ⊸ B
+g :: !B ⊸ C
+
+h :: !A ⊸ C
+h (!x) = g (!(f x x (!42)))</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 448.5px; height: 182px; left: 553px; top: 159px;" data-block-id="bb7b644f7d0f3d31f407808d9a71cdc3" data-name="code-a94682"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 13; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 26px; line-height: 31px;"><code style="padding: 13px;">f :: A -&gt; A -&gt; Int -&gt; B
+g :: B -&gt; C
+
+h :: A -&gt; C
+h x = g (f x x (42))</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 68px; left: 478px; top: 222.5px;" data-name="text-964643" data-block-id="2138cdfc57642811ff8fd20cc2a8799e"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 14;">
+<p><span style="font-size:1.4em">vs</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 836px; left: 43px; top: 432px;" data-name="text-af1e4f" data-block-id="7c2ffbb6dc19fe5e5d69f4194ec4af95"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15;">
+<p style="text-align: left;">Linear types seem to require deep changes to the language</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 163px; left: 804px; top: 471px;" data-name="text-397e66" data-block-id="cb6ac56a256c2dbad17b6c407631aa97"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 16;">
+<p><span style="font-size:0.9em">(<em>e.g.</em> Rust</span>)</p>
+</div></div></section><section data-id="e8056d9e9d8f319abb4011c2286f59c9"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="295cb4c33c458bcf7ed537f453bd44fe"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Linear types, by examples (1/3)</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="fcc916090381ea461e9cf1ae78d90112"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 136px; height: 41px; left: 79px; top: 160px;" data-name="code-ed73f1" data-block-id="88180f4683b5476c959a26ea23dfd326"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>id x = x</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" data-name="group-f9fe31" data-block-id="36a2936031e87f80fd7fe5dd02559008" style="height: auto;"><div class="sl-block-content sl-block-group-content" style="transform-origin: 527px 180.5px 0px; z-index: 13;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 129.5px;" data-name="text-1a7d18" data-block-id="c2ea94431681096d8054f56bb3afd647"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 14; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(0, 128, 0); --darkreader-inline-color:#72ff72;" data-darkreader-inline-color=""><span style="font-size:1.8em">✓</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 107px; left: 511px; top: 157px;" data-name="text-6b4ed8" data-block-id="55d334e890b21d23493397de782b69d5"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 177px; height: 41px; left: 79px; top: 267.5px;" data-block-id="a66bc27382e50806c6e84f9e8c5d1e2c" data-name="code-488d2e"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 16;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>dup x = (x,x)</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" data-name="group-fec435" data-block-id="32aa6b02f3befdd2cc8a4abc5c08c286" style="height: auto;"><div class="sl-block-content sl-block-group-content" style="transform-origin: 562px 288px 0px; z-index: 17;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 237px;" data-origin-id="c2ea94431681096d8054f56bb3afd647" data-block-id="666913410109f1faa7e74efce69c5854" data-name="text-dd3082"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(255, 0, 0); --darkreader-inline-color:#ff1a1a;" data-darkreader-inline-color=""><span style="font-size:1.8em">✗</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 177px; left: 511px; top: 264.5px;" data-origin-id="55d334e890b21d23493397de782b69d5" data-block-id="07aa61e288d05539eaf7e3841336a0b6" data-name="text-f62c2c"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 19; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">not linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 273px; height: 42.5px; left: 79px; top: 378.5px;" data-block-id="b8e124dacb84b22aee911e955bce4ae4" data-name="code-d8d668"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 20;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>swap (x,y) = (y,x)</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-block-id="619db51f9bea3c7341e49a79edccf716" data-name="group-ed4ff4"><div class="sl-block-content sl-block-group-content" style="transform-origin: 527px 399.75px 0px; z-index: 21;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 348.75px;" data-origin-id="c2ea94431681096d8054f56bb3afd647" data-block-id="176b6481ad9222d9ee43949e4b533fd0" data-name="text-14f472"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 22; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(0, 128, 0); --darkreader-inline-color:#72ff72;" data-darkreader-inline-color=""><span style="font-size:1.8em">✓</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 107px; left: 511px; top: 376.25px;" data-origin-id="55d334e890b21d23493397de782b69d5" data-block-id="094c9f2c5b0b7eaa73138d96dbcdd1fa" data-name="text-5c93de"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 23; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 199px; height: 41px; left: 79px; top: 483.5px;" data-block-id="5e7675c185691e6985e3845ed70fa1ef" data-name="code-c52457"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 24;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>forget x = ()</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-block-id="df8ba22c2594783ab70d65f4a74ab87b" data-name="group-924e84"><div class="sl-block-content sl-block-group-content" style="transform-origin: 562px 504px 0px; z-index: 25;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 453px;" data-origin-id="666913410109f1faa7e74efce69c5854" data-block-id="b55d1a5e7b62fcb2006f341f52d55ba7" data-name="text-52354a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 26; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(255, 0, 0); --darkreader-inline-color:#ff1a1a;" data-darkreader-inline-color=""><span style="font-size:1.8em">✗</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 177px; left: 511px; top: 480.5px;" data-origin-id="07aa61e288d05539eaf7e3841336a0b6" data-block-id="bdc1f68bdd5ed5c2937bd1a4f2e34b14" data-name="text-b21142"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 27; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">not linear</span></span></p>
+</div></div>
+</div></div></section><section data-id="fe41f475eaa1cb6b10c09e4186f8ef0d"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="501d28be446b990a9709a0f0d1248daa"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Linear types, by examples (2/3)</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="1f649fb29f035bbf03a4daa38560a13e"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 246px; height: 66px; left: 79px; top: 150px;" data-name="code-ed73f1" data-block-id="a9f3bc0fd65e9b3073e81bb999430557"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>f (Left x) = x
+f (Right y) = y</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" data-name="group-f9fe31" style="height: auto;" data-block-id="80d76192334a97eb3349851113daf980"><div class="sl-block-content sl-block-group-content" style="transform-origin: 527px 183px 0px; z-index: 13;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 132px;" data-name="text-1a7d18" data-block-id="1478f8b928dff7eb9e40af4b967f1ebe"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 14; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(0, 128, 0); --darkreader-inline-color:#72ff72;" data-darkreader-inline-color=""><span style="font-size:1.8em">✓</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 107px; left: 511px; top: 159.5px;" data-name="text-6b4ed8" data-block-id="f32a4545d45a3f992bd263f92f89f80a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-name="group-ed4ff4" data-block-id="8d4c70009f86096ffe72b59db639091e"><div class="sl-block-content sl-block-group-content" style="transform-origin: 527px 410.5px 0px; z-index: 16;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 359.5px;" data-name="text-14f472" data-block-id="2d2583b9c245e1b845d8e7fe3834b55d"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(0, 128, 0); --darkreader-inline-color:#72ff72;" data-darkreader-inline-color=""><span style="font-size:1.8em">✓</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 107px; left: 511px; top: 387px;" data-name="text-5c93de" data-block-id="446b9ea32b09aa761d7eb7d71143dc4c"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-name="group-924e84" data-block-id="89f3c6d08f439b5429c3796a2af32161"><div class="sl-block-content sl-block-group-content" style="transform-origin: 562px 504px 0px; z-index: 19;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 453px;" data-name="text-52354a" data-block-id="0260e0657d3402f3588ea23e2032fcb5"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 20; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(255, 0, 0); --darkreader-inline-color:#ff1a1a;" data-darkreader-inline-color=""><span style="font-size:1.8em">✗</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 177px; left: 511px; top: 480.5px;" data-name="text-b21142" data-block-id="781a80bf49c7ae5ab6540737bedd9bc1"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 21; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">not linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 246px; height: 98px; left: 79px; top: 363.5px;" data-block-id="8d72cbff531055767eb416778ec98b43" data-name="code-70981d"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 22;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>h x b = case b of
+  True -&gt; x
+  False -&gt; x</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 246px; height: 98px; left: 79px; top: 250.75px;" data-block-id="104e19b471cbf4af5439c6d064fa7dfe" data-name="code-ca3c3e"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 23;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>g z = case z of
+  Left x -&gt; x
+  Right y -&gt; y</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 246px; height: 98px; left: 79px; top: 464.5px;" data-block-id="3dd51c96482e433b84bdc18f35b726c4" data-name="code-29adc6"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 24;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>k x b = case b of
+  True -&gt; x
+  False -&gt; ()</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-block-id="d92a45bea418c0030d611b9cb2748847" data-name="group-63ea29"><div class="sl-block-content sl-block-group-content" style="transform-origin: 527px 299.75px 0px; z-index: 25;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 248.75px;" data-origin-id="1478f8b928dff7eb9e40af4b967f1ebe" data-block-id="873b57e49d2600a08c5a896f02471e57" data-name="text-0ddf22"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 26; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(0, 128, 0); --darkreader-inline-color:#72ff72;" data-darkreader-inline-color=""><span style="font-size:1.8em">✓</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 107px; left: 511px; top: 276.25px;" data-origin-id="f32a4545d45a3f992bd263f92f89f80a" data-block-id="116f5c53666a9bd6f03488ad3360c5f7" data-name="text-d0c2d3"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 27; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">linear</span></span></p>
+</div></div>
+</div></div></section><section data-id="d7df56e10a276bddc42b53c41b021e41"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="bd8f1c3944e7c19c0240fb5e7394c57e"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Linear types, by examples (3/3)</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="73db89b08c604bc3039675542fd56f19"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 158px; height: 46px; left: 79px; top: 160.5px;" data-name="code-ed73f1" data-block-id="468ea8df4c577809e4e8724f5208303f"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>f x = dup x</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-name="group-ed4ff4" data-block-id="03825d542a48716797f18c6db2fc2392"><div class="sl-block-content sl-block-group-content" style="transform-origin: 527px 398.5px 0px; z-index: 13;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 347.5px;" data-name="text-14f472" data-block-id="530a19231558ec8d2dd8f129292296f1"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 14; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(0, 128, 0); --darkreader-inline-color:#72ff72;" data-darkreader-inline-color=""><span style="font-size:1.8em">✓</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 107px; left: 511px; top: 375px;" data-name="text-5c93de" data-block-id="b04c17afe904c28eb1a7b972eea86b33"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-name="group-924e84" data-block-id="df5e2f62f78f8c5e87f43b94db730ea9"><div class="sl-block-content sl-block-group-content" style="transform-origin: 562px 504px 0px; z-index: 16;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 453px;" data-name="text-52354a" data-block-id="16d23ce94ad9fdea1ab7b163ad8b7ac3"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(255, 0, 0); --darkreader-inline-color:#ff1a1a;" data-darkreader-inline-color=""><span style="font-size:1.8em">✗</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 177px; left: 511px; top: 480.5px;" data-name="text-b21142" data-block-id="0c0badb154351b417ed435bab79c9b38"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">not linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 141px; height: 47px; left: 79px; top: 375px;" data-name="code-70981d" data-block-id="4cadfe6da4730929e1dc40757540bc9c"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 19;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>h u = u 0</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 215px; height: 49px; left: 79px; top: 269.5px;" data-name="code-ca3c3e" data-block-id="8715db10fd553b9c436f893b20de87ff"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 20;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>g x = id (id x)</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 246px; height: 49px; left: 79px; top: 479.5px;" data-name="code-29adc6" data-block-id="bd6674b7d163a608e5bcc009d41ddef4"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 21;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>k u = u (u 0)</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-name="group-63ea29" data-block-id="bccf7c863b038e4721c028ca343b6e28"><div class="sl-block-content sl-block-group-content" style="transform-origin: 527px 294px 0px; z-index: 22;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 243px;" data-name="text-0ddf22" data-block-id="317d362adfaa46ec611f8c11635012dd"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 23; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(0, 128, 0); --darkreader-inline-color:#72ff72;" data-darkreader-inline-color=""><span style="font-size:1.8em">✓</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 107px; left: 511px; top: 270.5px;" data-name="text-d0c2d3" data-block-id="81432a0a2acc9dad4b295fb8083b676a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 24; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">linear</span></span></p>
+</div></div>
+</div></div>
+<div class="sl-block sl-block-group" data-block-type="group" style="height: auto;" data-block-id="1b856d6f24165ffd23101594971508bb" data-name="group-6b5430"><div class="sl-block-content sl-block-group-content" style="transform-origin: 562px 183.5px 0px; z-index: 25;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 80px; left: 436px; top: 132.5px;" data-origin-id="16d23ce94ad9fdea1ab7b163ad8b7ac3" data-block-id="87bc364989a296bec54f089c3e97a103" data-name="text-053b7c"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 26; font-size: 145%; text-align: right;">
+<p><span style="color: rgb(255, 0, 0); --darkreader-inline-color:#ff1a1a;" data-darkreader-inline-color=""><span style="font-size:1.8em">✗</span></span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 177px; left: 511px; top: 160px;" data-origin-id="0c0badb154351b417ed435bab79c9b38" data-block-id="fcb4bfd80dc25ccfae09a3e92b90dec3" data-name="text-e0f6ca"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 27; text-align: left;">
+<p><span style="font-size:1.2em"><span style="font-size:1.0em">not linear</span></span></p>
+</div></div>
+</div></div></section><section data-id="1e29c6ff589239d2b5621acea264b075" data-background-color="#fee080"><div class="sl-block" data-block-type="text" style="width: 806px; left: 79px; top: 182px; height: auto;" data-name="text-e33cbd" data-block-id="397f9a7131450af582d6de1c26872087"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text" style="z-index: 10;">
+<h2 style="text-align:left">Application class 1</h2>
+</div></div>
+
+
+
+<div class="sl-block" data-block-type="text" style="height: auto; width: 796px; left: 79px; top: 271px;" data-name="text-3f5a26" data-block-id="07b36bb7682b59080eddc99d0150140e"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 11;">
+<p style="text-align:left"><span style="font-size:1.2em">Making more things pure</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 79px; top: 330px;" data-name="text-74cc5d" data-block-id="63e344fd84f01d67d69bbc3aa8a33fd0"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 12;">
+<p style="text-align:left"><span style="font-size:1.0em">Example: safe mutable arrays</span></p>
+</div></div></section><section data-id="1c9e20cdd83332c1f49f0971b7cc61ce"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="e515c2ee7e8933486bdfe3c0dbb12558"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Mutable arrays: the ST way</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="b8383048912bacd7c01b75cbb387e3d2"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 489px; height: 167px; left: 50px; top: 132.5px;" data-name="code-ed73f1" data-block-id="01fd93954d71fd285fdb1340eeff013d"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>array :: Int -&gt; [(Int,a)] -&gt; Array a
+array size pairs = runST $ do
+  fma &lt;- newMArray size
+  forM pairs (write ma)
+  return (unsafeFreeze ma)</code></pre></div></div>
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 722px; height: 182px; left: 302px; top: 349px;" data-block-id="8699974e00dc4e9cba0cc51a6ae97759" data-name="code-a4c635"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 13; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">newMArray    :: Int -&gt; ST s (MArray s a)
+read         :: MArray s a -&gt; Int -&gt; ST s a
+write        :: MArray s a -&gt; (Int, a) -&gt; ST s ()
+unsafeFreeze :: MArray s a -&gt; ST s (Array a)
+forM         :: Monad m =&gt; [a] -&gt; (a -&gt; m ()) -&gt; m ()
+runST        :: (∀s. ST s a) -&gt; a</code></pre></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 381.5px; top: 157px;" data-name="line-c933b5" data-block-id="a5b3aee1ed0dcda24f9d5d82ad683182"><div class="sl-block-content" data-line-x1="212" data-line-y1="0" data-line-x2="0" data-line-y2="46" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 14;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="212" height="46" viewbox="0 0 212 46"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="212.5" y1="0.5" x2="10.761224716459676" y2="44.27350784454177"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="212.5" y1="0.5" x2="10.761224716459676" y2="44.27350784454177"></line><polygon fill="#ff3b5a" transform="translate(10.261224716459676,43.77350784454177) rotate(257.758)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 374px; top: 216px;" data-block-id="0842dd3c4cc2625cc71aa887c4b7f489" data-name="line-5b831e"><div class="sl-block-content" data-line-x1="219.5" data-line-y1="0" data-line-x2="0" data-line-y2="13" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 15;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="219.5" height="13" viewbox="0 0 219.5 13"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="220" y1="0.5" x2="10.981633082590568" y2="12.879219908548167"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="220" y1="0.5" x2="10.981633082590568" y2="12.879219908548167"></line><polygon fill="#ff3b5a" transform="translate(10.481633082590568,12.379219908548167) rotate(266.611)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 403px; top: 255px;" data-block-id="c6f0bcad98b63b2670be8443f091105d" data-name="line-35ea61"><div class="sl-block-content" data-line-x1="190.5" data-line-y1="6" data-line-x2="0" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 16;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="190.5" height="6" viewbox="0 0 190.5 6"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="191" y1="6.5" x2="10.994795861151108" y2="0.8305447515323183"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="191" y1="6.5" x2="10.994795861151108" y2="0.8305447515323183"></line><polygon fill="#ff3b5a" transform="translate(10.494795861151108,0.3305447515323183) rotate(-88.196)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 188px; left: 602px; top: 134.5px;" data-name="text-127da8" data-block-id="55549b678ba4ee5ce7926360723e3aa0"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17;">
+<p style="text-align: left;">Allocate</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 188px; left: 604px; top: 194.5px;" data-block-id="d520b17044033660a7c87af720086cc1" data-name="text-c51599"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18;">
+<p style="text-align:left">Fill</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 188px; left: 604px; top: 241.5px;" data-block-id="46f31a30891853c6296a1a39815fb3c7" data-name="text-05469f"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 19;">
+<p style="text-align:left">Freeze</p>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 129.5px; top: 272px;" data-block-id="125bd18a79f81890eeeaeb289e57c8e0" data-name="line-8979d3"><div class="sl-block-content" data-line-x1="0" data-line-y1="118" data-line-x2="124.5" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 20;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="124.5" height="118" viewbox="0 0 124.5 118"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="118.5" x2="117.37910549869692" y2="7.723016475130629"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="0.5" y1="118.5" x2="117.37910549869692" y2="7.723016475130629"></line><polygon fill="#ff3b5a" transform="translate(116.87910549869692,7.223016475130629) rotate(46.535)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 179px; height: 42.5px; left: 6px; top: 397.5px;" data-block-id="96e1768efe8a3aafed22845483b2f9ad" data-name="code-cfd440"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 21;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code> unsafeFreeze</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 270.5px; left: 19px; top: 391px;" data-name="text-19dfb5" data-block-id="88e42631994f4378245c43a1a922bc25"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 22;">
+<p style="text-align:left">                      <span style="font-size:0.7em">is unsafe!</span></p>
+</div></div></section><section data-id="7b7877e1b9eea968c12f8ed7e4af1241" data-auto-animate=""><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="d9a969766379b44e2dc6bca38a5c15a1"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>The same, in Linear Haskell</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="63740bd739ab88b88755f80d01d471b1"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+<div class="sl-block" data-block-type="code" style="width: 582px; height: 105px; left: 50px; top: 132.5px;" data-name="code-ed73f1" data-block-id="082bbfdc1211338e4f36d82b1493878d"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>array :: Int -&gt; [(Int,a)] -&gt; Array a
+array size pairs = newMArray size $ \ma -&gt;
+  freeze (foldl write ma pairs)</code></pre></div></div>
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 657.5px; height: 161px; left: 354.5px; top: 341px;" data-name="code-a4c635" data-block-id="8ca562194d44c4c2e6a2ca4d2b494b31"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 13; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">newMArray :: Int -&gt; (MArray a ⊸ Ur b) ⊸ Ur b
+write     :: MArray a ⊸ (Int,a) -&gt; MArray a
+read      :: MArray a ⊸ Int -&gt; (MArray a, Ur a)
+freeze    :: MArray a ⊸ Ur (Array a)
+foldl     :: (a ⊸ b ⊸ a) -&gt; a ⊸ [b] ⊸ a</code></pre></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 616.25px; top: 165.5px;" data-name="line-c933b5" data-block-id="a5f3d04937b478c4847a702bedb1cee4"><div class="sl-block-content" data-line-x1="142.25" data-line-y1="0" data-line-x2="0" data-line-y2="9.5" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 14;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="142.25" height="9.5" viewbox="0 0 142.25 9.5"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="142.75" y1="0.5" x2="10.97666261536945" y2="9.30032833148675"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="142.75" y1="0.5" x2="10.97666261536945" y2="9.30032833148675"></line><polygon fill="#ff3b5a" transform="translate(10.47666261536945,8.80032833148675) rotate(266.179)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 341px; top: 216px;" data-name="line-5b831e" data-block-id="15bba26380245cb2f2f94b8a6d6c0cc6"><div class="sl-block-content" data-line-x1="239.5" data-line-y1="64.5" data-line-x2="0" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 15;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="239.5" height="64.5" viewbox="0 0 239.5 64.5"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="240" y1="65" x2="10.638761069692674" y2="3.2304805386019937"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="240" y1="65" x2="10.638761069692674" y2="3.2304805386019937"></line><polygon fill="#ff3b5a" transform="translate(10.138761069692674,2.7304805386019937) rotate(-74.927)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 148px; top: 216px;" data-name="line-35ea61" data-block-id="0532090e927a1b6e7bd5b4dde6f536ad"><div class="sl-block-content" data-line-x1="0" data-line-y1="114" data-line-x2="0" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 16;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="1" height="114" viewbox="0 0 1 114"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="114.5" x2="0.5" y2="11"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="0.5" y1="114.5" x2="0.5" y2="11"></line><polygon fill="#ff3b5a" transform="translate(0,10.5) rotate(0)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 188px; left: 767px; top: 143px;" data-name="text-127da8" data-block-id="697b3bdeef22cfbbaf1a489b991f9273"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17;">
+<p style="text-align: left;">Allocate</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 188px; left: 593.375px; top: 261px;" data-name="text-c51599" data-block-id="79ffde0166b0b2c9db2c577f6e1b56dd"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18;">
+<p style="text-align:left">Fill</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 228px; left: 55.5px; top: 348px;" data-name="text-05469f" data-block-id="5e234cbe8b57845ebd75c03e8fe4ac3f"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 19;">
+<p style="text-align:left">Freeze (safe!)</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 348px; left: 664px; top: 526.5px;" data-name="text-e1d9ef" data-block-id="e98fcf285de82ad66b7a1bf715223982"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 20;">
+<p><span style="font-size:0.5em">See <a href="https://hackage.haskell.org/package/linear-base-0.1.0/docs/Data-Array-Mutable-Linear.html" target="_blank">Data.Array.Mutable.Linear in linear-base</a></span></p>
+</div></div></section><section data-id="008f85a1a2435ec979ae61d9589bb0c3" data-auto-animate=""><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="51b80b3b564dc0a7065c49d8f0c513e0"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Threading style</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="ab675958ce955a7f175927f0724af72d"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 553px; height: 53px; left: 158px; top: 179px;" data-name="code-a4c635" data-block-id="0312888b9f89205ba9208c79dd0dc908"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 12; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">write :: MArray a ⊸ (Int,a) -&gt; MArray a</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 125px; left: 61.5px; top: 333.5px;" data-name="text-8beaee" data-block-id="9197924b45ccf43ae7445b2f7743a57a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p style="text-align: left;">Can't do</p>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 635px; height: 39px; left: 186.5px; top: 333.5px;" data-name="code-a945e3" data-block-id="8d2852b992a07f8a8ca5e4a8905fd963"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 14;"><pre class="haskell" style="font-size: 24px; line-height: 29px;"><code>write ma (1, True); write ma (2, False); …</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 132px; top: 386px;" data-name="text-e3c26d" data-block-id="f1cd797e74a21166f9b823a416c6fc63"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15;">
+<p style="text-align: left;">Each write returns a new array</p>
+</div></div></section><section data-id="e976f14f51319559967d1ccc88eab193"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="002f5a93df58f1f2188acbb1add14315"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Scope passing style</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="5c89770912ec3e92faddb8fdaa174e15"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 606.5px; height: 53px; left: 158px; top: 179px;" data-name="code-a4c635" data-block-id="8fdb35daca2b2faa8357af4d019be9cd"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 12; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">newMArray :: Int -&gt; (MArray a ⊸ Ur b) ⊸ Ur b</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 174px; top: 341px;" data-name="text-f178ea" data-block-id="6a6316d5107a9fdf43e31dddf4de8748"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p>This is what ensures that references to arrays are unique</p>
+</div></div></section><section data-id="aa6747aac9f06fa560eb67cd8bdbfb5d"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="2850b34449c5ffc55e1dcf89a3c91a02"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Unrestricted</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="bc93093680030b777f840688defff1da"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 286.5px; height: 85px; left: 79px; top: 257px;" data-name="code-a4c635" data-block-id="a7aa9e65f0ac86eada1d9d28e99280c3"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">data Ur a where
+  Ur :: a -&gt; Ur a</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 254px; left: 386px; top: 280px;" data-name="text-5fbdc1" data-block-id="a5bbaebf3fc909631078302f4aa5b10b"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p>compare with</p>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 286.5px; height: 85px; left: 678px; top: 257px;" data-block-id="ff1381fd745f0698ab38c7b0da7d3616" data-name="code-90ab50"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 14; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">data Id a where
+  Id :: a ⊸ Id a</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 267.977px; left: 744.996px; top: 375.13px;" data-name="text-96d61d" data-block-id="9aa7f17d4b86901673c3f48bcf89bb74"><div class="sl-block-style" style="z-index: 15; transform: rotate(-39deg);"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15;">
+<p>Data types are linear by default</p>
+</div></div></div></section><section data-id="1667aecfa7b378f48e71a2d018389593"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="2f0e208f0b3df6516d848260afa1a0ee"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Scope passing style (continued)</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="52ff44a433c9a8711a3e8d45724fdf7d"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 606.5px; height: 53px; left: 158px; top: 139px;" data-name="code-a4c635" data-block-id="6bdd078d9bfac62763a083cd6eae153b"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 12; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">newMArray :: Int -&gt; (MArray a ⊸ Ur b) ⊸ Ur b</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 79px; top: 320px;" data-name="text-93b69b" data-block-id="8e205fe0d1250796988b791e045e7a16"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13; text-align: left;">
+<p>Don't work:</p>
+</div></div>
+<div class="sl-block" data-block-type="code" style="width: 478.5px; height: 53px; left: 139.75px; top: 373px;" data-block-id="5b936fbe5dbc279f33622eb0f2eebc2e" data-name="code-fc68fb"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 14; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">newMArrayDirect :: Int ⊸ MArray a</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 602.5px; height: 53px; left: 139.75px; top: 426px;" data-block-id="ebb3acc29b91a11e4c31a830ed011221" data-name="code-4611f3"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 15; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 12px;">newMArrayLeaky :: Int -&gt; (MArray a ⊸ b) ⊸ b</code></pre></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" data-name="group-67b79d" data-block-id="2a8fb88263492cbcf786edb6451ad70d" style="height: auto;"><div class="sl-block-content sl-block-group-content" style="transform-origin: 777.5px 305.75px 0px; z-index: 16;">
+<div class="sl-block" data-block-type="text" style="height: auto; width: 438.473px; left: 558.792px; top: 260px;" data-name="text-f9360c" data-block-id="8103af69beb4bec223b5fa41458d4596"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18;">
+<p style="text-align:left"><span style="font-size:0.7em"><em>If</em> the result is consumed exactly once<br>
+<em>then</em> the argument is consumed exactly once</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 329.647px; left: 558.792px; top: 227px;" data-name="text-566774" data-block-id="ac6291f8f089761fb7efa04471b73a50"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 19;">
+<p style="text-align: left;">Remember</p>
+</div></div>
+<div class="sl-block" data-block-type="shape" style="width: 467px; height: 123px; left: 544px; top: 227.5px;" data-name="shape-702341" data-block-id="526ffb0a94acf42c9b42ee36889d32c5"><div class="sl-block-content" data-shape-type="rect" data-shape-fill-color="rgb(254, 224, 128)" data-shape-stretch="true" style="z-index: 17;" data-shape-corner-radius="14px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="0 0 467 123"><rect width="467" height="123" rx="14" ry="14" class="shape-element" fill="rgb(254, 224, 128)" style="--darkreader-inline-fill:#000000;" data-darkreader-inline-fill=""></rect></svg></div></div>
+</div></div></section><section data-background-color="#fee080" data-id="66e888e15924fbe865133e90c5152f9f"><div class="sl-block" data-block-type="text" style="width: 806px; left: 79px; top: 182px; height: auto;" data-name="text-e33cbd" data-block-id="eada9d980ad06da2d1631e8d474d29ec"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text" style="z-index: 10;">
+<h2 style="text-align:left">Application class 2</h2>
+</div></div>
+
+
+
+<div class="sl-block" data-block-type="text" style="height: auto; width: 796px; left: 79px; top: 271px;" data-name="text-3f5a26" data-block-id="f4439d40c8dd2fe7b584e595e5894ee1"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 11;">
+<p style="text-align:left"><span style="font-size:1.2em">Protocols in types</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 79px; top: 330px;" data-name="text-74cc5d" data-block-id="e9ad491537d027c16f72390eaba4ee8e"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 12;">
+<p style="text-align:left">Example: files</p>
+</div></div></section><section data-id="4e135a9806bd2e406cd00e02dd4c11b7"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="4ee404689dd04485ee856cc0fc48719f"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>I/O protocols</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="b071a1f210d29c23bd98fd1d5e5c3efb"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 54.5px; top: 118px;" data-name="text-2e40ed" data-block-id="ef41b30731ca809c5d9ac1017a51de18"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 12;">
+<p style="text-align: left;"><strong>Files</strong></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 442.5px; left: 79px; top: 157px;" data-name="text-fb61a6" data-block-id="c0bc6f3940b3a33db77d25a402568e7b"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<ul>
+	<li>ensure you close a file</li>
+	<li>ensure no read after close</li>
+</ul>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 54.5px; top: 245px;" data-block-id="960a5ea167982091a0e17d5c52d586e2" data-name="text-1614fb"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 14;">
+<p style="text-align:left"><strong>Malloc</strong></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 442.5px; left: 79px; top: 287.5px;" data-name="text-63a9fe" data-block-id="26694f552e169c1c8c6c732a1d9ad8d1"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15;">
+<ul>
+	<li style="text-align: left;">ensure you free a block</li>
+	<li style="text-align: left;">ensure no read after close</li>
+</ul>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 54.5px; top: 376px;" data-block-id="fa39873edc750b1fa72b8e4aead58db0" data-name="text-bda63e"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 16;">
+<p style="text-align: left;"><strong>Sockets</strong></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 653px; left: 92px; top: 414.5px;" data-name="text-98eb65" data-block-id="3ec7157833e2bf3cab36da1033d75a15"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17;">
+<ul>
+	<li>ensure bind a socket before reading from it</li>
+	<li>ensure you close it</li>
+	<li>ensure you don’t read or bind after close</li>
+</ul>
+</div></div></section><section data-id="02e1c14f89b89066345114180583f199"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="8c6c8477549afb01f94ae09ef6c99c07"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Files</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="e0d33a8e5e528d9ac5b1e47c91c10474"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 611px; height: 108px; left: 125.5px; top: 151px;" data-name="code-b70048" data-block-id="b7be0d1cabf165ce3b6f6d3459c9ce46"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 14; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code style="padding: 10px;">openFile  :: FilePath -&gt; IOL Handle
+readLine  :: Handle ⊸ IOL (Handle, Ur String)
+closeFile :: Handle ⊸ IOL ()</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 592px; height: 174px; left: 135px; top: 320px;" data-block-id="d510cb8937e1db9a9aeb64ccf569a38e" data-name="code-9bf090"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 15; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>firstLine :: FilePath -&gt; IOL (Ur String)
+firstLine fp = do
+  h &lt;- openFile fp
+  (h, Ur xs) &lt;- readLine h
+  closeFile h
+  return $ Ur xs</code></pre></div></div></section><section data-id="7f4ecbe3d0124a4551065eedcfb86149"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="b90a732d7433d6ce3f638f76656290cc"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Monads already have scope</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="a20ccecb2e9135c9aaf669cc92474428"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 459px; height: 39px; left: 237px; top: 340.5px;" data-name="code-e1ddc6" data-block-id="3a7a94bb66880d80ac50853508356c18"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>do { x &lt;- u ; v} = u &gt;&gt;= \x -&gt; v</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 748.5px; height: 60px; left: 120.5px; top: 186px;" data-block-id="82264e97629183c272dbe623a3b8e3de" data-name="code-1d2fb6"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 13; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 33px; line-height: 40px;"><code style="padding: 10px;">(&gt;&gt;=) :: IOL a ⊸ (a ⊸ IOL b) ⊸ IOL b</code></pre></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 959px; left: 57px; top: 522.5px;" data-name="text-49173e" data-block-id="dee206897392e94bc8caf57a33a64956"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 14;">
+<p style="text-align:right"><span style="font-size:0.5em">About the type of monads see <a href="https://www.tweag.io/blog/2020-01-16-data-vs-control/" target="_blank">A Tale of Two Functors or: How I learned to Stop Worrying and Love Data and Control — Arnaud Spiwack</a></span></p>
+</div></div></section><section data-background-color="#fee080" data-id="68a1aecc3e7560b80350fe3520247866"><div class="sl-block" data-block-type="text" style="width: 806px; left: 79px; top: 182px; height: auto;" data-name="text-e33cbd" data-block-id="38de7a5541b6bc478c34d0acd9123fff"><div class="sl-block-content" data-placeholder-tag="h1" data-placeholder-text="Title Text" style="z-index: 10;">
+<h2 style="text-align:left">Linear constraints</h2>
+</div></div>
+
+
+
+</section><section data-id="b62bbc67ee66b034735db5166d3fb311"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="a3aa3bf36155fa907422db555e70363e"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Coming back to files</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="faa3723ee2beb2e6095a515b62d595bd"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 606px; height: 108px; left: 131px; top: 151px;" data-name="code-b70048" data-block-id="a33d8b10f63f249a27bb2da3771cc8ba"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 12; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>openFile  :: FilePath -&gt; IOL Handle
+readLine  :: Handle ⊸ IOL (Handle, Ur String)
+closeFile :: Handle ⊸ IOL ()</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 592px; height: 174px; left: 135px; top: 320px;" data-name="code-9bf090" data-block-id="b8c2feeb583a13499ebb8bb6f782c272"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 13; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>firstLine :: FilePath -&gt; IOL (Ur String)
+firstLine fp = do
+  h &lt;- openFile fp
+  (h, Ur xs) &lt;- readLine h
+  closeFile h
+  return $ Ur xs</code></pre></div></div>
+<div class="sl-block" data-block-type="shape" style="width: 75px; height: 52px; left: 147px; top: 390.75px;" data-name="shape-383b44" data-block-id="3295303318fe225144a7ee6276ab5a61"><div class="sl-block-content fragment" data-shape-type="circle" data-shape-fill-color="rgba(0, 0, 0, 0)" data-shape-stretch="true" style="z-index: 14;" data-shape-stroke-color="#ff3b5a" data-shape-stroke-width="9px" data-fragment-index="0"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="0 0 75 52"><defs><clippath id="shape-mask-1-1617049306600"><ellipse rx="37.5" ry="26" cx="37.5" cy="26" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke=""></ellipse></clippath></defs><ellipse rx="37.5" ry="26" cx="37.5" cy="26" class="shape-element" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke="" clip-path="url(#shape-mask-1-1617049306600)"></ellipse></svg></div></div>
+<div class="sl-block" data-block-type="shape" style="width: 80px; height: 48px; left: 434px; top: 394.75px;" data-name="shape-fa53b5" data-block-id="b50f70f7fb9ff7108bed5ea6d1f38e5e"><div class="sl-block-content fragment" data-shape-type="circle" data-shape-fill-color="rgba(0, 0, 0, 0)" data-shape-stretch="true" style="z-index: 15;" data-shape-stroke-color="#ff3b5a" data-shape-stroke-width="9px" data-fragment-index="0"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="0 0 80 48"><defs><clippath id="shape-mask-2-1617049306604"><ellipse rx="40" ry="24" cx="40" cy="24" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke=""></ellipse></clippath></defs><ellipse rx="40" ry="24" cx="40" cy="24" class="shape-element" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke="" clip-path="url(#shape-mask-2-1617049306604)"></ellipse></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 222px; top: 442.75px;" data-name="line-29509b" data-block-id="e5757e765b4d0c7463dc3ed3cd00ea7c"><div class="sl-block-content fragment" data-line-x1="154.83500000000004" data-line-y1="79.50099999999998" data-line-x2="0" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 16;" data-line-width="7px" data-fragment-index="0"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="154.83500000000004" height="79.50099999999998" viewbox="0 0 154.83500000000004 79.50099999999998"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="155.33500000000004" y1="80.00099999999998" x2="9.840670996207567" y2="5.296025994571624"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="155.33500000000004" y1="80.00099999999998" x2="9.840670996207567" y2="5.296025994571624"></line><polygon fill="#ff3b5a" transform="translate(9.340670996207567,4.796025994571624) rotate(-62.821)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 420.335px; top: 442.75px;" data-name="line-a700bf" data-block-id="c22dcf6d3138302de95664f42ab1f7d6"><div class="sl-block-content fragment" data-line-x1="0" data-line-y1="79.50099999999998" data-line-x2="53.66500000000002" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 17;" data-line-width="7px" data-fragment-index="0"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="53.66500000000002" height="79.50099999999998" viewbox="0 0 53.66500000000002 79.50099999999998"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="80.00099999999998" x2="48.29039777690376" y2="9.202818435449087"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="0.5" y1="80.00099999999998" x2="48.29039777690376" y2="9.202818435449087"></line><polygon fill="#ff3b5a" transform="translate(47.79039777690376,8.702818435449087) rotate(34.02)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 197px; left: 332.835px; top: 522.251px;" data-name="text-c81d61" data-block-id="6ad64321b0e0b22d4bd672a4c25edc17"><div class="sl-block-content fragment" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18; color: rgb(255, 59, 90); --darkreader-inline-color:#ff4361;" data-fragment-index="0" data-darkreader-inline-color="">
+<p>The same 🙁</p>
+</div></div></section><section data-id="ebc0294361b00d37184e6772d38b288b"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="958f29ffc6722e7abcd0d19428cc6ee5"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>(Inter)Mezzo</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="f22aded755ff376a64823da7a74c8362"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="image" style="width: 751.248px; height: 426.24px; left: 86.376px; top: 108.88px; min-width: 1px; min-height: 1px;" data-name="image-b06b1c" data-block-id="4dd50094ea6245fa588137fe1105e796"><div class="sl-block-content" style="z-index: 12;"><img style="" data-natural-width="1269" data-natural-height="720" data-lazy-loaded="" data-src="lix202103/27a5218f04621286ee690b99ae421412.png"></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 575px; left: 449px; top: 527.62px;" data-name="text-a26f53" data-block-id="59133e66fd88e8c3a35ad3fc6d5322d8"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p><a href="https://dl.acm.org/doi/abs/10.1145/2544174.2500598" target="_blank"><span style="font-size:0.5em">Programming with permissions in Mezzo — François Pottier, Jonathan Protzenko</span></a></p>
+</div></div>
+<div class="sl-block" data-block-type="shape" style="width: 298.673px; height: 71px; left: 150.327px; top: 251px;" data-name="shape-fa53b5" data-block-id="4e1c73ef3e745b56123eda7eeb501dd1"><div class="sl-block-content fragment" data-shape-type="circle" data-shape-fill-color="rgba(0, 0, 0, 0)" data-shape-stretch="true" style="z-index: 14;" data-shape-stroke-color="#ff3b5a" data-shape-stroke-width="9px" data-fragment-index="0"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="0 0 299 71"><defs><clippath id="shape-mask-1-1616162487701"><ellipse rx="149.3365" ry="35.5" cx="149.3365" cy="35.5" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke=""></ellipse></clippath></defs><ellipse rx="149.3365" ry="35.5" cx="149.3365" cy="35.5" class="shape-element" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke="" clip-path="url(#shape-mask-1-1616162487701)"></ellipse></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 449px; top: 288px;" data-name="line-a700bf" data-block-id="560b397145b54cc272508148e6e9a4bf"><div class="sl-block-content fragment" data-line-x1="249" data-line-y1="21.000749999999982" data-line-x2="0" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 15;" data-line-width="7px" data-fragment-index="0"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="249" height="21.000749999999982" viewbox="0 0 249 21.000749999999982"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="249.5" y1="21.500749999999982" x2="10.962853252827404" y2="1.3824408250976503"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="249.5" y1="21.500749999999982" x2="10.962853252827404" y2="1.3824408250976503"></line><polygon fill="#ff3b5a" transform="translate(10.462853252827404,0.8824408250976503) rotate(-85.179)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 229px; left: 711px; top: 270.001px;" data-name="text-466cc4" data-block-id="40a7c97eaaf4713ded73fd93d3edeb36"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 16;">
+<p>Doesn't return a new copy of ys</p>
+</div></div></section><section data-id="3d03ef42605535816fef1c1ebc2c31e9"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="ad7ed59984736ca6a4031cce7cb82995"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Constraints</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="6cfdaf03cb9689d984068e64fea54c20"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="code" style="width: 867px; height: 96px; left: 65px; top: 168px;" data-name="code-e1429c" data-block-id="a3f5e15e60eaaf06c460799b9cf4a741"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 12;"><pre class="haskell" style="font-size: 48px; line-height: 58px;"><code>show :: Show a =&gt; a -&gt; String</code></pre></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 245px; top: 241px;" data-name="line-175630" data-block-id="54b177f3ee78f60b3a5811dcacb9413c"><div class="sl-block-content" data-line-x1="0" data-line-y1="143" data-line-x2="121" data-line-y2="0" data-line-color="#000000" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 13;" data-line-width="8px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="121" height="143" viewbox="0 0 121 143"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0" y1="143" x2="113.24869310240591" y2="9.160635424429374"></line><line class="line-element" stroke="#000000" stroke-width="8" x1="0" y1="143" x2="113.24869310240591" y2="9.160635424429374"></line><polygon fill="#000000" transform="translate(113.24869310240591,9.160635424429374) rotate(40.236)" points="0,-12 12,12 -12,12"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 292px; left: 99px; top: 394.5px;" data-name="text-36ff0a" data-block-id="8fbacbcf7b5fc1406fafcb6429d5e5f3"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 14;">
+<p><span style="font-size:1.4em">A constraint</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 343.5px; left: 190px; top: 449.5px;" data-name="text-711777" data-block-id="bf667e7b0091ba1d85136ff6a8573bca"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15;">
+<p><span style="font-size:1.0em">Prolog-like language</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 229px; left: 263px; top: 484.5px;" data-name="text-fcaf93" data-block-id="f0f7c650d4d26167a8e92faa9b5e190d"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 16;">
+<p><span style="font-size:0.7em">Constrained</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 247px; left: 341px; top: 506px;" data-name="text-ac38f1" data-block-id="91dbec403e86d25d429ce116d996eb81"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17;">
+<p><span style="font-size:0.5em">With paramodulation</span></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 283.372px; left: 578.592px; top: 282.661px;" data-name="text-c9e81f" data-block-id="001ce87be45e5359f91825ffb302a224"><div class="sl-block-style" style="z-index: 18; transform: rotate(-22deg);"><div class="sl-block-content fragment" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18;" data-fragment-index="0">
+<p><span style="font-size:1.4em">Idea: teach constraints linear logic</span></p>
+</div></div></div></section><section data-id="639cb4ef7f69bcec755846177cbe03a8"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="cd1b8c08ab8fa7f761cb554c7c5780c1"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Files with linear constraints</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="5ac15b7e3c76b142964a0838b77c0d0a"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="text" style="height: auto; width: 754px; left: 255px; top: 519.5px;" data-name="text-8cae27" data-block-id="331e4cba32c471499020da9da4573dbe"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 12;">
+<p><a href="https://arxiv.org/abs/2103.06127" target="_blank"><span style="font-size:0.5em">Linear Constraints — Jean-Philippe Bernardy, Richard Eisenberg, Csongor Kiss, Arnaud Spiwack, Nicolas Wu</span></a></p>
+</div></div>
+
+<div class="sl-block" data-block-type="code" style="width: 889px; height: 108px; left: 45px; top: 151px;" data-name="code-b70048" data-block-id="09a13759c7cf61fe67b56c2216ae9748"><div class="sl-block-content notranslate" data-highlight-theme="a11y-dark" data-code-frame="none" style="z-index: 15; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>openFile  :: FilePath -&gt; IOL (exists h. Ur (Handle h) &lt;=%1 Open h)
+readLine  :: Open h %1=&gt; Handle -&gt; IOL (Ur String)
+closeFile :: Open h %1=&gt; Handle -&gt; IOL ()</code></pre></div></div>
+<div class="sl-block" data-block-type="code" style="width: 592px; height: 174px; left: 135px; top: 320px;" data-name="code-9bf090" data-block-id="83183fc40e8d7fb8807f069abdce818e"><div class="sl-block-content notranslate" data-highlight-theme="a11y-light" data-code-frame="none" style="z-index: 16; border-style: solid; border-radius: 12px;"><pre class="haskell" style="font-size: 22px; line-height: 26px;"><code>firstLine :: FilePath -&gt; IOL (Ur String)
+firstLine fp = do
+  Pack! h &lt;- openFile fp
+  Pack! xs &lt;- readLine h
+  closeFile h
+  return $ Ur xs</code></pre></div></div></section><section data-id="51264680ad490a4a1c2409db3c08f426"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="9785f3483e2d5eba5d51427ce30f94bb"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Constraint generation</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="c1f185bd2fb194b35d6b41d2fa7d1c0a"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="image" style="width: 860.159px; height: 237.548px; left: 66.9205px; top: 144px; min-width: 1px; min-height: 1px;" data-name="image-d32e3d" data-block-id="fd105d4cbdec673f31baf0b962751148"><div class="sl-block-content" style="z-index: 12;"><img style="" data-natural-width="1242" data-natural-height="343" data-lazy-loaded="" data-src="lix202103/b45cccc226fa357a4a0747b42af74f4c.png"></div></div>
+<div class="sl-block sl-block-group" data-block-type="group" data-name="group-9fcef4" data-block-id="7dbf0a1548dd60b2f1098dadd1962ba2" style="height: auto;"><div class="sl-block-content sl-block-group-content" style="transform-origin: 569.669px 399.162px 0px; z-index: 13;">
+<div class="sl-block" data-block-type="shape" style="width: 435.673px; height: 135px; left: 572.164px; top: 262.774px;" data-name="shape-fa53b5" data-block-id="77c4e0d12468e7b04da38f334cf77b4c"><div class="sl-block-content fragment current-visible" data-shape-type="circle" data-shape-fill-color="rgba(0, 0, 0, 0)" data-shape-stretch="true" style="z-index: 14;" data-shape-stroke-color="#ff3b5a" data-shape-stroke-width="9px" data-fragment-index="0"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="0 0 436 135"><defs><clippath id="shape-mask-1-1617134281380"><ellipse rx="217.8365" ry="67.5" cx="217.8365" cy="67.5" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke=""></ellipse></clippath></defs><ellipse rx="217.8365" ry="67.5" cx="217.8365" cy="67.5" class="shape-element" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke="" clip-path="url(#shape-mask-1-1617134281380)"></ellipse></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 395px; top: 360px;" data-name="line-a700bf" data-block-id="cc589e0cc851b5c425157b7ea43d0818"><div class="sl-block-content fragment current-visible" data-line-x1="0" data-line-y1="89.54874999999998" data-line-x2="201" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 15;" data-line-width="7px" data-fragment-index="0"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="201" height="89.54874999999998" viewbox="0 0 201 89.54874999999998"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="90.04874999999998" x2="191.90879751325048" y2="4.7730357894791595"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="0.5" y1="90.04874999999998" x2="191.90879751325048" y2="4.7730357894791595"></line><polygon fill="#ff3b5a" transform="translate(191.40879751325048,4.2730357894791595) rotate(65.986)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 527px; left: 131.5px; top: 449.549px;" data-name="text-aeab42" data-block-id="9392499f0e973e97e0f6c625a632ba59"><div class="sl-block-content fragment current-visible" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 16;" data-fragment-index="0">
+<p>Constraints are generated (as in GHC)</p>
+
+<p>in a linear logic (new!)</p>
+</div></div>
+</div></div>
+<div class="sl-block sl-block-group" data-block-type="group" data-name="group-641a92" data-block-id="8762d87e71dfcbd32417887e238d3d9b" style="height: auto;"><div class="sl-block-content sl-block-group-content" style="transform-origin: 814.837px 407.775px 0px; z-index: 17;">
+<div class="sl-block" data-block-type="shape" style="width: 217.837px; height: 71px; left: 711px; top: 288px;" data-block-id="acd40181b3ebfd98c6b984a89bddcdd4" data-name="shape-72e681"><div class="sl-block-content fragment" data-shape-type="circle" data-shape-fill-color="rgba(0, 0, 0, 0)" data-shape-stretch="true" style="z-index: 18;" data-shape-stroke-color="#ff3b5a" data-shape-stroke-width="9px" data-fragment-index="1"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="0 0 218 71"><defs><clippath id="shape-mask-2-1617134354647"><ellipse rx="108.9185" ry="35.5" cx="108.9185" cy="35.5" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke=""></ellipse></clippath></defs><ellipse rx="108.9185" ry="35.5" cx="108.9185" cy="35.5" class="shape-element" fill="rgba(0, 0, 0, 0)" stroke="#ff3b5a" stroke-width="18" style="--darkreader-inline-fill:rgba(232, 230, 227, 0); --darkreader-inline-stroke:#ff4361;" data-darkreader-inline-fill="" data-darkreader-inline-stroke="" clip-path="url(#shape-mask-2-1617134354647)"></ellipse></svg></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 835px; top: 359px;" data-block-id="2e3c45b88159f017cb752f20438bf072" data-name="line-be54d9"><div class="sl-block-content fragment" data-line-x1="0" data-line-y1="90.54899999999998" data-line-x2="0" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 19;" data-line-width="7px" data-fragment-index="1"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="1" height="90.54899999999998" viewbox="0 0 1 90.54899999999998"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="91.04899999999998" x2="0.5" y2="11"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="0.5" y1="91.04899999999998" x2="0.5" y2="11"></line><polygon fill="#ff3b5a" transform="translate(0,10.5) rotate(0)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 386px; left: 621.837px; top: 449.549px;" data-name="text-f704da" data-block-id="c31770da6afcfa0f5dc1250aafa60dcb"><div class="sl-block-content fragment" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 20;" data-fragment-index="1">
+<p>C₂ to be proved under <em>linear</em> assumption Q₁</p>
+</div></div>
+</div></div></section><section data-id="b7aabb39e89628832386467a2f6fbf16"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="aa04a1f3cf4be21c8337d82cf8f5cac2"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Constraint generation (case)</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="e9c298215d075a8de9c1b6edbf2f3f09"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="image" style="width: 918.78px; height: 250.773px; left: 36.92px; top: 144px;" data-name="image-42d882" data-block-id="ba06434a21cc3822460a96c9707732f2"><div class="sl-block-content" style="z-index: 12;"><img style="" data-natural-width="1275" data-natural-height="348" data-lazy-loaded="" data-src="lix202103/8362a67737269e6363ce30d1e319a8dd.png"></div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; min-width: 0px; min-height: 0px; left: 761px; top: 366px;" data-name="line-a700bf" data-origin-id="cc589e0cc851b5c425157b7ea43d0818" data-block-id="f20819b0200bc27f0028486bdb013230"><div class="sl-block-content" data-line-x1="0" data-line-y1="104.54874999999998" data-line-x2="99" data-line-y2="0" data-line-color="#ff3b5a" data-line-start-type="none" data-line-end-type="arrow" style="z-index: 16;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="99" height="104.54874999999998" viewbox="0 0 99 104.54874999999998"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="105.04874999999998" x2="92.28045633692514" y2="8.124184500453513"></line><line class="line-element" stroke="#ff3b5a" stroke-width="7" x1="0.5" y1="105.04874999999998" x2="92.28045633692514" y2="8.124184500453513"></line><polygon fill="#ff3b5a" transform="translate(91.78045633692514,7.624184500453514) rotate(43.439)" points="0,-10.5 10.5,10.5 -10.5,10.5"></polygon></svg></div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 316px; left: 603px; top: 470.549px;" data-name="text-aeab42" data-origin-id="9392499f0e973e97e0f6c625a632ba59" data-block-id="be3ec9bdc42fdc98de3a1efdd70e1348"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17;">
+<p>Additive conjunction</p>
+</div></div></section><section data-id="37da14ff812800fe191dcffb5cd25ab4"><div class="sl-block" data-block-type="text" style="height: auto; width: 1024px; left: 0px; top: 0px;" data-name="text-864614" data-block-id="f69c3b4b5e86a93c36fe89bb21f8c70d"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 10; background-color: rgba(0, 0, 0, 0); color: rgb(0, 0, 0); text-align: left; padding: 7px; border-style: solid; border-radius: 26px; border-color: rgb(0, 0, 0); --darkreader-inline-bgcolor:rgba(0, 0, 0, 0); --darkreader-inline-color:#e8e6e3; --darkreader-inline-border-top:#8c8273; --darkreader-inline-border-right:#8c8273; --darkreader-inline-border-bottom:#8c8273; --darkreader-inline-border-left:#8c8273;" data-darkreader-inline-bgcolor="" data-darkreader-inline-color="" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="">
+<h2>Constraint resolution</h2>
+</div></div>
+<div class="sl-block" data-block-type="line" style="width: auto; height: auto; left: 11px; top: 88px;" data-name="line-2b2e5f" data-block-id="ce20bc3afbba54d4a69645d191409448"><div class="sl-block-content" data-line-x1="0" data-line-y1="0" data-line-x2="687" data-line-y2="0" data-line-color="#4d22a8" data-line-start-type="none" data-line-end-type="none" style="z-index: 11;" data-line-width="7px"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" preserveaspectratio="xMidYMid" width="687" height="1" viewbox="0 0 687 1"><line stroke="rgba(0,0,0,0)" stroke-width="15" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line><line class="line-element" stroke="#4d22a8" stroke-width="7" x1="0.5" y1="0.5" x2="687.5" y2="0.5"></line></svg></div></div>
+
+
+
+
+
+
+
+
+
+
+<div class="sl-block" data-block-type="text" style="height: auto; width: 671px; left: 40px; top: 124.5px;" data-name="text-b198fb" data-block-id="24e9a1cf9f45762ebcfdcfb7a38ae1d7"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 12; text-align: left;">
+<p>“Hereditary Harrop” fragment of Linear Logic</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 666px; left: 190px; top: 152.5px;" data-name="text-abd1c0" data-block-id="84620526fa34a263a1cded5f1d397d1e"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13;">
+<p style="text-align:left"><a href="https://doi.org/10.1006/inco.1994.1036" target="_blank"><span style="font-size:0.5em">Logic Programming in a Fragment of Intuitionistic Linear Logic — Joshua Hodas and Dale Miller</span></a></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 778px; left: 190px; top: 179.5px;" data-name="text-de4b0f" data-block-id="041ddefe913d5647b9f0ab796cf34f1a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 14;">
+<p style="text-align: left;"><a href="https://doi.org/10.1016/S0304-3975(99)00173-5" target="_blank"><span style="font-size:0.5em">Efficient resource management for linear logic proof search — Iliano Cervesato, Joshua Hodas, Frank Pfenning</span></a></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 40px; top: 235.5px;" data-name="text-8258c3" data-block-id="8771a0bf407aabb1a543833184b31c29"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15;">
+<p style="text-align:left">Reduces non-determinism to <em>one rule</em></p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 600px; left: 79px; top: 288px;" data-name="text-c3a823" data-block-id="80ac4f538f70d135f75005822599b68a"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 16;">
+<p style="text-align: left;"><strong>↳</strong> add a strategy (“guess free”)</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 784px; left: 40px; top: 494px;" data-block-id="57d1853f5f20702fe8fe7c81c32ed231" data-name="text-94bd0b"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 17;">
+<p style="text-align:left">Will support current extension (“quantified constraints”)</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 405px; left: 40px; top: 346.5px;" data-block-id="1b721815207ae8980c8f676c584b0af4" data-name="text-21eaee"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 18;">
+<p style="text-align:left">Notion: uniform proof</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 733px; left: 79px; top: 399px;" data-block-id="91e8745def550bcc2cf4170f10a81b62" data-name="text-9a6410"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 19;">
+<p style="text-align:left"><strong>↳</strong> Originally: completeness of goal-oriented search</p>
+</div></div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 903px; left: 79px; top: 438px;" data-block-id="a9d1822077265b23f8d0855f1aa30901" data-name="text-72799b"><div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 20;">
+<p style="text-align:left"><strong>↳</strong> For Linear Constraints: soundness(!!) of constraint generation</p>
+</div></div></section><section data-id="614cf819b7469053655a1ffa03a2ceee" data-background-color="#ff3b5a"><div class="sl-block" data-block-type="shape" style="min-width: 4px; min-height: 4px; width: 33px; height: 33px; left: 22.38px; top: 321.5px;" data-block-id="dda998cb2a62685e4504e54855ca40c8" data-name="shape-b58b6d">
+    <div class="sl-block-content" data-shape-type="symbol-home" data-shape-fill-color="rgb(255, 255, 255)" data-shape-stretch="true" style="z-index: 10;"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="0 0 32 32">
+
+            
+        <g class="shape-element" fill="rgb(255, 255, 255)" style="--darkreader-inline-fill:#e8e6e3;" data-darkreader-inline-fill="" data-viewbox="0 0 32 32"><path d="M16 0l-16 16h4v16h24v-16h4l-16-16zM24 28h-6v-6h-4v6h-6v-14.344l8-5.656 8 5.656v14.344z"></path></g></svg></div>
+</div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 748px; left: 74.38px; top: 318.5px;" data-name="text-5a7533" data-block-id="d815b4eb2c26c86c663cfe3c6e93baa0">
+    <div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 11; color: rgb(255, 255, 255); --darkreader-inline-color:#e8e6e3;" data-darkreader-inline-color="" dir="ui">
+<p style="text-align:left"><strong>https://slides.com/aspiwack/lix202103</strong></p>
+</div>
+</div>
+
+<div class="sl-block" data-block-type="shape" style="min-width: 4px; min-height: 4px; width: 33px; height: 33px; left: 22.38px; top: 183px;" data-block-id="787fb9bcb74be3a53aa2685beeb9256a" data-name="shape-48585f">
+    <div class="sl-block-content" data-shape-type="symbol-earth" data-shape-fill-color="rgb(255, 255, 255)" data-shape-stretch="true" style="z-index: 12;"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" preserveaspectratio="none" viewbox="-9.5367431640625e-7 -9.5367431640625e-7 32 32">
+
+            
+        <g class="shape-element" fill="rgb(255, 255, 255)" style="--darkreader-inline-fill:#e8e6e3;" data-darkreader-inline-fill="" data-viewbox="-9.5367431640625e-7 -9.5367431640625e-7 32 32"><path d="M27.314 4.686c3.022 3.022 4.686 7.040 4.686 11.314s-1.664 8.292-4.686 11.314c-3.022 3.022-7.040 4.686-11.314 4.686s-8.292-1.664-11.314-4.686c-3.022-3.022-4.686-7.040-4.686-11.314s1.664-8.292 4.686-11.314c3.022-3.022 7.040-4.686 11.314-4.686s8.292 1.664 11.314 4.686zM25.899 25.9c1.971-1.971 3.281-4.425 3.821-7.096-0.421 0.62-0.824 0.85-1.073-0.538-0.257-2.262-2.335-0.817-3.641-1.621-1.375 0.927-4.466-1.802-3.941 1.276 0.81 1.388 4.375-1.858 2.598 1.079-1.134 2.050-4.145 6.592-3.753 8.946 0.049 3.43-3.504 0.715-4.729-0.422-0.824-2.279-0.281-6.262-2.434-7.378-2.338-0.102-4.344-0.314-5.25-2.927-0.545-1.87 0.58-4.653 2.584-5.083 2.933-1.843 3.98 2.158 6.731 2.232 0.854-0.894 3.182-1.178 3.375-2.18-1.805-0.318 2.29-1.517-0.173-2.199-1.358 0.16-2.234 1.409-1.512 2.467-2.632 0.614-2.717-3.809-5.247-2.414-0.064 2.206-4.132 0.715-1.407 0.268 0.936-0.409-1.527-1.594-0.196-1.379 0.654-0.036 2.854-0.807 2.259-1.325 1.225-0.761 2.255 1.822 3.454-0.059 0.866-1.446-0.363-1.713-1.448-0.98-0.612-0.685 1.080-2.165 2.573-2.804 0.497-0.213 0.973-0.329 1.336-0.296 0.752 0.868 2.142 1.019 2.215-0.104-1.862-0.892-3.915-1.363-6.040-1.363-3.051 0-5.952 0.969-8.353 2.762 0.645 0.296 1.012 0.664 0.39 1.134-0.483 1.439-2.443 3.371-4.163 3.098-0.893 1.54-1.482 3.238-1.733 5.017 1.441 0.477 1.773 1.42 1.464 1.736-0.734 0.64-1.185 1.548-1.418 2.541 0.469 2.87 1.818 5.515 3.915 7.612 2.644 2.644 6.16 4.1 9.899 4.1s7.255-1.456 9.899-4.1z"></path></g></svg></div>
+</div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 839px; left: 74.38px; top: 179px;" data-block-id="9466d16bb0f56e6dce388c7364a8d73a" data-name="text-81dd93">
+    <div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 13; color: rgb(255, 255, 255); --darkreader-inline-color:#e8e6e3;" data-darkreader-inline-color="">
+        <p style="text-align:left"><strong>https://www.tweag.io/blog/tags/linear-types/</strong></p>
+    </div>
+</div>
+<div class="sl-block" data-block-type="math" style="width: auto; height: auto; left: 22.38px; top: 225.5px;" data-name="math-3055c4" data-block-id="d357b45d8659bba5e8d985a67bf5a679">
+    <div class="sl-block-content notranslate" style="z-index: 14; color: rgb(255, 255, 255); --darkreader-inline-color:#e8e6e3;" data-darkreader-inline-color="">
+        <div class="math-input">\chi</div>
+    </div>
+</div>
+<div class="sl-block" data-block-type="text" style="height: auto; width: 839px; left: 74.38px; top: 251px;" data-block-id="298cef24ed47e5496fddaa871a16aec5" data-name="text-f54c0b">
+    <div class="sl-block-content" data-placeholder-tag="p" data-placeholder-text="Text" style="z-index: 15; color: rgb(255, 255, 255); --darkreader-inline-color:#e8e6e3;" data-darkreader-inline-color="">
+        <p style="text-align:left"><strong>https://arxiv.org/abs/2103.06127</strong></p>
+    </div>
+</div>
+<div class="sl-block" data-block-type="image" style="width: 283.74px; height: 283.74px; left: 687.51px; top: 290.13px; min-width: 1px; min-height: 1px;" data-name="image-2c751e" data-block-id="45d661cc82904deb7d39103c68eaa94e">
+    <div class="sl-block-content" style="z-index: 16;" data-inline-svg="false">
+<img style="" data-natural-width="220" data-natural-height="220" data-lazy-loaded="" data-crop-x="0" data-crop-y="0" data-crop-width="1" data-crop-height="1" data-src="lix202103/119e69a85dde51df141a0bf7b272413e.svg">
+</div>
+</div></section>
+			</div>
+		</div>
+
+		<script>
+			var SLConfig = {"deck": {"id":2083069,"slug":"lix202103","title":"Linear Constraints","description":"In the past few years, I've been involved in extending the type system of the Haskell programming language to support linear types. In one sentence, a linear argument must be consumed exactly once in the body of its function; a linear function is a function whose argument is linear. Such a linear type system comes from linear logic (or, in this particular case, intuitionistic linear logic, but who's counting?) seen through the lens of the Curry-Howard correspondence. Linear typing has two main families of applications: making pure interface to mutable data structures, such as arrays (“pure” means that functions are functions in the sense of mathematics); and enforcing protocol in the type level, for instance making sure file handles are eventually closed and not written to after being closed. An example that combines both aspects is safe manual memory management, much in the style that the Rust programming language allows.  This is all possible in the, latest, 9.0 release of GHC. However these applications, using GHC 9.0's linear types require quite a bit of additional syntactic bureaucracy, compared to their unsafe equivalent. In this talk, after introducing Haskell's linear types, I'll presents linear constraints, a front-end feature for linear typing that decreases the bureaucracy of working with linear types. Linear constraints are implicit linear arguments that are to be filled in automatically by the compiler. Linear constraints are presented as a qualified type system, together with an inference algorithm which extends OutsideIn, GHC's existing constraint solver algorithm. Soundness of linear constraints is ensured by the fact that they desugar into Linear Haskell. ","width":1024,"height":576,"margin":0.02,"visibility":"all","published_at":"2021-03-31T07:25:03.880Z","sanitize_messages":null,"thumbnail_url":"https://s3.amazonaws.com/media-p.slid.es/thumbnails/3f4e6f325600348057fb519202ca143c/thumb.jpg?1616769334","view_count":15,"user":{"id":899503,"username":"aspiwack","name":"Arnaud Spiwack","description":"","thumbnail_url":"https://lh3.googleusercontent.com/-YOnfoV64thI/AAAAAAAAAAI/AAAAAAAABbA/fmTEUrhtkY0/photo.jpg","account_type":"lite","team_id":null,"settings":{"id":1506263,"present_controls":false,"present_upsizing":true,"present_pointer":false,"present_notes":true,"default_deck_tag_id":null}},"background_transition":"slide","transition":"slide","theme_id":null,"theme_font":"montserrat","theme_color":"white-blue","auto_slide_interval":0,"comments_enabled":true,"forking_enabled":false,"rolling_links":false,"center":false,"shuffle":false,"should_loop":false,"share_notes":false,"slide_number":true,"slide_count":30,"rtl":false,"version":2,"collaborative":false,"deck_user_editor_limit":1,"data_updated_at":1617283242591,"font_typekit":null,"font_google":null,"time_limit":60,"navigation_mode":"default","upsizing_enabled":true,"notes":{"34845d8650c73545447de2a1448a7e71":"- Tweag: consulting company, strong focus on R\u0026D and open source, globally distributed (remote), office in Paris, hiring","8b8d6198cdea0d6e147966cdb2a841b1":"There is a dichotomy in the Haskell ecosystem between the Data module hierarchy and the Control hierarchy. I want to speak about this. And specifically about these four modules: Data.Functor, Data.Traversable, Control.Applicative, and Control.Monad.\n\nThe idea of data and control is old in computer science, as it can already been seen in Turing machines, where the tape is data, while the state is control. It is sort of a deep intuition that most programmer probably share. Which is probably why these two module hierarchies have been created.","a00140c45ea0751d67368a6a80209425":"","ff0021ab3b665c472280323c2de6e30d":"- Data is about data structures\n- Things which contain values.\n- It is common that we can swap the values for other, hence fmap being so central\n- traverse is just a slight generalisation of fmap, which is remarkably powerful\n   - finite number of values\n","bd4a7c5684deffd1233c944e0661e15f":"","308bc4207d9022672c005d952f328476":"- Control is about how things are sequenced, control flow\n- Applicatives and monads are not control structures, but types which support control structures\n- Best exemplified by the “do” notation, and monads\n- Applicative are about static control flow","90145bfb54886da89425d060efe85440":"","4627528a8cfad53c4fe8146d56d74193":"Do functors cease to be about data when they become applicative?","5b5a5e006105b4851464634cc094509b":"- One conspicuously missing example of control structure is list: which, as a monad, can describe backtracking.","ec5135fc147ac16153a9d6be56874213":"Lists are applicative in two ways. ZipList are really not about control.","6d57b8ce97c4f9eed7219d5940196ecb":"Do-notation doesn't make much sense here","c737f4de602dfaf0ce63cc0b915e7740":"","a749cbdf8b8d9a16602f65462e17a3be":"","c9f975cb9890839b5b33e5d783b47446":"","614cf819b7469053655a1ffa03a2ceee":"","2a2e46836a5043106ae8bd7a359ec235":"","e8056d9e9d8f319abb4011c2286f59c9":"- The identity is a linear function, it doesn't mean that I can't use/share the result of `id x` several times.","fe41f475eaa1cb6b10c09e4186f8ef0d":"","d7df56e10a276bddc42b53c41b021e41":"","dd514572a30b362ad1b261700c21b9c2":"Now we know quite a bit about linear types, so let's try something a little harder.\n- Let's assume that `f` is a linear function\n- First f (not linear)\n- Second xs (linear)","23aa1f07f686f0ca423ba33c1878f63a":"- As `fmap` is a generalisation of `map`, that gives us the type for linear functors\n- It makes sense, right?\n- A functor is a container of values, to change these values we may need to apply a function many time, but we only traverse the data structure once, hopefully.","e672d8448940828e9bd1aab7e1e1a817":"- Pay attention: most important slide\n- The slogan is a bit of a mouthful, but it's really, really important.","46bb0a2266a81125f1938a912d266a82":"- Assume that the bound variable is linear.","2561c6744de4388df5d7bea9a24962be":"","84fc9a9fadaeda34a0bc3242d32e0e56":"- Computing `fmap` from bind gives a different type for `fmap` than we previously had.","de84420d7fb826861bdacc995ce7ee7c":"- So, what gives? Which is the real functor definition?\n- In linear-base they are referred to as data functors and control functors","37770563653b2df2f4a9d5cb5bc33e73":"- To the left, data functor which are not control. Control functors are all data functors.\n- `Maybe` is a bit surprising. It's a specificity of linear types. The difference between Data and Control depends on the prism you use.\n- e.g. if you know what affine types are, Affine control functors include `Maybe`","7a92c2142815b3d039d6f3cc38666fd3":"","45e6a6bf9ea57a11a2137f3793f2623c":"","eba288e5fc78bc1a3740484051aedc1e":"- Consequence: data monads are not necessarily data applicatives","9b610eaaffc1b2cacd3f9419ea5e0062":"There are limits to the analogy. Nevertheless, we opted to refer to these two kinds of functors as data functors and control functors in linear base.","f42eb8333445c62044d3a2dfd31ab521":"- You may know him as the guy who introduced the idea of monads in programming, he isn't: Phil Wadler is\n- Go watch Phil Wadler (15.15 CEST)\n- Moggi introduced the idea of monads to model the _semantics_ of programming languages","73dd5567a8616acf4b7a5b306aa1ea13":"- Moggi actually required strong monads\n- A functor is strong if… (tensorial strength)\n- A strong monad is a monad which is a strong functor\n\n- Exercise: show that you can capture free variables with strength","eff22ef0ce07ee51c6df89902e074ac1":"","bafb6302d43bae6cd26bf1ddbfca05ca":"- What is the connection between the types of data/control functors and strength?","c2e0297d178b6e671b320b35bec0350c":"- Linear logic (1987): hypotheses are resources\n- Tantalising for computation/pl. Linear Abstract Machine (1988), Yves Lafont","9c78a6c09c7bf56536f66bd2454f4380":"- Advantages of pure programs for compilers","de6e4bf9e4ba338da6ee5f6bdecc004d":"","b35ccf02817e57d33fd1a71edeb083a6":"- A witness of these advantages is the commonly used SSA form: it removes variable mutation so that it can do better optimisations.","02e1c14f89b89066345114180583f199":"","c6fa4b401808c89461ac16cc2944488f":"Core turned out to be the hardest part of the implementation\nRequires actual research to create a linear type system which understands the results of optim passes.","34ecf92b655d91e7a3efae8ff0612781":"","43ff854ccd6b26f2f6297a5bb2c743be":"- This is another (better) presentation of continuation-passing style\n- Very powerful intermediate representation.\n- But how do you lower to an actual stack representation?\n- I seem to say: I take the stack, and return a new one. Easy to implement on the heap. But in stack form?\n- You can because of a linearity condition!","5d62f5411c85cab5f258a9e61ad3fb05":"","ebc0294361b00d37184e6772d38b288b":"- First dismissive, then got me thinking","3d03ef42605535816fef1c1ebc2c31e9":"- Mezzo got me thinking\n- Deterministic / no backtracking","639cb4ef7f69bcec755846177cbe03a8":"- This is not in GHC yet (or any time soon)\n- Ascii syntax this time\n  - Pseudo syntax for existentials","d5ac292bfb2c1d4638126634ff629c21":"- You can do this in GHC TODAY","11e288b374eea5c8feec74a8be2f4d55":"- Many toys, not many production compiler.\n- Rust's connection to linear logic is a little thin, but there","49e7fdf38dc543cd33170ce2d88b4817":"- GHC 9.0, released February 2021\n- Haskell functional, typed, pure (and also lazy but whatever)\n- Links at the bottom of slides as references, I'll give the link to the slides at the end","c51c971b66f11ecc673e272d0ff481ff":"- I used to think that adding linear types to an existing language was not possible\n- The creative step from the title: having both arrow works quite fine","197eef40c2455be0228de710bdabdb64":"- Linearity is a backwards analysis\n- Aside: Monads forward analysis, Comonad backwards analysis\n- Monads are how Haskell represent effects","1c9e20cdd83332c1f49f0971b7cc61ce":"- ST: represents mutation in Haskell","7b7877e1b9eea968c12f8ed7e4af1241":"- Now the interface is pure. But we can still implement it via mutation\n- Ownership/unique pointers. No way to read stale versions of the program.","008f85a1a2435ec979ae61d9589bb0c3":"- Let's focus on the type of `write` for a minute","e976f14f51319559967d1ccc88eab193":"- This type says: please use the array linearly.\n- Function is called a “scope”","aa6747aac9f06fa560eb67cd8bdbfb5d":"- Ur is how we write Linear Logic's bang/of-course (exclamation mark not available in Haskell)\n- Defined as an ordinary data type","1667aecfa7b378f48e71a2d018389593":"Summing up:\n- Pure mutable array\n- Safe O(1) freeze","4e135a9806bd2e406cd00e02dd4c11b7":"- Hope that by releasing linear types in a production-grade compiler many more ideas will come up","1e29c6ff589239d2b5621acea264b075":"","66e888e15924fbe865133e90c5152f9f":"- Aka typestate\n- There is a paper, just release, which implements session types on top of Linear Haskell!","7f4ecbe3d0124a4551065eedcfb86149":"","68a1aecc3e7560b80350fe3520247866":"","b62bbc67ee66b034735db5166d3fb311":"- From day 1, it appears irritating to programmers, including Linear Types authors\n- Notational tricks to reduce this boilerplate were a frequent discussion among us before the paper was finished.","51264680ad490a4a1c2409db3c08f426":"- Key rule, lets us return constraints","37da14ff812800fe191dcffb5cd25ab4":"- Dale solved the problem for me","b7aabb39e89628832386467a2f6fbf16":"- Two kinds of product in linear logic"}}};
+
+
+			// Use local fonts
+			SLConfig.fonts_url = 'lib/fonts/';
+		</script>
+
+		<script src="lib/reveal.js"></script>
+		<script src="lib/reveal-plugins.js"></script>
+		<script src="lib/offline.js"></script>
+
+		<!-- Initialize the presentation -->
+		<script>
+			Reveal.initialize({
+				width: 1024,
+				height: 576,
+				margin: 0.02,
+				
+
+				hash: true,
+				controls: true,
+				progress: true,
+				mouseWheel: false,
+				showNotes: false,
+				slideNumber: true,
+				fragmentInURL: true,
+
+				autoSlide: 0,
+				autoSlideStoppable: true,
+
+				autoAnimateMatcher: SL.deck.AutoAnimate.matcher,
+
+				center: false,
+				shuffle: false,
+				loop: false,
+				rtl: false,
+				navigationMode: "default",
+
+				transition: "slide",
+				backgroundTransition: "slide",
+
+				highlight: {
+					escapeHTML: false
+				},
+
+				plugins: [ RevealZoom, RevealNotes, RevealMarkdown, RevealHighlight ]
+			});
+		</script>
+
+		
+
+	</body>
+</html>
