@@ -2331,7 +2331,7 @@ into atomic case expression is routine.
 In the complete description, we use a device which was omitted in the
 main body of the article. Namely, we'll need a way to turn every
 $[[{Ev(omega.Q)}]]$ into an $[[{Ur(Ev(Q))}]]$. For any
-$[[{e : Ev(omega.Q)}]]$, we shall write $[[urify(Q;e) :
+$[[e : Ev(omega.Q)]]$, we shall write $[[urify(Q;e) :
 Ur(Ev(omega.Q))]]$. As a shorthand, particularly useful in nested
 patterns, we will write $[[{case_pi e of {urified(Q;x) -> e'}}]]$ for
 $[[{case_pi urify(Q;e) of {Ur x -> e'}}]]$.
