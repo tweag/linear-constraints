@@ -78,6 +78,7 @@ import GHC.Base
 %format forall = "\forall"
 %format pack = "\kpack"
 %format pack' = "\kpack!"
+%format constraint (c) = "\constraintfont{" c "}"
 %
 %format a1
 %format a_n
@@ -411,9 +412,9 @@ closeFile  :: Handle ⊸ IOL ()
   \hfill
   \begin{subfigure}{.55\linewidth}
 \begin{code}
-openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= Open h)
-readLine   :: Open h =>. Handle h -> IOL (Ur String .<= Open h)
-closeFile  :: Open h =>. Handle h -> IOL ()
+openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
+readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint (Open h))
+closeFile  :: constraint (Open h) =>. Handle h -> IOL ()
 \end{code}
 \caption{Linear Constraints}
 \label{fig:constraints-interface}
@@ -480,7 +481,7 @@ from or closed without triggering a compile time error.
 
 Consider the Haskell function |show|:
 \begin{code}
-show :: Show a => a -> String
+show :: constraint (Show a) => a -> String
 \end{code}
 In addition to the function arrow |->|, common to all functional
 programming languages, the type of this function features a fat arrow |=>|.
@@ -508,7 +509,7 @@ Using the linear constraint |Open h| to represent that a file is open, we can gi
 the following type to |closeFile|:
 
 \begin{code}
-closeFile :: Open h =>. Handle h -> IOL ()
+closeFile :: constraint (Open h) =>. Handle h -> IOL ()
 \end{code}
 
 There are a few things to notice:
@@ -517,25 +518,27 @@ There are a few things to notice:
   the version in Figure~\ref{fig:linear-interface} without linear
   constraints  has type |closeFile :: Handle ->. IOL ()|.
   The type variable |h| is a type-level name for the file handle which we are closing.
-  Ideally, we'd like the linear constraint to refer directly to the handle value, and have the type |closeFile :: (h :: Handle) -> Open h =>. IOL ()|.
+  Ideally, we'd like the linear constraint to refer directly to the
+  handle value, and have the type |closeFile :: (h :: Handle) -> constraint (Open h) =>. IOL ()|.
   While giving a name to a function argument is the bread and butter of more
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
   Haskell~\cite{liquid-haskell-abstract-refinement-types}, Haskell doesn't have such a
   naming mechanism built in yet, so we have to resort to a type variable to mediate the
   link between handles and linear constraints.
-\item Second, if  we have a single, linear, |Open h|
-  available, then after |closeFile| there will not be any |Open h|
+\item Second, if  we have a single, linear, |constraint (Open h)|
+  available, then after |closeFile| there will not be any |constraint (Open h)|
   left to use, thus preventing the file from being closed
   twice. This is precisely what we were trying to achieve.
 \end{itemize}
 
 This deals with closing files and ensuring that a handle cannot be closed more
-than once.  However, we still need to explain how a constraint |Open h| can come
+than once.  However, we still need to explain how a constraint
+|constraint (Open h)| can come
 into existence. For this, we introduce a type construction |exists a1 ... an. t
-.<= Q|, where |Q| is some (linear) constraint that is created.  The type of
+.<= contraints (Q)|, where |constraint(Q)| is some (linear) constraint that is created.  The type of
 |openFile| is thus:
 \begin{code}
-openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= Open h)
+openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
 \end{code}
 The output of this function is a new handle that is unrestricted,
 along with a new constraint that indicates that the handle is open.
@@ -547,7 +550,7 @@ file, and to keep that file open after reading. To do so, its signature
 indicates that given a handle |h|, it consumes and produces the implicit |Open h|
 constraint, while also producing an unrestricted |String|.
 \begin{code}
-readLine   :: Open h =>. Handle h -> IOL (Ur String .<= Open h)
+readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint (Open h))
 \end{code}
 
 The fact that existential quantification generates new type-level names
@@ -559,16 +562,16 @@ shall use it in exactly this way: |openFile| uses an existential
 quantifier to generate the type-level name of the file
 handle. Existentially quantified types are paired with a constraint |Q|
 which we understand as being returned by functions. We will freely
-omit the |exists a1 ... an.| or |.<= Q| parts when they are
+omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
 empty.
 
 
 Haskell doesn't have an existential quantifier, however it can
-be encoded as a \textsc{gadt}. For instance |exists h. Ur (Handle h) .<= Open h| can
+be encoded as a \textsc{gadt}. For instance |exists h. Ur (Handle h) .<= constraint (Open h)| can
 be implemented as
 \begin{code}
 data PackHandle where
-  Pack :: Open h =>. Handle h -> PackHandle
+  Pack :: constraint (Open h) =>. Handle h -> PackHandle
 \end{code}
 That is, while this paper introduces special-purpose existential types,
 in the implementation as a \textsc{ghc} extension, packed linear constraints will
@@ -589,12 +592,12 @@ some simple examples. Using constraints to represent expendable resources allows
 reject certain classes of ill-behaved programs. Accordingly, the following examples show
 the different reasons a program might be rejected.
 
-In what follows, we will be using a class |C| that is consumed by the |useC|
+In what follows, we will be using a class |constraint (C)| that is consumed by the |useC|
 function.
 \begin{code}
-class C
+class constraint (C)
 
-useC :: C =>. Int
+useC :: constraint (C) =>. Int
 \end{code}
 The type of |useC| indicates that it consumes its linear resource |C| exactly once.
 
@@ -602,7 +605,7 @@ The type of |useC| indicates that it consumes its linear resource |C| exactly on
 
 Now consider the following program, which we reject:
 \begin{code}
-dithering :: C =>. Bool -> Int
+dithering :: constraint (C) =>. Bool -> Int
 dithering x = if x then useC else 10
 \end{code}
 The problem with |dithering| is that it does not commit properly to how much
@@ -620,7 +623,7 @@ the multiplicity of the second arrow is $[[{omega}]]$.
 
 One way to improperly use the linear |const| is by neglecting a linear variable:
 \begin{code}
-neglecting :: C =>. Int
+neglecting :: constraint (C) =>. Int
 neglecting = const 10 useC
 \end{code}
 The problem with |neglecting| is that although |useC| is mentioned in this program,
@@ -631,10 +634,10 @@ be rejected.
 The rule is that a linear constraint is only consumed in a linear context. For
 example,
 \begin{code}
-notNeglecting :: C =>. Int
+notNeglecting :: constraint (C) =>. Int
 notNeglecting = const useC 10
 \end{code}
-is accepted, because the |C| constraint is passed on to |useC| which itself
+is accepted, because the |constraint (C)| constraint is passed on to |useC| which itself
 appears as an argument to a linear function (whose result is consumed linearly).
 
 \subsubsection{Overusing}
@@ -642,13 +645,13 @@ appears as an argument to a linear function (whose result is consumed linearly).
 
 Finally, consider the following program, which should be rejected:
 \begin{code}
-overusing :: C =>. (Int, Int)
+overusing :: constraint (C) =>. (Int, Int)
 overusing = (useC, useC)
 \end{code}
 This is program is rejected because it uses |C| twice. However, the
 following version is accepted:
 \begin{code}
-notOverusing :: (C, C) =>. (Int, Int)
+notOverusing :: constraint ((C, C)) =>. (Int, Int)
 notOverusing = (useC, useC)
 \end{code}
 That is, it is possible to have multiple copies of a given
@@ -677,13 +680,13 @@ Bind must be linear because, as explained in the previous section, a linear
 constraint can only be consumed in a linear context. This is required for the
 following program to typecheck:
 \begin{code}
-readTwo ::  Open h =>. Handle h -> IOL (Ur (String, String) .<= Open h)
+readTwo ::  constraint (Open h) =>. Handle h -> IOL (Ur (String, String) .<= constraint (Open h))
 readTwo h =  readLine h >>= \case pack' xs ->
              readLine h >>= \case pack' ys ->
              return (pack' (xs, ys))
 \end{code}
 If it were not linear, the first argument |readLine h| of the first bind would
-not be able to consume the |Open h| constraint.
+not be able to consume the |constraint (Open h)| constraint.
 
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
@@ -723,13 +726,13 @@ For more granular control, we will be using three linear constraints:
 one for reading, one for writing, and one for ownership.
 
 \begin{minipage}{0.3\linewidth}
-> class Read (n :: Location)
+> class constraint (Read (n :: Location))
 \end{minipage}
 \begin{minipage}{0.3\linewidth}
-> class Write (n :: Location)
+> class constraint (Write (n :: Location))
 \end{minipage}
 \begin{minipage}{0.3\linewidth}
-> class Own (n :: Location)
+> class constraint (Own (n :: Location))
 \end{minipage}
 \\
 Thanks to this extended set of constraints, programs are able to read from or write
@@ -742,13 +745,13 @@ Therefore, writing also requires owning the read capability.  We
 systematically use the |RW| set of constraints, defined below, instead of
 |Write|.
 
-> type RW n = (Read n, Write n)
+> type constraint (RW n) = constraint ((Read n, Write n))
 
 Likewise, a location cannot be deallocated if any part of the program
 has a read or write reference to it, so all 3 capabilities are
 needed for ownership. So we use |O|, instead of |Own|, defined thus:
 
-> type O n = (Read n, Write n, Own n)
+> type constraint (O n) = constraint ((Read n, Write n, Own n))
 
 With these components in place, we can provide an \textsc{api} for ownable
 references.
@@ -759,7 +762,7 @@ The type |AtomRef| is the type of references to values of a type |a| at
 location |n|. Allocation of a reference can be done using the
 following function.
 
-> newRef :: (forall n. ^^ O n =>. AtomRef a n -> Ur b) ⊸ Ur b
+> newRef :: (forall n. ^^ constraint (O n) =>. AtomRef a n -> Ur b) ⊸ Ur b
 
 The reference is made available in a function which we call the
 \emph{scope} of the reference. The return type of the scope is,
@@ -772,8 +775,8 @@ no longer guarantee that the reference has a unique owner.
 To read a reference, a simple |Read| constraint is demanded, and
 immediately returned. Writing is handled similarly.
 
-> readRef :: (Read n) =>. AtomRef a n -> Ur a .<= Read n
-> writeRef :: (RW n) =>. AtomRef a n -> a -> () .<= RW n
+> readRef :: constraint (Read n) =>. AtomRef a n -> Ur a .<= constraint (Read n)
+> writeRef :: constraint (RW n) =>. AtomRef a n -> a -> () .<= constraint (RW n)
 
 Note that the above primitives do not need to explicitly declare
 effects in terms of a monad or another higher-order effect-tracking
@@ -792,13 +795,13 @@ in the |Write| constraint that it consumes.
 
 Deallocation consumes all linear constraints associated with |O n|.
 
-> freeRef :: O n =>. AtomRef a n -> ()
+> freeRef :: constraint (O n) =>. AtomRef a n -> ()
 
 As an alternative to freeing the reference, one could transfer control
 of the memory location to the garbage collector. This operation is
 sometimes called ``freezing'':
 
-> freezeRef :: O n =>. AtomRef a n -> Ur a
+> freezeRef :: constraint (O n) =>. AtomRef a n -> Ur a
 
 \subsection{Arrays}
 \label{sec:arrays}
@@ -819,7 +822,7 @@ nested mutable arrays. The key ingredient is for inner arrays to
 relinquish their ownership to the outer array.
 
 > data PArray (a :: Location -> Type) (n :: Location)
-> newPArray    :: (forall n. ^^ O n =>. PArray a n -> Ur b) ⊸ Ur b
+> newPArray    :: (forall n. ^^ constraint (O n) =>. PArray a n -> Ur b) ⊸ Ur b
 
 The kind of |a| is |Location ->
 Type|: this way we can easily enforce that each reference in the
@@ -830,7 +833,7 @@ manipulate arrays of arrays with this \textsc{api}.
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is relinquished to the array.
 
-> writePArray  :: (RW n, O p) =>. PArray a n -> Int -> a p -> () .<= RW n
+> writePArray  :: constraint ((RW n, O p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
 
 More precisely, the ownership of the location |p| is absorbed into that
 of |n|. Therefore, the associated operational semantics is to move the
@@ -839,7 +842,7 @@ reference inside the array (and deallocate any previous reference at that index)
 We still want to have read and write access to inner references, of
 course, so we use |lendPArrayElt|:
 
-> lendPArrayElt  :: RW n =>. PArray a n -> Int -> (forall p. ^^ RW p =>. a p -> r .<= RW p) ⊸ r .<= RW n
+> lendPArrayElt  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 
 The |lendPArrayElt a i k| primitive lends access to the reference at index |i| in
 |a|, to a scope function |k| (in Rust terminology, the scope
@@ -850,7 +853,7 @@ wrap the result in |Ur|.
 Crucially, with this \textsc{api}, |RW n| and |RW p| are never simultaneously
 available. The following function would not be sound:
 
-> extractEltWrong  :: RW n =>. PArray a n -> Int -> exists p. Ur (a p) .<= (RW n, RW p)
+> extractEltWrong  :: constraint (RW n) =>. PArray a n -> Int -> exists p. Ur (a p) .<= constraint ((RW n, RW p))
 
 Indeed, when called from a context where the program owns |n|,
 |n| could immediately be deallocated, even though |RW
@@ -858,19 +861,19 @@ p| would remain available, letting us write to free memory. For the same reason,
 gaining read access to an element needs to be done using a
 scoped \textsc{api} as well:
 
-> lendPArrayEltRead  ::  Read n =>. PArray a n -> Int
->                    ->  (forall p. ^^ Read p =>. a p -> r .<= Read p)
->                    ⊸   r .<= Read n
+> lendPArrayEltRead  ::  constraint (Read n) =>. PArray a n -> Int
+>                    ->  (forall p. ^^ constraint (Read p) =>. a p -> r .<= constraint (Read p))
+>                    ⊸   r .<= constraint (Read n)
 
 Finally, we can freeze arrays, and arrays of arrays or more, using the
 following primitive:
 
-> freezePArray :: O n =>. PArray a n -> () <== Read n
+> freezePArray :: constraint (O n) =>. PArray a n -> () <== constraint (Read n)
 
 After |freezePArray n|, we have unrestricted read access to |n| (and
 any element of |n|), as expected.
 
-> readArray :: Read n => PArray a n -> Int -> a n
+> readArray :: constraint (Read n) => PArray a n -> Int -> a n
 
 Crucially, and in contrast to the plain linear types \textsc{api} the
 type |PArray| is both the type of mutable arrays and immutable arrays,
@@ -1689,7 +1692,7 @@ the list). To understand why, consider the following example:
 \begin{code}
 f :: FilePath -> IOL ()
 f fp =   do  {  pack h <- openFile fp
-             ;  let  {  cl :: Open h =>. IOL ()
+             ;  let  {  cl :: constraint (Open h) =>. IOL ()
                      ;  cl = closeFile h }
              ;  cl }
 \end{code}
@@ -1702,21 +1705,21 @@ no rule solves a linear constraint if it appears both in the
 unrestricted and the linear context.
 Consider the following (contrived) \textsc{api}:
 \begin{code}
-class C
+class constraint (C)
 
-giveC :: (C => Int) -> Int
-useC :: C =>. Int
+giveC :: (constraint (C) => Int) -> Int
+useC :: constraint (C) =>. Int
 \end{code}
-|giveC| gives an unrestricted copy of |C| to some continuation, while |useC|
-uses |C| linearly. Now consider a consumer of this \textsc{api}:
+|giveC| gives an unrestricted copy of |constraint (C)| to some continuation, while |useC|
+uses |constraint (C)| linearly. Now consider a consumer of this \textsc{api}:
 \begin{code}
-bad :: C =>. (Int, Int)
+bad :: constraint (C) =>. (Int, Int)
 bad = (giveC useC, useC)
 \end{code}
 It is possible to give a type derivation to |bad| in the qualified type system
 of Section~\ref{sec:qualified-type-system}. In fact, the constraint assignment
-is unambiguous: the left-most |useC| must use the unrestricted |C|, while the
-right-most must use the linear |C|. This assignment, however, would require of
+is unambiguous: the left-most |useC| must use the unrestricted |constraint (C)|, while the
+right-most must use the linear |constraint (C)|. This assignment, however, would require of
 the constraint solver to make a guess when solving the left-most |useC|. So in
 the spirit of OutsideIn, |bad| is rejected.
 
@@ -2057,10 +2060,10 @@ consumes the linear constraint |Open h|. So, by the time we try to
 |readLine h|, the constraint is no longer available.
 
 What the programmer really meant, here, was for |closer| to have type
-|Open h =>. IOL ()|. After all a |let| definition is not part of the
+|constraint (Open h) =>. IOL ()|. After all a |let| definition is not part of the
 sequence of instructions, it is just a definition for later; it is not
 supposed to consume the current state of the file. With no let
-generalisation, the only way to give |closer| the type |Open h =>. IOL
+generalisation, the only way to give |closer| the type |constraint (Open h) =>. IOL
 ()| is to give |closer| a type signature. In current \textsc{ghc}, we
 can't write that signature down, since the type variable |h| is not
 bound in the program text, and there is no syntax for binding it
