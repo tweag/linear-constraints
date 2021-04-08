@@ -166,7 +166,7 @@ import GHC.Base
   \newcommand{\lollycirc}{\raisebox{-0.255ex}{\scalebox{1.4}{$\circ$}}}
   \newcommand{\Lolly}{\constraintop{=\kern-1.1ex \lollycirc}}
   \newcommand{\RLolly}{\revop{\Lolly}}
-  \newcommand{\qtensor}{\otimes}
+  \newcommand{\qtensor}{\constraintfont{\otimes}}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
@@ -616,7 +616,7 @@ Now consider the type of the linear version of |const|:
 const :: a ->. b -> a
 \end{spec}
 This function uses its first argument linearly, and ignores the second. Thus,
-the multiplicity of the second arrow is $[[omega]]$.
+the multiplicity of the second arrow is $[[{omega}]]$.
 
 One way to improperly use the linear |const| is by neglecting a linear variable:
 \begin{code}
@@ -625,7 +625,7 @@ neglecting = const 10 useC
 \end{code}
 The problem with |neglecting| is that although |useC| is mentioned in this program,
 it is never evaluated because |const| does not use its second argument.
-The constraint |C| is thus consumed $[[omega]]$ times so this program ought to
+The constraint |C| is thus consumed $[[{omega}]]$ times so this program ought to
 be rejected.
 
 The rule is that a linear constraint is only consumed in a linear context. For
@@ -898,12 +898,12 @@ Like in Linear Haskell~\cite{LinearHaskell} we make use of a
 system of \emph{multiplicities}, which describe how
 many times a function consumes its input. Linear Haskell additionally supports
 multiplicity polymorphism. For our purposes, we need only the
-simplest system of multiplicity: that composed of only $[[1]]$ (representing
-linear functions) and $[[omega]]$ (representing
+simplest system of multiplicity: that composed of only $[[{1}]]$ (representing
+linear functions) and $[[{omega}]]$ (representing
 regular Haskell functions).
 $$
 \begin{array}{lcll}
-  [[pi]], [[rho]] & \bnfeq & [[1]] \bnfor [[omega]] & \text{Multiplicities}
+  [[{pi}]], [[{rho}]] & \bnfeq & [[{1}]] \bnfor [[{omega}]] & \text{Multiplicities}
 \end{array}
 $$
 The idea of multiplicity goes back at least
@@ -917,7 +917,7 @@ operation---addition and multiplication\footnote{We adopt the convention that eq
 $$
 \left\{
   \begin{array}{lcl}
-    [[pi + rho]] & = & [[omega]]
+    [[{pi + rho}]] & = & [[{omega}]]
   \end{array}
 \right.
 $$
@@ -926,8 +926,8 @@ $$
 $$
 \left\{
   \begin{array}{lcl}
-    [[1 . pi]] & = & [[pi]] \\
-    [[omega . pi]] & = & [[omega]]
+    [[{1 . pi}]] & = & [[{pi}]] \\
+    [[{omega . pi}]] & = & [[{omega}]]
   \end{array}
 \right.
 $$
@@ -957,7 +957,7 @@ constraints.
 Following OutsideIn~\cite[Section 3.2, in particular Figure
 3]{OutsideIn}, we parameterise our entire type system by a constraint
 domain: the $X$ in OutsideIn($X$). Such a domain is characterised by
-a set of \emph{atomic constraints}, written $[[q]]$, and an entailment
+a set of \emph{atomic constraints}, written $[[{q}]]$, and an entailment
 relation $[[Q1 ||- Q2]]$, with properties specified in
 Figure~\ref{fig:entailment-relation}. We adopt \textsc{ghc}'s
 terminology and call these \emph{simple constraints} to distinguish
@@ -974,7 +974,7 @@ only serves to support the rest of Haskell, or future extensions.
 %
 $$
 \begin{array}{lcll}
-  [[Q]] & \bnfeq & [[pi.q]] \bnfor [[Q1*Q2]] \bnfor [[Empty]] &
+  [[{Q}]] & \bnfeq & [[{pi.q}]] \bnfor [[{Q1*Q2}]] \bnfor [[{Empty}]] &
                                                                 \text{Simple constraints}
 \end{array}
 $$
@@ -982,7 +982,7 @@ $$
 The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
   factor}.
 It indicates whether the constraint is to be used linearly
-($[[1]]$) or without restriction ($[[omega]]$).
+($[[{1}]]$) or without restriction ($[[{omega}]]$).
 
 Atomic constraints are treated abstractly by our system
 (just like they are in OutsideIn). For
@@ -991,9 +991,9 @@ we only require that it adheres to the interface given in
 Section~\ref{sec:constraint-solver}. But for the sake of this section,
 we only need that the domain be equipped with the entailment relation.
 
-The empty constraint is written as $[[Empty]]$. This corresponds to the
+The empty constraint is written as $[[{Empty}]]$. This corresponds to the
 multiplicative truth $\mathbf{1}$ of linear logic, but we chose this notation
-because it is more distinct from the $[[1]]$ multiplicity.
+because it is more distinct from the $[[{1}]]$ multiplicity.
 
 OutsideIn introduces, as part of the constraint domain, a generalised
 kind of constraint $\mathcal{Q}$, which include top-level axioms, such
@@ -1008,10 +1008,10 @@ of tensor products, as well as idempotence of the unrestricted constraints. We
 require the entailment relation to respect these properties. That is:
 $$
 \begin{array}{rcl}
-  [[Q1 * Q2]] & = & [[Q2 * Q1]] \\
-  [[(Q1*Q2)*Q3]] & = & [[Q1*(Q2*Q3)]] \\
-  [[omega.q * omega.q]] & = & [[omega.q]] \\
-  [[Q * Empty]] & = & [[Q]]
+  [[{Q1 * Q2}]] & = & [[{Q2 * Q1}]] \\
+  [[{(Q1*Q2)*Q3}]] & = & [[{Q1*(Q2*Q3)}]] \\
+  [[{omega.q * omega.q}]] & = & [[{omega.q}]] \\
+  [[{Q * Empty}]] & = & [[{Q}]]
 \end{array}
 $$
 %
@@ -1020,24 +1020,24 @@ Scaling is extended to all constraints as follows:
 $$
 \left\{
   \begin{array}{lcl}
-    [[pi.Empty]] & = & [[Empty]]\\
-    [[pi.(Q1 * Q2)]] & = & [[pi.Q1 * pi.Q2]] \\
-    [[pi.(rho. Q)]]  & = & [[(pi.rho) . Q]]
+    [[{pi.Empty}]] & = & [[{Empty}]]\\
+    [[{pi.(Q1 * Q2)}]] & = & [[{pi.Q1 * pi.Q2}]] \\
+    [[{pi.(rho. Q)}]]  & = & [[{(pi.rho) . Q}]]
   \end{array}
 \right.
 $$
 %
-The rule that $[[omega.(Q1 * Q2)]] = [[omega.Q1 * omega.Q2]]$ is not a
+The rule that $[[{omega.(Q1 * Q2)}]] = [[{omega.Q1 * omega.Q2}]]$ is not a
 typical feature of linear logic. Linear Haskell, however, introduces
 the corresponding type isomorphism for the sake of polymorphism. While this
 article isn't concerned with polymorphism, this equality does make
-the overall presentation a bit simpler. Note, in particular, that $[[1.Q]] = [[Q]]$ and
-$[[omega.Q * omega.Q]] = [[omega.Q]]$.
+the overall presentation a bit simpler. Note, in particular, that $[[{1.Q}]] = [[{Q}]]$ and
+$[[{omega.Q * omega.Q}]] = [[{omega.Q}]]$.
 
 We will often omit the scaling factor for linear atomic constraints
-and write $[[q]]$ for $[[1.q]]$. %% This convention does not induce any
-%% ambiguity. Indeed the only potential ambiguity is between $[[pi.q]]$
-%% and $[[pi.(1.q)]]$, which are  equal.
+and write $[[{q}]]$ for $[[{1.q}]]$. %% This convention does not induce any
+%% ambiguity. Indeed the only potential ambiguity is between $[[{pi.q}]]$
+%% and $[[{pi.(1.q)}]]$, which are  equal.
 
 \begin{definition}[Requirements for the entailment relation]\label{def:entailment-relation}
   The constraint entailment relation must satisfy the properties
@@ -1054,15 +1054,15 @@ Section~\ref{sec:type-inference}.
     \begin{array}{l}
       [[Q ||- Q]] \\
       \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
-      \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[Q']] \text{ and } [[Q'']]
-      \text{ such that } [[Q]]=[[Q' * Q'']] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
-      \text{if } [[Q ||- Empty]] \text{ then there exists } [[Q']] \text{ such that } [[Q]]=[[omega.Q']] \\
+      \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[{Q'}]] \text{ and } [[{Q''}]]
+      \text{ such that } [[{Q}]]=[[{Q' * Q''}]] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
+      \text{if } [[Q ||- Empty]] \text{ then there exists } [[{Q'}]] \text{ such that } [[{Q}]]=[[{omega.Q'}]] \\
       \text{if } [[Q1 ||- Q1']] \text{ and } [[Q2 ||- Q2']] \text{ then } [[Q1 * Q2 ||- Q1' * Q2']] \\
       \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
-      \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[Q']] \text{ such
-      that } [[Q]] = [[pi. Q']] \text{ and } [[Q' ||- rho . q]] \\
+      \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[{Q'}]] \text{ such
+      that } [[{Q}]] = [[{pi. Q'}]] \text{ and } [[Q' ||- rho . q]] \\
       \text{if } [[Q1 ||- Q2]] \text{ then } [[omega.Q1 ||- Q2]] \\
-      \text{if } [[Q1 ||- Q2]] \text{ then for all } [[Q']], [[omega.Q' * Q1 ||- Q2]]
+      \text{if } [[Q1 ||- Q2]] \text{ then for all } [[{Q'}]], [[omega.Q' * Q1 ||- Q2]]
     \end{array}
   $$
 \caption{Requirements for the entailent relation $[[Q1 ||- Q2]]$}
@@ -1080,7 +1080,7 @@ of scaling extend to scaling of arbitrary constraints.
 
 \begin{lemma}[Inversion of promotion]
   \label{lem:q:scaling-inversion}
-  If $[[Q1 ||- pi.Q2]]$, then $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- Q2]]$ for some $[[Q']]$.
+  If $[[Q1 ||- pi.Q2]]$, then $[[{Q1}]]=[[{pi.Q1'}]]$ and $[[Q1' ||- Q2]]$ for some $[[{Q'}]]$.
 \end{lemma}
 
 Proofs of these lemmas (and others) appear in our anonymized supplementary material.
@@ -1096,20 +1096,20 @@ typing rules in Figure~\ref{fig:typing-rules}.
   \centering\small
   $$
   \begin{array}{lcll}
-    [[a]], [[b]] & \bnfeq & \ldots & \text{Type variables} \\
-    [[x]], [[y]] & \bnfeq & \ldots & \text{Expression variables} \\
-    [[K]] & \bnfeq & \ldots & \text{Data constructors} \\
-    [[s]] & \bnfeq & [[forall as. Q =o t]] & \text{Type schemes} \\
-    [[t]], [[u]] & \bnfeq & [[a]] \bnfor [[exists as. t o= Q]] \bnfor [[t1 ->_pi t2]]
-                            \bnfor [[T ts]] & \text{Types} \\
-    [[G]], [[D]] & \bnfeq & [[empty]] \bnfor [[G, x:_pi s]] &
+    [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
+    [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
+    [[{s}]] & \bnfeq & [[{forall as. Q =o t}]] & \text{Type schemes} \\
+    [[{t}]], [[{u}]] & \bnfeq & [[{a}]] \bnfor [[{exists as. t o= Q}]] \bnfor [[{t1 ->_pi t2}]]
+                            \bnfor [[{T ts}]] & \text{Types} \\
+    [[{G}]], [[{D}]] & \bnfeq & [[{empty}]] \bnfor [[{G, x:_pi s}]] &
                                                               \text{Contexts} \\
-    [[e]] & \bnfeq & [[x]] \bnfor [[K]] \bnfor [[\x. e]] \bnfor [[e1
-                     e2]] \bnfor [[pack e]] & \text{Expressions}\\
+    [[{e}]] & \bnfeq & [[{x}]] \bnfor [[{K}]] \bnfor [[{\x. e}]] \bnfor [[e1
+                     e2]] \bnfor [[{pack e}]] & \text{Expressions}\\
                  &\bnfor & [[unpack x=e1 in
-                     e2]] \bnfor [[case_pi e of { alts }]] &\\
+                     e2]] \bnfor [[{case_pi e of { alts }}]] &\\
                  &\bnfor & [[let_pi
-                     x=e1 in e2]] \bnfor [[let_pi x : s = e1 in e2]] &
+                     x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
   \end{array}
   $$
   \caption{Grammar of the qualified type system}
@@ -1119,8 +1119,8 @@ typing rules in Figure~\ref{fig:typing-rules}.
 \begin{figure}
   \centering\small
   \drules[In]{$[[x :_1 s \in G]]$}{Context membership}{Var,Weaken}
-  \drules[S]{$[[pi . G]]$}{Context scaling}{Empty,Binding}
-  \drules[A]{$[[G1 + G2]]$}{Context addition}{Binding,Absent,Empty}
+  \drules[S]{$[[{pi . G}]]$}{Context scaling}{Empty,Binding}
+  \drules[A]{$[[{G1 + G2}]]$}{Context addition}{Binding,Absent,Empty}
   \drules[E]{$[[Q;G |- e : t]]$}{Expression
     typing}{Var,Abs,App,Pack,Unpack,Let,LetSig,Case,Sub}
   \caption{Qualified type system}
@@ -1130,12 +1130,12 @@ typing rules in Figure~\ref{fig:typing-rules}.
 Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system of Figure~\ref{fig:typing-rules} is
 a \emph{qualified type system} in the style first introduced
 by \citet{QualifiedTypes}. Such a qualified type system introduces a
-judgement of the form $[[Q;G |- e : t]]$, where $[[G]]$ is a standard
-type context, and $[[Q]]$ is a simple constraint as in
-Section~\ref{sec:constraint-domain}. $[[Q]]$ behaves
-much like $[[G]]$, which will be instrumental for
+judgement of the form $[[Q;G |- e : t]]$, where $[[{G}]]$ is a standard
+type context, and $[[{Q}]]$ is a simple constraint as in
+Section~\ref{sec:constraint-domain}. $[[{Q}]]$ behaves
+much like $[[{G}]]$, which will be instrumental for
 desugaring in Section~\ref{sec:desugaring}; the main difference is
-that $[[G]]$ is addressed explicitly, whereas $[[Q]]$
+that $[[{G}]]$ is addressed explicitly, whereas $[[{Q}]]$
 is used implicitly in \rref{E-Var}.
 
 The type system of Figure~\ref{fig:typing-rules} is purely
@@ -1150,7 +1150,7 @@ desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 The main differences with OutsideIn, either for simplification, or for
 linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \begin{itemize}
-\item The type system has linear functions ($[[a ->_1 b]]$ in
+\item The type system has linear functions ($[[{a ->_1 b}]]$ in
   Figure~\ref{fig:typing-rules}). Despite our focus on linear constraints,
   we still need linearity in ordinary arguments.
   For example, the bind combinator for |IOL| (Section~\ref{sec:introduction})
@@ -1158,20 +1158,20 @@ linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 
   Furthermore, the linearity of arrows interacts in interesting
   ways with linear constraints. Consider $[[f : a ->_omega b]]$ and
-  $[[x : q =o a]]$, then calling $[[f x]]$ would actually use $[[q]]$
+  $[[x : q =o a]]$, then calling $[[{f x}]]$ would actually use $[[{q}]]$
   many times! That is, it must be impossible to derive
   $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$.
   Otherwise we could make, for instance, the |overusing| function from
   Section~\ref{sec:overusing}.
   You can check that $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$
   indeed doesn't
-  type check, because the scaling of $[[Q2]]$ in \rref{E-App} ensures that
-  the constraint would be $[[omega.q]]$ instead. On the other hand,
+  type check, because the scaling of $[[{Q2}]]$ in \rref{E-App} ensures that
+  the constraint would be $[[{omega.q}]]$ instead. On the other hand,
   it's perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
-  =o a |- f x : b]]$ when $[[f]]$ is a linear function.
+  =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
 \item \Rref{E-Let} includes support for local
   assumptions. We thus have the ability to generalise a subset of
-  the constraints needed by $[[e1]]$ (but not the type variables). The inference algorithm of
+  the constraints needed by $[[{e1}]]$ (but not the type variables). The inference algorithm of
   Section~\ref{sec:type-inference} will not make use of this
   possibility, but we revisit this capability in Section~\ref{sec:let-generalisation}.
 \item Data types are not \textsc{gadt}s.
@@ -1179,7 +1179,7 @@ linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
   rule. It would be
   straightforward, yet tedious, to extend data types here to full
   \textsc{gadt}s.
-\item However, we include $[[exists as. t o= Q]]$, as
+\item However, we include $[[{exists as. t o= Q}]]$, as
   introduced in Section~\ref{sec:what-it-looks-like}, together with
   the $\kpack$ and $\kunpack$ constructions. These existentials act as roughly a
   \textsc{gadt} with a single constructor (see rules~\rref*{E-Pack} and
@@ -1192,7 +1192,7 @@ linear constraints, are: \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
   dedicated rule.
 \end{itemize}
 %
-\info{No substitution on $[[Q1]]$ in the $\kunpack$ rule, because there is
+\info{No substitution on $[[{Q1}]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
 
 
@@ -1259,7 +1259,7 @@ they are constraints which the constraint solver \emph{wants} to prove.
 %
 $$
 \begin{array}{lcll}
-  [[C]] & \bnfeq & [[Q]] \bnfor [[C1*C2]] \bnfor [[C1&C2]] \bnfor [[pi.(Q=>C)]]&
+  [[{C}]] & \bnfeq & [[{Q}]] \bnfor [[{C1*C2}]] \bnfor [[{C1&C2}]] \bnfor [[{pi.(Q=>C)}]]&
                                                                 \text{Wanted constraints}
 \end{array}
 $$
@@ -1272,47 +1272,47 @@ affords. In OutsideIn, existential quantifiation restricts which variables can
 be unified with which; but we are not doing any unification.
 
 The more interesting difference is the presence of the extra
-$[[C1 & C2]]$ construction (read $[[C1]]$ \emph{with} $[[C2]]$). This is a
+$[[{C1 & C2}]]$ construction (read $[[{C1}]]$ \emph{with} $[[{C2}]]$). This is a
 connective from linear logic: a remarkable feature of linear logic is
 that every connective from classical or intuitionistic logic tends to
-appear in two flavours in linear logic. Where $[[C1*C2]]$ is the
-\emph{multiplicative} conjunction, $[[C1&C2]]$ is the \emph{additive}
+appear in two flavours in linear logic. Where $[[{C1*C2}]]$ is the
+\emph{multiplicative} conjunction, $[[{C1&C2}]]$ is the \emph{additive}
 conjunction. Both connectives are conjunctions, but they differ rather
-dramatically in meaning: a proof of $[[C1*C2]]$ consumes both the (linear)
-assumptions consumed by a proof of $[[C1]]$ and a proof of $[[C2]]$. On the
-other hand in $[[C1&C2]]$, both the proof of $[[C1]]$ and the proof of $[[C2]]$ \emph{must}
-consume the same assumptions, and that of $[[C1 & C2]]$ will consume the same
-assumptions. The intuition, here, is that in $[[C1 & C2]]$, only
-one of $[[C1]]$ or $[[C2]]$ will be eventually used. Much like if
-$[[C1]]$ and $[[C2]]$ were branches in a $\kcase$-expression. Not
-coincidentally, $[[C1&C2]]$ will be used to generate constraints for
+dramatically in meaning: a proof of $[[{C1*C2}]]$ consumes both the (linear)
+assumptions consumed by a proof of $[[{C1}]]$ and a proof of $[[{C2}]]$. On the
+other hand in $[[{C1&C2}]]$, both the proof of $[[{C1}]]$ and the proof of $[[{C2}]]$ \emph{must}
+consume the same assumptions, and that of $[[{C1 & C2}]]$ will consume the same
+assumptions. The intuition, here, is that in $[[{C1 & C2}]]$, only
+one of $[[{C1}]]$ or $[[{C2}]]$ will be eventually used. Much like if
+$[[{C1}]]$ and $[[{C2}]]$ were branches in a $\kcase$-expression. Not
+coincidentally, $[[{C1&C2}]]$ will be used to generate constraints for
 $\kcase$-expressions.
 
 Finally, implication constraints differ from those of OutsideIn in two ways. First they are
 linear implications (an implication which must consume its
 assumption exactly once), where in OutsideIn they are intuitionistic implications.
-Additionally, there is a scaling factor $[[pi]]$ on implication. This scaling prescribes how
+Additionally, there is a scaling factor $[[{pi}]]$ on implication. This scaling prescribes how
 many times the implication must be consumed,
 and is needed when
 extending scaling to all wanted constraints below. This scaling factor
 does not, however, change linear implication into intuitionistic
-implication. Concretely, $[[1.(omega.Q => C)]]$ is an intuitionistic
+implication. Concretely, $[[{1.(omega.Q => C)}]]$ is an intuitionistic
 implication which must be consumed exactly once, while $[[omega.(1.Q =>
 C)]]$ is a linear implication which can be consumed many times.
 %
 $$
 \left\{
   \begin{array}{lcl}
-    [[pi.(C1 * C2)]] & = & [[pi.C1 * pi.C2]] \\
-    [[omega.(C1 & C2)]] & = & [[omega.C1 * omega.C2]] \\
-    [[1.(C1 & C2)]] & = & [[C1 & C2]] \\
-    [[pi.(rho.(Q => C))]] & = & [[(pi.rho).(Q => C)]]
+    [[{pi.(C1 * C2)}]] & = & [[{pi.C1 * pi.C2}]] \\
+    [[{omega.(C1 & C2)}]] & = & [[{omega.C1 * omega.C2}]] \\
+    [[{1.(C1 & C2)}]] & = & [[{C1 & C2}]] \\
+    [[{pi.(rho.(Q => C))}]] & = & [[{(pi.rho).(Q => C)}]]
   \end{array}
 \right.
 $$
 Like in Section~\ref{sec:constraint-domain}, we will typically drop
-the scaling factor for implication when it is $[[1]]$ and write $[[Q
-=> C]]$ for $[[1.(Q=>C)]]$.
+the scaling factor for implication when it is $[[{1}]]$ and write $[[Q
+=> C]]$ for $[[{1.(Q=>C)}]]$.
 
 The meaning of wanted constraints is given by the inductive entailment
 relation $[[Q |- C]]$ given in Figure~\ref{fig:wanted:entailment}. This is a technical difference with
@@ -1347,12 +1347,12 @@ entailment relation.
   as top-down, as is required of $[[Q1 |- Q2]]$ in
   Definition~\ref{def:entailment-relation}. That is
   \begin{itemize}
-  \item If $[[Q |- C1*C2]]$, then there exists $[[Q1]]$ and $[[Q2]]$
+  \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$ and $[[{Q2}]]$
     such that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
-    $[[Q]] = [[Q1 * Q2]]$.
+    $[[{Q}]] = [[{Q1 * Q2}]]$.
   \item If $[[Q |- C1 & C2]]$, then $[[Q |- C1]]$ and $[[Q |- C2]]$.
-  \item If $[[Q |- pi.(Q2 => C)]]$, then there exists $[[Q1]]$ such
-    that $[[Q1 * Q2 |- C]]$ and  $[[Q]] = [[pi.Q1]]$
+  \item If $[[Q |- pi.(Q2 => C)]]$, then there exists $[[{Q1}]]$ such
+    that $[[Q1 * Q2 |- C]]$ and  $[[{Q}]] = [[{pi.Q1}]]$
   \end{itemize}
 \end{lemma}
 \begin{proof}
@@ -1366,7 +1366,7 @@ entailment relation.
   \item either it is the conclusion of a \rref*{C-Tensor} rule, and
     the result is immediate.
   \item or it is the result of a \rref*{C-Dom} rule, in which case we
-    have $[[C1]]=[[Q1]]$, $[[C2]]=[[Q2]]$, and the result follows from
+    have $[[{C1}]]=[[{Q1}]]$, $[[{C2}]]=[[{Q2}]]$, and the result follows from
     the definition of the entailment relation.
   \end{itemize}
 
@@ -1396,7 +1396,7 @@ entailment relation.
 
 \begin{lemma}[Inversion of promotion]
   \label{lem:wanted:demote}
-  If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[Q]] = [[pi.Q']]$ for some $[[Q']]$
+  If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[{Q}]] = [[{pi.Q'}]]$ for some $[[{Q'}]]$
 \end{lemma}
 
 \subsection{Constraint generation}
@@ -1406,12 +1406,12 @@ The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
 Section~\ref{sec:constraint-solver}. To generate constraints we
 introduce a judgement $[[G |-> e : t ~> C]]$ (defined in
-Figure~\ref{fig:constraint-generation}). It is intended that $[[C]]$
+Figure~\ref{fig:constraint-generation}). It is intended that $[[{C}]]$
 is understood as an output of this judgement. The definition $[[G |->
 e : t ~> C]]$ is syntax directed, so it can directly be read as an
-algorithm, taking as input a term $[[e]]$ (together with some type
+algorithm, taking as input a term $[[{e}]]$ (together with some type
 inference oracle, as discussed above) and returning a wanted
-constraint $[[C]]$.
+constraint $[[{C}]]$.
 
 \info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
 
@@ -1450,7 +1450,7 @@ the other branches too.
 
   The reason this distinction is not made in an intuitionistic
   system like the original OutsideIn is elucidated by the
-  fact that $[[omega.(C1&C2)]] = [[omega.C1 * omega.C2]]$. In other
+  fact that $[[{omega.(C1&C2)}]] = [[{omega.C1 * omega.C2}]]$. In other
   words, in a purely unrestricted context, linear constraints don't
   need two kinds of conjunctions either.
 \item Just like OutsideIn, the introduction of constraints local to a
@@ -1484,7 +1484,7 @@ a new type system but indeed an inference algorithm for the qualified
 type system.
 
 \begin{lemma}[Soundness of constraint generation]\label{lem:generation-soundness}
-  For all $[[Q_g]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
+  For all $[[{Q_g}]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
 \end{lemma}
 \begin{proof}
@@ -1499,9 +1499,9 @@ in the supplementary material
     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such
+    By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
     that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
-    $[[Q_g]] = [[Q1 * pi.Q2]]$.  Then, by induction hypothesis
+    $[[{Q_g}]] = [[{Q1 * pi.Q2}]]$.  Then, by induction hypothesis
     \begin{itemize}
     \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
     \item $[[Q2; G2 |- e2 : t2]]$
@@ -1514,11 +1514,11 @@ in the supplementary material
     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
+    By Lemma~\ref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
     such that
     $[[Q_1 |- C1]]$,
     $[[Q_2 * Q' |- C2]]$, and
-    $[[Q_g]] = [[Q1 * Q2]]$.
+    $[[{Q_g}]] = [[{Q1 * Q2}]]$.
     Then, by induction hypothesis
     \begin{itemize}
     \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
@@ -1541,16 +1541,16 @@ $$
 $$
 %
 The judgement
-takes in two contexts: $[[UCtx]]$, which holds all the unrestricted
-atomic constraints (scaled by $[[omega]]$) and $[[LCtx_i]]$, which holds all the linear
+takes in two contexts: $[[{UCtx}]]$, which holds all the unrestricted
+atomic constraints (scaled by $[[{omega}]]$) and $[[{LCtx_i}]]$, which holds all the linear
 atomic constraints. Due to associativity and commutativity of $[[*]]$ we
 can always factor any simple constraint into such a pair of contexts. The
-unrestricted context $[[UCtx]]$ is an unordered set, while the
-multiplicative contexts $[[LCtx_i]]$ and $[[LCtx_o]]$ are ordered lists.
+unrestricted context $[[{UCtx}]]$ is an unordered set, while the
+multiplicative contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ are ordered lists.
 
 Linearity requires treating constraints as consumable resources. This
-is what $[[LCtx_o]]$ is for: it is the list of the hypotheses of
-$[[LCtx_i]]$ which haven't been consumed when proving $[[Q_w]]$. As
+is what $[[{LCtx_o}]]$ is for: it is the list of the hypotheses of
+$[[{LCtx_i}]]$ which haven't been consumed when proving $[[{Q_w}]]$. As
 suggested by the notation, it is an output of the algorithm.
 
 There are three simplifications compared to OutsideIn's solver:
@@ -1571,7 +1571,7 @@ because we never infer a type scheme for a let without a signature
 It is important to reiterate this
 distinction: OutsideIn's residual constraints are constraints from the
 goal that remain to be
-solved, while our output constraints $[[LCtx_o]]$ are constraints from
+solved, while our output constraints $[[{LCtx_o}]]$ are constraints from
 the hypotheses that have yet to be used. OutsideIn's residuals are a
 tool for type inference, while our output constraints are an internal
 device for the solver.
@@ -1598,8 +1598,8 @@ Section~\ref{sec:simple-constr-solv}.
 \begin{definition}[Simple-constraint solver]
 \label{def:solver-soundness} The simple constraint solver must verify
 that whenever $[[UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]$, we have
-$[[LCtx_o]]\subseteq [[LCtx_i]]$ and $[[ctx(UCtx) * ctx(LCtx_i) ||-
-pi.q * ctx(LCtx_o)]]$ (where the $[[UCtx]]$ and the $[[LCtx]]$ are
+$[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$ and $[[ctx(UCtx) * ctx(LCtx_i) ||-
+pi.q * ctx(LCtx_o)]]$ (where the $[[{UCtx}]]$ and the $[[{LCtx}]]$ are
 interpreted as simple constraints by taking the tensor of their atomic
 constraints).
 \end{definition}
@@ -1630,7 +1630,7 @@ resources.
   \item Implications are handled by~\rref*{S-ImplOne} and~\rref*{S-ImplMany},
 for solving linear and unrestricted wanted implications respectively. In
 both cases, the assumption of the implication is split to the unrestricted
-$[[omega . Q1]]$ and the linear $[[Q2]]$ parts (this can be done deterministically).
+$[[{omega . Q1}]]$ and the linear $[[{Q2}]]$ parts (this can be done deterministically).
 When solving a linear implication, we add the assumptions to their respective context, and
 proceed with solving the conclusion. Importantly (see
 Section~\ref{sec:simple-constr-solv} below), the linear assumptions are
@@ -1640,7 +1640,7 @@ actually consumes its assumption and doesn't leak it to the ambient context.
 Solving unrestricted implications only allows the conclusion of the implication
 to be solved using its own linear assumption, but none of the other linear
 constraints. This is because unrestricted implications only use their own
-assumption linearly, but use everything from the ambient context $[[omega]]$
+assumption linearly, but use everything from the ambient context $[[{omega}]]$
 times.
 
 \end{itemize}
@@ -1655,7 +1655,7 @@ domain which supports our examples.
 For the sake of our examples, we really need very little: linear
 constraints are simply names as far as the type checker is
 concerned. So it is enough for the entailment relation
-(Figure~\ref{fig:simpl-entailment}) to prove $[[q]]$ if and only if it
+(Figure~\ref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
 is already on the left hand side, with some restriction for linearity
 of course.
 
@@ -1682,8 +1682,8 @@ only one of the three rules can apply. This is a central tenet of
 OutsideIn~\cite[Section 6.4]{OutsideIn}: it never makes guesses.
 
 Figure~\ref{fig:simpl-solver} is also where the fact that the
-$[[LCtx]]$ are lists comes into play. Indeed, \rref{Simp-AtomOneL}
-takes great care to use the most recent occurrence of $[[q]]$
+$[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Simp-AtomOneL}
+takes great care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the top of
 the list). To understand why, consider the following example:
 \begin{code}
@@ -1736,9 +1736,9 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
   \centering\small
   $$
   \begin{array}{lcll}
-    [[s]] & \bnfeq & [[forall as. t]] & \text{Type schemes} \\
-    [[t]], [[u]] & \bnfeq & ... \bnfor [[exists as. t o- u]] & \text{Types} \\
-    [[e]] & \bnfeq & ... \bnfor [[pack (e1, e2)]] \bnfor [[unpack (y,x)=e1 in e2]] & \text{Expressions}
+    [[{s}]] & \bnfeq & [[{forall as. t}]] & \text{Type schemes} \\
+    [[{t}]], [[{u}]] & \bnfeq & ... \bnfor [[{exists as. t o- u}]] & \text{Types} \\
+    [[{e}]] & \bnfeq & ... \bnfor [[{pack (e1, e2)}]] \bnfor [[{unpack (y,x)=e1 in e2}]] & \text{Expressions}
   \end{array}
   $$
 
@@ -1753,8 +1753,8 @@ Section~\ref{sec:qualified-type-system} without implicit arguments.
 Figure~\ref{fig:core-typing-rules}
 highlights the differences from the qualified system:
 \begin{itemize}
-  \item Type schemes $[[s]]$ do not support qualified types.
-  \item Existentially quantified types $[[exists as. t2 o- t1]]$ now represent a
+  \item Type schemes $[[{s}]]$ do not support qualified types.
+  \item Existentially quantified types $[[{exists as. t2 o- t1}]]$ now represent a
 (linear) pair of values. Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
 \end{itemize}
 %
@@ -1770,11 +1770,11 @@ The differences between our core calculus and $λ^q$ are as follows
 %
 In addition, we shall assume the existence of data types
 \begin{itemize}
-\item $[[t1 * t2]]$ with sole constructor
+\item $[[{t1 * t2}]]$ with sole constructor
   $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $[[(e1,
-  e2)]]$ for $[[(,) e1 e2]]$.
-\item $[[unit]]$ with sole constructor $[[() : unit]]$.
-\item $[[Ur t]]$ with sole constructor $[[ Ur : forall a. a ->_omega
+  e2)]]$ for $[[{(,) e1 e2}]]$.
+\item $[[{unit}]]$ with sole constructor $[[() : unit]]$.
+\item $[[{Ur t}]]$ with sole constructor $[[ Ur : forall a. a ->_omega
   Ur a]]$
 \end{itemize}
 %
@@ -1804,9 +1804,9 @@ style\footnote{This technique is also often called dictionary-passing
   constraints in Haskell.}.
 
 To do so, we shall require some more material from
-constraints. Namely, we will assume a type $[[Ev(q)]]$ for each atomic
+constraints. Namely, we will assume a type $[[{Ev(q)}]]$ for each atomic
 constraint, defined in Figure~\ref{fig:evidence}.  It is extended to all simple constraints.
-It ought to be noted that $[[Ev(Q)]]$ is not technically well defined, as the
+It ought to be noted that $[[{Ev(Q)}]]$ is not technically well defined, as the
 rules in Section~\ref{sec:constraint-domain} define the syntax as being
 quotiented by associativity and commutativity of the tensor product, and
 idempotence of unrestricted constraints. But core language data types (or
@@ -1819,17 +1819,17 @@ we have preferred keeping this section a little imprecise, in order to save the
 rest of the article from the non-trivial extra tedium that the more precise
 presentation entails.
 
-Furthermore we shall require that for every $[[Q1]]$ and $[[Q2]]$
+Furthermore we shall require that for every $[[{Q1}]]$ and $[[{Q2}]]$
 such that $[[Q1 ||- Q2]]$, there is a (linear) function
 $[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
 
-Let us now define a family of functions $[[Ds(Hole)]]$ to translate
+Let us now define a family of functions $[[{Ds(Hole)}]]$ to translate
 the type schemes, types, and typing derivations of the qualified system into the
 types, type schemes, and terms of the core calculus.
 
 \subsubsection{Translating types}
-Type schemes $[[s]]$ are translated by turning the implicit argument $[[Q]]$
-into an explicit one of type $[[Ev(Q)]]$. Translating types $[[t]]$ proceeds as
+Type schemes $[[{s}]]$ are translated by turning the implicit argument $[[{Q}]]$
+into an explicit one of type $[[{Ev(Q)}]]$. Translating types $[[{t}]]$ proceeds as
 expected.
 
 \begin{minipage}{0.5\linewidth}
@@ -1837,7 +1837,7 @@ expected.
 $$
 \left\{
   \begin{array}{lcl}
-    [[Ds(forall as. Q =o t)]] & = & [[forall as. Ev(Q) ->_1 Ds(t)]] \\
+    [[{Ds(forall as. Q =o t)}]] & = & [[{forall as. Ev(Q) ->_1 Ds(t)}]] \\
   \end{array}
 \right.
 $$
@@ -1847,8 +1847,8 @@ $$
 $$
 \left\{
   \begin{array}{lcl}
-    [[Ds(t1 ->_pi t2)]] & = & [[Ds(t1) ->_pi Ds(t2)]] \\
-    [[Ds(exists as. t o= Q)]] & = & [[exists as. Ds(t) o- Ev(Q)]]
+    [[{Ds(t1 ->_pi t2)}]] & = & [[{Ds(t1) ->_pi Ds(t2)}]] \\
+    [[{Ds(exists as. t o= Q)}]] & = & [[{exists as. Ds(t) o- Ev(Q)}]]
   \end{array}
 \right.
 $$
@@ -1858,7 +1858,7 @@ $$
 Let us finally build, given a derivation $[[Q;G |- e : t]]$, an expression
 $[[Ds(z;Q;G |- e : t)]]$, such that
 $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for some variable
-$[[z]]$). Even though we abbreviate the derivation as its
+$[[{z}]]$). Even though we abbreviate the derivation as its
 conclusion, the translation is defined recursively on the
 whole typing derivation, in particular we have access to typing rule
 premises in the body of the definition.
@@ -1872,10 +1872,10 @@ We present some of the interesting cases in Figure~\ref{fig:desugaring}.
 $$
 \left\{
   \begin{array}{lcl}
-    [[Ev(1.q)]] & = & [[Ev(q)]] \\
-    [[Ev(omega.q)]] & = & [[Ur (Ev(q))]] \\
-    [[Ev(Empty)]] & = & [[unit]] \\
-    [[Ev(Q1 * Q2)]] & = & [[Ev(Q1) * Ev(Q2)]]
+    [[{Ev(1.q)}]] & = & [[{Ev(q)}]] \\
+    [[{Ev(omega.q)}]] & = & [[{Ur (Ev(q))}]] \\
+    [[{Ev(Empty)}]] & = & [[{unit}]] \\
+    [[{Ev(Q1 * Q2)}]] & = & [[{Ev(Q1) * Ev(Q2)}]]
   \end{array}
 \right.
 $$
@@ -1886,28 +1886,28 @@ $$
 %{
 %format |- = "[[|-]]"
 %format ||- = "[[||-]]"
-%format G = "[[G]]"
-%format G1 = "[[G1]]"
-%format G2 = "[[G2]]"
-%format Q1 = "[[Q1]]"
-%format Q2 = "[[Q2]]"
+%format G = "[[{G}]]"
+%format G1 = "[[{G1}]]"
+%format G2 = "[[{G2}]]"
+%format Q1 = "[[{Q1}]]"
+%format Q2 = "[[{Q2}]]"
 %format * = "[[*]]"
 %format Ds(x) = "\ottkw{Ds}\,\ottsym{(}" x "\ottsym{)}"
 %format Ev(x) = "\ottkw{Ev}\,\ottsym{(}" x "\ottsym{)}"
 %format unpack = "\ottkw{unpack}"
-%format u = "[[u]]"
+%format u = "[[{u}]]"
 %format OneOf (a) (b) = a"\mathop{:_{1}}"b
 %format Sub t as bs = t "[" as "/" bs "]"
 %format case_1 = "[[case_1]]"
-%format e1 = "[[e1]]"
-%format e2 = "[[e2]]"
-%format t1 = "[[t1]]"
-%format as = "[[as]]"
-%format ts = "[[ts]]"
+%format e1 = "[[{e1}]]"
+%format e2 = "[[{e2}]]"
+%format t1 = "[[{t1}]]"
+%format as = "[[{as}]]"
+%format ts = "[[{ts}]]"
 %format let_1 = "[[let_1]]"
-%format z1 = "[[z1]]"
-%format z2 = "[[z2]]"
-%format z2' = "[[z2]]''"
+%format z1 = "[[{z1}]]"
+%format z2 = "[[{z2}]]"
+%format z2' = "[[{z2}]]''"
 $$\small
 \left\{
   \;
@@ -1936,12 +1936,12 @@ $$
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
-is inserted by passing $[[z]]$ as an argument.
-Handling $\kunpack$ requires splitting the context into two: $[[e1]]$ is desugared as a pair, and the evidence
-it contains is passed to $[[e2]]$. Finally, subsumption summons the function corresponding to the entailment relation $[[Q ||- Q1]]$
-and applies it to $[[z]]$ : $[[Ev(Q)]]$ then proceeds to desugar $[[e]]$ with the resulting evidence for $[[Q1]]$.
-Crucially, since $[[Ds(Hole)]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
-Namely, $[[Q1]]$ is available in this last case from the~\rref*{E-Sub} rule's premise.
+is inserted by passing $[[{z}]]$ as an argument.
+Handling $\kunpack$ requires splitting the context into two: $[[{e1}]]$ is desugared as a pair, and the evidence
+it contains is passed to $[[{e2}]]$. Finally, subsumption summons the function corresponding to the entailment relation $[[Q ||- Q1]]$
+and applies it to $[[{z}]]$ : $[[{Ev(Q)}]]$ then proceeds to desugar $[[{e}]]$ with the resulting evidence for $[[{Q1}]]$.
+Crucially, since $[[{Ds(Hole)}]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
+Namely, $[[{Q1}]]$ is available in this last case from the~\rref*{E-Sub} rule's premise.
 
 It is straightforward by induction, to verify that, indeed,
 $[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
@@ -1969,7 +1969,7 @@ generated constraints and re-emit a scaled version of them -- a fairly local
 change.
 
 The constraint solver maintains a set of givens (the \emph{inert} set),
-which corresponds to the $[[UCtx]]$ and $[[LCtx]]$ contexts in our solver
+which corresponds to the $[[{UCtx}]]$ and $[[{LCtx}]]$ contexts in our solver
 judgements in Section~\ref{sec:constraint-solver}. A property of the inert set
 is that constraints contained do not interact pairwise. These interactions are
 dictated by the constraint domain. For example, equality constraints interact
@@ -2075,12 +2075,12 @@ $$
 \drule{G-LetGen}
 $$
 %
-This rule is non-deterministic, as it requires finding $[[Q_r]]$ and
-$[[Q]]$. We can modify the constraint solver of
-Section~\ref{sec:constraint-solver} to find $[[Q_r*Q]]$: it's the
+This rule is non-deterministic, as it requires finding $[[{Q_r}]]$ and
+$[[{Q}]]$. We can modify the constraint solver of
+Section~\ref{sec:constraint-solver} to find $[[{Q_r*Q}]]$: it's the
 residual constraint, from OutsideIn, that we have omitted. But we
-still have to determine how to split the residual into $[[Q_r]]$ and
-$[[Q]]$. What we would like to say is ``$[[Q]]$ is the set of linear
+still have to determine how to split the residual into $[[{Q_r}]]$ and
+$[[{Q}]]$. What we would like to say is ``$[[{Q}]]$ is the set of linear
 constraints''. But it's not clear how to make it formal.
 
 Any predictable strategy would do: as long as it's an instance of the
@@ -2103,15 +2103,15 @@ need to support empty lists of alternatives.
 
 The reason why it has been omitted from the rest of the article is
 that generating constraints for an empty requires an $0$-ary version
-of $[[C1&C2]]$, usually written $[[Top]]$ in Linear Logic. The
+of $[[{C1&C2}]]$, usually written $[[{Top}]]$ in Linear Logic. The
 corresponding entailment rule would be
 $$
 \drule{C-Top}
 $$
-That is $[[Top]]$ is unconditionally true, and can consume any number
+That is $[[{Top}]]$ is unconditionally true, and can consume any number
 of linear given constraints. The \rref*{C-Top} rule thus induces a
 considerable amount of non-determinism. Eliminating the
-non-determinism induced by $[[Top]]$ is ultimately
+non-determinism induced by $[[{Top}]]$ is ultimately
 what~\citet{resource-management-for-ll-proof-search} builds up
 to. Their methods can be adapted to the constraint solver of
 Section~\ref{sec:constraint-solver} without any technical
@@ -2119,7 +2119,7 @@ difficulty. We chose, however, to keep empty cases out the
 presentation because has a very high overhead and would distract from
 the point. Instead, we refer readers
 to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
-careful treatment of $[[Top]]$.
+careful treatment of $[[{Top}]]$.
 
 \section{Related work}
 \label{sec:related-work}
@@ -2289,20 +2289,20 @@ Figure~\ref{fig:full:core-typing-rules}.
   \centering\small
   $$
   \begin{array}{lcll}
-    [[a]], [[b]] & \bnfeq & \ldots & \text{Type variables} \\
-    [[x]], [[y]] & \bnfeq & \ldots & \text{Expression variables} \\
-    [[K]] & \bnfeq & \ldots & \text{Data constructors} \\
-    [[s]] & \bnfeq & [[forall as. t]] & \text{Type schemes} \\
-    [[t]], [[u]] & \bnfeq & [[a]] \bnfor [[exists as. t o- u]] \bnfor [[t1 ->_pi t2]]
-                            \bnfor [[T ts]] & \text{Types} \\
-    [[G]], [[D]] & \bnfeq & [[empty]] \bnfor [[G, x:_pi s]] &
+    [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
+    [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
+    [[{s}]] & \bnfeq & [[{forall as. t}]] & \text{Type schemes} \\
+    [[{t}]], [[{u}]] & \bnfeq & [[{a}]] \bnfor [[{exists as. t o- u}]] \bnfor [[{t1 ->_pi t2}]]
+                            \bnfor [[{T ts}]] & \text{Types} \\
+    [[{G}]], [[{D}]] & \bnfeq & [[{empty}]] \bnfor [[{G, x:_pi s}]] &
                                                               \text{Contexts} \\
-    [[e]] & \bnfeq & [[x]] \bnfor [[K]] \bnfor [[\x. e]] \bnfor [[e1
-                     e2]] \bnfor [[pack (e1, e2)]] & \text{Expressions}\\
+    [[{e}]] & \bnfeq & [[{x}]] \bnfor [[{K}]] \bnfor [[{\x. e}]] \bnfor [[e1
+                     e2]] \bnfor [[{pack (e1, e2)}]] & \text{Expressions}\\
                  &\bnfor & [[unpack (y,x)=e1 in
-                           e2]] \bnfor [[case_pi e of { alts }]] &\\
+                           e2]] \bnfor [[{case_pi e of { alts }}]] &\\
                  &\bnfor & [[let_pi
-                           x=e1 in e2]] \bnfor [[let_pi x : s = e1 in e2]] &
+                           x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
   \end{array}
   $$
   \caption{Grammar of the core calculus}
@@ -2330,24 +2330,24 @@ into atomic case expression is routine.
 
 In the complete description, we use a device which was omitted in the
 main body of the article. Namely, we'll need a way to turn every
-$[[Ev(omega.Q)]]$ into an $[[Ur(Ev(Q))]]$. For any
-$[[e : Ev(omega.Q)]]$, we shall write $[[urify(Q;e) :
+$[[{Ev(omega.Q)}]]$ into an $[[{Ur(Ev(Q))}]]$. For any
+$[[{e : Ev(omega.Q)}]]$, we shall write $[[urify(Q;e) :
 Ur(Ev(omega.Q))]]$. As a shorthand, particularly useful in nested
-patterns, we will write $[[case_pi e of {urified(Q;x) -> e'}]]$ for
-$[[case_pi urify(Q;e) of {Ur x -> e'}]]$.
+patterns, we will write $[[{case_pi e of {urified(Q;x) -> e'}}]]$ for
+$[[{case_pi urify(Q;e) of {Ur x -> e'}}]]$.
 %
 $$
 \left\{
   \begin{array}{lcl}
-    [[urify(Empty;e)]]& = & [[case_1 e of {() -> Ur ()}]] \\
-    [[urify(1.q;e)]] & = & [[e]] \\
-    [[urify(omega.q;e)]] & = & [[case_1 e of {Ur x -> Ur (Ur x)}]] \\
-    [[urify(Q1*Q2;e)]] & = & [[case_1 e of {(urified(Q1;x), urified(Q2;y)) -> Ur (x,y)}]]
+    [[{urify(Empty;e)}]]& = & [[{case_1 e of {() -> Ur ()}}]] \\
+    [[{urify(1.q;e)}]] & = & [[{e}]] \\
+    [[{urify(omega.q;e)}]] & = & [[{case_1 e of {Ur x -> Ur (Ur x)}}]] \\
+    [[{urify(Q1*Q2;e)}]] & = & [[{case_1 e of {(urified(Q1;x), urified(Q2;y)) -> Ur (x,y)}}]]
   \end{array}
 \right.
 $$
-We will omit the $[[Q]]$ in $[[urify(Q;e)]]$ and write
-$[[urify(e)]]$ when it can be easily inferred from the context.
+We will omit the $[[{Q}]]$ in $[[{urify(Q;e)}]]$ and write
+$[[{urify(e)}]]$ when it can be easily inferred from the context.
 
 
 \begin{figure}
@@ -2361,41 +2361,41 @@ $[[urify(e)]]$ when it can be easily inferred from the context.
 %format ->> = "\to_{\pi}"
 %format ->>> = "\to_{\omega}"
 %format Ev(x) = "\ottkw{Ev}\,\ottsym{(}" x "\ottsym{)}"
-%format G = "[[G]]"
-%format G1 = "[[G1]]"
-%format G2 = "[[G2]]"
+%format G = "[[{G}]]"
+%format G1 = "[[{G1}]]"
+%format G2 = "[[{G2}]]"
 %format ListOf (b) = "\overline{" b "}"
 %format Of (w) (a) (b) = a"\mathop{:_{" w "}}"b
 %format OneOf (a) (b) = a"\mathop{:_{1}}"b
-%format Q1 = "[[Q1]]"
-%format Q2 = "[[Q2]]"
+%format Q1 = "[[{Q1}]]"
+%format Q2 = "[[{Q2}]]"
 %format Sub t as bs = t "[" as "/" bs "]"
 %format alts = "[[alts]]"
-%format as = "[[as]]"
+%format as = "[[{as}]]"
 %format case_1 = "[[case_1]]"
 %format case_omega = "[[case_omega]]"
-%format e1 = "[[e1]]"
-%format e2 = "[[e2]]"
-%format ei = "[[ei]]"
+%format e1 = "[[{e1}]]"
+%format e2 = "[[{e2}]]"
+%format ei = "[[{ei}]]"
 %format let_1 = "[[let_1]]"
 %format let_omega = "[[let_omega]]"
-%format omega = "[[omega]]"
-%format pi = "[[pi]]"
-%format pii = "[[pii]]"
-%format t = "[[t]]"
-%format t1 = "[[t1]]"
-%format t2 = "[[t2]]"
-%format ts = "[[ts]]"
-%format u = "[[u]]"
-%format ui = "[[ui]]"
+%format omega = "[[{omega}]]"
+%format pi = "[[{pi}]]"
+%format pii = "[[{pii}]]"
+%format t = "[[{t}]]"
+%format t1 = "[[{t1}]]"
+%format t2 = "[[{t2}]]"
+%format ts = "[[{ts}]]"
+%format u = "[[{u}]]"
+%format ui = "[[{ui}]]"
 %format unpack = "\ottkw{unpack}"
 %format urified(x) = "\underline{" x "}"
-%format us = "[[us]]"
-%format xi = "[[xi]]"
-%format xsi = "[[xsi]]"
-%format z1 = "[[z1]]"
-%format z2 = "[[z2]]"
-%format z2' = "[[z2]]''"
+%format us = "[[{us}]]"
+%format xi = "[[{xi}]]"
+%format xsi = "[[{xsi}]]"
+%format z1 = "[[{z1}]]"
+%format z2 = "[[{z2}]]"
+%format z2' = "[[{z2}]]''"
 %format |- = "[[|-]]"
 %format ||- = "[[||-]]"
 $$
@@ -2463,55 +2463,55 @@ $$
 \label{sec:appendix:qual-type-syst}
 
 \begin{proof}[Proof of Lemma~\ref{lem:q:promotion}]
-  Let us prove this lemma by induction on the syntax of $[[Q2]]$:
+  Let us prove this lemma by induction on the syntax of $[[{Q2}]]$:
   \begin{itemize}
-  \item If $[[Q2]] = [[rho.q]]$, then $[[pi.Q1 ||- (pi.rho).q]]$ holds by
+  \item If $[[{Q2}]] = [[{rho.q}]]$, then $[[pi.Q1 ||- (pi.rho).q]]$ holds by
     Definition~\ref{def:entailment-relation}.
-  \item If $[[Q2]] = [[Q2' * Q2'']]$, then, by Definition~\ref{def:entailment-relation}, we know that
-    $[[Q1]] = [[Q1' * Q1'']]$ for some $[[Q1']]$ and $[[Q1'']]$, and
+  \item If $[[{Q2}]] = [[{Q2' * Q2''}]]$, then, by Definition~\ref{def:entailment-relation}, we know that
+    $[[{Q1}]] = [[{Q1' * Q1''}]]$ for some $[[{Q1'}]]$ and $[[{Q1''}]]$, and
     that
     $[[Q1' ||- Q2']]$ and $[[Q1'' ||- Q2'']]$. By induction hypothesis,
     we have
     $[[pi.Q1' ||- pi.Q2']]$ and $[[pi.Q1'' ||- pi.Q2'']]$. From which it
     follows that
     $[[pi.Q1 ||- pi.Q2]]$.
-  \item If $[[Q2]]=[[Empty]]$, then, by
+  \item If $[[{Q2}]]=[[{Empty}]]$, then, by
     Definition~\ref{def:entailment-relation}, we know that
-    $[[Q1]]=[[omega.Q1']]$, for some $[[Q1']]$
+    $[[{Q1}]]=[[{omega.Q1'}]]$, for some $[[{Q1'}]]$
     and the result follows from Lemma~\ref{lem:simples:monoid-action},
-    since $[[pi.Q1]]=[[pi.(omega.Q1')]]=[[omega.Q1']]$.
+    since $[[{pi.Q1}]]=[[{pi.(omega.Q1')}]]=[[{omega.Q1'}]]$.
   \end{itemize}
 \end{proof}
 
 \begin{proof}[Proof of Lemma~\ref{lem:q:scaling-inversion}]
-  Let us prove this lemma by induction on the syntax of $[[Q2]]$
+  Let us prove this lemma by induction on the syntax of $[[{Q2}]]$
   \begin{itemize}
-  \item If $[[Q2]] = [[rho.q]]$, then, by Definition~\ref{def:entailment-relation}, there exists
-    $[[Q1']]$ such that $[[Q1]]=[[pi.Q1']]$ and $[[Q1' ||- rho.q]]$.
-  \item If $[[Q2]] = [[Q2' * Q2'']]$, then, by Definition~\ref{def:entailment-relation}, we know
+  \item If $[[{Q2}]] = [[{rho.q}]]$, then, by Definition~\ref{def:entailment-relation}, there exists
+    $[[{Q1'}]]$ such that $[[{Q1}]]=[[{pi.Q1'}]]$ and $[[Q1' ||- rho.q]]$.
+  \item If $[[{Q2}]] = [[{Q2' * Q2''}]]$, then, by Definition~\ref{def:entailment-relation}, we know
     that
-    $[[Q1]] = [[Q1' * Q1'']]$ for some $[[Q1']]$ and $[[Q1'']]$, and
+    $[[{Q1}]] = [[{Q1' * Q1''}]]$ for some $[[{Q1'}]]$ and $[[{Q1''}]]$, and
     that
     $[[Q1' ||- pi.Q2']]$ and $[[Q1'' ||- pi.Q2'']]$ (remember that, by
-    definition, $[[pi.Q2]] = [[pi.Q2' * pi.Q2'']]$). By induction hypothesis,
+    definition, $[[{pi.Q2}]] = [[{pi.Q2' * pi.Q2''}]]$). By induction hypothesis,
     we have
-    constraints $[[Q']]$ and $[[Q'']]$, such that $[[Q1']] =
-    [[pi.Q']]$ and $[[Q1'']] = [[pi.Q'']]$, and $[[Q' ||- Q2']]$ and
+    constraints $[[{Q'}]]$ and $[[{Q''}]]$, such that $[[{Q1'}]] =
+    [[{pi.Q'}]]$ and $[[{Q1''}]] = [[{pi.Q''}]]$, and $[[Q' ||- Q2']]$ and
     $[[Q'' ||- Q2'']]$.
-    It follows that $[[Q1]] = [[pi.(Q' * Q'')]]$ and
+    It follows that $[[{Q1}]] = [[{pi.(Q' * Q'')}]]$ and
     $[[Q' * Q'' ||- Q2]]$.
-  \item If $[[Q2]]=[[Empty]]$, then, since $[[pi.Empty]]=[[Empty]]$, by
-    Definition~\ref{def:entailment-relation}, $[[Q1]]=[[Empty]]$ and
+  \item If $[[{Q2}]]=[[{Empty}]]$, then, since $[[{pi.Empty}]]=[[{Empty}]]$, by
+    Definition~\ref{def:entailment-relation}, $[[{Q1}]]=[[{Empty}]]$ and
     the result is immediate.
   \end{itemize}
 \end{proof}
 
 \begin{lemma}\label{lem:simples:monoid-action}
-  The following equality holds $[[pi.(rho.Q)]]=[[(pi.rho).Q]]$
+  The following equality holds $[[{pi.(rho.Q)}]]=[[{(pi.rho).Q}]]$
 \end{lemma}
 \begin{proof}
   This result can be proved by a straightforward induction on the
-  structure of $[[Q]]$.
+  structure of $[[{Q}]]$.
 \end{proof}
 
 \setcounter{subsection}{4}
@@ -2519,27 +2519,27 @@ $$
 \label{sec:appendix:constraint-inference}
 
 \begin{proof}[Proof of Lemma~\ref{lem:wanted:promote}]
-  By induction on the syntax of $[[C]]$
+  By induction on the syntax of $[[{C}]]$
   \begin{itemize}
-  \item If $[[C]]=[[Q']]$, then the result follows
+  \item If $[[{C}]]=[[{Q'}]]$, then the result follows
     from Lemma~\ref{lem:q:promotion}
-  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
+  \item If $[[{C}]]=[[{C1*C2}]]$, then we can prove the result like we
     proved the corresponding case in Lemma~\ref{lem:q:promotion},
     using Lemma~\ref{lem:inversion}.
-  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
+  \item If $[[{C}]]=[[{C1&C2}]]$, then we the case where $[[{pi}]]=[[{1}]]$ is
     immediate, so we can assume without loss of generality that
-    $[[pi]]=[[omega]]$, and, therefore, that $[[pi.C]] = [[pi.C1 *
+    $[[{pi}]]=[[{omega}]]$, and, therefore, that $[[{pi.C}]] = [[pi.C1 *
     pi.C2]]$.
     By Lemma~\ref{lem:inversion}, we have that $[[Q|-C1]]$ and
     $[[Q|-C2]]$; hence, by induction, $[[omega.Q |- omega.C1]]$ and
     $[[omega.Q |- omega.C1]]$.
     Then, by definition of the entailment relation, we have $[[omega.Q
     * omega.Q |- omega.C1 * omega.C2]]$, which concludes,
-    since $[[omega.Q]] = [[omega.Q * omega.Q]]$.
-  \item If $[[C]]=[[rho.(Q1 => C')]]$, then by
-    Lemma~\ref{lem:inversion}, there is a $[[Q']]$ such that
-    $[[Q]]=[[pi.Q']]$ and $[[Q'*Q1 |- C']]$. Applying
-    rule~\rref*{C-Impl} with $[[pi.rho]]$, we get
+    since $[[{omega.Q}]] = [[{omega.Q * omega.Q}]]$.
+  \item If $[[{C}]]=[[{rho.(Q1 => C')}]]$, then by
+    Lemma~\ref{lem:inversion}, there is a $[[{Q'}]]$ such that
+    $[[{Q}]]=[[{pi.Q'}]]$ and $[[Q'*Q1 |- C']]$. Applying
+    rule~\rref*{C-Impl} with $[[{pi.rho}]]$, we get
     $[[(pi.rho).Q' |- (pi.rho).(Q1 => C')]]$.
 
     In other words: $[[pi.Q |- pi.(rho.(Q=>C))]]$ as expected.
@@ -2547,29 +2547,29 @@ $$
 \end{proof}
 
 \begin{proof}[Proof of Lemma~\ref{lem:wanted:demote}]
-  By induction on the syntax of $[[C]]$
+  By induction on the syntax of $[[{C}]]$
   \begin{itemize}
-  \item If $[[C]]=[[Q']]$, then the result follows from
+  \item If $[[{C}]]=[[{Q'}]]$, then the result follows from
     Lemma~\ref{lem:q:scaling-inversion}
-  \item If $[[C]]=[[C1*C2]]$, then we can prove the result like we
+  \item If $[[{C}]]=[[{C1*C2}]]$, then we can prove the result like we
     proved the corresponding case in
     Lemma~\ref{lem:q:scaling-inversion} using
     Lemma~\ref{lem:inversion}.
-  \item If $[[C]]=[[C1&C2]]$, then we the case where $[[pi]]=[[1]]$ is
+  \item If $[[{C}]]=[[{C1&C2}]]$, then we the case where $[[{pi}]]=[[{1}]]$ is
     immediate, so we can assume without loss of generality that
-    $[[pi]]=[[omega]]$, and, therefore, that
-    $[[pi.C]] = [[pi.C1 * pi.C2]]$. By Lemma~\ref{lem:inversion},
-    there exist $[[Q1]]$ and $[[Q2]]$ such that $[[Q1|- omega.C1]]$,
-    $[[Q2|- omega.C2]]$ and $[[Q]]=[[Q1 * Q2]]$. By induction
-    hypothesis, we get $[[Q1]] = [[omega.Q1']]$ and $[[Q2]] = [[omega.Q2']]$
+    $[[{pi}]]=[[{omega}]]$, and, therefore, that
+    $[[{pi.C}]] = [[{pi.C1 * pi.C2}]]$. By Lemma~\ref{lem:inversion},
+    there exist $[[{Q1}]]$ and $[[{Q2}]]$ such that $[[Q1|- omega.C1]]$,
+    $[[Q2|- omega.C2]]$ and $[[{Q}]]=[[{Q1 * Q2}]]$. By induction
+    hypothesis, we get $[[{Q1}]] = [[{omega.Q1'}]]$ and $[[{Q2}]] = [[{omega.Q2'}]]$
     such that $[[Q1' |- C1]]$ and $[[Q2' |- C2]]$. From which it
     follows that $[[omega.Q1'*omega.Q2' |- C1]]$ and
     $[[omega.Q1'*omega.Q2' |- C1]]$ (by
     Lemma~\ref{lem:wanteds:weakening}) and, finally,
-    $[[Q]]=[[omega.Q]]$ (by Lemma~\ref{lem:wanteds:module-action})
+    $[[{Q}]]=[[{omega.Q}]]$ (by Lemma~\ref{lem:wanteds:module-action})
     and $[[Q |- C1 & C2]]$.
-  \item If $[[C]]=[[rho.(Q1 => C')]]$, then
-    $[[pi.C]] = [[(pi.rho). (Q1 => C')]]$. The result follows
+  \item If $[[{C}]]=[[{rho.(Q1 => C')}]]$, then
+    $[[{pi.C}]] = [[{(pi.rho). (Q1 => C')}]]$. The result follows
     immediately by Lemma~\ref{lem:inversion}.
   \end{itemize}
 \end{proof}
@@ -2603,11 +2603,11 @@ $$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$ and $[[Q_2]]$ such that
+    By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$ and $[[{Q_2}]]$ such that
     \begin{itemize}
     \item $[[Q_1 |- C1]]$
     \item $[[Q_2 |- C2]]$
-    \item $[[Q_g]] = [[pi.Q_1 * Q_2]]$
+    \item $[[{Q_g}]] = [[{pi.Q_1 * Q_2}]]$
     \end{itemize}
     By induction hypothesis we have
     \begin{itemize}
@@ -2624,12 +2624,12 @@ $$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such
+    By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
     that
     \begin{itemize}
     \item $[[Q2 |- C2]]$
     \item $[[Q1*Q |- C]]$
-    \item $[[Q_g]] = [[pi.Q1*Q2]]$
+    \item $[[{Q_g}]] = [[{pi.Q1*Q2}]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
@@ -2646,11 +2646,11 @@ $$
     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q1]]$, $[[Q2]]$ such that
+    By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such that
     \begin{itemize}
     \item $[[Q1 |- C1]]$
     \item $[[Q2 |- C2]]$
-    \item $[[Q_g]] = [[Q1 * pi.Q2]]$
+    \item $[[{Q_g}]] = [[{Q1 * pi.Q2}]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
@@ -2664,12 +2664,12 @@ $$
     \item $[[Q_g |- C * Q[us/as] ]]$
     \item $[[G |-> e : t[us/as] ~> C]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
+    By Lemma~\ref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
     such that
     \begin{itemize}
     \item $[[Q_1 |- C]]$
     \item $[[Q_2 |- Q[us/as] ]]$
-    \item $[[Q_g]] = [[omega.Q_1*Q_2]]$
+    \item $[[{Q_g}]] = [[{omega.Q_1*Q_2}]]$
     \end{itemize}
     Bu induction hypothesis
     \begin{itemize}
@@ -2685,12 +2685,12 @@ $$
     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[Q_1]]$, $[[Q_2]]$
+    By Lemma~\ref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
     such that
     \begin{itemize}
     \item $[[Q_1 |- C1]]$
     \item $[[Q_2 * Q' |- C2]]$
-    \item $[[Q_g]] = [[Q1 * Q2]]$
+    \item $[[{Q_g}]] = [[{Q1 * Q2}]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
@@ -2706,11 +2706,11 @@ $$
     \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
     \end{itemize}
     By repeated uses of Lemma~\ref{lem:inversion}, there exist
-    $[[Q]]$, $[[Q']]$ such that
+    $[[{Q}]]$, $[[{Q'}]]$ such that
     \begin{itemize}
     \item $[[Q |- C]]$
     \item For each $i$, $[[Q' |- Ci]]$
-    \item $[[Q_g]] = [[pi.Q * Q']]$
+    \item $[[{Q_g}]] = [[{pi.Q * Q'}]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
@@ -2732,12 +2732,12 @@ $$
 \end{proof}
 
 \begin{lemma}\label{lem:wanteds:module-action}
-  The following equality holds: $[[pi.(rho.C)]]=[[(pi.rho).C]]$.
+  The following equality holds: $[[{pi.(rho.C)}]]=[[{(pi.rho).C}]]$.
 \end{lemma}
 \begin{proof}
   This is proved by a straightforward induction on the structure of
-  $[[C]]$, using Lemma~\ref{lem:simples:monoid-action} for the case
-  $[[C]]=[[Q]]$.
+  $[[{C}]]$, using Lemma~\ref{lem:simples:monoid-action} for the case
+  $[[{C}]]=[[{Q}]]$.
 \end{proof}
 \end{document}
 

@@ -19,6 +19,27 @@ indexvar g, w, r, o, ext ::=  {{ com Annotation variables }}
 grammar
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  Top level    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+toplevel :: 'Toplevel_' ::= {{ com Entry point of the grammar }}
+| { parsable } :: :: parsable {{ tex [[parsable]] }}
+
+parsable :: 'Parsable_' ::=  {{ com Toplevel productions allowed in Tex filtering }}
+| QF  :: :: qf
+| CF  :: :: cf
+| t  :: :: t
+| ts  :: :: ts
+| pi  :: :: pi
+| theta  :: :: theta
+| e  :: :: e
+| xs  :: :: xs
+| as  :: :: as
+| binding  :: :: binding
+| G  :: :: g
+| LCtx  :: :: lctx
+| UCtx  :: :: uctx
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraints  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Q :: 'Ct_' ::=  {{ com Constraints }}
