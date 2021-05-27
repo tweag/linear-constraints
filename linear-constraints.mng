@@ -167,7 +167,7 @@ import GHC.Base
   \newcommand{\lollycirc}{\raisebox{-0.255ex}{\scalebox{1.4}{$\circ$}}}
   \newcommand{\Lolly}{\constraintop{=\kern-1.1ex \lollycirc}}
   \newcommand{\RLolly}{\revop{\Lolly}}
-  \newcommand{\qtensor}{\constraintfont{\otimes}}
+  \newcommand{\qtensor}{\constraintop{\otimes}}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
