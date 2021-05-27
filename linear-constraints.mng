@@ -1752,7 +1752,7 @@ the spirit of OutsideIn, |bad| is rejected.
 \label{sec:desugaring}
 
 The semantics of our language is given by desugaring it into
-a simpler core language: a mild variant of the $λ^q$
+a simpler core language: a mild\jp{what is 'mild' when applied to lambda-calculi? explain.} variant of the $λ^q$
 calculus~\cite{LinearHaskell}. We
 define the core language's type system here; its operational semantics
 is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
@@ -1777,7 +1777,7 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 \end{figure}
 
 The core calculus is a variant of the type system defined in
-Section~\ref{sec:qualified-type-system} without implicit arguments.
+Section~\ref{sec:qualified-type-system}, but without constraints. That is, the evidence for constraints is passed explicitly in this core calculus.
 Figure~\ref{fig:core-typing-rules}
 highlights the differences from the qualified system:
 \begin{itemize}
@@ -1796,7 +1796,7 @@ The differences between our core calculus and $λ^q$ are as follows
   family of \textsc{gadt}s.
 \end{itemize}
 %
-In addition, we shall assume the existence of data types
+In addition, we assume the existence of data types
 \begin{itemize}
 \item $[[{t1 * t2}]]$ with sole constructor
   $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $[[(e1,
@@ -1806,7 +1806,7 @@ In addition, we shall assume the existence of data types
   Ur a]]$
 \end{itemize}
 %
-These are regular data types and constructors of the language, they
+These are regular data types and constructors of the language: they
 are consumed with $\kcase$.
 
 \subsection{Inferred constraints}
@@ -1825,15 +1825,15 @@ core calculus.
 
 \subsubsection{Evidence}
 In order to desugar derivations of the qualified system to the core
-calculus, we will use the classic technique known as evidence-passing
+calculus, we use the classic technique known as evidence-passing
 style\footnote{This technique is also often called dictionary-passing
   style because, in the case of type classes, evidences are
   dictionaries, and because type classes were the original form of
   constraints in Haskell.}.
-
-To do so, we shall require some more material from
-constraints. Namely, we will assume a type $[[{Ev(q)}]]$ for each atomic
-constraint, defined in Figure~\ref{fig:evidence}.  It is extended to all simple constraints.
+%
+To do so, we require some more material from
+constraints. Namely, we assume a type $[[{Ev(q)}]]$ for each atomic
+constraint\jp{q?}, defined in Figure~\ref{fig:evidence}.  It is extended to all simple constraints.
 It ought to be noted that $[[{Ev(Q)}]]$ is not technically well defined, as the
 rules in Section~\ref{sec:constraint-domain} define the syntax as being
 quotiented by associativity and commutativity of the tensor product, and
@@ -1843,11 +1843,11 @@ the imprecision: give a name to each atomic constraint, and operate on canonical
 representatives of the equivalence classes.  This is actually essentially how
 \textsc{ghc} deals with constraints today. It is also the mechanism that our
 prototype implementation (see Section~\ref{sec:implementation}) uses. However,
-we have preferred keeping this section a little imprecise, in order to save the
+we prefer to keep this section a little imprecise, in order to save the
 rest of the article from the non-trivial extra tedium that the more precise
-presentation entails.
+presentation entails.\jp{The end of this paragraph feels like it was written in haste. ``Oh btw this does not work, but morally it does. Please move on!'' Rewrite or put in a footnote?}
 
-Furthermore we shall require that for every $[[{Q1}]]$ and $[[{Q2}]]$
+Furthermore we require that for every $[[{Q1}]]$ and $[[{Q2}]]$
 such that $[[Q1 ||- Q2]]$, there is a (linear) function
 $[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
 
@@ -1996,10 +1996,10 @@ of term variables. We simply modified the scaling function to capture all the
 generated constraints and re-emit a scaled version of them -- a fairly local
 change.
 
-The constraint solver maintains a set of givens (the \emph{inert} set),
+The constraint solver maintains a set of given constraints (the \emph{inert} set in \textsc{ghc} jargon),
 which corresponds to the $[[{UCtx}]]$ and $[[{LCtx}]]$ contexts in our solver
 judgements in Section~\ref{sec:constraint-solver}. A property of the inert set
-is that constraints contained do not interact pairwise. These interactions are
+is that constraints contained in it do not interact pairwise. These interactions are
 dictated by the constraint domain. For example, equality constraints interact
 with other constraints by applying a substitution.
 
@@ -2007,13 +2007,13 @@ The treatment of implication constraints is of particular interest.
 Implications, by their nature, introduce assumptions which do not necessarily
 hold in the outer context, therefore recording these assumptions in the inert
 set is a destructive operation. To ensure proper scoping, \textsc{ghc} creates a fresh
-copy of the inert set for each nested implication it solves, so these
+copy of the inert set for each nested implication that it solves, so these
 destructive operations do not leak out. We modify the inert set so that for each
 constraint stored in it, the level (or depth) of the implication is recorded
 alongside it. Each interaction with nested assumptions (which might give rise to
 additional derived givens) is recorded at the appropriate level and
 multiplicity (decomposing a constraint tuple into its constituent parts is done
-by the simplifier, which must now record the multiplicities of the components).
+by the simplifier, which must now record the multiplicities of the components).\jp{This is very tough to follow if one does not already have the solver in one's head. Also: wall of text.}
 
 Atomic wanteds are then solved by finding a matching given in the inert set (or
 a top-level given, which is not relevant to linear constraints). When a linear
@@ -2080,8 +2080,8 @@ firstLine fp =   do  {  pack' h <- openFile fp
                      ;  return xs }
 \end{code}
 This program looks reasonable; however, it is rejected. The type of
-|closer| is |IOL ()|, which means that the definition of |closer|
-consumes the linear constraint |Open h|. So, by the time we try to
+|closer| is |IOL ()|, which means that the definition of |closer|\jp{rename to |closeOp|? (Closer is normally an adjective and it makes me double take at every occurrence.)}
+consumes the linear constraint |Open h|. So, by the time we attempt
 |readLine h|, the constraint is no longer available.
 
 What the programmer really meant, here, was for |closer| to have type
@@ -2092,9 +2092,9 @@ generalisation, the only way to give |closer| the type |constraint (Open h) =>. 
 ()| is to give |closer| a type signature. In current \textsc{ghc}, we
 can't write that signature down, since the type variable |h| is not
 bound in the program text, and there is no syntax for binding it
-(though see~\citet{variables-in-patterns} for a proposed syntax). But
-even ignoring this, it would be rather unfortunate that the default
-behaviour of |let|, in presence of linear constraints, almost never be
+(Even though \citet{variables-in-patterns} proposes a syntax for it). But
+even ignoring this, it would be rather unfortunate if the default
+behaviour of |let|, in presence of linear constraints, almost never was
 what the programmer wants.
 
 To handle $\klet$-generalisation, let us consider the following rule
@@ -2103,7 +2103,7 @@ $$
 \drule{G-LetGen}
 $$
 %
-This rule is non-deterministic, as it requires finding $[[{Q_r}]]$ and
+This rule is non-deterministic, because it requires finding $[[{Q_r}]]$ and
 $[[{Q}]]$. We can modify the constraint solver of
 Section~\ref{sec:constraint-solver} to find $[[{Q_r*Q}]]$: it's the
 residual constraint, from OutsideIn, that we have omitted. But we
@@ -2137,10 +2137,10 @@ $$
 \drule{C-Top}
 $$
 That is $[[{Top}]]$ is unconditionally true, and can consume any number
-of linear given constraints. The \rref*{C-Top} rule thus induces a
+of linear given constraints.\jp{Indeed, the corresponding program consumes the empty type, so it is safe to do so.} The \rref*{C-Top} rule thus induces a
 considerable amount of non-determinism. Eliminating the
 non-determinism induced by $[[{Top}]]$ is ultimately
-what~\citet{resource-management-for-ll-proof-search} builds up
+what~\citet{resource-management-for-ll-proof-search} build up
 to. Their methods can be adapted to the constraint solver of
 Section~\ref{sec:constraint-solver} without any technical
 difficulty. We chose, however, to keep empty cases out the
@@ -2161,7 +2161,7 @@ and borrowed references, as the \textsc{api} in
 Section~\ref{sec:memory-ownership} follows naturally from the
 requirements (namely a pure interface for mutable arrays with the
 ability to freeze arrays). It is not
-clear that any other \textsc{api} could be essentially different.
+clear that any other \textsc{api} could be essentially different.\jp{This paragraph does not seem to say anything. Delete?}
 
 Rust is built with ownership and borrowing for memory
 management from the ground up. As a consequence, it has a much more convenient syntax
@@ -2170,20 +2170,17 @@ convenient syntax comes at the price that it is almost impossible to
 write tail-recursive functions, which is surprising from the
 perspective of a functional programmer.
 
-On the other hand, the focus of Linear Haskell as well as linear
-constraints is to provide programmers with the tools to create safe
-interfaces and libraries. The language itself is agnostic about what
-linear constraints mean. Although linear constraints don't have
-the convenience of Rust's syntax, we expect that they will
-support a greater variety of abstractions. It is worth noting, though,
-that Rust programmers have come up with varied abstractions which leverage
-borrowing, going beyond memory management (for instance, safe file
-handling).
-
-Section~\ref{sec:memory-ownership} shows how to make a
-Rust-like \textsc{dsl} in Haskell with linear constraints. It is not
-clear that it is possible at all to make a Linear-Haskell-like
-\textsc{dsl} in Rust.
+On the other hand, the focus of Linear Haskell, as well as this paper,
+is to provide programmers with the tools to create safe interfaces and
+libraries. The language itself is agnostic about what linear
+constraints mean. Although linear constraints don't have the
+convenience of Rust's syntax, we expect that they will support a
+greater variety of abstractions. Even though, Rust programmers have
+come up with varied abstractions which leverage the borrowing
+mechanism to support applications going beyond memory management (for
+instance, safe file handling), it is unclear that all applications
+supported by linear constraints are reducible to the borrowing
+mechanism.
 
 \paragraph{Languages with capabilities}
 
@@ -2193,12 +2190,12 @@ of linear constraints. Of the two, Mezzo is more specialised, being
 entirely built around its system of capabilities, and \textsc{ats} is
 the closest to our system with an explicit appeal to linear logic, and
 the capabilities (known as \emph{stateful views}) being a part of a
-bigger language. However, \textsc{ats} does not have full inference of
+bigger language\jp{Cannot parse this sentence?}. However, \textsc{ats} does not have full inference of
 capabilities. % , which the programmer may have to fill in.
 
-Other than that, both systems have a lot of similarities. They have a
+Other than that, the two systems have a lot of similarities. They have a
 finer-grained capability system than is expressible in Rust (or our
-Section~\ref{sec:memory-ownership}) which makes it possible to change
+in our encoding of it in Section~\ref{sec:memory-ownership}) which makes it possible to change
 the type of a reference cell upon write. They also eschew scoped
 borrowing in favour of more traditional read and write capabilities. In
 exchange, neither Mezzo nor \textsc{ats} support $O(1)$ freezing like
@@ -2250,8 +2247,8 @@ Uniformity is used in the proof of
 Lemma~\ref{lem:inversion}, which, in turn is used in the proof of the
 soundness lemma~\ref{lem:generation-soundness}. This seems to indicate
 that goal-oriented search is baked into the definition of OutsideIn. An
-immediate consequence of this observation, however, is that the fact
-that that the fragment of linear logic described by~\citet{hh-ll} (and
+immediate consequence of this observation, however, is that
+the fragment of linear logic described by~\citet{hh-ll} (and
 for which~\citet{resource-management-for-ll-proof-search} provides a
 refined search strategy) contains the Hereditary Harrop fragment of
 intuitionistic logic guarantees that quantified constraints don't
