@@ -384,7 +384,8 @@ Our contributions are as follows:
   prove that the output of desugaring is well-typed in the core
   language~(\Fref{sec:desugaring}).
 \end{itemize}
-
+\jp{It isn't make super clear that this is a 'drop in' extension that you can apply to
+Linear Haskell/GHC}
 
 \section{Motivation}
 \label{sec:motivation}
@@ -900,7 +901,7 @@ any element of |n|), as expected.
 
 \section{A qualified type system}
 \label{sec:qualified-type-system}
-
+\jp{Downplay this OutsideIn relationship (some more)? Today (20210527) there are 46 references to OutsideIn. Seems excessive; I'd like this number to be below 10.}
 Let us now describe the technical material which supports the
 examples we explored above. The presentation in this
 section, as well as Section~\ref{sec:type-inference}, strongly mirrors
@@ -917,8 +918,7 @@ such simplifications as they arise.
 
 Like in Linear Haskell~\cite{LinearHaskell} we make use of a
 system of \emph{multiplicities}, which describe how
-many times a function consumes its input. Linear Haskell additionally supports
-multiplicity polymorphism. For our purposes, we need only the
+many times a function consumes its input.  For our purposes, we need only the
 simplest system of multiplicity: that composed of only $[[{1}]]$ (representing
 linear functions) and $[[{omega}]]$ (representing
 regular Haskell functions).
@@ -955,10 +955,12 @@ $$
 \end{minipage}
 \smallskip
 
-We do not support multiplicity polymorphism on constraint
+Even though linear Haskell additionally supports
+multiplicity polymorphism,
+we do not support multiplicity polymorphism on constraint
 arguments, and we believe that such a feature would not be very useful.
 Multiplicity polymorphism of regular function arguments is used to avoid
-duplicating the definition of higher-order functions. The poster child
+duplicating the definition of higher-order functions. The prototypical example
 is |map :: (a poly_arrow b) -> [a] poly_arrow [b]|,
 where |poly_arrow| is the notation for a function arrow of multiplicity |m|.
  First-order functions, on the other hand, do not need multiplicity
@@ -1017,10 +1019,10 @@ multiplicative truth $\mathbf{1}$ of linear logic, but we chose this notation
 because it is more distinct from the $[[{1}]]$ multiplicity.
 
 OutsideIn introduces, as part of the constraint domain, a generalised
-kind of constraint $\mathcal{Q}$, which include top-level axioms, such
+kind of constraint $\mathcal{Q}$, which includes top-level axioms, such
 as type-class instance declarations. Such top-level axioms
 are never linear\,--\,just like how top-level definitions are never linear in
-Linear Haskell~\cite{LinearHaskell}\,--\,and as such they don't have
+Linear Haskell\,--\,and as such they don't have
 interesting interactions with the rest of the system, and we choose to
 omit them for simplicity.
 
@@ -1036,7 +1038,8 @@ $$
 \end{array}
 $$
 %
-Scaling is extended to all constraints as follows:
+Scaling is extended to all constraints as follows:\jp{The color system does not look very consistent. Why is the tensor colored but not the dot? What about parentheses? }
+\jp{The tensor binds less tightly than the dot, but there are larger spaces around the dot than around the tenor. (Also, not consistently). This is quite confusing in the typing rules. Also the inconsistent coloring further suggests the wrong binding: it looks like the tensor are grouped together in π · blue (Q₁⊗Q₂). I saw later that the dot is blue but it's very hard to spot due to psycho-visual effects.}
 %
 $$
 \left\{
@@ -1048,7 +1051,7 @@ $$
 \right.
 $$
 %
-The rule that $[[{omega.(Q1 * Q2)}]] = [[{omega.Q1 * omega.Q2}]]$ is not a
+The rule $[[{omega.(Q1 * Q2)}]] = [[{omega.Q1 * omega.Q2}]]$ is not a
 typical feature of linear logic. Linear Haskell, however, introduces
 the corresponding type isomorphism for the sake of polymorphism. While this
 article isn't concerned with polymorphism, this equality does make
@@ -1147,6 +1150,8 @@ typing rules in Figure~\ref{fig:typing-rules}.
   \caption{Qualified type system}
   \label{fig:typing-rules}
 \end{figure}
+\jp{Regarding the typing rules figure: is the case \(x:_ωσ ∈ ...\) missing?
+  omitted intentionally? In the E-Pack rule: Is the ω intentional? I seem to remember that the Ur constructor is not implicitly there. Also the ω is not in the E-Unpack rule, at a glance.   }
 
 Like in OutsideIn~\cite[Section 4]{OutsideIn}, the type system of Figure~\ref{fig:typing-rules} is
 a \emph{qualified type system} in the style first introduced
@@ -1157,7 +1162,7 @@ Section~\ref{sec:constraint-domain}. $[[{Q}]]$ behaves
 much like $[[{G}]]$, which will be instrumental for
 desugaring in Section~\ref{sec:desugaring}; the main difference is
 that $[[{G}]]$ is addressed explicitly, whereas $[[{Q}]]$
-is used implicitly in \rref{E-Var}.
+is used\jp{elements of Q are used} implicitly in \rref{E-Var}.
 
 The type system of Figure~\ref{fig:typing-rules} is purely
 declarative: it doesn't have any algorithmic properties. We will see
@@ -1165,7 +1170,7 @@ how to infer constraints in Section~\ref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
 definition that programmers can reason about typing. We do not
 directly give a dynamic
-semantics to this language; instead, we will give it meaning via
+semantics to this language; instead, we will give it meaning \textit{via}
 desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 
 The main differences with OutsideIn, either for simplification, or for
