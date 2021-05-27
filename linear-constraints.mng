@@ -312,17 +312,17 @@ firstLine fp =   do  {  h <- openFile fp
                      ;  closeFile h
                      ;  return xs }
 \end{code}
-This simple function opens a file, reads its first line, then closes
+This function opens a file, reads its first line, then closes
 it. Linearity ensures that the file handle |h| is consumed at the end.
-
-Forgetting to call |closeFile h| would result in a type error since |h| would
+% 
+Forgetting to call |closeFile h| would result in a type error because |h| would
 remain unused at the end of the function. Notice that |readLine| consumes the
 file handle, and returns a fresh |h| that shadows the previous version, to be
 used in further interactions with the file. The line's content is a string
 |xs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
-signify that it can be used arbitrary many times.
+signify that it can be used arbitrarily many times.
 %
-Compare this function with what one would write in a non-linear language:
+Compare the above function with what one would write in a non-linear language:
 \begin{code}
 firstLine :: FilePath -> IO String
 firstLine fp = do  {  h <- openFile fp
@@ -330,28 +330,28 @@ firstLine fp = do  {  h <- openFile fp
                    ;  closeFile h
                    ;  return xs }
 \end{code}
-This style is less safe, because the type system does not keep track of the
-file handle. But it is also
-simpler. It would seem that using a linear language means trading clarity for safety. When
+This version is less safe, because the type system does not keep track of the
+file handle linearity. But it is also
+simpler. So it would seem that using a linear language means trading clarity for safety. When
 modelling a handle as a linear resource, the type system must know at all
 times where it is being consumed, so the file handle is passed around
 manually, resulting in extra noise.
 %
 But when reading the non-linear version, it is clear where the
 handle is used, and ultimately, consumed. Couldn't the compiler
-figure this out without extra help?
+figure that the handle is used safely out without explicit threading?
 
-Rust introduces the borrow checker for this very purpose. But it turns
-out that all you need is to generalise Haskell's type class
+Rust introduces the \emph{borrow checker} for this very purpose. But we show in this paper
+that all you need a generalisation of Haskell's type class
 constraints to \emph{linear constraints}. Like class constraints,
-linear constraints are passed around implicity by the compiler, and
-like linear arguments, they can be used to track resources such as file
-handles. The beauty of linear constraints is their simplicity: all we
-need to do, really, is to pull together the threads from four papers
-(\cite{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}).
+linear constraints are passed around implicity by the compiler. 
+Like linear arguments, they can be used to track resources such as file
+handles. Thus, linear constraints are the combination of these two
+concepts, which have been studied independently elsewhere
+\citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.
 
-With this extension, the final version of |firstLine| is almost the
-same as the traditional version above, with a few minor modifications:
+With this extension, we can write a new safe version of |firstLine| which does
+not require explicit threading of the handle:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp = do  {  pack' h <- openFile fp
@@ -359,10 +359,10 @@ firstLine fp = do  {  pack' h <- openFile fp
                    ;  closeFile h
                    ;  return xs }
 \end{code}
-The only changes from the unsafe version are that this version runs in the linear IO monad,
+The only changes from the unsafe version are that this version runs in the linear |IO| monad,
 and explicit |pack'| annotations are used to indicate the variables that require
-special treatment. Crucially, the resource representing the open file no longer
-needs to be passed around manually.
+special treatment. Crucially, the resource representing the open file is a linear constraint,
+and so it longer needs to be passed around manually. 
 
 Our contributions are as follows:
 \begin{itemize}
