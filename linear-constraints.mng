@@ -1252,10 +1252,10 @@ simplification for two reasons:
 \begin{itemize}
 \item Our system doesn't have equality constraints, and even when
   integrated into \textsc{ghc}, we do not allow equality constraints to be
-  linear. This is because traditional unification algorithms are
-  unsound for linear equalities as they will gladly reuse the same
+  linear. Indedd, traditional unification algorithms are
+  unsound for linear equalities, because they will gladly reuse the same
   equality many times (or none at all). Linear equalities make sense
-  (see \emph{e.g.}~\cite{shulman2018linear}, which puts linear
+  (For instance \citet{shulman2018linear} puts linear
   equalities to great use), but they don't seem to lend themselves to
   automation.
 \item We do not support, or intend to support, multiplicity
@@ -1277,7 +1277,7 @@ that type inference is solved elsewhere, greatly simplifying the presentation.
 \subsection{Wanted constraints}
 \label{sec:wanteds}
 
-Like OutsideIn~\cite[Figure~11, page~37]{OutsideIn}, the constraints
+As in OutsideIn~\cite[Figure~11, page~37]{OutsideIn}, the constraints
 generated in Section~\ref{sec:constraint-generation} have a richer
 logical structure than the simple constraints. Let us follow
 \textsc{ghc}'s terminology and call these \emph{wanted constraints}:
@@ -1290,7 +1290,7 @@ $$
 \end{array}
 $$
 %
-The wanteds for linear constraints differ a little from the wanteds of
+The wanteds for linear constraints\jp{this paper?} differ a little from the wanteds of
 OutsideIn.
 The first, superficial, difference is that our wanteds don't need existential
 quantification. This is one of the benefits that not doing type inference
@@ -1303,17 +1303,19 @@ connective from linear logic: a remarkable feature of linear logic is
 that every connective from classical or intuitionistic logic tends to
 appear in two flavours in linear logic. Where $[[{C1*C2}]]$ is the
 \emph{multiplicative} conjunction, $[[{C1&C2}]]$ is the \emph{additive}
-conjunction. Both connectives are conjunctions, but they differ rather
-dramatically in meaning: a proof of $[[{C1*C2}]]$ consumes both the (linear)
+conjunction. Both connectives are conjunctions, but they differ
+% rather dramatically % weasel words combo
+in meaning: a proof of $[[{C1*C2}]]$ consumes both the (linear)
 assumptions consumed by a proof of $[[{C1}]]$ and a proof of $[[{C2}]]$. On the
-other hand in $[[{C1&C2}]]$, both the proof of $[[{C1}]]$ and the proof of $[[{C2}]]$ \emph{must}
-consume the same assumptions, and that of $[[{C1 & C2}]]$ will consume the same
-assumptions. The intuition, here, is that in $[[{C1 & C2}]]$, only
+other hand in $[[{C1&C2}]]$, the proof of $[[{C1}]]$ and the proof of $[[{C2}]]$ \emph{must}
+consume the same assumptions, which that of $[[{C1 & C2}]]$ will consume as well.
+The intuition, here, is that in $[[{C1 & C2}]]$, only
 one of $[[{C1}]]$ or $[[{C2}]]$ will be eventually used. Much like if
 $[[{C1}]]$ and $[[{C2}]]$ were branches in a $\kcase$-expression. Not
 coincidentally, $[[{C1&C2}]]$ will be used to generate constraints for
 $\kcase$-expressions.
 
+\jp{There need to be an explanation why the implication constraint is necessary here. (And the OutsideIn references can then be alleviated)}
 Finally, implication constraints differ from those of OutsideIn in two ways. First they are
 linear implications (an implication which must consume its
 assumption exactly once), where in OutsideIn they are intuitionistic implications.
@@ -1324,7 +1326,7 @@ extending scaling to all wanted constraints below. This scaling factor
 does not, however, change linear implication into intuitionistic
 implication. Concretely, $[[{1.(omega.Q => C)}]]$ is an intuitionistic
 implication which must be consumed exactly once, while $[[omega.(1.Q =>
-C)]]$ is a linear implication which can be consumed many times.
+C)]]$ is a linear implication which can be consumed many times.\jp{The following definition is rather weird. I suppose there is the case 1 · C = C. Then only ω needs to be discussed. }
 %
 $$
 \left\{
@@ -1432,7 +1434,7 @@ The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
 Section~\ref{sec:constraint-solver}. To generate constraints we
 introduce a judgement $[[G |-> e : t ~> C]]$ (defined in
-Figure~\ref{fig:constraint-generation}). It is intended that $[[{C}]]$
+Figure~\ref{fig:constraint-generation}).\jp{Please explain how to intuitively read this judgement here, and/or in the caption of the figure.} It is intended that $[[{C}]]$
 is understood as an output of this judgement. The definition $[[G |->
 e : t ~> C]]$ is syntax directed, so it can directly be read as an
 algorithm, taking as input a term $[[{e}]]$ (together with some type
@@ -1454,7 +1456,7 @@ constraint $[[{C}]]$.
   \label{fig:constraint-generation}
 \end{figure}
 
-The rules of Figure~\ref{fig:constraint-generation} are a mostly
+The rules of Figure~\ref{fig:constraint-generation} constitute a mostly
 unsurprising translation of the rules of Figure~\ref{fig:typing-rules}
 in the style of OutsideIn~\cite[Section 5.4]{OutsideIn}. In particular, the operations
 on typing contexts are the same as in
@@ -1514,7 +1516,7 @@ type system.
   $[[Q_g; G |- e : t]]$
 \end{lemma}
 \begin{proof}
-Soundness is proved by induction on $[[G |-> e : t ~> C]]$, we only
+Soundness is proved by induction on $[[G |-> e : t ~> C]]$. We only
 present the two most interesting cases, the full proof can be found
 in the supplementary material
   \begin{description}
@@ -1568,18 +1570,18 @@ $$
 %
 The judgement
 takes in two contexts: $[[{UCtx}]]$, which holds all the unrestricted
-atomic constraints (scaled by $[[{omega}]]$) and $[[{LCtx_i}]]$, which holds all the linear
-atomic constraints. Due to associativity and commutativity of $[[*]]$ we
+atomic constraints\jp{which can be used?} (scaled by $[[{omega}]]$) and $[[{LCtx_i}]]$, which holds all the linear
+atomic constraints\jp{to consume?}. Due to associativity and commutativity of $[[*]]$ we
 can always factor any simple constraint into such a pair of contexts. The
 unrestricted context $[[{UCtx}]]$ is an unordered set, while the
 multiplicative contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ are ordered lists.
 
 Linearity requires treating constraints as consumable resources. This
 is what $[[{LCtx_o}]]$ is for: it is the list of the hypotheses of
-$[[{LCtx_i}]]$ which haven't been consumed when proving $[[{Q_w}]]$. As
+$[[{LCtx_i}]]$ which haven't been consumed when proving $[[{Q_w}]]$\jp{What's this? Not introduced?}. As
 suggested by the notation, it is an output of the algorithm.
 
-There are three simplifications compared to OutsideIn's solver:
+There are three simplifications compared to OutsideIn's solver:\jp{Another OutsideIn heavy part.}
 
 \begin{itemize}
   \item As explained in Section~\ref{sec:constraint-generation}, our solver does
@@ -1591,7 +1593,7 @@ judgement.
 a set of \emph{residual} constraints: these are the remaining subproblems to
 solve. This set of residual constraints is simply quantified over in the type of
 top-level function definitions that don't have signatures. In our solver we omit these residual constraints,
-because we never infer a type scheme for a let without a signature
+because we never infer a type scheme for a |let| without a signature
 (though we revisit this hypothesis in Section~\ref{sec:let-generalisation}).
 
 It is important to reiterate this
@@ -1655,7 +1657,7 @@ executed). Note that both branches must consume exactly the same
 resources.
   \item Implications are handled by~\rref*{S-ImplOne} and~\rref*{S-ImplMany},
 for solving linear and unrestricted wanted implications respectively. In
-both cases, the assumption of the implication is split to the unrestricted
+both cases, the assumption of the implication is split to\jp{between?} the unrestricted
 $[[{omega . Q1}]]$ and the linear $[[{Q2}]]$ parts (this can be done deterministically).
 When solving a linear implication, we add the assumptions to their respective context, and
 proceed with solving the conclusion. Importantly (see
@@ -1679,11 +1681,11 @@ an abstract parameter. In this section, though, let us give a concrete
 domain which supports our examples.
 
 For the sake of our examples, we really need very little: linear
-constraints are simply names as far as the type checker is
+constraints are abstract as far as the type checker is
 concerned. So it is enough for the entailment relation
 (Figure~\ref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
-is already on the left hand side, with some restriction for linearity
-of course.
+is already on the left hand side--- while respecting linearity.
+
 
 \begin{figure}\centering\small
   \begin{subfigure}{\linewidth}
@@ -1719,7 +1721,7 @@ f fp =   do  {  pack h <- openFile fp
                      ;  cl = closeFile h }
              ;  cl }
 \end{code}
-In this example it is quite clear, that the programmer meant for
+In this example it is quite clear that the programmer meant for
 |closeFile| to use |Open h| introduced locally in |cl|. In fact this
 is the only possible way to attribute constraints.
 
