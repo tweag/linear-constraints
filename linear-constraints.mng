@@ -159,7 +159,7 @@ import GHC.Base
   \newcommand{\vdashi}{⊢_{\mathsf{i}}}
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
   \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{simp}}}
-  \newcommand{\scale}{\constraintop{\cdot}}
+  \newcommand{\scale}{\constraintfont{\cdot}}
   %% Constraint notations
   \newcommand{\constraintop}[1]{\mathop{\constraintfont{#1}}}
   \newcommand{\aand}{\mathop{\&}}
