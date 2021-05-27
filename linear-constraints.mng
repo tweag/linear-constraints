@@ -467,14 +467,13 @@ the linear handle |h| created by |openFile|. Therefore |h| can no longer be used
 doing so would result in a type error.  To resolve this, a new handle for the
 same file is produced that can be used with |closeFile|. In the code, the same
 name |h| is given to the new handle, thus shadowing the old |h| that can no
-longer be used anyway, and to give the illusion that it is being passed around.
+longer be used anyway, and giving the illusion that |h| is threaded around.
 
-From the perspective of the programmer, this is unwanted boilerplate. Using
-shadowing is a trick that hides an underlying problem that should not exist:
-it is not the handle that should be consumed by |readLine| at all.  Rather, it
-is its implicit state as a handle for an open file  that should be consumed
-exactly once. Once this open state is consumed, the handle can no longer be read
-from or closed without triggering a compile time error.
+From the perspective of the programmer, this is unwanted boilerplate.
+Our approach is to let the handle behave non-linearly, and let its
+state (open) be a linear constraint. Once this open state is consumed,
+the handle can no longer be read from or be closed without triggering a
+compile time error.
 
 \subsection{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
@@ -482,28 +481,28 @@ from or closed without triggering a compile time error.
 Consider the Haskell function |show|:
 \begin{code}
 show :: constraint (Show a) => a -> String
-\end{code}
+\end{code}\jp{Why is Show blue?}
 In addition to the function arrow |->|, common to all functional
-programming languages, the type of this function features a fat arrow |=>|.
+programming languages, the type of this function features a fat\jp{double?} arrow |=>|.
 Everything to the
 left of a fat arrow is called a \emph{constraint}. Here |Show a| is a
 type-class constraint, but there are other kinds of constraints such
-as equality constraints or implicit parameter constraints.
+as equality constraints or implicit parameter constraints.\jp{only experts will know about implicit parameters. Mentioning them here makes it seem that we're talking to them only. Delete?}
 
 What is crucial, for our purpose, is that constraints are handled implicitly by
-the typechecker. That is, if we want to |show| an integer we would write |show
-42|, and the typechecker would handle proving that |Show Int| holds without
+the typechecker. That is, if we want to |show| the integer |n :: Int| we would write |show
+n|, and the typechecker would handle proving that |Show Int| holds without
 intervention from the programmer.
 Thus, constraints are a convenient mechanism that allow the compiler
 to automatically fill in implicit arguments.
 
 For our |readLine| example, the implicit argument is the state of a handle |h|.
-This can be managed as a constraint called |Open h|, which indicates that the
+This can be managed as a constraint |Open h|, which indicates that the
 file associated with the handle is open. The idea is that this constraint
-should be a linear value, so that it can only be consumed exactly once.
+should be linear, so that it can only be consumed exactly once.
 In order to manage linearity implicitly, this article introduces a
-linear fat arrow |=>.|, much like Linear Haskell introduced a linear
-function arrow |->.|. We dub constraints to the left of a linear fat
+linear fat arrow (|=>.|), much like Linear Haskell introduced a linear
+function arrow (|->.|). We dub constraints to the left of a linear fat
 arrow \emph{linear constraints}.
 Using the linear constraint |Open h| to represent that a file is open, we can give
 the following type to |closeFile|:
@@ -525,18 +524,18 @@ There are a few things to notice:
   Haskell~\cite{liquid-haskell-abstract-refinement-types}, Haskell doesn't have such a
   naming mechanism built in yet, so we have to resort to a type variable to mediate the
   link between handles and linear constraints.
-\item Second, if  we have a single, linear, |constraint (Open h)|
+\item Second, if we have a single, linear, |constraint (Open h)|
   available, then after |closeFile| there will not be any |constraint (Open h)|
   left to use, thus preventing the file from being closed
   twice. This is precisely what we were trying to achieve.
 \end{itemize}
 
-This deals with closing files and ensuring that a handle cannot be closed more
-than once.  However, we still need to explain how a constraint
-|constraint (Open h)| can come
-into existence. For this, we introduce a type construction |exists a1 ... an. t
-.<= contraints (Q)|, where |constraint(Q)| is some (linear) constraint that is created.  The type of
-|openFile| is thus:
+The above deals with closing files and ensuring that a handle cannot be
+closed more than once.  However, we still need to explain how a
+constraint |constraint (Open h)| can come into existence. For this, we
+introduce a type construction |exists a1 ... an. t .<= contraints
+(Q)|, where |constraint(Q)| is some (linear) constraint that is
+created.  The type of |openFile| is thus:
 \begin{code}
 openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
 \end{code}
@@ -578,19 +577,21 @@ in the implementation as a \textsc{ghc} extension, packed linear constraints wil
 piggy-back on the standard \textsc{gadt} syntax. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
 
-When pattern-matching on a |pack| all the existentially quantified
+When pattern-matching on a |pack| constructor, all the existentially quantified
 names are introduced in scope and all the returned constraints are
 made available. We also use |pack' x| as a shorthand
-for |pack (Ur x)|. With all these ingredients we can indeed write
-the example given in the introduction.
+for |pack (Ur x)|. There are all the ingredients needed to write
+the |firstLine| example as in the introduction.
 
-\subsection{Motivating Examples}
+\subsection{Minimal Examples}
+\jp{This used to say ``motivating examples'', but I don't think that they motivate much. Even better would be ``Do's and Dont's with linear constraints'' or something like that.}
 \label{sec:examples}
 
-To get a sense of how the features we introduce should behave, let's look at
-some simple examples. Using constraints to represent expendable resources allows the typechecker to
-reject certain classes of ill-behaved programs. Accordingly, the following examples show
-the different reasons a program might be rejected.
+To get a sense of how the features we introduce should behave, let's
+look at some simple examples. Using constraints to represent
+expendable resources allows the typechecker to reject certain classes
+of ill-behaved programs. Accordingly, the following examples show the
+different reasons a program might be rejected.
 
 In what follows, we will be using a class |constraint (C)| that is consumed by the |useC|
 function.
@@ -599,7 +600,7 @@ class constraint (C)
 
 useC :: constraint (C) =>. Int
 \end{code}
-The type of |useC| indicates that it consumes its linear resource |C| exactly once.
+The type of |useC| indicates that it consumes the linear resource |C| exactly once.
 
 \subsubsection{Dithering}
 
@@ -609,7 +610,7 @@ dithering :: constraint (C) =>. Bool -> Int
 dithering x = if x then useC else 10
 \end{code}
 The problem with |dithering| is that it does not commit properly to how much
-resource it requires: the branch where |x| holds will use the resource |C|
+of |C| it requires: the branch where |x == True| will use the resource |C|
 whereas the other does not.
 
 \subsubsection{Neglecting}
@@ -620,7 +621,7 @@ const :: a ->. b -> a
 \end{spec}
 This function uses its first argument linearly, and ignores the second. Thus,
 the multiplicity of the second arrow is $[[{omega}]]$.
-
+%
 One way to improperly use the linear |const| is by neglecting a linear variable:
 \begin{code}
 neglecting :: constraint (C) =>. Int
@@ -630,15 +631,15 @@ The problem with |neglecting| is that although |useC| is mentioned in this progr
 it is never evaluated because |const| does not use its second argument.
 The constraint |C| is thus consumed $[[{omega}]]$ times so this program ought to
 be rejected.
-
-The rule is that a linear constraint is only consumed in a linear context. For
-example,
+%
+The rule is that a linear constraint can only be consumed (linearly)
+in a linear context. For example,
 \begin{code}
 notNeglecting :: constraint (C) =>. Int
 notNeglecting = const useC 10
 \end{code}
 is accepted, because the |constraint (C)| constraint is passed on to |useC| which itself
-appears as an argument to a linear function (whose result is consumed linearly).
+appears as an argument to a linear function (whose result is itself consumed linearly).
 
 \subsubsection{Overusing}
 \label{sec:overusing}
@@ -655,9 +656,18 @@ notOverusing :: constraint ((C, C)) =>. (Int, Int)
 notOverusing = (useC, useC)
 \end{code}
 That is, it is possible to have multiple copies of a given
-constraint. Our system is designed so that the order of resolution is
-non-deterministic. This corresponds to the assumption that all
-instances of a linear constraint are equivalent. Consequently, if an
+constraint.
+
+%JP: this used to say:
+% Our system is designed so that the order of resolution is
+% non-deterministic. This corresponds to the assumption that all
+% instances of a linear constraint are equivalent.
+Because the consumption of constraints is implicit, when there are
+several possible ways to consume a constraints, the particular order
+chosen will depend on the details of the constraint resolution
+algorithm. We do not want the semantics of programs to depend on this
+order (which we in fact to not specific in this paper).
+Consequently, if an
 \textsc{api} uses linear constraints, it must be designed to ensure that the
 runtime behaviour is not dependent on the order of constraint
 resolution.
@@ -665,7 +675,7 @@ resolution.
 \subsection{Linear IO}
 \label{sec:linear-io}
 
-The file handling example discussed in sections~\ref{sec:linear-types}
+The file-handling example discussed in sections~\ref{sec:linear-types}
 and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
 Compared to the traditional |IO| monad, the
 type of the monadic operations |>>=| and |return| are changed to
@@ -677,16 +687,17 @@ return :: a ->. IOL a
 \end{code}
 %
 Bind must be linear because, as explained in the previous section, a linear
-constraint can only be consumed in a linear context. This is required for the
-following program to typecheck:
+constraint can only be consumed in a linear context. Consider
+the 
+following program:
 \begin{code}
 readTwo ::  constraint (Open h) =>. Handle h -> IOL (Ur (String, String) .<= constraint (Open h))
 readTwo h =  readLine h >>= \case pack' xs ->
              readLine h >>= \case pack' ys ->
              return (pack' (xs, ys))
 \end{code}
-If it were not linear, the first argument |readLine h| of the first bind would
-not be able to consume the |constraint (Open h)| constraint.
+If bind were not linear, the occurrence of |readLine h| would
+not be able to consume the |constraint (Open h)| constraint linearly.
 
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
