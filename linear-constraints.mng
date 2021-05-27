@@ -703,26 +703,25 @@ not be able to consume the |constraint (Open h)| constraint linearly.
 \label{sec:memory-ownership}
 
 Let us now turn to a more substantial example: manual memory
-management.
-In Haskell, memory deallocation is normally the responsibility of a
-garbage collector. However, garbage collection comes with runtime
-costs that not all applications can afford. Another realistic scenario
-is to imagine a Haskell program calling foreign functions that reside
-in a different runtime system~\cite{linear-inline-java}.
-In either case, one must then resort to
-explicit memory allocation and deallocation. This task is error
-prone: one can easily forget a deallocation (causing a memory leak) or
-deallocate several times (corrupting data).
+management.  In Haskell, memory deallocation is normally the
+responsibility of a garbage collector. However, garbage collection is
+not always desirable, either due to its runtime costs, or because
+pointers exist between two runtime systems co-existing in a single
+application (for example when calling foreign
+functions~\cite{linear-inline-java}).  In either case, one must then
+resort to explicit memory allocation and deallocation. This task is
+error prone: one can easily forget a deallocation (causing a memory
+leak) or deallocate several times (corrupting data).
 
 \subsection{Ownership constraints}
 \label{sec:atomic-references}
 
-With linear constraints, it is possible to give a \emph{pure} interface for
+With linear constraints, it is possible to provide a \emph{pure} interface for
 manual memory management, which
-enforces correct deallocation of memory.  The approach is to use a
-linear constraint to represent \emph{ownership} of a memory location
-in the style of Rust,
-\emph{i.e.} the responsibility of deallocating it. We use a linear constraint
+enforces correct deallocation of memory.  Our approach, in the style of Rust,
+is to use a
+linear constraint to represent \emph{ownership} of a memory location.
+We use a linear constraint
 |Own n|, such that a program which has an |Own n| constraint in
 context is responsible of deallocating the memory associated
 with a memory location |n|.  Because of linearity, this constraint
@@ -732,8 +731,8 @@ is deallocated correctly.
 In the above, |n| is a type variable (of a special kind |Location|)
 which represents a memory location. Locations mediate
 the relationship between references and ownership constraints.
-
-For more granular control, we will be using three linear constraints:
+%
+In fact, for more granular control, we will be using three linear constraints:
 one for reading, one for writing, and one for ownership.
 
 \begin{minipage}{0.3\linewidth}
@@ -752,7 +751,7 @@ writes can be done only when we are sure that no other part of the program has
 read access to the reference. Rust disallows mutable aliasing for the same
 reason: ensuring that writes cannot be observed through other references is what
 allows treating mutable structures as ``pure''.
-Therefore, writing also requires owning the read capability.  We
+Therefore, writing also requires the read capability.  We
 systematically use the |RW| set of constraints, defined below, instead of
 |Write|.
 
@@ -777,11 +776,11 @@ following function.
 
 The reference is made available in a function which we call the
 \emph{scope} of the reference. The return type of the scope is,
-crucially, |Ur b|.  Indeed, if we would allow returning any type |b|
+crucially, |Ur b|.  Indeed, if we would allow returning any type |b|,
 then the |O n| constraint could be embedded in |b|, and therefore
 escape from the scope.
-This would effectively let |O n| be an unrestricted constraint, and
-no longer guarantee that the reference has a unique owner.
+This would defeat the point of |O n| be a linear constraint, and
+no longer guarantee that the reference has a unique owner.\jp{This is because newRef can be called in unrestricted contexts. Do we have enough space/reader attention to explain that ?}
 
 To read a reference, a simple |Read| constraint is demanded, and
 immediately returned. Writing is handled similarly.
@@ -817,32 +816,44 @@ sometimes called ``freezing'':
 \subsection{Arrays}
 \label{sec:arrays}
 
-The toolkit we set up handles references to base types just fine.  But
-what about references to references; or, indeed, arrays of arrays? A
-common example of plain Linear Haskell is a pure interface to mutable
-arrays~\cite[Section 2.2]{LinearHaskell}. There we have two types,
-|MArray a|, used linearly, for mutable arrays, and |Array a|, used
-unrestrictedly, for immutable arrays. Mutable arrays can be frozen
-using |freeze :: MArray a ->. Ur (Array a)|. Note that this version of |freeze|
-can not support mutable arrays of mutable arrays.
-The core of the issue is that mutable arrays and immutable arrays have different
-types.
+The above toolkit handles references to base types just fine.  But
+what about storing references in objects managed by the ownership
+system? In this section, we show how to deal with arrays of
+references, (including arrays of arrays), as a typical case.
 
-The ownership \textsc{api}, on the other hand, is readily extended to
-nested mutable arrays. The key ingredient is for inner arrays to
-relinquish their ownership to the outer array.
+% JP: the discussion below sounds quite petty. Not many (zero
+% non-conflicting?)  people will be aware of the issue with linear
+% arrays. So it would need a lot more space to be properly
+% justified. Besides, the issue of storing references in structures
+% should be motivation enough in general.
+
+% A motivating example of plain Linear Haskell is a pure interface to
+% mutable arrays~\cite[Section 2.2]{LinearHaskell}. There we have two
+% types: first |MArray a|, used linearly, for mutable arrays; and
+% second |Array a|, used unrestricted, for immutable arrays. Mutable
+% arrays can be frozen using |freeze :: MArray a ->. Ur (Array
+% a)|. Note that this version of |freeze| can not support mutable
+% arrays of mutable arrays.  The core of the issue is that mutable
+% arrays and immutable arrays have different types.
+% The ownership \textsc{api}, on the other hand, is readily extended to
+% nested mutable arrays.
+% Crucially, and in contrast to the plain linear types \textsc{api} the
+% type |PArray| is both the type of mutable arrays and immutable arrays,
+% |freezePArray| only changes the permissions. And since permissions are
+% linear constraints, this is all managed automatically by the compiler.
 
 > data PArray (a :: Location -> Type) (n :: Location)
 > newPArray    :: (forall n. ^^ constraint (O n) =>. PArray a n -> Ur b) ⊸ Ur b
 
-The kind of |a| is |Location ->
-Type|: this way we can easily enforce that each reference in the
-array refers to the same location |n|. Both types |AtomRef a| and
-|PArray a| have kind |Location -> Type|, and therefore one can allocate, and
-manipulate arrays of arrays with this \textsc{api}.
+For this purpose we introduce the type |PArray a n|, where the kind of
+|a| is |Location -> Type|: this way we can easily enforce that each
+reference in the array refers to the same location |n|. Both types
+|AtomRef a| and |PArray a| have kind |Location -> Type|, and therefore
+one can allocate, and manipulate arrays of arrays with this
+\textsc{api}.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
-ownership of the reference is relinquished to the array.
+ownership of the reference is transferred to the array.
 
 > writePArray  :: constraint ((RW n, O p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
 
@@ -850,8 +861,8 @@ More precisely, the ownership of the location |p| is absorbed into that
 of |n|. Therefore, the associated operational semantics is to move the
 reference inside the array (and deallocate any previous reference at that index).
 
-We still want to have read and write access to inner references, of
-course, so we use |lendPArrayElt|:
+We still want to have read and write access to references in the array
+so we provide |lendPArrayElt|:
 
 > lendPArrayElt  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 
@@ -868,7 +879,7 @@ available. The following function would not be sound:
 
 Indeed, when called from a context where the program owns |n|,
 |n| could immediately be deallocated, even though |RW
-p| would remain available, letting us write to free memory. For the same reason,
+p| would remain available, letting us write to freed memory. For the same reason,
 gaining read access to an element needs to be done using a
 scoped \textsc{api} as well:
 
@@ -876,7 +887,7 @@ scoped \textsc{api} as well:
 >                    ->  (forall p. ^^ constraint (Read p) =>. a p -> r .<= constraint (Read p))
 >                    ⊸   r .<= constraint (Read n)
 
-Finally, we can freeze arrays, and arrays of arrays or more, using the
+Finally, we can freeze arrays, using the
 following primitive:
 
 > freezePArray :: constraint (O n) =>. PArray a n -> () <== constraint (Read n)
@@ -886,10 +897,6 @@ any element of |n|), as expected.
 
 > readArray :: constraint (Read n) => PArray a n -> Int -> a n
 
-Crucially, and in contrast to the plain linear types \textsc{api} the
-type |PArray| is both the type of mutable arrays and immutable arrays,
-|freezePArray| only changes the permissions. And since permissions are
-linear constraints, this is all managed automatically by the compiler.
 
 \section{A qualified type system}
 \label{sec:qualified-type-system}
