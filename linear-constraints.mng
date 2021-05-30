@@ -185,9 +185,9 @@ import GHC.Base
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
-\acmConference[ICFP'21]{ICFP}{2021}{}
-\acmYear{2021}
-\copyrightyear{2021}
+\acmConference[POPL'22]{POPL}{2022}{}
+\acmYear{2022}
+\copyrightyear{2022}
 \setcopyright{none}
 
 \citestyle{acmauthoryear}
@@ -330,27 +330,30 @@ firstLine fp = do  {  h <- openFile fp
                    ;  closeFile h
                    ;  return xs }
 \end{code}
-This version is less safe, because the type system does not keep track of the
-file handle linearity. But it is also
-simpler. So it would seem that using a linear language means trading clarity for safety. When
-modelling a handle as a linear resource, the type system must know at all
-times where it is being consumed, so the file handle is passed around
-manually, resulting in extra noise.
+This version is less safe, because the type system does track the linearity
+of the file handle. But it is also
+simpler. We see here a clear tension between extra safety and clarity of code---one
+we wish, as language designers, to avoid. %%  When
+%% modelling a handle as a linear resource, the type system must know at all
+%% times where it is being consumed, so the file handle is passed around
+%% manually, resulting in extra noise.
 %
-But when reading the non-linear version, it is clear where the
-handle is used, and ultimately, consumed. Couldn't the compiler
-figure that the handle is used safely out without explicit threading?
+Reading the non-linear version, it is clear where the
+handle is used, and ultimately, consumed. How can we get the compiler
+to see that the handle is used safely out without explicit threading?
 
-Rust introduces the \emph{borrow checker} for this very purpose. But we show in this paper
-that all you need a generalisation of Haskell's type class
-constraints to \emph{linear constraints}. Like class constraints,
-linear constraints are passed around implicity by the compiler. 
-Like linear arguments, they can be used to track resources such as file
+Rust introduces the \emph{borrow checker} for this very purpose.
+Our approach is, in some ways, simpler: we show in this paper
+how a natural generalisation of Haskell's type class
+constraints does the trick. We call our new constraints \emph{linear constraints}.
+Like class constraints,
+linear constraints are propagated implicity by the compiler. 
+Like linear arguments, they can safely be used to track resources such as file
 handles. Thus, linear constraints are the combination of these two
 concepts, which have been studied independently elsewhere
 \citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.
 
-With this extension, we can write a new safe version of |firstLine| which does
+With our extension, we can write a new safe version of |firstLine| which does
 not require explicit threading of the handle:
 \begin{code}
 firstLine :: FilePath -> IOL String
@@ -361,7 +364,8 @@ firstLine fp = do  {  pack' h <- openFile fp
 \end{code}
 The only changes from the unsafe version are that this version runs in the linear |IO| monad,
 and explicit |pack'| annotations are used to indicate the variables that require
-special treatment. Crucially, the resource representing the open file is a linear constraint,
+special treatment. (\Fref{sec:implicit-existentials} suggests how we can get rid of
+the |pack'|, too.) Crucially, the resource representing the open file is a linear constraint,
 and so it longer needs to be passed around manually. 
 
 Our contributions are as follows:
@@ -369,59 +373,35 @@ Our contributions are as follows:
 \item A system of qualified types that allows a constraint assumption
   to be given a multiplicity. Linear assumptions are used precisely
   once in the body of a definition
-  (\Fref{sec:qualified-type-system}).
-\item This system supports examples that have motivated the design of
+  (\Fref{sec:qualified-type-system}). This system supports examples that have motivated the design of
   several resource-aware systems, such as ownership à la Rust (\Fref{sec:memory-ownership}), or
   capabilities in the style of Mezzo~\cite{mezzo-permissions}
   or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
   may serve as a way to unify these lines of research.
-\item An inference algorithm, that respects the multiplicity of
+\item An inference algorithm that respects the multiplicity of
   assumptions. We prove that this algorithm is sound with respect to
   our type system~(\Fref{sec:type-inference}).
-\item Expressions in our qualified
-  type system desugar into a core language (directly adapted
-  from Linear Haskell~\cite{LinearHaskell}) that supports linear functions. We
-  prove that the output of desugaring is well-typed in the core
-  language~(\Fref{sec:desugaring}).
+\item A core language (directly adapted
+  from Linear Haskell~\cite{LinearHaskell}) that supports linear functions.
+Expressions in our qualified
+  type system desugar into this core language, and
+ we
+  prove that the output of our desugaring is well-typed~(\Fref{sec:desugaring}).
 \end{itemize}
 \jp{It isn't make super clear that this is a 'drop in' extension that you can apply to
 Linear Haskell/GHC}
 
-\section{Motivation}
-\label{sec:motivation}
+Our design is intended to dovetail well with other features of Haskell and its
+implementation within GHC; an implementation is under way. \rae{Does it look bad
+that the implementation is not finished? Better not to mention?}
 
-The goal of this paper is to introduce linear constraints as a mechanism for
-ergonomically using linear types in Haskell. In this section, we sketch out some
-of the basics of how linear types work in Haskell, and then give a number of
-examples that motivate our extension into linear constraints.
-
-\subsection{Linear Types}
+\section{Background: Linear Haskell}
 \label{sec:linear-types}
 
-\begin{figure}%
-  \centering\small
-  \begin{subfigure}{.3\linewidth}%
-    \noindent%
-\begin{code}
-openFile   :: FilePath -> IOL Handle
-readLine   :: Handle ⊸ IOL (Handle, Ur String)
-closeFile  :: Handle ⊸ IOL ()
-\end{code}
-\caption{Linear Types}
-\label{fig:linear-interface}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}{.55\linewidth}
-\begin{code}
-openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
-readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint (Open h))
-closeFile  :: constraint (Open h) =>. Handle h -> IOL ()
-\end{code}
-\caption{Linear Constraints}
-\label{fig:constraints-interface}
-  \end{subfigure}
-\caption{Interfaces for file manipulation}
-\end{figure}
+There are \emph{many} approaches to marrying linear logic with functional
+programming; see, e.g., \citet[Section 6]{LinearHaskell} for a description
+of alternatives. This section, mostly cribbed from \citet[Section 2.1]{LinearHaskell},
+describes our baseline approach, as released in GHC~9.0.
 
 Linear Haskell~\cite{LinearHaskell} adds a new type of functions,
 dubbed \emph{linear functions}, and written |a ⊸ b|\footnote{The linear function
@@ -429,10 +409,10 @@ dubbed \emph{linear functions}, and written |a ⊸ b|\footnote{The linear functi
   logic~\cite{girard-linear-logic}, to which the phrase \emph{linear
     types} refers. All the various design of linear typing in the
   literature amount to adding such a linear function type, but details
-  can vary wildly. See~\cite[Section 6]{LinearHaskell} for an analysis
+  can vary wildly. See~\citet[Section 6]{LinearHaskell} for an analysis
   of alternative approaches.}. A linear function consumes its
   argument exactly once. More precisely, Linear Haskell~\cite[Section
-  2.1]{LinearHaskell} defines linear functions as:
+  2.1]{LinearHaskell} lays it out thusly:
 
 \begin{quote}
 \emph{Meaning of the linear arrow}:
@@ -463,7 +443,7 @@ g x = f x
 The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
-The example in the previous section, when calling |readLine|, consumes
+The |readLine| example in the introduction consumes
 the linear handle |h| created by |openFile|. Therefore |h| can no longer be used to close the file:
 doing so would result in a type error.  To resolve this, a new handle for the
 same file is produced that can be used with |closeFile|. In the code, the same
@@ -471,41 +451,67 @@ name |h| is given to the new handle, thus shadowing the old |h| that can no
 longer be used anyway, and giving the illusion that |h| is threaded around.
 
 From the perspective of the programmer, this is unwanted boilerplate.
-Our approach is to let the handle behave non-linearly, and let its
-state (open) be a linear constraint. Once this open state is consumed,
+The approach with linear constraints is to let the handle behave non-linearly, and let its
+state (i.e., that the handle is open) be a linear constraint. Once this open state is consumed,
 the handle can no longer be read from or be closed without triggering a
 compile time error.
 
-\subsection{Working With Linear Constraints}
+\section{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
+
+\begin{figure}%
+  \centering\small
+  \begin{subfigure}{.3\linewidth}%
+    \noindent%
+\begin{code}
+openFile   :: FilePath -> IOL Handle
+readLine   :: Handle ⊸ IOL (Handle, Ur String)
+closeFile  :: Handle ⊸ IOL ()
+\end{code}
+\caption{Linear Types}
+\label{fig:linear-interface}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}{.55\linewidth}
+\begin{code}
+openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
+readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint (Open h))
+closeFile  :: constraint (Open h) =>. Handle h -> IOL ()
+\end{code}
+\caption{Linear Constraints}
+\label{fig:constraints-interface}
+  \end{subfigure}
+\caption{Interfaces for file manipulation}
+\end{figure}
 
 Consider the Haskell function |show|:
 \begin{code}
 show :: constraint (Show a) => a -> String
-\end{code}\jp{Why is Show blue?}
+\end{code}
+\jp{Why is Show blue?}%
+\rae{A good question at this point.}%
 In addition to the function arrow |->|, common to all functional
-programming languages, the type of this function features a fat\jp{double?} arrow |=>|.
+programming languages, the type of this function features a constraint arrow |=>|.
 Everything to the
-left of a fat arrow is called a \emph{constraint}. Here |Show a| is a
-type-class constraint, but there are other kinds of constraints such
-as equality constraints or implicit parameter constraints.\jp{only experts will know about implicit parameters. Mentioning them here makes it seem that we're talking to them only. Delete?}
+left of a constraint arrow is called a \emph{constraint}. Here |Show a| is a
+class constraint.
 
-What is crucial, for our purpose, is that constraints are handled implicitly by
+Constraints are handled implicitly by
 the typechecker. That is, if we want to |show| the integer |n :: Int| we would write |show
-n|, and the typechecker would handle proving that |Show Int| holds without
+n|, and the typechecker is responsible for proving that |Show Int| holds, without
 intervention from the programmer.
-Thus, constraints are a convenient mechanism that allow the compiler
-to automatically fill in implicit arguments.
 
 For our |readLine| example, the implicit argument is the state of a handle |h|.
 This can be managed as a constraint |Open h|, which indicates that the
-file associated with the handle is open. The idea is that this constraint
-should be linear, so that it can only be consumed exactly once.
-In order to manage linearity implicitly, this article introduces a
-linear fat arrow (|=>.|), much like Linear Haskell introduced a linear
-function arrow (|->.|). We dub constraints to the left of a linear fat
-arrow \emph{linear constraints}.
-Using the linear constraint |Open h| to represent that a file is open, we can give
+file associated with the handle is open. That is, the constraint |Open h|
+is provable iff the file associated with |h| is open.
+This constraint is linear: it is consumed (that is, used as an assumption
+in a function call) exactly once.
+In order to manage linearity implicitly, this paper introduces a
+linear constraint arrow (|=>.|), much like Linear Haskell introduces a linear
+function arrow (|->.|). Constraints to the left of a linear constraint
+arrow are \emph{linear constraints}.
+Using the linear constraint |Open h|, we can give
 the following type to |closeFile|:
 
 \begin{code}
@@ -518,13 +524,15 @@ There are a few things to notice:
   the version in Figure~\ref{fig:linear-interface} without linear
   constraints  has type |closeFile :: Handle ->. IOL ()|.
   The type variable |h| is a type-level name for the file handle which we are closing.
-  Ideally, we'd like the linear constraint to refer directly to the
+  Ideally, the linear constraint would refer directly to the
   handle value, and have the type |closeFile :: (h :: Handle) -> constraint (Open h) =>. IOL ()|.
-  While giving a name to a function argument is the bread and butter of more
-  dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Liquid
-  Haskell~\cite{liquid-haskell-abstract-refinement-types}, Haskell doesn't have such a
-  naming mechanism built in yet, so we have to resort to a type variable to mediate the
-  link between handles and linear constraints.
+  While giving a name to a function argument is common in some
+  dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris,
+  \rae{There was a reference here to Liquid Haskell, but Liquid Haskell does not
+implement dependent types. It does name its arguments, but that doesn't quite fit
+in this sentence.}
+Our approach, on the other hand, shows how we can still link a runtime value and a compile-time
+type variable without needing the full power of dependent types.
 \item Second, if we have a single, linear, |constraint (Open h)|
   available, then after |closeFile| there will not be any |constraint (Open h)|
   left to use, thus preventing the file from being closed
@@ -534,54 +542,63 @@ There are a few things to notice:
 The above deals with closing files and ensuring that a handle cannot be
 closed more than once.  However, we still need to explain how a
 constraint |constraint (Open h)| can come into existence. For this, we
-introduce a type construction |exists a1 ... an. t .<= contraints
-(Q)|, where |constraint(Q)| is some (linear) constraint that is
-created.  The type of |openFile| is thus:
+introduce\footnote{There is a variety of ways existential types can
+be worked into a language. A recent publication by \citet{existentials-in-haskell}
+works out one such approach. Our development does not build directly on that
+work, in order to show how linear constraints can be described independently
+of the approach taken there. The existentials we use here might best be understood
+as a generalisation of those presented by \citet[Chapter 24]{tapl}. See \Fref{sec:existentials}
+for a discussion of how work synergises with that of \citet{existentials-in-haskell}.}
+  a type construction |exists a1 ... an. t .<= constraint(Q)|,
+where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
+brought into scope (that is, the constraint is assumed)\footnote{We will freely
+omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
+empty.}.  The type of |openFile| is thus:
 \begin{code}
 openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
 \end{code}
-The output of this function is a new handle that is unrestricted,
+The output of this function is a new unrestricted handle,
 along with a new constraint that indicates that the handle is open.
-Since the handle is unrestricted it can be freely passed around. Then, the
+Since the handle is unrestricted it can be freely passed around. The
 handle's state is implicitly tracked by the |Open h| constraint.
 
 We must also ensure that |readLine| can both promise to only operate on an open
-file, and to keep that file open after reading. To do so, its signature
+file and to keep that file open after reading. To do so, its signature
 indicates that given a handle |h|, it consumes and produces the implicit |Open h|
 constraint, while also producing an unrestricted |String|.
 \begin{code}
 readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint (Open h))
 \end{code}
+%% The fact that existential quantification generates new type-level names
+%% is folklore. It's used crucially in the interface of the
+%% |ST| monad~\cite{st-monad} and in type-class
+%% reflection~\cite{type-class-reflection} (in both of these cases, existential
+%% quantification is encoded as rank-2 universal quantification).
+%% We
+%% shall use it in exactly this way: |openFile| uses an existential
+%% quantifier to generate the type-level name of the file
+%% handle. Existentially quantified types are paired with a constraint |Q|
+%% which we understand as being returned by functions.
+\rae{I removed some text here describing the operation of existentials
+as creating fresh variables as ``folklore''. I disagree: the fact that
+unpacking an existential creates a fresh variable is part of the definition
+of an existential in any discrete mathematics textbook.}
 
-The fact that existential quantification generates new type-level names
-is folklore. It's used crucially in the interface of the
-|ST| monad~\cite{st-monad} and in type-class
-reflection~\cite{type-class-reflection} (in both of these cases, existential
-quantification is encoded as rank-2 universal quantification). We
-shall use it in exactly this way: |openFile| uses an existential
-quantifier to generate the type-level name of the file
-handle. Existentially quantified types are paired with a constraint |Q|
-which we understand as being returned by functions. We will freely
-omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
-empty.
-
-
-Haskell doesn't have an existential quantifier, however it can
-be encoded as a \textsc{gadt}. For instance |exists h. Ur (Handle h) .<= constraint (Open h)| can
+Haskell does not have an existential quantifier. However, one can
+be encoded as a \textsc{gadt}. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
 be implemented as
 \begin{code}
 data PackHandle where
   Pack :: constraint (Open h) =>. Handle h -> PackHandle
 \end{code}
-That is, while this paper introduces special-purpose existential types,
-in the implementation as a \textsc{ghc} extension, packed linear constraints will
+In the implementation of our ideas in \textsc{ghc}, packed linear constraints
 piggy-back on the standard \textsc{gadt} syntax. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
 
-When pattern-matching on a |pack| constructor, all the existentially quantified
-names are introduced in scope and all the returned constraints are
-made available. We also use |pack' x| as a shorthand
-for |pack (Ur x)|. There are all the ingredients needed to write
+When pattern-matching on a |pack| constructor, all existentially quantified
+names are brought into scope and all the returned constraints are
+assumed. We also use |pack' x| as a shorthand
+for |pack (Ur x)|. We have now seen all the ingredients needed to write
 the |firstLine| example as in the introduction.
 
 \subsection{Minimal Examples}
