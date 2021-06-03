@@ -989,24 +989,67 @@ constraints.
 \subsection{Simple constraints and Entailment}
 \label{sec:constraint-domain}
 
-Types are constrained by \emph{simple constraints} $[[{Q}]]$:
+Types are constrained by \emph{simple constraints} $[[{Q}]]$, which contain
+\emph{atomic constraints} $[[{q}]]$. The atomic constraints $[[{q}]]$ refer to
+the base constraints supported in a qualified type system: these might include
+class constraints and equality constraints, for example. Interestingly, our
+approach puts no constraints on what this set includes, and thus could
+conceivably be used in a qualified-type language other than Haskell.
+
+The simple constraint $[[{Q}]]$ can be formed from a scaled atomic constraint
+$[[{pi.q}]]$ or by taking the conjunction of two existing simple constraints
+$[[{Q1*Q2}]]$. In addition, a simple constraint can be the empty conjunction
+$[[{Empty}]]$. However, we do not define $[[{Q}]]$ inductively, because we
+require certain equalities to hold among simple constraints:
 $$
-\begin{array}{lcll}
-  [[{q}]] & \bnfeq & \ldots & \text{Atomic constraints} \\
-  [[{Q}]] & \bnfeq & [[{pi.q}]] \bnfor [[{Q1*Q2}]] \bnfor [[{Empty}]] &
-                                                                \text{Simple constraints}
+\begin{array}{rcl}
+  [[{Q1 * Q2}]] & = & [[{Q2 * Q1}]] \\
+  [[{(Q1*Q2)*Q3}]] & = & [[{Q1*(Q2*Q3)}]] \\
+  [[{omega.q * omega.q}]] & = & [[{omega.q}]] \\
+  [[{Q * Empty}]] & = & [[{Q}]]
 \end{array}
 $$
-The atomic constraints $[[{q}]]$ refer to the base constraints supported
-in a qualified type system: these might include class constraints and equality
-constraints, for example. Interestingly, our approach puts no constraints on
-what this set includes, and thus could conceivably be used in a qualified-type
-language other than Haskell. The multiplicity $\pi$ in front of atomic constraints is the \emph{scaling
-  factor}.
-It indicates whether the constraint is to be used linearly
-($[[{1}]]$) or without restriction ($[[{omega}]]$).
-Along with scaled atomic constraints, a simple constraint can also be a conjunction
-or a tautology ($[[{Empty}]]$).
+We thus say that a simple constraint is a pair combining a set of unrestricted
+constraints $[[{Uq}]]$ and a multiset of linear constraints $[[{Lq}]]$.
+The linear constraints must
+be stored in a multiset, because assuming the same constraint twice is distinct
+from assuming it only once:
+$$
+\begin{array}{rcll}
+[[{Uq}]] & \bnfeq & \ldots & \text{set of atomic constraints $[[{q}]]$} \\
+[[{Lq}]] & \bnfeq & \ldots & \text{multiset of atomic constraints $[[{q}]]$} \\
+[[{Q}]] & \bnfeq & [[{(Uq,Lq)}]] & \text{simple constraints}
+\end{array}
+$$
+We can now straightforwardly define the operations we need on simple constraints:
+$$
+\begin{array}{cccc}
+\begin{array}{r@@{\;}c@@{\;}l}
+[[{Empty}]] &=& [[{(emptyset, emptyset)}]]
+\end{array}
+&
+\left\{
+\begin{array}{r@@{\;}c@@{\;}l}
+[[{1.q}]] &=& [[{(emptyset, q)}]] \\
+[[{omega.q}]] &=& [[{(q, emptyset)}]]
+\end{array}
+\right.
+&
+\begin{array}{r@@{\;}c@@{\;}l}
+[[{(Uq1,Lq1)*(Uq2,Lq2)}]] &=& [[{(Uq1 \u Uq2, Lq1 \u Lq2)}]]
+\end{array}
+&
+\left\{
+\begin{array}{r@@{\;}c@@{\;}l}
+[[{1.(Uq,Lq)}]] &=& [[{(Uq,Lq)}]] \\
+[[{omega.(Uq,Lq)}]] &=& [[{(Uq \u Lq, emptyset)}]]
+\end{array}
+\right.
+\end{array}
+$$
+In practice, we do not need to concern ourselves with the
+concrete representation of $[[Q]]$ as a pair of sets, instead
+using the operations defined just above.
 
 \begin{figure}
   $$
@@ -1055,58 +1098,26 @@ Figure~\ref{fig:entailment-relation}.
 %% interesting interactions with the rest of the system, and we choose to
 %% omit them for simplicity.
 
-We consider simple constraints to be equal up to associativity and commutativity
-of tensor products, as well as idempotence of the unrestricted constraints.
-\rae{What's the technical payload here? I don't think we ever compare two
-constraints for equality. So I think this paragraph is really just saying that
-the entailment relation must respect these equalities. If that's the case, can't
-we just build this into Figure~\ref{fig:entailment-relation}?}
-We
-require the entailment relation to respect these properties. That is:
-$$
-\begin{array}{rcl}
-  [[{Q1 * Q2}]] & = & [[{Q2 * Q1}]] \\
-  [[{(Q1*Q2)*Q3}]] & = & [[{Q1*(Q2*Q3)}]] \\
-  [[{omega.q * omega.q}]] & = & [[{omega.q}]] \\
-  [[{Q * Empty}]] & = & [[{Q}]]
-\end{array}
-$$
 %
-We extend our definition of scaling to work on simple constraints as follows:
-\jp{The color system does not look very consistent. Why is the tensor colored but not the dot? What about parentheses? } \rae{Yes,
-I do not know what the colors are really buying us.}
-\jp{The tensor binds less tightly than the dot, but there are larger spaces around the dot than around the tenor. (Also, not consistently). This is quite confusing in the typing rules. Also the inconsistent coloring further suggests the wrong binding: it looks like the tensor are grouped together in π · blue (Q₁⊗Q₂). I saw later that the dot is blue but it's very hard to spot due to psycho-visual effects.}
-\rae{Was this addressed? Looks better now.}
-%
-$$
-\left\{
-  \begin{array}{lcl}
-    [[{pi.Empty}]] & = & [[{Empty}]]\\
-    [[{pi.(Q1 * Q2)}]] & = & [[{pi.Q1 * pi.Q2}]] \\
-    [[{pi.(rho. Q)}]]  & = & [[{(pi.rho) . Q}]]
-  \end{array}
-\right.
-$$
-%
-The rule $[[{omega.(Q1 * Q2)}]] = [[{omega.Q1 * omega.Q2}]]$ is not a
-typical feature of linear logic. \rae{This last statement needs more context. I
-don't understand the implications. Can we just strike this para?}
-Linear Haskell, however, introduces
-the corresponding type isomorphism for the sake of polymorphism. While this
-article isn't concerned with polymorphism, this equality does make
-the overall presentation a bit simpler. Note, in particular, that $[[{1.Q}]] = [[{Q}]]$ and
-$[[{omega.Q * omega.Q}]] = [[{omega.Q}]]$.
-\rae{Can we please be more careful around equality? Some of our
-$=$ are definitional equality, and some are really bi-implications. I think
-this is about bi-implication. But is this something implied by the previous
-bi-implications, or is this new?}
+%% The rule $[[{omega.(Q1 * Q2)}]] = [[{omega.Q1 * omega.Q2}]]$ is not a
+%% typical feature of linear logic. \rae{This last statement needs more context. I
+%% don't understand the implications. Can we just strike this para?}
+%% Linear Haskell, however, introduces
+%% the corresponding type isomorphism for the sake of polymorphism. While this
+%% article isn't concerned with polymorphism, this equality does make
+%% the overall presentation a bit simpler. Note, in particular, that $[[{1.Q}]] = [[{Q}]]$ and
+%% $[[{omega.Q * omega.Q}]] = [[{omega.Q}]]$.
+%% \rae{Can we please be more careful around equality? Some of our
+%% $=$ are definitional equality, and some are really bi-implications. I think
+%% this is about bi-implication. But is this something implied by the previous
+%% bi-implications, or is this new?}
 
-We will often omit the scaling factor for linear atomic constraints
-and write $[[{q}]]$ for $[[{1.q}]]$. %% This convention does not induce any
-%% ambiguity. Indeed the only potential ambiguity is between $[[{pi.q}]]$
-%% and $[[{pi.(1.q)}]]$, which are  equal.
-\rae{Really? This surprises me, given that the linear constraints are the
-new ones. I propose not doing this.}
+%% We will often omit the scaling factor for linear atomic constraints
+%% and write $[[{q}]]$ for $[[{1.q}]]$. %% This convention does not induce any
+%% %% ambiguity. Indeed the only potential ambiguity is between $[[{pi.q}]]$
+%% %% and $[[{pi.(1.q)}]]$, which are  equal.
+%% \rae{Really? This surprises me, given that the linear constraints are the
+%% new ones. I propose not doing this.}
 
 %% \begin{definition}[Requirements for the entailment relation]\label{def:entailment-relation}
 %%   The constraint entailment relation must satisfy the properties
@@ -1131,6 +1142,7 @@ of scaling extend to scaling of arbitrary constraints.
   If $[[Q1 ||- pi.Q2]]$, then $[[{Q1}]]=[[{pi.Q'}]]$ and $[[Q' ||- Q2]]$ for some $[[{Q'}]]$.
 \end{lemma}
 
+\rae{TODO: tie this into text. Maybe introduce corollary}
 Proofs of these lemmas (and others) appear in our anonymized supplementary material;
 they can be proved by straightforward use of the properties in Figure~\ref{fig:entailment-relation}. \rae{Is that true? I'm assuming we use that figure to prove these.}
 

@@ -9,6 +9,7 @@ metavar x,y,z,f ::= {{ com Term variables }}
 metavar a,b  ::= {{ com Type variables }}
 metavar K  ::= {{ com Data constructors }}
 metavar T  ::= {{ com Type constructors }}
+metavar q  ::= {{ com Atomic constraints }}
 indexvar i, j ::=  {{ com Index variables }}
 indexvar g, w, r, o, ext ::=  {{ com Annotation variables }}
 
@@ -26,6 +27,9 @@ toplevel :: 'Toplevel_' ::= {{ com Entry point of the grammar }}
 
 parsable :: 'Parsable_' ::=  {{ com Toplevel productions allowed in Tex filtering }}
 | QF  :: :: qf
+| q   :: :: q  {{ tex \constraintfont{[[q]]} }}
+| Lq   :: :: L  {{ tex \constraintfont{[[Lq]]} }}
+| Uq   :: :: U  {{ tex \constraintfont{[[Uq]]} }}
 | CF  :: :: cf
 | t  :: :: t
 | ts  :: :: ts
@@ -42,11 +46,23 @@ parsable :: 'Parsable_' ::=  {{ com Toplevel productions allowed in Tex filterin
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraints  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Uq {{ tex \ottnt{U} }} :: 'SetCt_' ::= {{ com Set of atomic constraints }}
+| emptyset    ::   :: Empty
+| Uq1 \u Uq2  ::   :: Union  {{ tex [[Uq1]] \cup [[Uq2]] }}
+| q           ::   :: One
+| Uq \u Lq    ::   :: Forget {{ tex [[Uq]] \cup [[Lq]] }}
+
+Lq {{ tex \ottnt{L} }} :: 'MultisetCt_' ::= {{ com Multiset of atomic constraints }}
+| emptyset    ::   :: Empty
+| Lq1 \u Lq2  ::   :: Union   {{ tex [[Lq1]] \uplus [[Lq2]] }}
+| q           ::   :: One
+
 Q :: 'Ct_' ::=  {{ com Constraints }}
-| q                  ::   :: Atom
-| Q1 * Q2            ::   :: Tensor
-| Empty              ::   :: Empty  {{tex \mathbf{\varepsilon} }}
-| ! Q                ::   :: Unrestricted
+| ( Uq , Lq )        ::   :: Sets
+| piF . q            ::   :: Atom   {{ tex [[piF]]\scale[[q]] }}
+| Q1 * Q2            :: M :: Tensor
+| Empty              :: M :: Empty  {{tex \mathbf{\varepsilon} }}
+| ! Q                :: M :: Unrestricted
 | Q [ theta ]        :: M :: Subst
 | piF . Q            :: M :: Scale  {{tex [[piF]]\scale[[Q]]}}
 | ( Q )              :: S :: Paren
@@ -258,6 +274,7 @@ terminals :: 'terminals_' ::=
 | Sum         ::   :: BigSum  {{ tex \sum }}
 | empty       ::   :: emptyseq {{ tex ∙ }} % alternative: ϵ
 | Top         ::   :: Top     {{ tex \constraintfont{⊤} }}
+| emptyset    ::   :: emptyset {{ tex \emptyset }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
