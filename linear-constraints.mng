@@ -1121,7 +1121,7 @@ An important feature of simple constraints is that, while scaling
 syntactically happens at the level of atomic constraints, these properties
 of scaling extend to scaling of arbitrary constraints.
 
-\begin{lemma}[Scalign]
+\begin{lemma}[Scaling]
   \label{lem:q:scaling}
   If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
 \end{lemma}
@@ -1708,6 +1708,8 @@ presents the rules of the constraint solver.
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
+
+\csongor{Refer to lemma 5.2 here}
 
 \begin{itemize}
   \item The~\rref*{S-Mult} rule proceeds by solving one side of a
