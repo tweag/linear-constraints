@@ -1435,8 +1435,8 @@ entailment relation.
 \begin{lemma}[Inversion]
   \label{lem:inversion}
   The inference rules of $[[Q |- C]]$ can be read bottom-up as well
-  as top-down, as is required of $[[Q1 |- Q2]]$ in
-  Definition~\ref{def:entailment-relation}. That is
+  as top-down, as is required of $[[Q1 ||- Q2]]$ in
+  Figure~\ref{fig:entailment-relation}. That is
   \begin{itemize}
   \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$ and $[[{Q2}]]$
     such that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
