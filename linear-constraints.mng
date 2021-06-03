@@ -347,7 +347,7 @@ Our approach is, in some ways, simpler: we show in this paper
 how a natural generalisation of Haskell's type class
 constraints does the trick. We call our new constraints \emph{linear constraints}.
 Like class constraints,
-linear constraints are propagated implicity by the compiler. 
+linear constraints are propagated implicitly by the compiler.
 Like linear arguments, they can safely be used to track resources such as file
 handles. Thus, linear constraints are the combination of these two
 concepts, which have been studied independently elsewhere
