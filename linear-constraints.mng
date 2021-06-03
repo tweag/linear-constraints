@@ -1290,63 +1290,76 @@ think. Do we even need |case|?}
 \section{Constraint inference}
 \label{sec:type-inference}
 
-Of course, the entire point of linear constraints is the promise that
-the compiler can handle these constraints for the
-programmer. Otherwise linear constraints are just plain Linear
-Haskell~\cite{LinearHaskell} with an extra set of symbols.
+The type system of Figure~\ref{fig:typing-rules} describes declaratively what programs
+are acceptable. We now present an algorithm that implements that specification.
+\rae{Is this wording too strong?}
 
-In this section, we are still following OutsideIn~\cite[Section
-5]{OutsideIn}. We make, however, an important simplification: we infer
-constraints, but not types. That is in the syntax-directed
-constraint generation algorithm of
-Section~\ref{sec:constraint-generation}, typing rules are still declarative
-rather than algorithmic. You can think of types as being inferred by
-an external oracle.
+Our algorithm is structured, unsurprisingly, around generating and solving
+constraints, broadly in the model described by \citet{essence-of-ml-type-inference}.
+That is, our algorithm takes a pass over the abstract syntax entered by the
+user, generating constraints as it goes. Then, separately, we solve those
+constraints (that is, try to satisfy them) in the presence of a set of assumptions,
+or we determine that the assumptions do not imply that the constraints hold. In the
+latter case, we issue an error to the programmer.
 
-In OutsideIn\,--\,and in \textsc{ghc}\,--\, on the other hand, in order to support the wide range of
-features that modern Haskell boasts, the constraint solver is responsible not only
-for type class constraint resolution, but also for type inference in the more
-traditional sense. That is, the constraint solver deals with equality
-constraints and does unification. Doing so allows seamless integration of \emph{e.g.}
-\textsc{gadt}s with their local equality assumptions and type families with their
-top-level equality axioms.
+A typical generate-and-solve algorithm is built around unification variables.
+A unification variable stands for some unknown type. When we see, for example,
+|\x -> ...|, we assign |x| to have a unification variable for its type, and then
+constraints arising from the body of the expression (or its context) might tell
+us that the unknown type is |Int|. Our system here does not do this, however:
+using constraints to solve for unification variables is well understood~\cite{OutsideIn}
+and orthogonal to the concerns that drive the innovations in this paper.
+Instead, the aspects of our algorithm around inferring types---as opposed to
+inferring \emph{constraints}---nondeterministically just guess the correct
+type. A real implementation would use unification variables and constraints,
+but they just add clutter here and distract us from the novel parts of our
+algorithm.
 
-Not dealing with type inference greatly simplifies the presentation,
-as will be evident in the rest of the section. We can make this
-simplification for two reasons:
+We can make this simplification for two reasons:
 \begin{itemize}
-\item Our system doesn't have equality constraints, and even when
-  integrated into \textsc{ghc}, we do not allow equality constraints to be
-  linear. Indedd, traditional unification algorithms are
-  unsound for linear equalities, because they will gladly reuse the same
+\item We do not formalize equality constraints, and our implementation
+  in \textsc{ghc} does not allow equality constraints to be
+  linear\footnote{\textsc{Ghc} actually uses (at least) two forms of
+equality constraint: lifted equality, used by the programmer; and unlifted
+equality, used internally~\cite{deferred-type-errors}.
+The |~| constraints in Haskell code are lifted
+ones, where lifted equality is actually just a fairly ordinary class that
+has unlifted equality as a superclass constraint. Our approach to dealing
+with linear constraints around equality is simply to have the superclass
+equality constraint of |~| be unrestricted. In that way, even if we have
+a linear |~| constraint, the actual internal equality will still be 
+unrestricted.}. Indeed, a typical treatment of unification
+  would be
+  unsound for linear equalities, because it reuses the same
   equality many times (or none at all). Linear equalities make sense
-  (For instance \citet{shulman2018linear} puts linear
-  equalities to great use), but they don't seem to lend themselves to
+  (\citet{shulman2018linear} puts linear
+  equalities to great use), but they do not seem to lend themselves to
   automation.
 \item We do not support, or intend to support, multiplicity
   polymorphism in constraint arrows. That is, the multiplicity of a
   constraint is always syntactically known to be either linear or
-  unrestricted. This way, no equality constraints can interfere with
+  unrestricted. This way, no equality constraints (which might, conceivably,
+  relate multiplicity variables) can interfere with
   constraint resolution.
 \end{itemize}
 %
-Our current focus is more narrow than a general typechecking algorithm for
-all of \textsc{ghc}'s features.
-As a consequence of these two restrictions (no linear equalities and no
-multiplicity polymorphic constraints), type inference and (linear) class
-constraint resolution are completely orthogonal. Therefore, the syntax-directed
-constraint generation system presented in this section can legitimately assume
-that type inference is solved elsewhere, greatly simplifying the presentation.
+%% Our current focus is more narrow than a general typechecking algorithm for
+%% all of \textsc{ghc}'s features.
+%% As a consequence of these two restrictions (no linear equalities and no
+%% multiplicity polymorphic constraints), type inference and (linear) class
+%% constraint resolution are completely orthogonal. Therefore, the syntax-directed
+%% constraint generation system presented in this section can legitimately assume
+%% that type inference is solved elsewhere, greatly simplifying the presentation.
 
 
 \subsection{Wanted constraints}
 \label{sec:wanteds}
 
-As in OutsideIn~\cite[Figure~11, page~37]{OutsideIn}, the constraints
-generated in Section~\ref{sec:constraint-generation} have a richer
-logical structure than the simple constraints. Let us follow
-\textsc{ghc}'s terminology and call these \emph{wanted constraints}:
+The constraints $[[{C}]]$ generated in our system have a richer
+logical structure than the simple constraints $[[{Q}]]$, above. Following
+\textsc{ghc} and echoing \citet{OutsideIn}, we call these \emph{wanted constraints}:
 they are constraints which the constraint solver \emph{wants} to prove.
+An unproved wanted constraint is a type error reported to the programmer.
 %
 $$
 \begin{array}{lcll}
@@ -1355,66 +1368,53 @@ $$
 \end{array}
 $$
 %
-The wanteds for linear constraints\jp{this paper?} differ a little from the wanteds of
-OutsideIn.
-The first, superficial, difference is that our wanteds don't need existential
-quantification. This is one of the benefits that not doing type inference
-affords. In OutsideIn, existential quantifiation restricts which variables can
-be unified with which; but we are not doing any unification.
-
-The more interesting difference is the presence of the extra
-$[[{C1 & C2}]]$ construction (read $[[{C1}]]$ \emph{with} $[[{C2}]]$). This is a
-connective from linear logic: a remarkable feature of linear logic is
-that every connective from classical or intuitionistic logic tends to
-appear in two flavours in linear logic. Where $[[{C1*C2}]]$ is the
+A simple constraint is a valid wanted constraint, and we have two forms of
+conjunction for wanted constraints:
+the new
+$[[{C1 & C2}]]$ construction (read $[[{C1}]]$ \emph{with} $[[{C2}]]$), alongside
+the more typical $[[{C1 * C2}]]$. This is a
+connective from linear logic: while $[[{C1*C2}]]$ is the
 \emph{multiplicative} conjunction, $[[{C1&C2}]]$ is the \emph{additive}
 conjunction. Both connectives are conjunctions, but they differ
 % rather dramatically % weasel words combo
-in meaning: a proof of $[[{C1*C2}]]$ consumes both the (linear)
-assumptions consumed by a proof of $[[{C1}]]$ and a proof of $[[{C2}]]$. On the
-other hand in $[[{C1&C2}]]$, the proof of $[[{C1}]]$ and the proof of $[[{C2}]]$ \emph{must}
-consume the same assumptions, which that of $[[{C1 & C2}]]$ will consume as well.
+in meaning. Satisfying $[[{C1*C2}]]$ consumes the (linear)
+assumptions consumed by satisfying $[[{C1}]]$ those consumed by $[[{C2}]]$;
+if an assumed linear constraint is needed to prove both $[[{C1}]]$ and $[[{C2}]]$,
+then $[[{C1*C2}]]$ will not be provable, because that linear assumption cannot
+be used twice. On the
+other hand, satisfying $[[{C1&C2}]]$ requires that satisfying $[[{C1}]]$
+and $[[{C2}]]$ must each
+consume the \emph{same} assumptions, $[[{C1 & C2}]]$ will consume as well.
+Thus, if $[[{C}]]$ is assumed linearly (and we have no other assumptions),
+then $[[{C*C}]]$ is not provable, while $[[{C&C}]]$ is.
 The intuition, here, is that in $[[{C1 & C2}]]$, only
-one of $[[{C1}]]$ or $[[{C2}]]$ will be eventually used. Much like if
-$[[{C1}]]$ and $[[{C2}]]$ were branches in a $\kcase$-expression. Not
-coincidentally, $[[{C1&C2}]]$ will be used to generate constraints for
-$\kcase$-expressions.
+one of $[[{C1}]]$ or $[[{C2}]]$ will be eventually used. ``With'' constraints
+arise from separate branches in a $\kcase$-expression, inspiring the behaviour
+of this connective described here.
 
-\jp{There need to be an explanation why the implication constraint is necessary here. (And the OutsideIn references can then be alleviated)}
-Finally, implication constraints differ from those of OutsideIn in two ways. First they are
-linear implications (an implication which must consume its
-assumption exactly once), where in OutsideIn they are intuitionistic implications.
-Additionally, there is a scaling factor $[[{pi}]]$ on implication. This scaling prescribes how
-many times the implication must be consumed,
-and is needed when
-extending scaling to all wanted constraints below. This scaling factor
-does not, however, change linear implication into intuitionistic
-implication. Concretely, $[[{1.(omega.Q => C)}]]$ is an intuitionistic
-implication which must be consumed exactly once, while $[[omega.(1.Q =>
-C)]]$ is a linear implication which can be consumed many times.\jp{The following definition is rather weird. I suppose there is the case 1 · C = C. Then only ω needs to be discussed. }
-%
+The last form of wanted constraint $[[{C}]]$ is an implication $[[{pi.(Q=>C)}]]$.
+Proving $[[{pi.(Q=>C)}]]$ allows us to assume $[[{Q}]]$ linearly while proving $[[{C}]]$,
+a total of $[[{pi}]]$ times. These implications arise when we unpack an existential
+package that contains a linear constraint and also when checking a |let|-binding.
+We can define scaling over wanted constraints by recursion as follows, where we
+use scaling over simple constraints in the simple-constraint case:
 $$
 \left\{
   \begin{array}{lcl}
     [[{pi.(C1 * C2)}]] & = & [[{pi.C1 * pi.C2}]] \\
-    [[{omega.(C1 & C2)}]] & = & [[{omega.C1 * omega.C2}]] \\
-    [[{1.(C1 & C2)}]] & = & [[{C1 & C2}]] \\
+    [[{pi.(C1 & C2)}]] & = & [[{pi.C1 & pi.C2}]] \\
     [[{pi.(rho.(Q => C))}]] & = & [[{(pi.rho).(Q => C)}]]
   \end{array}
 \right.
 $$
+\rae{I simplified this. Is it still correct?}
 Like in Section~\ref{sec:constraint-domain}, we will typically drop
 the scaling factor for implication when it is $[[{1}]]$ and write $[[Q
 => C]]$ for $[[{1.(Q=>C)}]]$.
 
-The meaning of wanted constraints is given by the inductive entailment
-relation $[[Q |- C]]$ given in Figure~\ref{fig:wanted:entailment}. This is a technical difference with
-OutsideIn where the meaning of wanteds is given directly by the
-constraint solver, whereas our solver
-(Section~\ref{sec:constraint-solver}) has to be proved correct with
-respect to this entailment relation. We found that, in the case of
-linear logic, having this extra entailment relation made proofs much
-simpler.
+We define an entailment relation over wanteds in Figure~\ref{fig:wanted:entailment}.
+Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, as
+there is no way to assume the more elaborate $[[{C}]]$.
 \begin{figure}
   \centering\small
   \drules[C]{$[[Q |- C]]$} {Wanted-constraint entailment}
