@@ -1121,12 +1121,12 @@ An important feature of simple constraints is that, while scaling
 syntactically happens at the level of atomic constraints, these properties
 of scaling extend to scaling of arbitrary constraints.
 
-\begin{lemma}[Promotion]
-  \label{lem:q:promotion}
+\begin{lemma}[Scalign]
+  \label{lem:q:scaling}
   If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
 \end{lemma}
 
-\begin{lemma}[Inversion of promotion]
+\begin{lemma}[Inversion of scaling]
   \label{lem:q:scaling-inversion}
   If $[[Q1 ||- pi.Q2]]$, then $[[{Q1}]]=[[{pi.Q'}]]$ and $[[Q' ||- Q2]]$ for some $[[{Q'}]]$.
 \end{lemma}
@@ -2550,7 +2550,7 @@ $$
 \subsection{Lemmas on the qualified type system}
 \label{sec:appendix:qual-type-syst}
 
-\begin{proof}[Proof of Lemma~\ref{lem:q:promotion}]
+\begin{proof}[Proof of Lemma~\ref{lem:q:scaling}]
   Let us prove this lemma by induction on the syntax of $[[{Q2}]]$:
   \begin{itemize}
   \item If $[[{Q2}]] = [[{rho.q}]]$, then $[[pi.Q1 ||- (pi.rho).q]]$ holds by
@@ -2610,9 +2610,9 @@ $$
   By induction on the syntax of $[[{C}]]$
   \begin{itemize}
   \item If $[[{C}]]=[[{Q'}]]$, then the result follows
-    from Lemma~\ref{lem:q:promotion}
+    from Lemma~\ref{lem:q:scaling}
   \item If $[[{C}]]=[[{C1*C2}]]$, then we can prove the result like we
-    proved the corresponding case in Lemma~\ref{lem:q:promotion},
+    proved the corresponding case in Lemma~\ref{lem:q:scaling},
     using Lemma~\ref{lem:inversion}.
   \item If $[[{C}]]=[[{C1&C2}]]$, then we the case where $[[{pi}]]=[[{1}]]$ is
     immediate, so we can assume without loss of generality that
