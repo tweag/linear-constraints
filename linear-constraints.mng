@@ -2115,7 +2115,7 @@ linearity.
 
 The system presented in Section~\ref{sec:qualified-type-system} and
 Section~\ref{sec:type-inference} is already capable of supporting the examples
-in Section~\ref{sec:motivation} and Section~\ref{sec:memory-ownership}. In this
+in Section~\ref{sec:what-it-looks-like} and Section~\ref{sec:memory-ownership}. In this
 section, we consider some potential avenues for extensions.
 
 \subsection{let generalisation}
