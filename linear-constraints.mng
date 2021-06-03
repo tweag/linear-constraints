@@ -1128,10 +1128,8 @@ of scaling extend to scaling of arbitrary constraints.
 
 \begin{lemma}[Inversion of promotion]
   \label{lem:q:scaling-inversion}
-  If $[[Q1 ||- pi.Q2]]$, then $[[{Q1}]]=[[{pi.Q1'}]]$ and $[[Q1' ||- Q2]]$ for some $[[{Q'}]]$.
+  If $[[Q1 ||- pi.Q2]]$, then $[[{Q1}]]=[[{pi.Q'}]]$ and $[[Q' ||- Q2]]$ for some $[[{Q'}]]$.
 \end{lemma}
-\rae{That lemma is wrong, in at least its ``some $[[{Q'}]]$'' part, as $[[{Q'}]]$ is
-unused. I'm not really sure how to fix it.}
 
 Proofs of these lemmas (and others) appear in our anonymized supplementary material;
 they can be proved by straightforward use of the properties in Figure~\ref{fig:entailment-relation}. \rae{Is that true? I'm assuming we use that figure to prove these.}
