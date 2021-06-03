@@ -127,7 +127,7 @@ Q1*pi.Q2;G1+pi.G2 |- e1 e2 : t
 
 Q ; G |- e : t[us/as]
 ------------------------- :: Pack
-omega.Q * Q1[us/as];G |- pack e : exists as. t o= Q1
+Q * Q1[us/as];G |- pack e : exists as. t o= Q1
 
 Q1;G1 |- e1 : exists as. t1 o= Q
 as fresh
