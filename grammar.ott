@@ -227,6 +227,7 @@ binding :: 'Binding_' ::= {{ com Context binding }}
 G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | empty             ::   :: None
 | binding           ::   :: One
+| { binding }       ::   :: OneWithBraces
 | G1 , .... , Gi    ::   :: Many
 | G1 + G2           :: M :: Add
 | Sum G2            :: M :: BigSum
@@ -235,6 +236,8 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | ( G )             :: S :: Paren
 % Desugared contexts (see also expressions)
 | Evs ( QF )        :: M :: Evidence
+| G1 \u G2          :: M :: Union
+  {{ tex [[G1]] \cup [[G2]] }}
 
 LCtx {{ tex \Psi }} :: 'LinCtx_' ::= {{ com Linear contexts }}
 | empty             ::   :: None
@@ -295,6 +298,8 @@ formula :: formula_ ::=
 | QF \notin LCtx                  ::   :: notin_LCtx
 | QF \notin UCtx                  ::   :: notin_UCtx
 | LCtx1 ⊆ LCtx2                   ::   :: subcontext
+| binding \in G                   ::   :: binding_in
+| G1 = G2                         ::   :: ctx_equal
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Parsing rules  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

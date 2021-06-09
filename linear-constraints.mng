@@ -1153,8 +1153,14 @@ they can be proved by straightforward use of the properties in Figure~\ref{fig:e
 \label{sec:typing-rules}
 
 With this material in place, we can now present our type system. The
-grammar is given in Figure~\ref{fig:declarative:grammar}, and the
-typing rules in Figure~\ref{fig:typing-rules}.
+grammar is given in Figure~\ref{fig:declarative:grammar}, which also
+includes the definitions of scaling on contexts $[[{pi.G}]]$ and addition
+of contexts $[[{G1+G2}]]$. Note that addition on contexts is actually
+a partial function, as it requires that, if a variable $[[{x}]]$ is bound
+in both $[[{G1}]]$ and $[[{G2}]]$, then $[[{x}]]$ is assigned the same
+type in both (but perhaps different multiplicities). This partiality
+is not a problem in practice, as the required condition for combining
+contexts is always satisfied.
 
 \begin{figure}
   \centering\small
@@ -1176,23 +1182,38 @@ typing rules in Figure~\ref{fig:typing-rules}.
                      x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
   \end{array}
   $$
+  $$
+  \begin{array}{cc}
+  \left\{
+  \begin{array}{r@@{\;}c@@{\;}l}
+  [[{pi.empty}]] &=& [[{empty}]] \\
+  [[{pi.(G,x:_rho s)}]] &=& [[{pi.G, x:_( pi.rho ) s}]]
+  \end{array}
+  \right.
+  &
+  \left\{
+  \begin{array}{r@@{\;}c@@{\;}lll}
+  [[{(G1, x:_pi s) + G2}]] &=& [[{ G1 + G2', x:_( pi+rho ) s }]] & \text{where} & [[G2 = {x:_rho s} \u G2']] \\
+  &&&& [[x \notin G2']] \\
+  [[{(G1, x:_pi s) + G2}]] &=& [[{ G1 + G2, x:_pi s }]] & \text{where} & [[x \notin G2]] \\
+  [[{empty + G2}]] &=& [[{G2}]]
+  \end{array}
+  \right.
+  \end{array}
+  $$  
   \caption{Grammar of the qualified type system}
   \label{fig:declarative:grammar}
 \end{figure}
 
 \begin{figure}
-  \centering\small
-  \drules[In]{$[[x :_1 s \in G]]$}{Context membership}{Var,Weaken}
-  \drules[S]{$[[{pi . G}]]$}{Context scaling}{Empty,Binding}
-  \drules[A]{$[[{G1 + G2}]]$}{Context addition}{Binding,Absent,Empty}
+  \centering
   \drules[E]{$[[Q;G |- e : t]]$}{Expression
     typing}{Var,Abs,App,Pack,Unpack,Let,LetSig,Case,Sub}
   \caption{Qualified type system}
   \label{fig:typing-rules}
 \end{figure}
-\jp{Regarding the typing rules figure: is the case \(x:_ωσ ∈ ...\) missing?
-  omitted intentionally? In the E-Pack rule: Is the ω intentional? I seem to remember that the Ur constructor is not implicitly there. Also the ω is not in the E-Unpack rule, at a glance.   }
 
+The typing rules are in Figure~\ref{fig:typing-rules}.
 A qualified type system~\cite{QualifiedTypes} such as ours introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[{G}]]$ is a standard
 type context, and $[[{Q}]]$ is a constraint we have assumed to be true.
@@ -1215,44 +1236,17 @@ desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 
 Areas of interest include the following:
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
-\rae{Is there a way to eliminate the $[[binding \in G]]$ judgment?
-I find it very counter-intuitive, because it's redefining the meaning
-of $\in$. Instead, can we put the unrestricted context in the conclusion
-of E-Var? That would eliminate a whole judgment form and be more in keeping
-with other presentations of linear types I have seen. If we don't do this,
-we need to explain what we're doing here.}
-\rae{I do not understand the ``context scaling'' judgment. The bit
-in the box does not correspond to what appears below the lines in the rules.
-And then, the rules seem just to define a function defined by recursion
-on the structure of a typing context. That seems ripe for the \{ notation
-we're using. Or is there something else going on here?}
-\rae{Ditto the ``context addition'' judgment. This one is maybe a bit
-subtler because the function is partial. Or is it? Ah. After much staring,
-I realized what's so strange about it: there's no 0. If there were 0, then
-context addition would simply require that the two contexts have the same
-sequence of bindings, only with different multiplicities. But we can't do
-that without 0. In any case, the current definition seems wrong, in that
-I don't see how it copes if a binding is mentioned in $[[{G2}]]$ but
-omitted from $[[{G1}]]$. Another strangeness is that this judgment is redefining
-$=$ again. Much better to use our \{ notation, possibly with a precondition
-on the shape of $[[G1]]$ and $[[G2]]$. Strange corner case: what if $[[G1]]$
-and $[[G2]]$ are similar but permutations of each other? The current definition
-looks like it would fall over.}
-\rae{Why does E-Pack scale $[[{Q}]]$ with $[[{omega}]]$?}
-\rae{Do we need the multiplicity on |let|? |unpack| always gets a multiplicity
-of 1. Presumably, we could have unrestricted existentials by using |Ur|. Similarly,
-we should be able to have |let| always have a multiplicity of 1, and then have
-users use |Ur| when they want to. As it is, the lack of parallelism here is
-surprising.}
-\rae{If we have $[[x : Q =o t]]$ and have assumed $[[omega.Q]]$, can we
-use $[[x]]$? Presumably, we should be able to. But I'm not quite sure where
-the rules allow this. Maybe using E-Sub and the second-to-last property
-in Fig. 2? Yes, that looks plausible. But double-check me, please.}
+\jp{Regarding the typing rules figure: is the case \(x:_ωσ ∈ ...\) missing?
+  omitted intentionally?}
+\rae{The E-Var rule still seems a bit wrong: it requires that the assumption
+$[[{Q1}]]$ be exactly the constraint in the type of $[[{x}]]$. Don't we
+want to require that $[[{Q |= Q1[ts/as]}]]$, where $[[{Q}]]$ is the
+assumption in the judgment?}
 \rae{E-LetSig is missing a $[[{Q1}]]$ in its conclusion, no?}
 \rae{E-Case should be clearer that the second two premises are universally
 quantified over $i$. Actually, it's worse than that, with strangeness like
 $[[pi.pii]]$ written in a subscript, but there's really many $[[pii]]$s, I
-think. Do we even need |case|?}
+think.}
 \begin{itemize}
 \item The type system has linear functions, written $[[{a ->_1 b}]]$.
   Despite our focus on linear constraints,
@@ -1273,6 +1267,10 @@ think. Do we even need |case|?}
   the constraint would be $[[{omega.q}]]$ instead. On the other hand,
   it is perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
   =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
+\item Bindings in a |let| may be for either linear or unrestricted variables.
+  We could require all bindings to be linear and to implement unrestricted
+  information only using |Ur|, but it is very easy to add a multiplicity
+  annotation on |let|, and so we do.
 \item \Rref{E-Let} includes support for local
   assumptions. We thus have the ability to generalise a subset of
   the constraints needed by $[[{e1}]]$ (but not the type variables---no 
