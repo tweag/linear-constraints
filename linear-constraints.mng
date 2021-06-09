@@ -1163,7 +1163,6 @@ is not a problem in practice, as the required condition for combining
 contexts is always satisfied.
 
 \begin{figure}
-  \centering\small
   $$
   \begin{array}{lcll}
     [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
@@ -1182,6 +1181,7 @@ contexts is always satisfied.
                      x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
   \end{array}
   $$
+  Define scaling over contexts $[[{pi.G}]]$ and addition of contexts $[[{G1+G2}]]$ as follows:
   $$
   \begin{array}{cc}
   \left\{
@@ -1234,21 +1234,22 @@ directly give a dynamic
 semantics to this language; instead, we will give it meaning via
 desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 
-Areas of interest include the following:
+We tour several distinctive features of our qualified type system below:
+
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \jp{Regarding the typing rules figure: is the case \(x:_ωσ ∈ ...\) missing?
   omitted intentionally?}
 \rae{The E-Var rule still seems a bit wrong: it requires that the assumption
 $[[{Q1}]]$ be exactly the constraint in the type of $[[{x}]]$. Don't we
-want to require that $[[{Q |= Q1[ts/as]}]]$, where $[[{Q}]]$ is the
+want to require that $[[Q ||- Q1[ts/as] ]]$, where $[[{Q}]]$ is the
 assumption in the judgment?}
 \rae{E-LetSig is missing a $[[{Q1}]]$ in its conclusion, no?}
 \rae{E-Case should be clearer that the second two premises are universally
 quantified over $i$. Actually, it's worse than that, with strangeness like
 $[[pi.pii]]$ written in a subscript, but there's really many $[[pii]]$s, I
 think.}
-\begin{itemize}
-\item The type system has linear functions, written $[[{a ->_1 b}]]$.
+\paragraph{Linear functions}
+The type of linear functions is written $[[{a ->_1 b}]]$.
   Despite our focus on linear constraints,
   we still need linearity in ordinary arguments.
   For example, the bind combinator for |IOL| (Section~\ref{sec:introduction})
@@ -1256,22 +1257,25 @@ think.}
 
   Furthermore, the linearity of arrows interacts in interesting
   ways with linear constraints: If $[[f : a ->_omega b]]$ and
-  $[[x : q =o a]]$, then calling $[[{f x}]]$ would actually use $[[{q}]]$
+  $[[x : 1.q =o a]]$, then calling $[[{f x}]]$ would actually use $[[{q}]]$
   many times. We must make sure it is impossible to derive
-  $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$.
+  $[[1.q ; f :_omega a ->_omega b, x :_omega 1.q =o a |- f x : b]]$.
   Otherwise we could make, for instance, the |overusing| function from
   Section~\ref{sec:overusing}.
-  You can check that $[[q ; f :_omega a ->_omega b, x :_omega q =o a |- f x : b]]$
+  You can check that $[[1.q ; f :_omega a ->_omega b, x :_omega 1.q =o a |- f x : b]]$
   indeed does not
   type check, because the scaling of $[[{Q2}]]$ in \rref{E-App} ensures that
   the constraint would be $[[{omega.q}]]$ instead. On the other hand,
-  it is perfectly fine to have $[[q ; f :_omega a ->_1 b, x :_omega q
+  it is perfectly fine to have $[[1.q ; f :_omega a ->_1 b, x :_omega 1.q
   =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
-\item Bindings in a |let| may be for either linear or unrestricted variables.
+
+\paragraph{|let|-bindings}
+Bindings in a |let| may be for either linear or unrestricted variables.
   We could require all bindings to be linear and to implement unrestricted
   information only using |Ur|, but it is very easy to add a multiplicity
   annotation on |let|, and so we do.
-\item \Rref{E-Let} includes support for local
+\paragraph{Local assumptions}
+\Rref{E-Let} includes support for local
   assumptions. We thus have the ability to generalise a subset of
   the constraints needed by $[[{e1}]]$ (but not the type variables---no 
   |let|-generalisation here, though it could be added). The inference algorithm of
@@ -1282,7 +1286,8 @@ think.}
 %%   rule. It would be
 %%   straightforward, yet tedious, to extend data types here to full
 %%   \textsc{gadt}s.
-\item We include $[[{exists as. t o= Q}]]$, as
+\paragraph{Existentials}
+ We include $[[{exists as. t o= Q}]]$, as
   introduced in Section~\ref{sec:what-it-looks-like}, together with
   the $\kpack$ and $\kunpack$ constructions. See rules~\rref*{E-Pack} and
   \rref*{E-Unpack}.
@@ -1292,7 +1297,6 @@ think.}
 %%   \rref*{E-Var} rule needed subsumption; we would also need it for the
 %%   \rref*{E-Pack} rule as well. So we preferred having one shared
 %%   dedicated rule.
-\end{itemize}
 %
 \info{No substitution on $[[{Q1}]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
