@@ -97,7 +97,7 @@ Q1*Q;G1 |- e1 : t1
 as fresh
 Q2;G2,x:_pi forall as.Q =o t1 |- e2 : t
 --------------------------- :: LetSig
-Q2 ;pi.G1+G2 |- let_pi x : forall as.Q =o t1 = e1 in e2 : t
+pi.Q1 * Q2 ;pi.G1+G2 |- let_pi x : forall as.Q =o t1 = e1 in e2 : t
 
 Q1;G1 |- e : T ts
 Ki : forall as. usi ->_pisi T as

@@ -1249,10 +1249,6 @@ We tour several distinctive features of our qualified type system below:
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \jp{Regarding the typing rules figure: is the case \(x:_ωσ ∈ ...\) missing?
   omitted intentionally?}
-\rae{The E-Var rule still seems a bit wrong: it requires that the assumption
-$[[{Q1}]]$ be exactly the constraint in the type of $[[{x}]]$. Don't we
-want to require that $[[Q ||- Q1[ts/as] ]]$, where $[[{Q}]]$ is the
-assumption in the judgment?}
 \rae{E-LetSig is missing a $[[{Q1}]]$ in its conclusion, no?}
 \rae{E-Case should be clearer that the second two premises are universally
 quantified over $i$. Actually, it's worse than that, with strangeness like
