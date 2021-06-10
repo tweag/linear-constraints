@@ -1387,19 +1387,19 @@ A simple constraint is a valid wanted constraint, and we have two forms of
 conjunction for wanted constraints:
 the new
 $[[{C1 & C2}]]$ construction (read $[[{C1}]]$ \emph{with} $[[{C2}]]$), alongside
-the more typical $[[{C1 * C2}]]$. This is a
-connective from linear logic: while $[[{C1*C2}]]$ is the
+the more typical $[[{C1 * C2}]]$. These are
+connectives from linear logic: while $[[{C1*C2}]]$ is the
 \emph{multiplicative} conjunction, $[[{C1&C2}]]$ is the \emph{additive}
 conjunction. Both connectives are conjunctions, but they differ
 % rather dramatically % weasel words combo
 in meaning. Satisfying $[[{C1*C2}]]$ consumes the (linear)
-assumptions consumed by satisfying $[[{C1}]]$ those consumed by $[[{C2}]]$;
+assumptions consumed by satisfying $[[{C1}]]$ and those consumed by $[[{C2}]]$;
 if an assumed linear constraint is needed to prove both $[[{C1}]]$ and $[[{C2}]]$,
 then $[[{C1*C2}]]$ will not be provable, because that linear assumption cannot
 be used twice. On the
 other hand, satisfying $[[{C1&C2}]]$ requires that satisfying $[[{C1}]]$
 and $[[{C2}]]$ must each
-consume the \emph{same} assumptions, $[[{C1 & C2}]]$ will consume as well.
+consume the \emph{same} assumptions, which $[[{C1 & C2}]]$ consumes as well.
 Thus, if $[[{C}]]$ is assumed linearly (and we have no other assumptions),
 then $[[{C*C}]]$ is not provable, while $[[{C&C}]]$ is.
 The intuition, here, is that in $[[{C1 & C2}]]$, only
@@ -1423,27 +1423,27 @@ $$
 \right.
 $$
 \rae{I simplified this. Is it still correct?}
-Like in Section~\ref{sec:constraint-domain}, we will typically drop
-the scaling factor for implication when it is $[[{1}]]$ and write $[[Q
-=> C]]$ for $[[{1.(Q=>C)}]]$.
+%% Like in Section~\ref{sec:constraint-domain}, we will typically drop
+%% the scaling factor for implication when it is $[[{1}]]$ and write
+%% $[[Q => C]]$ for $[[{1.(Q=>C)}]]$.
 
 We define an entailment relation over wanteds in Figure~\ref{fig:wanted:entailment}.
 Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, as
 there is no way to assume the more elaborate $[[{C}]]$.
+  \rae{Weird colors here. If we're dropping colors, not worth fixing.}
 \begin{figure}
-  \centering\small
+  \centering
   \drules[C]{$[[Q |- C]]$} {Wanted-constraint entailment}
   {Dom,Tensor,With,Impl}
-
   \caption{Wanted-constraint entailment}
   \label{fig:wanted:entailment}
 \end{figure}
 
 Note that simple constraints always entail a wanted: we
-generate wanted constraints, but programs only mention simple
-constraints, and the left-hand side does come from the program. It is
-possible to relax the syntax of the left-hand side
-though, which \textsc{ghc} does~\cite{quantified-constraints}.
+generate wanted constraints, but programs mention only simple
+constraints, and assumptions are created directly from the
+program text\footnote{Allowing the full wanted-constraint syntax
+in assumptions is the subject of work by \citet{quantified-constraints}.}.
 
 Before we move on to constraint generation proper, let us prove a few
 technical, yet essential, lemmas about the wanted-constraint
@@ -1453,7 +1453,7 @@ entailment relation.
   \label{lem:inversion}
   The inference rules of $[[Q |- C]]$ can be read bottom-up as well
   as top-down, as is required of $[[Q1 ||- Q2]]$ in
-  Figure~\ref{fig:entailment-relation}. That is
+  Figure~\ref{fig:entailment-relation}. That is:
   \begin{itemize}
   \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$ and $[[{Q2}]]$
     such that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
@@ -1463,63 +1463,76 @@ entailment relation.
     that $[[Q1 * Q2 |- C]]$ and  $[[{Q}]] = [[{pi.Q1}]]$
   \end{itemize}
 \end{lemma}
-\begin{proof}
-  The cases $[[Q |- C1 & C2]]$ and $[[Q |- pi.(Q2 => C)]]$ are
-  immediate, since there is only one rule (\rref*{C-With} and
-  \rref*{C-Impl} respectively) which can have them as their
-  conclusion.
 
-  For $[[Q |- C1 * C2]]$ we have two cases:
-  \begin{itemize}
-  \item either it is the conclusion of a \rref*{C-Tensor} rule, and
-    the result is immediate.
-  \item or it is the result of a \rref*{C-Dom} rule, in which case we
-    have $[[{C1}]]=[[{Q1}]]$, $[[{C2}]]=[[{Q2}]]$, and the result follows from
-    the definition of the entailment relation.
-  \end{itemize}
+\rae{I removed the proof here; let's put it in the appendix.}
+%% \begin{proof}
+%%   The cases $[[Q |- C1 & C2]]$ and $[[Q |- pi.(Q2 => C)]]$ are
+%%   immediate, since there is only one rule (\rref*{C-With} and
+%%   \rref*{C-Impl} respectively) which can have them as their
+%%   conclusion.
 
-  It may look like a slight change in the hypotheses would invalidate this proof.
-  After all in a system with
-  quantified constraints~\cite{quantified-constraints}, such as the
-  current implementation of \textsc{ghc}, there are rules with
-  non-atomic wanteds which do not introduce a connective. So, does
-  this proof break when moving to the full \textsc{ghc}? Fortunately
-  not!
+%%   For $[[Q |- C1 * C2]]$ we have two cases:
+%%   \begin{itemize}
+%%   \item either it is the conclusion of a \rref*{C-Tensor} rule, and
+%%     the result is immediate.
+%%   \item or it is the result of a \rref*{C-Dom} rule, in which case we
+%%     have $[[{C1}]]=[[{Q1}]]$, $[[{C2}]]=[[{Q2}]]$, and the result follows from
+%%     the definition of the entailment relation.
+%%   \end{itemize}
 
-  What we really need is that any proof can be \emph{rewritten} into a
-  proof which ends in an introduction rule. Such proofs have been
-  called \emph{uniform} in~\citet{hh-ll}. More precisely, a uniform
-  proof is a proof where every rule whose conclusion has a non-atomic
-  wanted is an introduction rule. The authors prove that all proofs in
-  a fragment of linear logic can be rewritten into a uniform
-  proof. This fragment includes quantified constraints and linear
-  generalisations thereof. So, we can conclude that this lemma indeed
-  extends to the complete set of constraints supported by \textsc{ghc}.
-\end{proof}
+%%   It may look like a slight change in the hypotheses would invalidate this proof.
+%%   After all in a system with
+%%   quantified constraints~\cite{quantified-constraints}, such as the
+%%   current implementation of \textsc{ghc}, there are rules with
+%%   non-atomic wanteds which do not introduce a connective. So, does
+%%   this proof break when moving to the full \textsc{ghc}? Fortunately
+%%   not!
 
-\begin{lemma}[Promotion]
+%%   What we really need is that any proof can be \emph{rewritten} into a
+%%   proof which ends in an introduction rule. Such proofs have been
+%%   called \emph{uniform} in~\citet{hh-ll}. More precisely, a uniform
+%%   proof is a proof where every rule whose conclusion has a non-atomic
+%%   wanted is an introduction rule. The authors prove that all proofs in
+%%   a fragment of linear logic can be rewritten into a uniform
+%%   proof. This fragment includes quantified constraints and linear
+%%   generalisations thereof. So, we can conclude that this lemma indeed
+%%   extends to the complete set of constraints supported by \textsc{ghc}.
+%% \end{proof}
+
+\begin{lemma}[Scaling]
   \label{lem:wanted:promote}
-  If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$
+  If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$.
 \end{lemma}
 
-\begin{lemma}[Inversion of promotion]
+\begin{lemma}[Inversion of scaling]
   \label{lem:wanted:demote}
-  If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[{Q}]] = [[{pi.Q'}]]$ for some $[[{Q'}]]$
+  If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[{Q}]] = [[{pi.Q'}]]$ for some $[[{Q'}]]$.
 \end{lemma}
 
 \subsection{Constraint generation}
 \label{sec:constraint-generation}
+\label{sec:constraint-generation-soundness}
 
 The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
 Section~\ref{sec:constraint-solver}. To generate constraints we
 introduce a judgement $[[G |-> e : t ~> C]]$ (defined in
-Figure~\ref{fig:constraint-generation}).\jp{Please explain how to intuitively read this judgement here, and/or in the caption of the figure.} It is intended that $[[{C}]]$
-is understood as an output of this judgement. The definition $[[G |->
-e : t ~> C]]$ is syntax directed, so it can directly be read as an
+Figure~\ref{fig:constraint-generation}).\jp{Please explain how to intuitively read this judgement here, and/or in the caption of the figure.} We understand $[[{C}]]$
+to be an output of this judgement. The definition
+$[[G |-> e : t ~> C]]$ is syntax directed, so it can directly be read as an
 algorithm, taking as input a term $[[{e}]]$ (together with some type
 inference oracle, as discussed above) and returning a wanted
 constraint $[[{C}]]$.
+\rae{How is this syntax-directed? It splits contexts non-deterministically.
+I have no idea how I would implement this (without the rather involved
+treatment of multiplicity checking in GHC). I think this claim of syntax-direction
+should be removed, but then how is this an algorithm? We may want to think
+carefully about this. Possibly we should include, in the output, usage information,
+to make this really into an algorithm. That actually shouldn't really be all
+that hard, and it would be informative to readers.}
+\rae{Separately, we've said nothing about how to infer the multiplicity
+of lambdas. That, to me, is quite separate from the type oracle we've
+admitted to (and which I agree with).}
 
 \info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
 
@@ -1528,7 +1541,7 @@ constraint $[[{C}]]$.
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
 \begin{figure}
-  \centering\small
+  \centering
   \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
     App, Pack, Unpack, Case, Let, LetSig}
 
@@ -1537,112 +1550,99 @@ constraint $[[{C}]]$.
 \end{figure}
 
 The rules of Figure~\ref{fig:constraint-generation} constitute a mostly
-unsurprising translation of the rules of Figure~\ref{fig:typing-rules}
-in the style of OutsideIn~\cite[Section 5.4]{OutsideIn}. In particular, the operations
-on typing contexts are the same as in
-Figure~\ref{fig:typing-rules}, and are not repeated here. Still, a few
-remarks are in order
-\begin{itemize}
-\item The most conspicuous difference is that, as we explained in
-  Section~\ref{sec:wanteds}, where OutsideIn uses a single kind of
-  conjunctions, the \rref*{E-Case} rule needs two. OutsideIn
-  accumulates constraints across branches, whereas we need to make
-  sure that each branch of a $\kcase$-expression consumes the same
-  constraints.
+unsurprising translation of the rules of Figure~\ref{fig:typing-rules},
+but the following points of interest:
 
-  This is easily understood in terms of the file example of
+\paragraph{|case| expressions}
+Note the use of $[[&]]$ in the conclusion of \rref{G-Case}.
+We require that each branch of a |case| expression use the exact
+same (linear) assumptions; this is enforced by combining the
+emitted constraints with $[[&]]$, not $[[*]]$.
+
+  This can also be understood in terms of the file-handle example of
   Section~\ref{sec:introduction}:
-  if a file is closed in one branch of a $\kcase$, it had better be closed in
+  if a file is closed in one branch of a $\kcase$, we require it to be closed in
 the other branches too.
-  Otherwise, after the case its state will be unknown to the type system.
+  Otherwise, the file handle's state will be unknown to the type system
+  after the |case|.
 
-  The reason this distinction is not made in an intuitionistic
-  system like the original OutsideIn is elucidated by the
+  The reason this distinction is not necessary in a structural type
+  system can be seen by the
   fact that $[[{omega.(C1&C2)}]] = [[{omega.C1 * omega.C2}]]$. In other
-  words, in a purely unrestricted context, linear constraints don't
-  need two kinds of conjunctions either.
-\item Just like OutsideIn, the introduction of constraints local to a
-  premise in the rules of Figure~\ref{fig:typing-rules} corresponds to
-  emitting an implicational constraint in
-  Figure~\ref{fig:constraint-generation}.
-\item However, the~\rref*{G-Let} rule doesn't have an implicational
-  constraint corresponding to the local constraint of \rref{E-Let}:
-  like in OutsideIn~\cite[Section 4.2]{OutsideIn}, a $\klet$ without a
-  signature is not generalised. That being said, while not
-  generalising is the easiest choice, here, it is not clear that it is
-  the best in the presence of linear constraints, as we discuss in
-  Section~\ref{sec:let-generalisation}
-\item As we've observed throughout this section, not including type
-  inference in the constraint generation algorithm significantly
-  simplifies the presentation. There is no particular difficulty
-  involved, however, in combining type inference and linear
-  constraints; keeping in mind that equality constraints should never
-  be linear.
-\end{itemize}
+  words, in an unrestricted context, linear constraints do not
+  need two kinds of conjunctions.
+\paragraph{Implications} The introduction of constraints local to a
+  definition (\rref{G-LetSig}) corresponds to
+  emitting an implication constraint.
+\paragraph{Unannotated |let|}
+ However, the~\rref*{G-Let} rule does not produce an implication
+  constraint, as we do not model |let|-generalisation~\cite{let-should-not-be-generalised}.
+  Section~\ref{sec:let-generalisation} discusses this design
+  choice further.
 
-% I [aspiwack] removed a section which I felt wasn't relevant. Leaving
-% the label to avoid dead links.
-\label{sec:constraint-generation-soundness}
 
+\vspace{1ex}
 The key property of the constraint-generation algorithm is that,
 if the generated constraint is solvable, then we can indeed type the
 term in the qualified type system of
-Section~\ref{sec:qualified-type-system}. That is, we are not defining
-a new type system but indeed an inference algorithm for the qualified
+Section~\ref{sec:qualified-type-system}. That is,
+these rules are simply an implementation of our declarative qualified
 type system.
 
 \begin{lemma}[Soundness of constraint generation]\label{lem:generation-soundness}
-  For all $[[{Q_g}]]$ if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
+  For all $[[{Q_g}]]$, if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$
 \end{lemma}
-\begin{proof}
-Soundness is proved by induction on $[[G |-> e : t ~> C]]$. We only
-present the two most interesting cases, the full proof can be found
-in the supplementary material
-  \begin{description}
-  \item[\rref*{E-App}] We have
-    \begin{itemize}
-    \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
-    \item $[[Q_g |- C1 * pi.C2]]$
-    \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
-    \item $[[G2 |-> e2 : t2 ~> C2]]$
-    \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
-    that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
-    $[[{Q_g}]] = [[{Q1 * pi.Q2}]]$.  Then, by induction hypothesis
-    \begin{itemize}
-    \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
-    \item $[[Q2; G2 |- e2 : t2]]$
-    \end{itemize}
-    Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
-  \item[\rref*{E-Unpack}] We have
-    \begin{itemize}
-    \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q' => C2]]$
-    \item $[[Q_g |- C1 * Q' => C2]]$
-    \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
-    \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
-    \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
-    such that
-    $[[Q_1 |- C1]]$,
-    $[[Q_2 * Q' |- C2]]$, and
-    $[[{Q_g}]] = [[{Q1 * Q2}]]$.
-    Then, by induction hypothesis
-    \begin{itemize}
-    \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
-    \item $[[Q_2*Q ; G2 |- e2 : t]]$
-    \end{itemize}
-    Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
-  \end{description}
-\end{proof}
+
+\rae{Move the proof to the appendix.}
+%% \begin{proof}
+%% Soundness is proved by induction on $[[G |-> e : t ~> C]]$. We only
+%% present the two most interesting cases; the full proof can be found
+%% in the supplementary material.
+%%   \begin{description}
+%%   \item[\rref*{E-App}] We have
+%%     \begin{itemize}
+%%     \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
+%%     \item $[[Q_g |- C1 * pi.C2]]$
+%%     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
+%%     \item $[[G2 |-> e2 : t2 ~> C2]]$
+%%     \end{itemize}
+%%     By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
+%%     that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
+%%     $[[{Q_g}]] = [[{Q1 * pi.Q2}]]$.  Then, by induction hypothesis
+%%     \begin{itemize}
+%%     \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
+%%     \item $[[Q2; G2 |- e2 : t2]]$
+%%     \end{itemize}
+%%     Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
+%%   \item[\rref*{E-Unpack}] We have
+%%     \begin{itemize}
+%%     \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * 1.(Q' => C2)]]$
+%%     \item $[[Q_g |- C1 * 1.(Q' => C2)]]$
+%%     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
+%%     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
+%%     \end{itemize}
+%%     By Lemma~\ref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
+%%     such that
+%%     $[[Q_1 |- C1]]$,
+%%     $[[Q_2 * Q' |- C2]]$, and
+%%     $[[{Q_g}]] = [[{Q1 * Q2}]]$.
+%%     Then, by induction hypothesis
+%%     \begin{itemize}
+%%     \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
+%%     \item $[[Q_2*Q ; G2 |- e2 : t]]$
+%%     \end{itemize}
+%%     Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
+%%   \end{description}
+%% \end{proof}
 
 \subsection{Constraint solving}
 \label{sec:constraint-solver}
 
 In this section,
-let us build a \emph{constraint solver} whose purpose it is to prove
+we build a \emph{constraint solver} that proves
 that $[[Q_g |- C]]$ holds, as required by Lemma~\ref{lem:generation-soundness}.
-The constraint solver is represented by the following judgement
+The constraint solver is represented by the following judgement:
 %
 $$
 [[ UCtx ; LCtx_i |-s C ~> LCtx_o]]

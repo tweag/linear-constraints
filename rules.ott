@@ -121,9 +121,9 @@ defn
 G |-> e : t ~> CF :: :: Gen :: 'G_' {{ com Constraint generation }}
 by
 
-x :_1 forall as. Q =o u \in G
+G1 = x :_1 forall as. Q =o u
 ------------------------------ :: Var
-G |-> x : u[ts/as] ~> Q[ts/as]
+G1 + omega.G2 |-> x : u[ts/as] ~> Q[ts/as]
 
 G, x:_pi t0 |-> e : t ~> C
 ------------------------------ :: Abs
@@ -144,7 +144,7 @@ G1 |-> e1 : exists as. t1 o= Q1 ~> C1
 as fresh
 G2, x:_1 t1 |-> e2 : t ~> C2
 ------------------------------ :: Unpack
-G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * (Q1 => C2)
+G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * 1.(Q1 => C2)
 
 G |-> e : t[us/as] ~> C
 ------------------------------ :: Pack

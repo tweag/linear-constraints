@@ -84,7 +84,7 @@ C :: 'Ctg_' ::= {{ tex \constraintfont{[[C]]} }} {{ com Generated constraints}}
 | Q                  ::   :: Simple
 | C1 * C2            ::   :: Tensor
 | C1 & C2            ::   :: With
-| Q => C             ::   :: Impl  {{ tex [[Q]] \Lolly [[C]]}}
+| piF . ( Q => C )   ::   :: Impl  {{ tex [[piF]]\scale([[Q]] \Lolly [[C]]) }}
 | ! C                ::   :: Unrestricted
 | piF . C            :: M :: Scale  {{tex [[piF]]\scale[[C]]}}
 | && C               :: M :: BigWith
