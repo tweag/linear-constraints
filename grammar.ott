@@ -28,8 +28,8 @@ toplevel :: 'Toplevel_' ::= {{ com Entry point of the grammar }}
 parsable :: 'Parsable_' ::=  {{ com Toplevel productions allowed in Tex filtering }}
 | QF  :: :: qf
 | q   :: :: q  {{ tex \constraintfont{[[q]]} }}
-| Lq   :: :: L  {{ tex \constraintfont{[[Lq]]} }}
-| Uq   :: :: U  {{ tex \constraintfont{[[Uq]]} }}
+| LCtx   :: :: L  {{ tex \constraintfont{[[LCtx]]} }}
+| UCtx   :: :: U  {{ tex \constraintfont{[[UCtx]]} }}
 | CF  :: :: cf
 | t  :: :: t
 | ts  :: :: ts
@@ -40,25 +40,23 @@ parsable :: 'Parsable_' ::=  {{ com Toplevel productions allowed in Tex filterin
 | as  :: :: as
 | binding  :: :: binding
 | G  :: :: g
-| LCtx  :: :: lctx
-| UCtx  :: :: uctx
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraints  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Uq {{ tex \ottnt{U} }} :: 'SetCt_' ::= {{ com Set of atomic constraints }}
-| emptyset    ::   :: Empty
-| Uq1 \u Uq2  ::   :: Union  {{ tex [[Uq1]] \cup [[Uq2]] }}
-| q           ::   :: One
-| Uq \u Lq    ::   :: Forget {{ tex [[Uq]] \cup [[Lq]] }}
+UCtx {{ tex \ottnt{U} }} :: 'SetCt_' ::= {{ com Set of atomic constraints }}
+| emptyset        ::   :: Empty
+| UCtx1 \u UCtx2  ::   :: Union  {{ tex [[UCtx1]] \cup [[UCtx2]] }}
+| q               ::   :: One
+| UCtx \u LCtx      ::   :: Forget {{ tex [[UCtx]] \cup [[LCtx]] }}
 
-Lq {{ tex \ottnt{L} }} :: 'MultisetCt_' ::= {{ com Multiset of atomic constraints }}
-| emptyset    ::   :: Empty
-| Lq1 \u Lq2  ::   :: Union   {{ tex [[Lq1]] \uplus [[Lq2]] }}
-| q           ::   :: One
+LCtx {{ tex \ottnt{L} }} :: 'MultisetCt_' ::= {{ com Multiset of atomic constraints }}
+| emptyset        ::   :: Empty
+| LCtx1 \u LCtx2  ::   :: Union   {{ tex [[LCtx1]] \uplus [[LCtx2]] }}
+| q               ::   :: One
 
 Q :: 'Ct_' ::=  {{ com Constraints }}
-| ( Uq , Lq )        ::   :: Sets
+| ( UCtx , LCtx )    ::   :: Sets
 | piF . q            ::   :: Atom   {{ tex [[piF]]\scale[[q]] }}
 | Q1 * Q2            :: M :: Tensor
 | Empty              :: M :: Empty  {{tex \mathbf{\varepsilon} }}
@@ -66,9 +64,6 @@ Q :: 'Ct_' ::=  {{ com Constraints }}
 | Q [ theta ]        :: M :: Subst
 | piF . Q            :: M :: Scale  {{tex [[piF]]\scale[[Q]]}}
 | ( Q )              :: S :: Paren
-% Constraint solver
-| ctx ( UCtx )       :: M :: USolverCtx  {{ tex [[UCtx]] }}
-| ctx ( LCtx )       :: M :: LSolverCtx  {{ tex [[LCtx]] }}
 % Empty case
 | Top                ::   :: Top
 
@@ -239,17 +234,6 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | G1 \u G2          :: M :: Union
   {{ tex [[G1]] \cup [[G2]] }}
 
-LCtx {{ tex \Psi }} :: 'LinCtx_' ::= {{ com Linear contexts }}
-| empty             ::   :: None
-| QF                ::   :: Atom
-| LCtx1 , .... , LCtxi :: :: Many
-
-UCtx {{ tex \Phi }} :: 'UrCtx_' ::= {{ com Unrestricted contexts }}
-| empty                :: :: None
-| pi . QF               :: M :: Atom {{tex [[pi]] \scale [[QF]]}}
-| UCtx1 , .... , UCtxi :: :: Many
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Terminals  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -278,6 +262,7 @@ terminals :: 'terminals_' ::=
 | empty       ::   :: emptyseq {{ tex ∙ }} % alternative: ϵ
 | Top         ::   :: Top     {{ tex \constraintfont{⊤} }}
 | emptyset    ::   :: emptyset {{ tex \emptyset }}
+| \subseteq   ::   :: subset   {{ tex \subseteq }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -295,11 +280,12 @@ formula :: formula_ ::=
   {{ tex \overline{[[formula]]} }}
 | e : t                           ::   :: DataconTy
 | x \notin G                      ::   :: NotInCtx
-| QF \notin LCtx                  ::   :: notin_LCtx
-| QF \notin UCtx                  ::   :: notin_UCtx
-| LCtx1 ⊆ LCtx2                   ::   :: subcontext
 | binding \in G                   ::   :: binding_in
 | G1 = G2                         ::   :: ctx_equal
+| LCtx1 \subseteq LCtx2           ::   :: subset
+| q \in UCtx                      ::   :: q_in_UCtx
+| q \notin UCtx                   ::   :: q_notin_UCtx
+| q \notin LCtx                   ::   :: q_notin_LCtx
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Parsing rules  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

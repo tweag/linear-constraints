@@ -17,7 +17,7 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,usenames,dvipsnames]{acmart}
+\documentclass[acmsmall,usenames,dvipsnames,acmthm=false]{acmart}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 
@@ -158,7 +158,7 @@ import GHC.Base
   \newcommand{\sby}[2]{#1 ↦ #2}
   \newcommand{\vdashi}{⊢_{\mathsf{i}}}
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
-  \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{simp}}}
+  \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{atom}}}
   \newcommand{\scale}{\constraintfont{\cdot}}
   %% Constraint notations
   \newcommand{\constraintop}[1]{\mathop{\constraintfont{#1}}}
@@ -182,6 +182,16 @@ import GHC.Base
   % defining grammars
   \newcommand{\bnfeq}{\mathrel{\Coloneqq}}
   \newcommand{\bnfor}{\mathrel{\mid}}
+
+  % theorems
+  \theoremstyle{acmplain}
+  \newtheorem{theorem}{Theorem}[section]
+  \newtheorem{lemma}[theorem]{Lemma}
+  \newtheorem{corollary}[theorem]{Corollary}
+  \newtheorem{property}[theorem]{Property}
+  
+  \theoremstyle{acmdefinition}
+  \newtheorem{definition}[theorem]{definition}
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
@@ -460,7 +470,7 @@ compile time error.
 \label{sec:what-it-looks-like}
 
 \begin{figure}%
-  \centering\small
+  \centering
   \begin{subfigure}{.3\linewidth}%
     \noindent%
 \begin{code}
@@ -1010,15 +1020,15 @@ $$
 \end{array}
 $$
 We thus say that a simple constraint is a pair combining a set of unrestricted
-constraints $[[{Uq}]]$ and a multiset of linear constraints $[[{Lq}]]$.
+constraints $[[{UCtx}]]$ and a multiset of linear constraints $[[{LCtx}]]$.
 The linear constraints must
 be stored in a multiset, because assuming the same constraint twice is distinct
 from assuming it only once:
 $$
 \begin{array}{rcll}
-[[{Uq}]] & \bnfeq & \ldots & \text{set of atomic constraints $[[{q}]]$} \\
-[[{Lq}]] & \bnfeq & \ldots & \text{multiset of atomic constraints $[[{q}]]$} \\
-[[{Q}]] & \bnfeq & [[{(Uq,Lq)}]] & \text{simple constraints}
+[[{UCtx}]] & \bnfeq & \ldots & \text{set of atomic constraints $[[{q}]]$} \\
+[[{LCtx}]] & \bnfeq & \ldots & \text{multiset of atomic constraints $[[{q}]]$} \\
+[[{Q}]] & \bnfeq & [[{(UCtx,LCtx)}]] & \text{simple constraints}
 \end{array}
 $$
 We can now straightforwardly define the operations we need on simple constraints:
@@ -1036,13 +1046,13 @@ $$
 \right.
 &
 \begin{array}{r@@{\;}c@@{\;}l}
-[[{(Uq1,Lq1)*(Uq2,Lq2)}]] &=& [[{(Uq1 \u Uq2, Lq1 \u Lq2)}]]
+[[{(UCtx1,LCtx1)*(UCtx2,LCtx2)}]] &=& [[{(UCtx1 \u UCtx2, LCtx1 \u LCtx2)}]]
 \end{array}
 &
 \left\{
 \begin{array}{r@@{\;}c@@{\;}l}
-[[{1.(Uq,Lq)}]] &=& [[{(Uq,Lq)}]] \\
-[[{omega.(Uq,Lq)}]] &=& [[{(Uq \u Lq, emptyset)}]]
+[[{1.(UCtx,LCtx)}]] &=& [[{(UCtx,LCtx)}]] \\
+[[{omega.(UCtx,LCtx)}]] &=& [[{(UCtx \u LCtx, emptyset)}]]
 \end{array}
 \right.
 \end{array}
@@ -1591,7 +1601,7 @@ type system.
 
 \begin{lemma}[Soundness of constraint generation]\label{lem:generation-soundness}
   For all $[[{Q_g}]]$, if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
-  $[[Q_g; G |- e : t]]$
+  $[[Q_g; G |- e : t]]$.
 \end{lemma}
 
 \rae{Move the proof to the appendix.}
@@ -1650,49 +1660,22 @@ $$
 %
 The judgement
 takes in two contexts: $[[{UCtx}]]$, which holds all the unrestricted
-atomic constraints\jp{which can be used?} (scaled by $[[{omega}]]$) and $[[{LCtx_i}]]$, which holds all the linear
-atomic constraints\jp{to consume?}. Due to associativity and commutativity of $[[*]]$ we
-can always factor any simple constraint into such a pair of contexts. The
-unrestricted context $[[{UCtx}]]$ is an unordered set, while the
-multiplicative contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ are ordered lists.
+atomic constraint assumptions and $[[{LCtx_i}]]$, which holds all the linear
+atomic constraint assumptions. 
+The linear contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ are ordered lists.
+\rae{Why ordered? This surprises me. Perhaps I will learn soon.}
 
 Linearity requires treating constraints as consumable resources. This
-is what $[[{LCtx_o}]]$ is for: it is the list of the hypotheses of
-$[[{LCtx_i}]]$ which haven't been consumed when proving $[[{Q_w}]]$\jp{What's this? Not introduced?}. As
+is what $[[{LCtx_o}]]$ is for: it contains the hypotheses of
+$[[{LCtx_i}]]$ which are not consumed when proving $[[{C}]]$. As
 suggested by the notation, it is an output of the algorithm.
 
-There are three simplifications compared to OutsideIn's solver:\jp{Another OutsideIn heavy part.}
-
-\begin{itemize}
-  \item As explained in Section~\ref{sec:constraint-generation}, our solver does
-not need to do unification, so we do not return a substitution in the solver
-judgement.
-\item As discussed in Section~\ref{sec:constraint-domain}, we omit
-  top-level constraints, for the sake of simplification.
-  \item In case the wanteds can not be solved completely, OutsideIn also returns
-a set of \emph{residual} constraints: these are the remaining subproblems to
-solve. This set of residual constraints is simply quantified over in the type of
-top-level function definitions that don't have signatures. In our solver we omit these residual constraints,
-because we never infer a type scheme for a |let| without a signature
-(though we revisit this hypothesis in Section~\ref{sec:let-generalisation}).
-
-It is important to reiterate this
-distinction: OutsideIn's residual constraints are constraints from the
-goal that remain to be
-solved, while our output constraints $[[{LCtx_o}]]$ are constraints from
-the hypotheses that have yet to be used. OutsideIn's residuals are a
-tool for type inference, while our output constraints are an internal
-device for the solver.
-\end{itemize}
-
-Like OutsideIn~\cite[Section 5.5]{OutsideIn}, the main solver infrastructure
-deals with solving the wanted constraints.
 To handle simple wanted constraints, we will need  a domain-specific
-\emph{simple-constraint solver} to be the algorithmic counterpart of the
+\emph{atomic-constraint solver} to be the algorithmic counterpart of the
 abstract entailment relation of Section~\ref{sec:constraint-domain}. The
-main solver will appeal to this simple-constraint solver when solving atomic
-constraints.  The simple-constraint solver is represented by the following
-judgement
+main solver will appeal to this atomic-constraint solver when solving atomic
+constraints.  The atomic-constraint solver is represented by the following
+judgement:
 %
 $$
 [[ UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]
@@ -1700,33 +1683,37 @@ $$
 
 It has a similar structure to the main solver, but only deals with atomic
 constraints. Though the solver is parameterised in the particular choice of this
-simple-constraint solver, we will give an instantiation in
+atomic-constraint solver, we will give an instantiation in
 Section~\ref{sec:simple-constr-solv}.
 
-\begin{definition}[Simple-constraint solver]
-\label{def:solver-soundness} The simple constraint solver must verify
-that whenever $[[UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]$, we have
-$[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$ and $[[ctx(UCtx) * ctx(LCtx_i) ||-
-pi.q * ctx(LCtx_o)]]$ (where the $[[{UCtx}]]$ and the $[[{LCtx}]]$ are
-interpreted as simple constraints by taking the tensor of their atomic
-constraints).
-\end{definition}
+We require the following property of the atomic-constraint solver:
 
-\subsubsection{The solver}
+\begin{property}[Atomic-constraint solver]
+\label{prop:solver-soundness} If $[[UCtx; LCtx_i |-simp pi.q ~> LCtx_o]]$, then:
+\begin{enumerate}
+\item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
+\item $[[(UCtx, LCtx_i) ||- pi.q * (emptyset, LCtx_o)]]$
+\end{enumerate}
+\end{property}
+\rae{That second part looks tautological. What is it saying? I think this is
+further motivation for making $[[||-]]$ concrete.}
 
-To extend the solver to all wanted constraints, we use a linear proof
+\subsubsection{Constraint solver algorithm}
+
+Building on this atomic-constraint solver, we use a linear proof
 search algorithm based on the recipe given
 by~\citet{resource-management-for-ll-proof-search}. Figure~\ref{fig:constraint-solver}
 presents the rules of the constraint solver.
 
 \begin{figure}
-  \centering\small
-  \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Simple, Mult, ImplOne, Add, ImplMany}
+  \centering
+  \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Atom, Mult, ImplOne, Add, ImplMany}
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
 
 \csongor{Refer to lemma 5.2 here}
+\rae{Why?}
 
 \begin{itemize}
   \item The~\rref*{S-Mult} rule proceeds by solving one side of a
@@ -1738,61 +1725,61 @@ generated from case expressions, only one of them is actually going to be
 executed). Note that both branches must consume exactly the same
 resources.
   \item Implications are handled by~\rref*{S-ImplOne} and~\rref*{S-ImplMany},
-for solving linear and unrestricted wanted implications respectively. In
-both cases, the assumption of the implication is split to\jp{between?} the unrestricted
-$[[{omega . Q1}]]$ and the linear $[[{Q2}]]$ parts (this can be done deterministically).
-When solving a linear implication, we add the assumptions to their respective context, and
+for solving linear and unrestricted implications, respectively. In
+both cases, the assumption of the implication is split into its
+unrestricted and linear components.
+When solving a linear implication, we union the assumptions with their respective context, and
 proceed with solving the conclusion. Importantly (see
 Section~\ref{sec:simple-constr-solv} below), the linear assumptions are
-added to the front of the list. The side condition requires that the output
+added to the front of the list. \rae{More list stuff.}
+ The side condition requires that the output
 context is a subset of the input context: this is to ensure that the implication
-actually consumes its assumption and doesn't leak it to the ambient context.
-Solving unrestricted implications only allows the conclusion of the implication
+actually consumes its assumption and does not leak it to the ambient context.
+Solving unrestricted implications allows only the conclusion of the implication
 to be solved using its own linear assumption, but none of the other linear
-constraints. This is because unrestricted implications only use their own
+constraints. This is because unrestricted implications use their own
 assumption linearly, but use everything from the ambient context $[[{omega}]]$
 times.
-
 \end{itemize}
 
-\subsubsection{A simple-constraint solver}
+\subsubsection{An atomic-constraint solver}
 \label{sec:simple-constr-solv}
 
-So far, the simple-constraint domain has been
-an abstract parameter. In this section, though, let us give a concrete
+So far, the atomic-constraint domain has been
+an abstract parameter. In this section, though, we offer a concrete
 domain which supports our examples.
 
-For the sake of our examples, we really need very little: linear
-constraints are abstract as far as the type checker is
-concerned. So it is enough for the entailment relation
+For the sake of our examples, we need very little: linear
+constraints can remain abstract. It is thus sufficient for the entailment relation
 (Figure~\ref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
-is already on the left hand side--- while respecting linearity.
+is already assumed---while respecting linearity.
+\rae{The entailment relation should really be defined over atoms, not
+simple-constraints.}
 
-
-\begin{figure}\centering\small
+\begin{figure}\centering
   \begin{subfigure}{\linewidth}
     \drules[Q]{$[[Q1 ||- Q2]]$}{Entailment relation}{Hyp,Prod,Empty}
     \caption{Entailment relation}
     \label{fig:simpl-entailment}
   \end{subfigure}
   \begin{subfigure}{\linewidth}
-    \drules[Simp]{$[[UCtx ; LCtx |-simp pi.q ~>
-      LCtx_o]]$}{Simple-constraint solver}{AtomMany,AtomOneL,AtomOneU}
-    \caption{Simple-constraint solver}
+    \drules[Atom]{$[[UCtx ; LCtx |-simp pi.q ~>
+      LCtx_o]]$}{Atomic-constraint solver}{AtomMany,AtomOneL,AtomOneU}
+    \caption{Atomic-constraint solver}
     \label{fig:simpl-solver}
   \end{subfigure}
   \caption{A stripped-down constraint domain}
   \label{fig:predicate-domain}
 \end{figure}
 
-The corresponding simple-constraint solver
+The corresponding atomic-constraint solver
 (Figure~\ref{fig:simpl-solver}) is more interesting. The first thing
 to notice is that the rules are deterministic: in any circumstances,
 only one of the three rules can apply. This is a central tenet of
 OutsideIn~\cite[Section 6.4]{OutsideIn}: it never makes guesses.
 
 Figure~\ref{fig:simpl-solver} is also where the fact that the
-$[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Simp-AtomOneL}
+$[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-AtomOneL}
 takes great care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the top of
 the list). To understand why, consider the following example:
@@ -1843,7 +1830,7 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 \label{sec:core-calculus}
 
 \begin{figure}
-  \centering\small
+  \centering
   $$
   \begin{array}{lcll}
     [[{s}]] & \bnfeq & [[{forall as. t}]] & \text{Type schemes} \\
@@ -1895,7 +1882,7 @@ are consumed with $\kcase$.
 \label{sec:ds:inferred-constraints}
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
-Definition~\ref{def:solver-soundness} we know that if
+Property~\ref{prop:solver-soundness} we know that if
 $[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C~> empty ]]$, then
 $[[ctx(UCtx) * ctx(LCtx)  ; G |- e : t]]$.
 %
@@ -1978,7 +1965,6 @@ We present some of the interesting cases in Figure~\ref{fig:desugaring}.
   \centering
   \begin{subfigure}{0.3\linewidth}%
 
-\small
 $$
 \left\{
   \begin{array}{lcl}
@@ -2018,7 +2004,7 @@ $$
 %format z1 = "[[{z1}]]"
 %format z2 = "[[{z2}]]"
 %format z2' = "[[{z2}]]''"
-$$\small
+$$
 \left\{
   \;
   \begin{minipage}{0.5\linewidth}
@@ -2104,7 +2090,7 @@ inert set so it can not be used again. Before, the inert set only held a single
 copy of each given, but now it must hold multiple copies of linear givens,
 together with their implication level. When solving an atomic wanted, the
 matching given with the largest implication level (i.e. the innermost given) is
-selected, as per the \rref*{Simp-AtomOneL} rule.
+selected, as per the \rref*{Atom-AtomOneL} rule.
 
 When an implication is finally solved, we must check that every linear
 constraint introduced in this implication was consumed, which is done by
@@ -2393,7 +2379,7 @@ Figure~\ref{fig:full:core-grammar} and the type system by
 Figure~\ref{fig:full:core-typing-rules}.
 
 \begin{figure}
-  \centering\small
+  \centering
   $$
   \begin{array}{lcll}
     [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
@@ -2417,7 +2403,7 @@ Figure~\ref{fig:full:core-typing-rules}.
 \end{figure}
 
 \begin{figure}
-  \centering\small
+  \centering
   \drules[L]{$[[G |- e : t]]$}{Core language
     typing}{Var,Abs,App,Pack,Unpack,Let,Case}
   \caption{Core calculus type system}
@@ -2458,7 +2444,7 @@ $[[{urify(e)}]]$ when it can be easily inferred from the context.
 
 
 \begin{figure}
-  \centering\small
+  \centering
 
 %{
 %format (Ds(x)) = "\ottkw{Ds}\,\ottsym{(}" x "\ottsym{)}"
