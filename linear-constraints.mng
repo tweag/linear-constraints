@@ -1662,8 +1662,10 @@ The judgement
 takes in two contexts: $[[{UCtx}]]$, which holds all the unrestricted
 atomic constraint assumptions and $[[{LCtx_i}]]$, which holds all the linear
 atomic constraint assumptions. 
-The linear contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ are ordered lists.
-\rae{Why ordered? This surprises me. Perhaps I will learn soon.}
+The linear contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ have been described
+as multisets (Section~\ref{sec:constraint-domain}), but we treat them
+as ordered lists in the more concrete setting here; we will see soon
+why this treatment is necessary.
 
 Linearity requires treating constraints as consumable resources. This
 is what $[[{LCtx_o}]]$ is for: it contains the hypotheses of
@@ -1731,7 +1733,7 @@ unrestricted and linear components.
 When solving a linear implication, we union the assumptions with their respective context, and
 proceed with solving the conclusion. Importantly (see
 Section~\ref{sec:simple-constr-solv} below), the linear assumptions are
-added to the front of the list. \rae{More list stuff.}
+added to the front of the list.
  The side condition requires that the output
 context is a subset of the input context: this is to ensure that the implication
 actually consumes its assumption and does not leak it to the ambient context.
@@ -1764,7 +1766,7 @@ simple-constraints.}
   \end{subfigure}
   \begin{subfigure}{\linewidth}
     \drules[Atom]{$[[UCtx ; LCtx |-simp pi.q ~>
-      LCtx_o]]$}{Atomic-constraint solver}{AtomMany,AtomOneL,AtomOneU}
+      LCtx_o]]$}{Atomic-constraint solver}{Many,OneL,OneU}
     \caption{Atomic-constraint solver}
     \label{fig:simpl-solver}
   \end{subfigure}
@@ -1773,15 +1775,17 @@ simple-constraints.}
 \end{figure}
 
 The corresponding atomic-constraint solver
-(Figure~\ref{fig:simpl-solver}) is more interesting. The first thing
-to notice is that the rules are deterministic: in any circumstances,
-only one of the three rules can apply. This is a central tenet of
-OutsideIn~\cite[Section 6.4]{OutsideIn}: it never makes guesses.
+(Figure~\ref{fig:simpl-solver}) is more interesting. 
+The rules here are deterministic: in all circumstances,
+only one of the three rules can apply. This means that the
+algorithm does not guess, and thus never needs to backtrack.
+Avoiding guesses is a key property of \textsc{ghc}'s solver~\cite[Section~6.4]{OutsideIn},
+one we must maintain if we are to be compatible with \textsc{ghc}.
 
 Figure~\ref{fig:simpl-solver} is also where the fact that the
-$[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-AtomOneL}
-takes great care to use the most recent occurrence of $[[{q}]]$
-(remember that \rref{S-ImplOne} adds the new hypotheses on the top of
+$[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
+takes care to use the most recent occurrence of $[[{q}]]$
+(remember that \rref{S-ImplOne} adds the new hypotheses on the front of
 the list). To understand why, consider the following example:
 \begin{code}
 f :: FilePath -> IOL ()
@@ -1790,9 +1794,14 @@ f fp =   do  {  pack h <- openFile fp
                      ;  cl = closeFile h }
              ;  cl }
 \end{code}
-In this example it is quite clear that the programmer meant for
-|closeFile| to use |Open h| introduced locally in |cl|. In fact this
-is the only possible way to attribute constraints.
+In this example, the programmer meant for
+|closeFile| to use the |Open h| constraint introduced locally in the type
+of |cl|. Yet
+there are actually two |Open h| constraints: this local one and the
+one assumed in the unpacking of the result of |openFile|. The wrong
+choice among the constraints will lead the algorithm to fail.
+Choosing the first $[[{q}]]$ linear assumption guarantees we get the
+most local one.
 
 Another interesting feature of the solver (Figure~\ref{fig:simpl-solver}) is that
 no rule solves a linear constraint if it appears both in the
@@ -1811,23 +1820,30 @@ bad :: constraint (C) =>. (Int, Int)
 bad = (giveC useC, useC)
 \end{code}
 It is possible to give a type derivation to |bad| in the qualified type system
-of Section~\ref{sec:qualified-type-system}. In fact, the constraint assignment
-is unambiguous: the left-most |useC| must use the unrestricted |constraint (C)|, while the
-right-most must use the linear |constraint (C)|. This assignment, however, would require of
-the constraint solver to make a guess when solving the left-most |useC|. So in
-the spirit of OutsideIn, |bad| is rejected.
+of Section~\ref{sec:qualified-type-system}. In this case, the constraint assignment
+is actually unambiguous:
+the first |useC| must use the unrestricted |constraint (C)|, while the
+second must use the linear |constraint (C)|. This assignment, however, would require
+the constraint solver to guess when solving the constraint from the first |useC|.
+Accordingly, in order to both avoid backtracking and to keep type inference
+independent of the order terms appear in the program text, |bad| is rejected.
+Our algorithm is thus not complete with respect to our specification.
+\rae{Say more about incompleteness? Say less? It would be nice to say more, ideally
+describing the exact way in which we are incomplete. Maybe it happens only when
+there is the same constraint in both contexts? Not sure.}
 
 \section{Desugaring}
 \label{sec:desugaring}
 
 The semantics of our language is given by desugaring it into
-a simpler core language: a mild\jp{what is 'mild' when applied to lambda-calculi? explain.} variant of the $λ^q$
+a simpler core language: a variant of the $λ^q$
 calculus~\cite{LinearHaskell}. We
 define the core language's type system here; its operational semantics
 is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 
 \subsection{The core calculus}
 \label{sec:core-calculus}
+\label{sec:ds:inferred-constraints}
 
 \begin{figure}
   \centering
@@ -1835,7 +1851,7 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
   \begin{array}{lcll}
     [[{s}]] & \bnfeq & [[{forall as. t}]] & \text{Type schemes} \\
     [[{t}]], [[{u}]] & \bnfeq & ... \bnfor [[{exists as. t o- u}]] & \text{Types} \\
-    [[{e}]] & \bnfeq & ... \bnfor [[{pack (e1, e2)}]] \bnfor [[{unpack (y,x)=e1 in e2}]] & \text{Expressions}
+    [[{e}]] & \bnfeq & ... \bnfor [[{pack (e1, e2)}]] \bnfor [[{unpack (x,y)=e1 in e2}]] & \text{Expressions}
   \end{array}
   $$
 
@@ -1855,17 +1871,21 @@ highlights the differences from the qualified system:
 (linear) pair of values. Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
 \end{itemize}
 %
-The differences between our core calculus and $λ^q$ are as follows
+The differences between our core calculus and $λ^q$ are as follows:
 \begin{itemize}
-\item We don't have multiplicity polymorphism.
-\item We need, on the other hand, type polymorphism.
+\item We do not support multiplicity polymorphism.
+\item On the other hand, we do include type polymorphism.
 \item Polymorphism is implicit rather than explicit. This is not an
-  essential difference but it simplifies the presentation.
+  essential difference, but it simplifies the presentation. We could,
+for example, include more details in the terms in order to make type-checking
+more obvious; this amounts essentially to an encoding of typing derivations
+in the terms\footnote{See, for example, \citet{weirich-icfp17} and their
+comparison between an implicit core language D and an explicit one DC.}
 \item We have existential types. These can be realised in regular Haskell as a
-  family of \textsc{gadt}s.
+  family of datatypes.
 \end{itemize}
 %
-In addition, we assume the existence of data types
+In addition, we assume the existence of the following data types:
 \begin{itemize}
 \item $[[{t1 * t2}]]$ with sole constructor
   $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $[[(e1,
@@ -1878,13 +1898,12 @@ In addition, we assume the existence of data types
 These are regular data types and constructors of the language: they
 are consumed with $\kcase$.
 
-\subsection{Inferred constraints}
-\label{sec:ds:inferred-constraints}
+% \subsection{Inferred constraints}
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
 Property~\ref{prop:solver-soundness} we know that if
-$[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C~> empty ]]$, then
-$[[ctx(UCtx) * ctx(LCtx)  ; G |- e : t]]$.
+$[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C ~> emptyset ]]$, then
+$[[(UCtx, LCtx) ; G |- e : t]]$.
 %
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
 core calculus.
@@ -1893,40 +1912,31 @@ core calculus.
 \label{sec:ds:from-qualified-core}
 
 \subsubsection{Evidence}
-In order to desugar derivations of the qualified system to the core
-calculus, we use the classic technique known as evidence-passing
-style\footnote{This technique is also often called dictionary-passing
-  style because, in the case of type classes, evidences are
-  dictionaries, and because type classes were the original form of
-  constraints in Haskell.}.
+In order to desugar derivations of the qualified system to the core calculus,
+we pass evidence explicitly\footnote{This technique is also often called
+  dictionary-passing style \cite{?} because, in the case of type classes, evidences are
+  dictionaries, and because type classes were the original form of constraints
+  in Haskell.}.
 %
 To do so, we require some more material from
 constraints. Namely, we assume a type $[[{Ev(q)}]]$ for each atomic
-constraint\jp{q?}, defined in Figure~\ref{fig:evidence}.  It is extended to all simple constraints.
-It ought to be noted that $[[{Ev(Q)}]]$ is not technically well defined, as the
-rules in Section~\ref{sec:constraint-domain} define the syntax as being
-quotiented by associativity and commutativity of the tensor product, and
-idempotence of unrestricted constraints. But core language data types (or
-Haskell's for that matter) are not so quotiented. It's not actually hard to fix
-the imprecision: give a name to each atomic constraint, and operate on canonical
-representatives of the equivalence classes.  This is actually essentially how
-\textsc{ghc} deals with constraints today. It is also the mechanism that our
-prototype implementation (see Section~\ref{sec:implementation}) uses. However,
-we prefer to keep this section a little imprecise, in order to save the
-rest of the article from the non-trivial extra tedium that the more precise
-presentation entails.\jp{The end of this paragraph feels like it was written in haste. ``Oh btw this does not work, but morally it does. Please move on!'' Rewrite or put in a footnote?}
-
-Furthermore we require that for every $[[{Q1}]]$ and $[[{Q2}]]$
+constraint $[[{q}]]$,
+defined in Figure~\ref{fig:evidence}.  It is extended to simple constraints as
+$[[{Ev(Q)}]]$.
+\rae{All the terrible handwaving gone, now that we have a concrete representation
+for $[[{Q}]]$!}
+Furthermore, we require that for every $[[{Q1}]]$ and $[[{Q2}]]$
 such that $[[Q1 ||- Q2]]$, there is a (linear) function
 $[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
 
 Let us now define a family of functions $[[{Ds(Hole)}]]$ to translate
-the type schemes, types, and typing derivations of the qualified system into the
-types, type schemes, and terms of the core calculus.
+the type schemes, types, contexts, and typing derivations of the qualified system into the
+types, type schemes, contexts, and terms of the core calculus.
 
 \subsubsection{Translating types}
 Type schemes $[[{s}]]$ are translated by turning the implicit argument $[[{Q}]]$
-into an explicit one of type $[[{Ev(Q)}]]$. Translating types $[[{t}]]$ proceeds as
+into an explicit one of type $[[{Ev(Q)}]]$. Translating types $[[{t}]]$ 
+and contexts $[[{G}]]$ proceeds as
 expected.
 
 \begin{minipage}{0.5\linewidth}
@@ -1938,9 +1948,6 @@ $$
   \end{array}
 \right.
 $$
-%
-\end{minipage}%
-\begin{minipage}{0.5\linewidth}
 $$
 \left\{
   \begin{array}{lcl}
@@ -1949,22 +1956,32 @@ $$
   \end{array}
 \right.
 $$
+%
+\end{minipage}%
+\begin{minipage}{0.5\linewidth}
+$$
+\left\{
+  \begin{array}{lcl}
+    [[{Ds(empty)}]] &=& [[{empty}]] \\
+    [[{Ds(G, x :_pi t)}]] &=& [[{Ds(G), x :_pi Ds(t)}]]
+  \end{array}
+\right.
+$$
 \end{minipage}
 
 \subsubsection{Translating terms}
-Let us finally build, given a derivation $[[Q;G |- e : t]]$, an expression
+Given a derivation $[[Q;G |- e : t]]$, we can build an expression
 $[[Ds(z;Q;G |- e : t)]]$, such that
-$[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for some variable
-$[[{z}]]$). Even though we abbreviate the derivation as its
-conclusion, the translation is defined recursively on the
-whole typing derivation, in particular we have access to typing rule
+$[[Ds(G), z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for some fresh variable
+$[[{z}]]$). Even though we abbreviate the derivation as only its
+concluding judgement, the translation is defined recursively on the
+whole typing derivation: in particular, we have access to typing rule
 premises in the body of the definition.
 %
 We present some of the interesting cases in Figure~\ref{fig:desugaring}.
 \begin{figure}
   \centering
   \begin{subfigure}{0.3\linewidth}%
-
 $$
 \left\{
   \begin{array}{lcl}
@@ -1988,8 +2005,8 @@ $$
 %format Q1 = "[[{Q1}]]"
 %format Q2 = "[[{Q2}]]"
 %format * = "[[*]]"
-%format Ds(x) = "\ottkw{Ds}\,\ottsym{(}" x "\ottsym{)}"
-%format Ev(x) = "\ottkw{Ev}\,\ottsym{(}" x "\ottsym{)}"
+%format Ds(z)(j) = "\ottkw{Ds}_{\ottmv{" z "}}\ottsym{(}" j "\ottsym{)}"
+%format Ev(x) = "\ottkw{Ev}\ottsym{(}" x "\ottsym{)}"
 %format unpack = "\ottkw{unpack}"
 %format u = "[[{u}]]"
 %format OneOf (a) (b) = a"\mathop{:_{1}}"b
@@ -2004,24 +2021,30 @@ $$
 %format z1 = "[[{z1}]]"
 %format z2 = "[[{z2}]]"
 %format z2' = "[[{z2}]]''"
+%format + = "\ottsym{+}"
+%format t = "\tau"
 $$
 \left\{
   \;
   \begin{minipage}{0.5\linewidth}
 \begin{code}
-Ds(z;Q;G |- x : Sub u ts as) = x z
-Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t)  =
+Ds(z)(Q;G |- x : Sub u ts as) = x z
+Ds(z)(Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t)  =
   case_1 z of { (z1, z2) ->
-    unpack (z',x) = Ds(z';Q1;G1 |- e1 : exists as. t1 .<= Q) in
+    unpack (z',x) = Ds(z')(Q1;G1 |- e1 : exists as. t1 .<= Q) in
     let_1 z2' = (z2,z') in
-    Ds(z2';Q2 * Q;G2, OneOf x t1 |- e2 : t) }
-Ds(z;Q;G |- e : t)  =
-  let_1 z' = Ev(Q ||- Q1) z in Ds(z';Q1;G |- e : t)
+    Ds(z2')(Q2 * Q;G2, OneOf x t1 |- e2 : t) }
+Ds(z)(Q;G |- e : t)  =  -- \rref{E-Sub}
+  let_1 z' = Ev(Q ||- Q1) z in Ds(z')(Q1;G |- e : t)
 ...
 \end{code}
   \end{minipage}
 \right.
 $$
+\rae{Bad coloring there. Either remove or fix.}
+\rae{Oh yuck. Now I see about all that terrible handwaving. I don't see a better way
+than the handwaving, but I'd like to discuss a bit before restoring it. I tend to
+think that's what we'll have in the end.}
 %}
   \caption{Desugaring (subset)}
   \label{fig:desugaring}
@@ -2039,9 +2062,13 @@ and applies it to $[[{z}]]$ : $[[{Ev(Q)}]]$ then proceeds to desugar $[[{e}]]$ w
 Crucially, since $[[{Ds(Hole)}]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
 Namely, $[[{Q1}]]$ is available in this last case from the~\rref*{E-Sub} rule's premise.
 
-It is straightforward by induction, to verify that, indeed,
-$[[G, z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ as
-announced.
+It is straightforward by induction, to verify that desugaring is correct:
+%
+\begin{theorem}[Desugaring]
+If $[[Q;G |- e : t]]$, then 
+$[[Ds(G), z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$, for any fresh
+variable $[[{z}]]$.
+\end{theorem}
 
 Thanks to the desugaring machinery, the semantics of a language with linear
 constraints can be understood in terms of a simple core language with linear
@@ -2090,7 +2117,7 @@ inert set so it can not be used again. Before, the inert set only held a single
 copy of each given, but now it must hold multiple copies of linear givens,
 together with their implication level. When solving an atomic wanted, the
 matching given with the largest implication level (i.e. the innermost given) is
-selected, as per the \rref*{Atom-AtomOneL} rule.
+selected, as per the \rref*{Atom-OneL} rule.
 
 When an implication is finally solved, we must check that every linear
 constraint introduced in this implication was consumed, which is done by

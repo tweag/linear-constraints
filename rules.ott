@@ -205,17 +205,17 @@ UCtx ; LCtx |-simp Q_w ~> LCtx_o :: :: SolveSimple :: 'Atom_' {{ com Atomic cons
 by
 
 q \in UCtx
--------------------------------- :: AtomMany
+-------------------------------- :: Many
 UCtx ; LCtx |-simp omega.q ~> LCtx
 
 q \notin LCtx2
 q \notin UCtx
--------------------------------- :: AtomOneL
+-------------------------------- :: OneL
 UCtx ; LCtx1 , q , LCtx2 |-simp 1.q ~> LCtx1 , LCtx2
 
 q \in UCtx
 q \notin LCtx
--------------------------------- :: AtomOneU
+-------------------------------- :: OneU
 UCtx ; LCtx |-simp 1.q ~> LCtx
 
 % todo
@@ -251,9 +251,9 @@ G1+G2 |- pack (e1, e2) : exists as.t2 o- t1
 
 G1 |- e1 : exists as. t2 o- t1
 as fresh
-G2,y:_1 t1,x:_1 t2 |- e2 : t
+G2,x:_1 t1,y:_1 t2 |- e2 : t
 ------------------------------------ :: Unpack
-G1+G2 |- unpack (y,x) = e1 in e2 : t
+G1+G2 |- unpack (x,y) = e1 in e2 : t
 
 G1 |- e1 : t1
 G2, x:_pi s |- e2 : t

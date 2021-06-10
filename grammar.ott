@@ -54,6 +54,7 @@ LCtx {{ tex \ottnt{L} }} :: 'MultisetCt_' ::= {{ com Multiset of atomic constrai
 | emptyset        ::   :: Empty
 | LCtx1 \u LCtx2  ::   :: Union   {{ tex [[LCtx1]] \uplus [[LCtx2]] }}
 | q               ::   :: One
+| LCtx1 , LCtx2   ::   :: Append
 
 Q :: 'Ct_' ::=  {{ com Constraints }}
 | ( UCtx , LCtx )    ::   :: Sets
@@ -106,7 +107,11 @@ t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com 
 | ( t )                  :: S :: Paren
 % Desugared types (see also expressions)
 | Ds ( t )               :: M :: Desugared
-| Ev ( QF )              :: M :: Evidence
+  {{ tex [[Ds]]([[t]]) }}
+| Ev ( q )               :: M :: Evidence
+  {{ tex [[Ev]](\constraintfont{[[q]]}) }}
+| Ev ( Q )               :: M :: EvSimple
+  {{ tex [[Ev]](\constraintfont{[[Q]]}) }}
 | Ur t                   ::   :: Unrestricted
 | unit                   ::   :: Unit   {{ tex \mathbf{1} }}
 | t1 * t2                ::   :: Prod
@@ -164,11 +169,14 @@ e :: 'Expr_' ::= {{ com Expressions }}
 % Cheating a little by adding desugared expressions to the same grammar below.
 % This is not formally correct, but it should do.
 | Ev ( Q1 ||- Q2 )       :: M :: Evidence
+  {{ tex [[Ev]](\constraintfont{[[Q1]]} [[||-]] \constraintfont{[[Q2]]}) }}
 | Ds ( z ; Ty )          :: M :: Desugar
+  {{ tex [[Ds]]_{[[z]]}([[Ty]]) }}
 | Ur                     :: M :: UnrestrictedCon
 | urify ( QF ; e )       :: M :: Urify  {{ tex \underline{[[e]]}_{[[QF]]} }}
 | urify ( e )            :: M :: UrifyShortened {{ tex \underline{[[e]]} }}
 | (,)                    ::   :: ProdCon
+  {{ tex ({,}) }}
 | ( e1 , e2 )            :: M :: Prod
 | ()                     ::   :: UnitCon
 | unpack ( pat1 , pat2 ) = e1 in e2    ::   :: UnpackProd
@@ -233,6 +241,8 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | Evs ( QF )        :: M :: Evidence
 | G1 \u G2          :: M :: Union
   {{ tex [[G1]] \cup [[G2]] }}
+| Ds ( G )          :: M :: DsCtx
+  {{ tex [[Ds]]([[G]]) }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Terminals  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -263,6 +273,8 @@ terminals :: 'terminals_' ::=
 | Top         ::   :: Top     {{ tex \constraintfont{⊤} }}
 | emptyset    ::   :: emptyset {{ tex \emptyset }}
 | \subseteq   ::   :: subset   {{ tex \subseteq }}
+| Ev          ::   :: Ev       {{ tex \ottkw{Ev} }}
+| Ds          ::   :: Ds       {{ tex \ottkw{Ds} }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
