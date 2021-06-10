@@ -1428,6 +1428,7 @@ $$
   \end{array}
 \right.
 $$
+\rae{Describe the strangeness in these rules here.}
 %% Like in Section~\ref{sec:constraint-domain}, we will typically drop
 %% the scaling factor for implication when it is $[[{1}]]$ and write
 %% $[[Q => C]]$ for $[[{1.(Q=>C)}]]$.
@@ -1503,6 +1504,7 @@ entailment relation.
 %%   generalisations thereof. So, we can conclude that this lemma indeed
 %%   extends to the complete set of constraints supported by \textsc{ghc}.
 %% \end{proof}
+\rae{Restore discussion of uniformity somewhere?}
 
 \begin{lemma}[Scaling]
   \label{lem:wanted:promote}
@@ -1534,7 +1536,9 @@ treatment of multiplicity checking in GHC). I think this claim of syntax-directi
 should be removed, but then how is this an algorithm? We may want to think
 carefully about this. Possibly we should include, in the output, usage information,
 to make this really into an algorithm. That actually shouldn't really be all
-that hard, and it would be informative to readers.}
+that hard, and it would be informative to readers. Or, cite a paper that
+explains how to do this part. Or, really try to understand this judgment
+as a second pass, which also solves my second concern.}
 \rae{Separately, we've said nothing about how to infer the multiplicity
 of lambdas. That, to me, is quite separate from the type oracle we've
 admitted to (and which I agree with).}
