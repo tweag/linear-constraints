@@ -1249,7 +1249,6 @@ We tour several distinctive features of our qualified type system below:
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \jp{Regarding the typing rules figure: is the case \(x:_ωσ ∈ ...\) missing?
   omitted intentionally?}
-\rae{E-LetSig is missing a $[[{Q1}]]$ in its conclusion, no?}
 \rae{E-Case should be clearer that the second two premises are universally
 quantified over $i$. Actually, it's worse than that, with strangeness like
 $[[pi.pii]]$ written in a subscript, but there's really many $[[pii]]$s, I
@@ -1423,12 +1422,12 @@ $$
 \left\{
   \begin{array}{lcl}
     [[{pi.(C1 * C2)}]] & = & [[{pi.C1 * pi.C2}]] \\
-    [[{pi.(C1 & C2)}]] & = & [[{pi.C1 & pi.C2}]] \\
+    [[{1.(C1 & C2)}]] & = & [[{C1 & C2}]] \\
+    [[{omega.(C1 & C2)}]] & = & [[{omega.C1 * omega.C2}]] \\
     [[{pi.(rho.(Q => C))}]] & = & [[{(pi.rho).(Q => C)}]]
   \end{array}
 \right.
 $$
-\rae{I simplified this. Is it still correct?}
 %% Like in Section~\ref{sec:constraint-domain}, we will typically drop
 %% the scaling factor for implication when it is $[[{1}]]$ and write
 %% $[[Q => C]]$ for $[[{1.(Q=>C)}]]$.
