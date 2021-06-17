@@ -2040,16 +2040,16 @@ Ds(z)(Q;G |- e : t)  =  -- \rref{E-Sub}
   \end{minipage}
 \right.
 $$
-\rae{Bad coloring there. Either remove or fix.}
-\rae{Oh yuck. Now I see about all that terrible handwaving. I don't see a better way
-than the handwaving, but I'd like to discuss a bit before restoring it. I tend to
-think that's what we'll have in the end.}
 %}
   \caption{Desugaring (subset)}
   \label{fig:desugaring}
   \end{subfigure}
   \caption{Evidence passing and desugaring}
 \end{figure}
+\rae{Bad coloring there. Either remove or fix.}
+\rae{Oh yuck. Now I see about all that terrible handwaving. I don't see a better way
+than the handwaving, but I'd like to discuss a bit before restoring it. I tend to
+think that's what we'll have in the end.}
 
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
