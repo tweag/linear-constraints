@@ -413,13 +413,13 @@ of alternatives. This section, mostly cribbed from \citet[Section 2.1]{LinearHas
 describes our baseline approach, as released in GHC~9.0.
 
 Linear Haskell~\cite{LinearHaskell} adds a new type of functions,
-dubbed \emph{linear functions}, and written |a ⊸ b|\footnote{The linear function
+dubbed \emph{linear functions}, and written |a ⊸ b|.\footnote{The linear function
   type and its notation come from linear
   logic~\cite{girard-linear-logic}, to which the phrase \emph{linear
     types} refers. All the various design of linear typing in the
   literature amount to adding such a linear function type, but details
   can vary wildly. See~\citet[Section 6]{LinearHaskell} for an analysis
-  of alternative approaches.}. A linear function consumes its
+  of alternative approaches.} A linear function consumes its
   argument exactly once. More precisely, Linear Haskell~\cite[Section
   2.1]{LinearHaskell} lays it out thusly:
 
