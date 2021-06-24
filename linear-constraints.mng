@@ -401,9 +401,8 @@ Expressions in our qualified
 \jp{It isn't make super clear that this is a 'drop in' extension that you can apply to
 Linear Haskell/GHC}
 
-Our design is intended to dovetail well with other features of Haskell and its
-implementation within GHC; an implementation is under way. \rae{Does it look bad
-that the implementation is not finished? Better not to mention?}
+Our design is intended to work well with other features of Haskell and its
+implementation within GHC and we have a prototype implementation.
 
 \section{Background: Linear Haskell}
 \label{sec:linear-types}
