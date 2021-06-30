@@ -926,7 +926,6 @@ any element of |n|), as expected.
 
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
-\jp{Downplay this OutsideIn relationship (some more)? Today (20210527) there are 46 references to OutsideIn. Seems excessive; I'd like this number to be below 10.}
 
 Having laid out situations which would benefit from linear constraints, we
 now present our design for a qualified type system~\cite{jones} that supports
