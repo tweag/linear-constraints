@@ -931,7 +931,7 @@ Having laid out situations which would benefit from linear constraints, we
 now present our design for a qualified type system~\cite{jones} that supports
 them. Our design is mindful of our goal of integration with Haskell and \textsc{ghc}
 and is thus based on the work of \citet{OutsideIn}, which undergirds \textsc{ghc}'s
-current approach to type infernce.
+current approach to type inference.
 
 \subsection{Multiplicities}
 \label{sec:multiplicities}
@@ -978,7 +978,7 @@ $$
 Even though linear Haskell additionally supports
 multiplicity polymorphism,
 we do not support multiplicity polymorphism on constraint
-arguments, and we believe that such a feature would not be very useful.
+arguments.
 Multiplicity polymorphism of regular function arguments is used to avoid
 duplicating the definition of higher-order functions. The prototypical example
 is |map :: (a poly_arrow b) -> [a] poly_arrow [b]|,
