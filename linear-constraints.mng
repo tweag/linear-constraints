@@ -2576,7 +2576,7 @@ $$
 \section{Proofs of the lemmas}
 \label{sec:appendix:proofs-lemmas}
 
-\setcounter{subsection}{3}
+\setcounter{subsection}{4}
 \subsection{Lemmas on the qualified type system}
 \label{sec:appendix:qual-type-syst}
 
@@ -2632,7 +2632,7 @@ $$
   structure of $[[{Q}]]$.
 \end{proof}
 
-\setcounter{subsection}{4}
+\setcounter{subsection}{5}
 \subsection{Lemmas on constraint inference}
 \label{sec:appendix:constraint-inference}
 
