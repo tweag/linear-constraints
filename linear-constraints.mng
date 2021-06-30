@@ -2716,6 +2716,8 @@ are now proved.}
   \end{itemize}
 \end{proof}
 
+\unsure{Update the proofs for the new rule presentations. I think only
+the Var rule changed}
 \begin{proof}[Proof of Lemma~\ref{lem:generation-soundness}]
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
@@ -2745,7 +2747,7 @@ are now proved.}
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$ and $[[{Q_2}]]$ such that
+    By Lemmas~\ref{lem:inversion} and~\ref{lem:wanted:demote}, there exist $[[{Q1}]]$ and $[[{Q_2}]]$ such that
     \begin{itemize}
     \item $[[Q_1 |- C1]]$
     \item $[[Q_2 |- C2]]$
@@ -2766,7 +2768,7 @@ are now proved.}
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
+    By Lemmas~\ref{lem:inversion} and~\ref{lem:wanted:demote}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
     that
     \begin{itemize}
     \item $[[Q2 |- C2]]$
@@ -2788,7 +2790,7 @@ are now proved.}
     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such that
+    By Lemmas~\ref{lem:inversion} and~\ref{lem:wanted:demote}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such that
     \begin{itemize}
     \item $[[Q1 |- C1]]$
     \item $[[Q2 |- C2]]$
@@ -2802,7 +2804,7 @@ are now proved.}
     Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
   \item[\rref*{G-Pack}] We have
     \begin{itemize}
-    \item $[[omega.G |-> pack e : exists as. t o= Q ~> omega.C * Q[ts/as] ]]$
+    \item $[[G |-> pack e : exists as. t o= Q ~> C * Q[us/as] ]]$
     \item $[[Q_g |- C * Q[us/as] ]]$
     \item $[[G |-> e : t[us/as] ~> C]]$
     \end{itemize}
@@ -2811,19 +2813,19 @@ are now proved.}
     \begin{itemize}
     \item $[[Q_1 |- C]]$
     \item $[[Q_2 |- Q[us/as] ]]$
-    \item $[[{Q_g}]] = [[{omega.Q_1*Q_2}]]$
+    \item $[[{Q_g}]] = [[{Q_1*Q_2}]]$
     \end{itemize}
     Bu induction hypothesis
     \begin{itemize}
     \item $[[Q_1 ; G |- e : t[us/as] ]]$
     \end{itemize}
-    So we have $[[Q_1 * Q[us/as] ; omega.G |- pack e : exists as. t o=
+    So we have $[[Q_1 * Q[us/as] ; G |- pack e : exists as. t o=
     Q]]$. By rule~\rref*{E-Sub}, we conclude
     $[[Q_g ; omega.G |- pack e : exists as. t o= Q]]$.
   \item[\rref*{G-Unpack}] We have
     \begin{itemize}
-    \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * Q' => C2]]$
-    \item $[[Q_g |- C1 * Q' => C2]]$
+    \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * 1.(Q' => C2)]]$
+    \item $[[Q_g |- C1 * 1.(Q' => C2)]]$
     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
@@ -2847,7 +2849,7 @@ are now proved.}
     \item $[[G |-> e : T ss ~> C]]$
     \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
     \end{itemize}
-    By repeated uses of Lemma~\ref{lem:inversion}, there exist
+    By repeated uses of Lemma~\ref{lem:inversion} as well as Lemma~\ref{lem:wanted:demote}, there exist
     $[[{Q}]]$, $[[{Q'}]]$ such that
     \begin{itemize}
     \item $[[Q |- C]]$
