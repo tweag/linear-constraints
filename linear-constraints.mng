@@ -1444,7 +1444,7 @@ there is no way to assume the more elaborate $[[{C}]]$.
   \label{fig:wanted:entailment}
 \end{figure}
 
-Note that simple constraints always entail a wanted: we
+Note that it is always a simple constraint which entails a wanted: we
 generate wanted constraints, but programs mention only simple
 constraints, and assumptions are created directly from the
 program text\footnote{Allowing the full wanted-constraint syntax
