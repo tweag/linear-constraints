@@ -1268,7 +1268,7 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   it is perfectly fine to have $[[1.q ; f :_omega a ->_1 b, x :_omega 1.q
   =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
 
-\paragraph{|let|-bindings}
+\paragraph{let-bindings}
 Bindings in a |let| may be for either linear or unrestricted variables.
   We could require all bindings to be linear and to implement unrestricted
   information only using |Ur|, but it is very easy to add a multiplicity
@@ -1595,48 +1595,6 @@ type system.
   For all $[[{Q_g}]]$, if $[[G |-> e : t ~> C]]$ and $[[Q_g |- C]]$ then
   $[[Q_g; G |- e : t]]$.
 \end{lemma}
-
-\rae{Move the proof to the appendix.}
-%% \begin{proof}
-%% Soundness is proved by induction on $[[G |-> e : t ~> C]]$. We only
-%% present the two most interesting cases; the full proof can be found
-%% in the supplementary material.
-%%   \begin{description}
-%%   \item[\rref*{E-App}] We have
-%%     \begin{itemize}
-%%     \item $[[G1+pi.G2 |-> e1 e2 : t ~> C1 * pi.C2]]$
-%%     \item $[[Q_g |- C1 * pi.C2]]$
-%%     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
-%%     \item $[[G2 |-> e2 : t2 ~> C2]]$
-%%     \end{itemize}
-%%     By Lemma~\ref{lem:inversion}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
-%%     that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
-%%     $[[{Q_g}]] = [[{Q1 * pi.Q2}]]$.  Then, by induction hypothesis
-%%     \begin{itemize}
-%%     \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
-%%     \item $[[Q2; G2 |- e2 : t2]]$
-%%     \end{itemize}
-%%     Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
-%%   \item[\rref*{E-Unpack}] We have
-%%     \begin{itemize}
-%%     \item $[[G1+G2 |-> unpack x = e1 in e2 : t ~> C1 * 1.(Q' => C2)]]$
-%%     \item $[[Q_g |- C1 * 1.(Q' => C2)]]$
-%%     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
-%%     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
-%%     \end{itemize}
-%%     By Lemma~\ref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
-%%     such that
-%%     $[[Q_1 |- C1]]$,
-%%     $[[Q_2 * Q' |- C2]]$, and
-%%     $[[{Q_g}]] = [[{Q1 * Q2}]]$.
-%%     Then, by induction hypothesis
-%%     \begin{itemize}
-%%     \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
-%%     \item $[[Q_2*Q ; G2 |- e2 : t]]$
-%%     \end{itemize}
-%%     Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
-%%   \end{description}
-%% \end{proof}
 
 \subsection{Constraint solving}
 \label{sec:constraint-solver}
