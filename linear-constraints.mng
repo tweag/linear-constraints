@@ -1243,8 +1243,6 @@ desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 We tour several distinctive features of our qualified type system below:
 
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
-\jp{Regarding the typing rules figure: is the case \(x:_ωσ ∈ ...\) missing?
-  omitted intentionally?}
 \rae{E-Case should be clearer that the second two premises are universally
 quantified over $i$. Actually, it's worse than that, with strangeness like
 $[[pi.pii]]$ written in a subscript, but there's really many $[[pii]]$s, I
