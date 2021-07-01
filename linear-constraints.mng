@@ -2210,11 +2210,7 @@ The main differences from our solver judgement in Section~\ref{sec:constraint-so
 \begin{itemize}
   \item OutsideIn's judgement includes top-level axioms schemes separately
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
-included in $Q_{given}$. The reason OutsideIn treats them separately is because
-top-level axiom schemes have richer structure than the constraints $Q$ that type
-schemes quantify over. However, modern \textsc{ghc} does not make this
-distinction~\cite{quantified-constraints}, so our choice of presentation is
-faithful to the state of the art.
+included in $Q_{given}$.
   \item We present the given constraints ($Q_{given}$ in OutsideIn) as two separate
 constraints $[[UCtx]]$ and $[[LCtx_i]]$ standing for the unrestricted and linear
 parts respectively.
