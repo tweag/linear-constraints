@@ -1240,8 +1240,8 @@ directly give a dynamic
 semantics to this language; instead, we will give it meaning via
 desugaring to a simpler core language in Section~\ref{sec:desugaring}.
 
-We tour several distinctive features of our qualified type system below:
-
+We survey several distinctive features of our qualified type system below:
+%
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \rae{E-Case should be clearer that the second two premises are universally
 quantified over $i$. Actually, it's worse than that, with strangeness like
@@ -1812,7 +1812,7 @@ Figure~\ref{fig:core-typing-rules}
 highlights the differences from the qualified system:
 \begin{itemize}
   \item Type schemes $[[{s}]]$ do not support qualified types.
-  \item Existentially quantified types $[[{exists as. t2 o- t1}]]$ now represent a
+  \item Existentially quantified types $[[{exists as. t2 o- t1}]]$\jp{Using left lolli as a pair is very nonstandard. Also, this notation does not seem to occur any more. I propose to simply delete the ``formula'' here.} now represent a
 (linear) pair of values. Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
 \end{itemize}
 %
@@ -2377,10 +2377,10 @@ linearity. Our design of
 linear constraints fits nicely into Haskell. Indeed, linear constraints can be
 thought of as an extension of Haskell's type class mechanism. This way, the
 design also integrates well into \textsc{ghc}, as demonstrated by our prototype
-implementation, which required modest changes to the compiler. Remarkably, all we needed was to
-adapt~\citet{resource-management-for-ll-proof-search} to the OutsideIn
+implementation, which required modest changes to the compiler. Remarkably, all we needed to do was to
+adapt the work of \citet{resource-management-for-ll-proof-search} to the OutsideIn
 framework. It is also quite serendipitous that the notion of uniform
-proof from~\citet{hh-ll}, which was introduced to prove the
+proof from \citet{hh-ll}, which was introduced to prove the
 completeness of a proof search strategy, ends up being crucial to the
 soundness of constraint generation.
 
