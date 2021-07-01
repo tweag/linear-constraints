@@ -145,7 +145,7 @@ import GHC.Base
   % Fonts and colours
   \newcommand{\constraintcolour}{\color{RoyalBlue}}
   \newcommand{\constraintfont}[1]{{\constraintcolour#1}}
-  \newcommand{\multiplicitycolour}{\color{Black}}
+  \newcommand{\multiplicitycolour}{\color{RoyalBlue}}
   \newcommand{\multiplicityfont}[1]{{\multiplicitycolour#1}}
 
   % Utilities
