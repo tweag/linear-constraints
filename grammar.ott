@@ -182,10 +182,10 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | unpack ( pat1 , pat2 ) = e1 in e2    ::   :: UnpackProd
 
 CASE :: 'CaseHead_' ::= {{ com Case head }}
-| case_ pi   ::  :: Case {{ tex \kcase_[[pi]] }}
+| case_ piF   ::  :: Case {{ tex \kcase_[[piF]] }}
 
 LET :: 'LetHead_' ::= {{ com Let head }}
-| let_ pi    ::  :: Let  {{ tex \klet_[[pi]] }}
+| let_ piF    ::  :: Let  {{ tex \klet_[[piF]] }}
 
 alt :: 'Alt_' ::= {{ com Case alternative }}
 | pat -> e              ::   :: Alt
@@ -224,8 +224,8 @@ as {{ tex \overline{\ottmv{a} } }} :: 'Tyvars_' ::=
 %%  Contexts  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 binding :: 'Binding_' ::= {{ com Context binding }}
-| x :_ pi t           ::    :: Bnd
-  {{ tex [[x]]{:}_{[[pi]]}[[t]] }}
+| x :_ piF t           ::    :: Bnd
+  {{ tex [[x]]{:}_{[[piF]]}[[t]] }}
 
 G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | empty             ::   :: None
@@ -234,7 +234,7 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | G1 , .... , Gi    ::   :: Many
 | G1 + G2           :: M :: Add
 | Sum G2            :: M :: BigSum
-| pi . G            :: M :: Scale {{ tex [[pi]]\scale[[G]]}}
+| piF . G            :: M :: Scale {{ tex [[piF]]\scale[[G]]}}
 | < binding >       :: M :: Repeat  {{ tex \overline{[[binding]]} }}
 | ( G )             :: S :: Paren
 % Desugared contexts (see also expressions)
