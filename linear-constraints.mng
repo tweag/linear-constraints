@@ -1187,7 +1187,7 @@ contexts is always satisfied.
                      x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
   \end{array}
   $$
-  Define scaling over contexts $[[{pi.G}]]$ and addition of contexts $[[{G1+G2}]]$ as follows:
+  Context scaling $[[{pi.G}]]$ and addition of contexts $[[{G1+G2}]]$ is defined as follows:
   $$
   \begin{array}{cc}
   \left\{
