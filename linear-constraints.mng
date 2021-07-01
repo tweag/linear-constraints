@@ -17,7 +17,7 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,usenames,dvipsnames,acmthm=false]{acmart}
+\documentclass[acmsmall,usenames,dvipsnames,acmthm=false,review]{acmart}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 
@@ -296,8 +296,6 @@ import GHC.Base
 
 \section{Introduction}
 \label{sec:introduction}
-\info{There  is an Appendix section with unorganised thoughts and
-  examples.}
 
 Linear type systems have seen a renaissance in recent years in
 various mainstream programming communities. Rust's ownership system guarantees
@@ -1519,14 +1517,14 @@ entailment relation.
 
 The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
-Section~\ref{sec:constraint-solver}. To generate constraints we
-introduce a judgement $[[G |-> e : t ~> C]]$ (defined in
-Figure~\ref{fig:constraint-generation}).\jp{Please explain how to intuitively read this judgement here, and/or in the caption of the figure.} We understand $[[{C}]]$
-to be an output of this judgement. The definition
+Section~\ref{sec:constraint-solver}. Constraint generation is described by
+the judgement $[[G |-> e : t ~> C]]$ (defined in
+Figure~\ref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
+required to make $[[e]]$ typecheck.
+The definition
 $[[G |-> e : t ~> C]]$ is syntax directed, so it can directly be read as an
 algorithm, taking as input a term $[[{e}]]$ (together with some type
-inference oracle, as discussed above) and returning a wanted
-constraint $[[{C}]]$.
+inference oracle, as discussed above).
 \rae{How is this syntax-directed? It splits contexts non-deterministically.
 I have no idea how I would implement this (without the rather involved
 treatment of multiplicity checking in GHC). I think this claim of syntax-direction
@@ -2228,7 +2226,8 @@ $$
 \drule{C-Top}
 $$
 That is $[[{Top}]]$ is unconditionally true, and can consume any number
-of linear given constraints.\jp{Indeed, the corresponding program consumes the empty type, so it is safe to do so.} The \rref*{C-Top} rule thus induces a
+of linear given constraints--- indeed, the corresponding program is a case expression with no branch.
+The \rref*{C-Top} rule thus induces a
 considerable amount of non-determinism. Eliminating the
 non-determinism induced by $[[{Top}]]$ is ultimately
 what~\citet{resource-management-for-ll-proof-search} build up
@@ -2393,7 +2392,7 @@ linear logic to \textsc{ghc}'s constraint solver.
 \label{sec:appendix:full-descriptions}
 
 In this appendix, we give, for reference, complete descriptions of the
-type systems, functions, etc… that we have abbreviated in the main
+type systems, functions, etc. that we have abbreviated in the main % etc should never be followed by '…'
 body of the article.
 
 \subsection{Core calculus}
