@@ -1318,17 +1318,17 @@ latter case, we issue an error to the programmer.
 
 A typical generate-and-solve algorithm is built around unification variables.
 A unification variable stands for some unknown type. When we see, for example,
-|\x -> ...|, we assign |x| to have a unification variable for its type, and then
+|\x -> ...|, we let the type of |x| be a unification variable, and then
 constraints arising from the body of the expression (or its context) might tell
-us that the unknown type is |Int|. Our system here does not do this, however:
+us that the unknown type is |Int|. Our system does not do this, however:
 using constraints to solve for unification variables is well understood~\cite{OutsideIn}
 and orthogonal to the concerns that drive the innovations in this paper.
-Instead, the aspects of our algorithm around inferring types---as opposed to
+Instead, the description of the aspects of our algorithm regarding inferring types---as opposed to
 inferring \emph{constraints}---nondeterministically just guess the correct
 type. A real implementation would use unification variables and constraints,
 but they just add clutter here and distract us from the novel parts of our
 algorithm.
-
+%
 We can make this simplification for two reasons:
 \begin{itemize}
 \item We do not formalize equality constraints, and our implementation
@@ -1373,7 +1373,7 @@ The constraints $[[{C}]]$ generated in our system have a richer
 logical structure than the simple constraints $[[{Q}]]$, above. Following
 \textsc{ghc} and echoing \citet{OutsideIn}, we call these \emph{wanted constraints}:
 they are constraints which the constraint solver \emph{wants} to prove.
-An unproved wanted constraint is a type error reported to the programmer.
+An unproved wanted constraint results in a type error reported to the programmer.
 %
 $$
 \begin{array}{lcll}
@@ -1391,7 +1391,7 @@ connectives from linear logic: while $[[{C1*C2}]]$ is the
 \emph{multiplicative} conjunction, $[[{C1&C2}]]$ is the \emph{additive}
 conjunction. Both connectives are conjunctions, but they differ
 % rather dramatically % weasel words combo
-in meaning. Satisfying $[[{C1*C2}]]$ consumes the (linear)
+in meaning. To satisfy $[[{C1*C2}]]$ one consumes the (linear)
 assumptions consumed by satisfying $[[{C1}]]$ and those consumed by $[[{C2}]]$;
 if an assumed linear constraint is needed to prove both $[[{C1}]]$ and $[[{C2}]]$,
 then $[[{C1*C2}]]$ will not be provable, because that linear assumption cannot
@@ -1438,7 +1438,7 @@ there is no way to assume the more elaborate $[[{C}]]$.
   \caption{Wanted-constraint entailment}
   \label{fig:wanted:entailment}
 \end{figure}
-
+%
 Note that it is always a simple constraint which entails a wanted: we
 generate wanted constraints, but programs mention only simple
 constraints, and assumptions are created directly from the
@@ -1553,26 +1553,28 @@ admitted to (and which I agree with).}
 
 The rules of Figure~\ref{fig:constraint-generation} constitute a mostly
 unsurprising translation of the rules of Figure~\ref{fig:typing-rules},
-but the following points of interest:
+except for the following points of interest:
 
-\paragraph{|case| expressions}
+\paragraph{case expressions}
 Note the use of $[[&]]$ in the conclusion of \rref{G-Case}.
 We require that each branch of a |case| expression use the exact
 same (linear) assumptions; this is enforced by combining the
 emitted constraints with $[[&]]$, not $[[*]]$.
-
+%
   This can also be understood in terms of the file-handle example of
   Section~\ref{sec:introduction}:
   if a file is closed in one branch of a $\kcase$, we require it to be closed in
 the other branches too.
   Otherwise, the file handle's state will be unknown to the type system
   after the |case|.
-
+%
   The reason this distinction is not necessary in a structural type
-  system can be seen by the
-  fact that $[[{omega.(C1&C2)}]] = [[{omega.C1 * omega.C2}]]$. In other
+  system can be expressed by the
+  equation $[[{omega.(C1&C2)}]] = [[{omega.C1 * omega.C2}]]$. In other
   words, in an unrestricted context, linear constraints do not
-  need two kinds of conjunctions.
+  need two kinds of conjunctions.\jp{Looks like a wrong explanation to me. In the structural case we'll
+    generate an omega constraint for each branch of a case. So we may get \([[(omega.C1)&(omega.C2)]] \). This constraint
+    can be strengthened to \([[{omega.C1 * omega.C2}]]\). And in the structural case this is strengthening is not loosing any precision.  }
 \paragraph{Implications} The introduction of constraints local to a
   definition (\rref{G-LetSig}) corresponds to
   emitting an implication constraint.
@@ -1634,10 +1636,10 @@ $$
 $$
 
 It has a similar structure to the main solver, but only deals with atomic
-constraints. Though the solver is parameterised in the particular choice of this
+constraints. Even though the main solver is parameterised by this
 atomic-constraint solver, we will give an instantiation in
 Section~\ref{sec:simple-constr-solv}.
-
+%
 We require the following property of the atomic-constraint solver:
 
 \begin{property}[Atomic-constraint solver]
@@ -2182,7 +2184,7 @@ $$
 \drule{C-Top}
 $$
 That is $[[{Top}]]$ is unconditionally true, and can consume any number
-of linear given constraints--- indeed, the corresponding program is a case expression with no branch.
+of linear given constraints--- indeed, the corresponding program is already crashing.
 The \rref*{C-Top} rule thus induces a
 considerable amount of non-determinism. Eliminating the
 non-determinism induced by $[[{Top}]]$ is ultimately
