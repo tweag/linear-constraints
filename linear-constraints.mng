@@ -1509,7 +1509,7 @@ entailment relation.
 The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
 Section~\ref{sec:constraint-solver}. Constraint generation is described by
-the judgement $[[G |-> e : t ~> C]]$ (defined in
+the judgement $[[G |-> e : t ~> C]]$\jp{the i index confuses me at first reading (what are we indexing over?). What about using the letter g for generation.} (defined in
 Figure~\ref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
 required to make $[[e]]$ typecheck.
 The definition
