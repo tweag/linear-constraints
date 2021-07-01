@@ -1311,7 +1311,7 @@ are acceptable. We now present an algorithm that implements that specification.
 \rae{Is this wording too strong?}
 
 Our algorithm is structured, unsurprisingly, around generating and solving
-constraints, broadly in the model described by \citet{essence-of-ml-type-inference}.
+constraints, broadly following the template of \citet{essence-of-ml-type-inference}.
 That is, our algorithm takes a pass over the abstract syntax entered by the
 user, generating constraints as it goes. Then, separately, we solve those
 constraints (that is, try to satisfy them) in the presence of a set of assumptions,
