@@ -284,7 +284,7 @@ import GHC.Base
   be filled in automatically by the compiler.
   %
   Linear constraints are presented as a qualified type system,
-  together with an inference algorithm which extends OutsideIn,
+  together with an inference algorithm which extends
   \textsc{ghc}'s existing constraint solver algorithm. Soundness of
   linear constraints is ensured by the fact that they desugar into
   Linear Haskell.
@@ -1290,13 +1290,6 @@ Bindings in a |let| may be for either linear or unrestricted variables.
   introduced in Section~\ref{sec:what-it-looks-like}, together with
   the $\kpack$ and $\kunpack$ constructions. See rules~\rref*{E-Pack} and
   \rref*{E-Unpack}.
-%% \item A more minor difference with OutsideIn is that we have an
-%%   explicit \rref*{E-Sub} rule, while OutsideIn uses simple constraint
-%%   entailment directly in the relevant rules. In OutsideIn, only the
-%%   \rref*{E-Var} rule needed subsumption; we would also need it for the
-%%   \rref*{E-Pack} rule as well. So we preferred having one shared
-%%   dedicated rule.
-%
 \info{No substitution on $[[{Q1}]]$ in the $\kunpack$ rule, because there is
   only existential quantification.}
 
@@ -2121,22 +2114,22 @@ in a let binding:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =   do  {  pack' h <- openFile fp
-                     ;  let closer = closeFile h
+                     ;  let closeOp = closeFile h
                      ;  pack' xs <- readLine h
-                     ;  closer
+                     ;  closeOp
                      ;  return xs }
 \end{code}
 This program looks reasonable; however, it is rejected. The type of
-|closer| is |IOL ()|, which means that the definition of |closer|\jp{rename to |closeOp|? (Closer is normally an adjective and it makes me double take at every occurrence.)}
+|closeOp| is |IOL ()|, which means that the definition of |closeOp|
 consumes the linear constraint |Open h|. So, by the time we attempt
 |readLine h|, the constraint is no longer available.
 
-What the programmer really meant, here, was for |closer| to have type
+What the programmer really meant, here, was for |closeOp| to have type
 |constraint (Open h) =>. IOL ()|. After all a |let| definition is not part of the
 sequence of instructions, it is just a definition for later; it is not
 supposed to consume the current state of the file. With no let
-generalisation, the only way to give |closer| the type |constraint (Open h) =>. IOL
-()| is to give |closer| a type signature. In current \textsc{ghc}, we
+generalisation, the only way to give |closeOp| the type |constraint (Open h) =>. IOL
+()| is to give |closeOp| a type signature. In current \textsc{ghc}, we
 can't write that signature down, since the type variable |h| is not
 bound in the program text, and there is no syntax for binding it
 (Even though \citet{variables-in-patterns} proposes a syntax for it). But
@@ -2152,8 +2145,7 @@ $$
 %
 This rule is non-deterministic, because it requires finding $[[{Q_r}]]$ and
 $[[{Q}]]$. We can modify the constraint solver of
-Section~\ref{sec:constraint-solver} to find $[[{Q_r*Q}]]$: it's the
-residual constraint, from OutsideIn, that we have omitted. But we
+Section~\ref{sec:constraint-solver} to find $[[{Q_r*Q}]]$. But we
 still have to determine how to split the residual into $[[{Q_r}]]$ and
 $[[{Q}]]$. What we would like to say is ``$[[{Q}]]$ is the set of linear
 constraints''. But it's not clear how to make it formal.
@@ -2200,6 +2192,75 @@ careful treatment of $[[{Top}]]$.
 \section{Related work}
 \label{sec:related-work}
 
+\paragraph{OutsideIn}
+\label{sec:outsidein}
+
+The qualified type system in Section~\ref{sec:qualified-type-system} and the
+constraint inference algorithm in Section~\ref{sec:type-inference} follow a
+similar presentation to that of OutsideIn~\cite{OutsideIn}, \textsc{ghc}'s
+constraint solver algorithm. While our presentation is self-contained and
+understanding of the OutsideIn algorithm is not necessary, we outline some of
+the differences from that work.
+
+The solver judgement in OutsideIn takes the following form
+
+\[\mathcal{Q}\ ;\ Q_{given}\ ;\ \overline{\alpha}_{tch} \overset{solv}{\mapsto} C_{wanted} \leadsto Q_{residual} ; \ \theta\]
+
+The main differences from our solver judgement in Section~\ref{sec:constraint-solver} are
+\begin{itemize}
+  \item OutsideIn's judgement includes top-level axioms schemes separately
+($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
+included in $Q_{given}$. The reason OutsideIn treats them separately is because
+top-level axiom schemes have richer structure than the constraints $Q$ that type
+schemes quantify over. However, modern \textsc{ghc} does not make this
+distinction~\cite{quantified-constraints}, so our choice of presentation is
+faithful to the state of the art.
+  \item We present the given constraints ($Q_{given}$ in OutsideIn) as two separate
+constraints $[[UCtx]]$ and $[[LCtx_i]]$ standing for the unrestricted and linear
+parts respectively.
+  \item In addition to constraint inference, OutsideIn also performs type
+inference, requiring additional bookkeeping in the solver judgment. The solver
+takes as input a set of \emph{touchable} variables $\overline{\alpha}_{tch}$
+which record the type variables that can be unified at any given time, and
+produces a type substitution $\theta$ as an output (whose domain is a subset of
+the touchable variables).
+As discussed in Section~\ref{sec:type-inference}, we do not perform type
+inference, only constraint inference. Therefore, our solver need not return a
+type assignment.
+  \item The most important difference is the output of the algorithms. Both
+OutsideIn and our solver output a set of constraints, $Q_{residual}$ and
+$[[LCtx_o]]$ respectively. However, the meaning of these contexts is different.
+OutsideIn's \emph{residual} constraints $Q_{residual}$
+correspond to the part of $C_{wanted}$ that could not be solved from the
+assumptions. These residuals are then quantified over in the generalisation step
+of the inference algorithm. We omit these residuals, which means that our
+algorithm can not infer qualified types, though extending it to do so would be
+possible as discussed in Section~\ref{sec:let-generalisation}.
+Our \emph{output} constraints $[[LCtx_o]]$ instead correspond to the part of the
+\emph{linear} givens $[[LCtx_i]]$ that were not used in the solution for $[[C_w]]$.
+Keeping track of these unused constraints is crucial, as ultimately we need to
+make sure that every linear constraint is used.
+\end{itemize}
+
+Finally, while OutsideIn has a single kind of conjunction, our constraint
+language requires two: $[[Q1*Q2]]$ and $[[Q1&Q2]]$. This shows up when
+generating constraints for $\kcase$ expressions in the~\rref{G-Case} rule.
+OutsideIn accumulates constraints across branches (taking the union of each
+branch), whereas we need to make sure that each branch of a $\kcase$-expression
+consumes the same constraints.
+
+This is easily understood in terms of the file example of
+Section~\ref{sec:introduction}: if a file is closed in one branch of a $\kcase$,
+it had better be closed in the other branches too. Otherwise, after the case its
+state will be unknown to the type system.
+
+%% I (csongor) don't think this is worth mentioning
+%% \item A more minor difference with OutsideIn is that we have an
+%%   explicit \rref*{E-Sub} rule, while OutsideIn uses simple constraint
+%%   entailment directly in the relevant rules. In OutsideIn, only the
+%%   \rref*{E-Var} rule needed subsumption; we would also need it for the
+%%   \rref*{E-Pack} rule as well. So we preferred having one shared
+%%   dedicated rule.
 \paragraph{Rust}
 
 The memory ownership example of Section~\ref{sec:memory-ownership} is
