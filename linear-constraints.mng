@@ -110,6 +110,7 @@ import GHC.Base
       \newcommandx{\jp}[2][1=]{\todo[linecolor=purple,backgroundcolor=purple!25,bordercolor=purple,#1]{#2}}
       \newcommandx{\csongor}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=purple,#1]{#2}}
       \newcommandx{\rae}[2][1=]{\todo[linecolor=magenta,backgroundcolor=magenta!25,bordercolor=magenta,#1]{RAE: #2}}
+      \newcommandx{\nw}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{NW: #2}}
 
       \newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
       \newcommandx{\info}[2][1=]{\todo[linecolor=green,backgroundcolor=green!25,bordercolor=green,#1]{#2}}
@@ -136,6 +137,7 @@ import GHC.Base
       \newcommand{\csongor}[2][1=]{}
       \newcommand{\jp}[2][1=]{}
       \newcommandx{\rae}[2][1=]{}
+      \newcommandx{\nw}[2][1=]{}
   \fi
 
 %%%%%%%%%%%%%%%%% /Editing marks %%%%%%%%%%%%%%%%%
@@ -338,9 +340,9 @@ firstLine fp = do  {  h <- openFile fp
                    ;  closeFile h
                    ;  return xs }
 \end{code}
-This version is less safe, because the type system does track the linearity
-of the file handle. But it is also
-simpler. We see here a clear tension between extra safety and clarity of code---one
+This version is less safe, because the type system does not track the linearity
+of the file handle. However, it is simpler because there is less bureaucracy to manage.
+We see here a clear tension between extra safety and clarity of code---one
 we wish, as language designers, to avoid. %%  When
 %% modelling a handle as a linear resource, the type system must know at all
 %% times where it is being consumed, so the file handle is passed around
@@ -372,7 +374,7 @@ firstLine fp = do  {  pack' h <- openFile fp
 \end{code}
 The only changes from the unsafe version are that this version runs in the linear |IO| monad,
 and explicit |pack'| annotations are used to indicate the variables that require
-special treatment. (\Fref{sec:implicit-existentials}\jp{dangling ref} suggests how we can get rid of
+special treatment. (\Fref{sec:implicit-existentials}\jp{dangling ref}\nw{With |pack'| it's hard to argue that this code is simpler than the linear version.} suggests how we can get rid of
 the |pack'|, too.) Crucially, the resource representing the open file is a linear constraint,
 and so it longer needs to be passed around manually. 
 
