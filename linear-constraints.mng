@@ -1590,7 +1590,7 @@ the other branches too.
   emitting an implication constraint.
 \paragraph{Unannotated |let|}
  However, the~\rref*{G-Let} rule does not produce an implication
-  constraint, as we do not model |let|-generalisation~\cite{let-should-not-be-generalised}.\jp{dangling reference}
+  constraint, as we do not model |let|-generalisation~\cite{let-should-not-be-generalised}.
   Section~\ref{sec:let-generalisation} discusses this design
   choice further.
 
