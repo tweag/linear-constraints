@@ -158,7 +158,13 @@ import GHC.Base
   \newcommand{\rlolly}{\mathop{\revop{\multimap}}}
   \newcommand{\subst}[2]{[#1]#2}
   \newcommand{\sby}[2]{#1 ↦ #2}
-  \newcommand{\vdashi}{⊢_{\mathsf{i}}}
+  % \newcommand{\vdashi}{⊢_{\mathsf{i}}}
+  \newcommand{\vdashi}{%
+      \mathrel{%
+          \vdash\hspace*{-4pt}%
+          \raisebox{1pt}{\scalebox{.66}{\(\blacktriangleright\)}}%
+      }%
+  }
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
   \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{atom}}}
   \newcommand{\scale}{\constraintfont{\cdot}}
@@ -1299,34 +1305,41 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 \section{Constraint inference}
 \label{sec:type-inference}
 
-The type system of Figure~\ref{fig:typing-rules} describes declaratively what programs
-are acceptable. We now present an algorithm that implements that specification.
-\rae{Is this wording too strong?}
-
-Our algorithm is structured, unsurprisingly, around generating and solving
-constraints, broadly following the template of \citet{essence-of-ml-type-inference}.
+The type system of Figure~\ref{fig:typing-rules} gives a declarative description
+of what programs are acceptable. We now present the algorithmic counterpart to
+this system. Our algorithm is structured, unsurprisingly, around generating and
+solving constraints, broadly following the template of
+\citet{essence-of-ml-type-inference}.
 That is, our algorithm takes a pass over the abstract syntax entered by the
 user, generating constraints as it goes. Then, separately, we solve those
 constraints (that is, try to satisfy them) in the presence of a set of assumptions,
 or we determine that the assumptions do not imply that the constraints hold. In the
 latter case, we issue an error to the programmer.
 
-A typical generate-and-solve algorithm is built around unification variables.
-A unification variable stands for some unknown type. When we see, for example,
-|\x -> ...|, we let the type of |x| be a unification variable, and then
-constraints arising from the body of the expression (or its context) might tell
-us that the unknown type is |Int|. Our system does not do this, however:
-using constraints to solve for unification variables is well understood~\cite{OutsideIn}
-and orthogonal to the concerns that drive the innovations in this paper.
-Instead, the description of the aspects of our algorithm regarding inferring types---as opposed to
-inferring \emph{constraints}---nondeterministically just guess the correct
-type. A real implementation would use unification variables and constraints,
-but they just add clutter here and distract us from the novel parts of our
-algorithm.
+The procedure is responsible for inferring both \emph{types} and \emph{constraints}.
+For our type system, type inference can be done independently from constraint
+inference. Indeed, we focus on the latter, and defer type inference to
+an external oracle. \csongor{what's a good citation here?}
+That is, we assume an algorithm that produces typing derivations for the
+judgement $[[G |- e : t]]$, ignoring all the constraints. Then, we describe a
+constraint generation algorithm that passes over these typing derivations.
+%
+% A typical generate-and-solve algorithm is built around unification variables.
+% A unification variable stands for some unknown type. When we see, for example,
+% |\x -> ...|, we let the type of |x| be a unification variable, and then
+% constraints arising from the body of the expression (or its context) might tell
+% us that the unknown type is |Int|. Our system does not do this, however:
+% using constraints to solve for unification variables is well understood~\cite{OutsideIn}
+% and orthogonal to the concerns that drive the innovations in this paper.
+% Instead, the description of the aspects of our algorithm regarding inferring types---as opposed to
+% inferring \emph{constraints}---nondeterministically just guess the correct
+% type. A real implementation would use unification variables and constraints,
+% but they just add clutter here and distract us from the novel parts of our
+% algorithm.
 %
 We can make this simplification for two reasons:
 \begin{itemize}
-\item We do not formalize equality constraints, and our implementation
+\item We do not formalize type equality constraints, and our implementation
   in \textsc{ghc} does not allow equality constraints to be
   linear\footnote{\textsc{Ghc} actually uses (at least) two forms of
 equality constraint: lifted equality, used by the programmer; and unlifted
@@ -1511,13 +1524,15 @@ entailment relation.
 The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
 Section~\ref{sec:constraint-solver}. Constraint generation is described by
-the judgement $[[G |-> e : t ~> C]]$\jp{the i index confuses me at first reading (what are we indexing over?). What about using the letter g for generation.} (defined in
+the judgement $[[G |-> e : t ~> C]]$ (defined in
 Figure~\ref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
 required to make $[[e]]$ typecheck.
 The definition
 $[[G |-> e : t ~> C]]$ is syntax directed, so it can directly be read as an
-algorithm, taking as input a term $[[{e}]]$ (together with some type
-inference oracle, as discussed above).
+algorithm, taking as input a \emph{typing derivation} for $[[G |- e : t]]$
+(produced by an external type inference oracle as discussed above). Notably, the
+algorithm has access to the context splitting from the typing derivation, and is
+thus indeed syntax directed.
 \rae{How is this syntax-directed? It splits contexts non-deterministically.
 I have no idea how I would implement this (without the rather involved
 treatment of multiplicity checking in GHC). I think this claim of syntax-direction
