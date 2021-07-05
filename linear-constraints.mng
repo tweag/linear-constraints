@@ -1834,7 +1834,7 @@ The differences between our core calculus and $λ^q$ are as follows:
 for example, include more details in the terms in order to make type-checking
 more obvious; this amounts essentially to an encoding of typing derivations
 in the terms\footnote{See, for example, \citet{weirich-icfp17} and their
-comparison between an implicit core language D and an explicit one DC.}
+comparison between an implicit core language D and an explicit one DC.}.
 \item We have existential types. These can be realised in regular Haskell as a
   family of datatypes.
 \end{itemize}
@@ -1875,10 +1875,9 @@ we pass evidence explicitly\footnote{This technique is also often called
 To do so, we require some more material from
 constraints. Namely, we assume a type $[[{Ev(q)}]]$ for each atomic
 constraint $[[{q}]]$,
-defined in Figure~\ref{fig:evidence}.  It is extended to simple constraints as
+defined in Figure~\ref{fig:evidence}.  The $[[Ev]]$ operation
+extends to simple constraints as
 $[[{Ev(Q)}]]$.
-\rae{All the terrible handwaving gone, now that we have a concrete representation
-for $[[{Q}]]$!}
 Furthermore, we require that for every $[[{Q1}]]$ and $[[{Q2}]]$
 such that $[[Q1 ||- Q2]]$, there is a (linear) function
 $[[Ev(Q1 ||- Q2) : Ev(Q1) ->_1 Ev(Q2)]]$.
@@ -2002,11 +2001,16 @@ $$
   \caption{Evidence passing and desugaring}
 \end{figure}
 \rae{Bad coloring there. Either remove or fix.}
-\rae{Oh yuck. Now I see about all that terrible handwaving. I don't see a better way
-than the handwaving, but I'd like to discuss a bit before restoring it. I tend to
-think that's what we'll have in the end.}
 
-The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}, and~\rref*{E-Sub} rules, respectively.
+The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}\footnote{The attentive
+reader may note that the case for $\ottkw{unpack}$ extracts out $[[{Q1}]]$ and $[[{Q2}]]$
+from the provided simple constraint. Given that simple constraints $[[{Q}]]$ have no
+internal ordering and allow duplicates (in the non-linear component), this splitting
+is not well defined. To fix this, an implementation would have to \emph{name} individual
+components of $[[{Q}]]$, and then the typing derivation can indicate which constraints
+go with which sub-expression. Happily, \textsc{ghc} \emph{already} names its constraints,
+and so this approach fits easily in the implementation. We could also augment our formalism
+here with these details, but they add clutter with little insight.}, and~\rref*{E-Sub} rules, respectively.
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
 is inserted by passing $[[{z}]]$ as an argument.
