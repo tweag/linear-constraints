@@ -939,7 +939,7 @@ system of \emph{multiplicities}, which describe how
 many times a function consumes its input.  For our purposes, we need only the
 simplest system of multiplicity: that composed of only $[[{1}]]$ (representing
 linear functions) and $[[{omega}]]$ (representing
-regular Haskell functions).
+regular Haskell functions). \rae{Should these be colored? They're not.}
 $$
 \begin{array}{lcll}
   [[{pi}]], [[{rho}]] & \bnfeq & [[{1}]] \bnfor [[{omega}]] & \text{Multiplicities}
@@ -992,14 +992,14 @@ Futhermore, it is not clear how to extend the constraint solver of
 Section~\ref{sec:constraint-solver} to support multiplicity-polymorphic
 constraints.
 
-\subsection{Simple constraints and Entailment}
+\subsection{Simple Constraints and Entailment}
 \label{sec:constraint-domain}
 
 Types are constrained by \emph{simple constraints} $[[{Q}]]$, which contain
 \emph{atomic constraints} $[[{q}]]$. The atomic constraints $[[{q}]]$ refer to
 the base constraints supported in a qualified type system: these might include
 class constraints and equality constraints, for example. Interestingly, our
-approach puts no constraints on what this set includes, and thus could
+approach puts no requirements on what this set includes, and thus could
 conceivably be used in a qualified-type language other than Haskell.
 
 The simple constraint $[[{Q}]]$ can be formed from a scaled atomic constraint
