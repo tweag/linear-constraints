@@ -17,7 +17,7 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,usenames,dvipsnames,acmthm=false,review]{acmart}
+\documentclass[acmsmall,usenames,dvipsnames,acmthm=false,review,anonymous]{acmart}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 
@@ -543,9 +543,6 @@ There are a few things to notice:
   handle value, and have the type |closeFile :: (h :: Handle) -> constraint (Open h) =>. IOL ()|.
   While giving a name to a function argument is common in some
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris,
-  \rae{There was a reference here to Liquid Haskell, but Liquid Haskell does not
-implement dependent types. It does name its arguments, but that doesn't quite fit
-in this sentence.}
 Our approach, on the other hand, shows how we can still link a runtime value and a compile-time
 type variable without needing the full power of dependent types.
 \item Second, if we have a single, linear, |constraint (Open h)|
@@ -594,10 +591,6 @@ readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint 
 %% quantifier to generate the type-level name of the file
 %% handle. Existentially quantified types are paired with a constraint |Q|
 %% which we understand as being returned by functions.
-\rae{I removed some text here describing the operation of existentials
-as creating fresh variables as ``folklore''. I disagree: the fact that
-unpacking an existential creates a fresh variable is part of the definition
-of an existential in any discrete mathematics textbook.}
 
 Haskell does not have an existential quantifier. However, one can
 be encoded as a \textsc{gadt}. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
@@ -617,7 +610,6 @@ for |pack (Ur x)|. We have now seen all the ingredients needed to write
 the |firstLine| example as in the introduction.
 
 \subsection{Minimal Examples}
-\jp{This used to say ``motivating examples'', but I don't think that they motivate much. Even better would be ``Do's and Dont's with linear constraints'' or something like that.}
 \label{sec:examples}
 
 To get a sense of how the features we introduce should behave, we now
@@ -934,7 +926,7 @@ any element of |n|), as expected.
 \label{sec:qualified-type-system}
 
 Having laid out situations which would benefit from linear constraints, we
-now present our design for a qualified type system~\cite{jones} that supports
+now present our design for a qualified type system~\cite{QualifiedTypes} that supports
 them. Our design is mindful of our goal of integration with Haskell and \textsc{ghc}
 and is thus based on the work of \citet{OutsideIn}, which undergirds \textsc{ghc}'s
 current approach to type inference.
