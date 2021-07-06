@@ -215,27 +215,6 @@ import GHC.Base
 
 \title{Linear Constraints}
 
-\author{Jean-Philippe Bernardy}
-\affiliation{
-  \institution{University of Gothenburg}
-  \city{Gothenburg}
-  \country{Sweden}
-}
-\email{jean-philippe.bernardy@@gu.se}
-\author{Richard A.~Eisenberg}
-\affiliation{
-  \institution{Tweag}
-  \city{Paris}
-  \country{France}
-}
-\email{rae@@richarde.dev}
-\author{Csongor Kiss}
-\affiliation{
-  \institution{Imperial College London}
-  \city{London}
-  \country{United Kingdom}
-}
-\email{csongor.kiss14@@imperial.ac.uk}
 \author{Arnaud Spiwack}
 \affiliation{
   \institution{Tweag}
@@ -243,6 +222,20 @@ import GHC.Base
   \country{France}
 }
 \email{arnaud.spiwack@@tweag.io}
+\author{Csongor Kiss}
+\affiliation{
+  \institution{Imperial College London}
+  \city{London}
+  \country{United Kingdom}
+}
+\email{csongor.kiss14@@imperial.ac.uk}
+\author{Jean-Philippe Bernardy}
+\affiliation{
+  \institution{University of Gothenburg}
+  \city{Gothenburg}
+  \country{Sweden}
+}
+\email{jean-philippe.bernardy@@gu.se}
 \author{Nicolas Wu}
 \affiliation{
   \institution{Imperial College London}
@@ -250,6 +243,13 @@ import GHC.Base
   \country{United Kingdom}
 }
 \email{n.wu@@imperial.ac.uk}
+\author{Richard A.~Eisenberg}
+\affiliation{
+  \institution{Tweag}
+  \city{Paris}
+  \country{France}
+}
+\email{rae@@richarde.dev}
 
 \keywords{GHC, Haskell, laziness, linear logic, linear types,
   constraints, inference}
