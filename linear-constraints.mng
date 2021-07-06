@@ -2288,12 +2288,13 @@ sense for prominent patterns and how our choices should be tuned.
 \paragraph{OutsideIn}
 \label{sec:outsidein}
 
-The qualified type system in Section~\ref{sec:qualified-type-system} and the
-constraint inference algorithm in Section~\ref{sec:type-inference} follow a
-similar presentation to that of OutsideIn~\cite{OutsideIn}, \textsc{ghc}'s
-constraint solver algorithm. While our presentation is self-contained and
-understanding of the OutsideIn algorithm is not necessary, we outline some of
-the differences from that work.
+Our aim is to integrate the present work in \textsc{ghc}, and
+accordingly the qualified type system in
+Section~\ref{sec:qualified-type-system} and the constraint inference
+algorithm in Section~\ref{sec:type-inference} follow a similar
+presentation to that of OutsideIn~\cite{OutsideIn}, \textsc{ghc}'s
+constraint solver algorithm.  Even though our presentation is
+self-contained, we outline some of the differences from that work.
 
 The solver judgement in OutsideIn takes the following form
 %
@@ -2304,17 +2305,17 @@ The main differences from our solver judgement in Section~\ref{sec:constraint-so
   \item OutsideIn's judgement includes top-level axioms schemes separately
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
 included in $Q_{\mathit{given}}$.
-  \item We present the given constraints ($Q_{\mathit{given}}$ in OutsideIn) as two separate
-constraints $[[UCtx]]$ and $[[LCtx_i]]$ standing for the unrestricted and linear
+  \item We present the \emph{given} constraints ($Q_{\mathit{given}}$ in OutsideIn) as two separate
+constraints $[[UCtx]]$ and $[[LCtx_i]]$, standing for the unrestricted and linear
 parts respectively.
-  \item In addition to constraint inference, OutsideIn also performs type
+  \item In addition to constraint inference, OutsideIn performs type
 inference, requiring additional bookkeeping in the solver judgment. The solver
 takes as input a set of \emph{touchable} variables $\overline{\alpha}_{tch}$
 which record the type variables that can be unified at any given time, and
 produces a type substitution $\theta$ as an output (whose domain is a subset of
 the touchable variables).
-As discussed in Section~\ref{sec:type-inference}, we do not perform type
-inference, only constraint inference. Therefore, our solver need not return a
+As discussed in Section~\ref{sec:type-inference}, we do not perform\jp{describe?} type
+inference, only constraint inference. Therefore, our solver need not\jp{explicitly?} return a
 type assignment.
   \item The most important difference is the output of the algorithms. Both
 OutsideIn and our solver output a set of constraints, $Q_{\mathit{residual}}$ and
@@ -2327,17 +2328,17 @@ algorithm can not infer qualified types, though extending it to do so would be
 possible as discussed in Section~\ref{sec:let-generalisation}.
 Our \emph{output} constraints $[[LCtx_o]]$ instead correspond to the part of the
 \emph{linear} givens $[[LCtx_i]]$ that were not used in the solution for $[[C_w]]$.
-Keeping track of these unused constraints is crucial, as ultimately we need to
+Keeping track of these unused constraints is crucial: ultimately we need to
 make sure that every linear constraint is used.
 \end{itemize}
 
-Finally, while OutsideIn has a single kind of conjunction, our constraint
+Finally\jp{Why is it outside of the itemize?}, while OutsideIn has a single kind of conjunction, our constraint
 language requires two: $[[Q1*Q2]]$ and $[[Q1&Q2]]$. This shows up when
 generating constraints for $\kcase$ expressions in the~\rref{G-Case} rule.
 OutsideIn accumulates constraints across branches (taking the union of each
 branch), whereas we need to make sure that each branch of a $\kcase$-expression
 consumes the same constraints.
-
+%
 This is easily understood in terms of the file example of
 Section~\ref{sec:introduction}: if a file is closed in one branch of a $\kcase$,
 it had better be closed in the other branches too. Otherwise, after the case its
