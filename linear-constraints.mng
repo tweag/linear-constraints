@@ -2036,20 +2036,20 @@ types, such as $λ^q$, or indeed, \textsc{ghc} Core.
 \label{sec:implementation}
 
 We have written a prototype implementation of linear constraints on top of \textsc{ghc} 9.1, a version that already
-ships with the \emph{LinearTypes} extension. Function arrows (|->|) and context arrows
+ships with the @LinearTypes@ extension. Function arrows (|->|) and context arrows
 (|=>|) share the same internal representation in the typechecker, differentiated
-only by a boolean flag. Thus, the \emph{LinearTypes} implementation effort has already
+only by a boolean flag. Thus, the @LinearTypes@ implementation effort has already
 laid down the bureaucratic ground work of annotating these arrows with
 multiplicity information.
 
 The key changes affect constraint generation and constraint solving. Constraints
 are now annotated with a multiplicity, according to the context from
-which they arise. With \emph{LinearTypes}, \textsc{ghc} already scales the usage
+which they arise. With @LinearTypes@, \textsc{ghc} already scales the usage
 of term variables. We simply modified the scaling function to capture all the
 generated constraints and re-emit a scaled version of them -- a fairly local
 change.
 
-The constraint solver maintains a set of given constraints (the \emph{inert} set in \textsc{ghc} jargon),
+The constraint solver maintains a set of given constraints (the \emph{inert set} in \textsc{ghc} jargon),
 which corresponds to the $[[{UCtx}]]$ and $[[{LCtx}]]$ contexts in our solver
 judgements in Section~\ref{sec:constraint-solver}. A property of the inert set
 is that constraints contained in it do not interact pairwise. These interactions are
@@ -2058,7 +2058,7 @@ with other constraints by applying a substitution.
 
 The treatment of implication constraints is of particular interest.
 Implications, by their nature, introduce assumptions which do not necessarily
-hold in the outer context, therefore recording these assumptions in the inert
+hold in the outer context; therefore, recording these assumptions in the inert
 set is a destructive operation. To ensure proper scoping, \textsc{ghc} creates a fresh
 copy of the inert set for each nested implication that it solves, so these
 destructive operations do not leak out. We modify the inert set so that for each
@@ -2083,15 +2083,15 @@ checking that the level of every linear constraint in the inert set is less than
 the implication.
 
 When a linear equality constraint is encountered, it is automatically promoted
-to an unrestricted one and handled accordingly. This may happen in many
+to an unrestricted one and handled accordingly. \rae{We have decided not to do this.} This may happen in many
 different scenarios, as the entailment relation of \textsc{ghc}'s constraint domain does
-produce many equalities, thus we need to ensure they are turned into
+produce many equalities, and thus we need to ensure they are made
 unrestricted before interacting with the inert set. \textsc{ghc} Core already represents
 the equality constraint as a boxed type, so we can simply modify it to store an
 unrestricted payload.
 
 As constraint solving proceeds, the compiler pipeline constructs a term in an
-intrinsically typed language
+typed language
 known as \textsc{ghc} Core~\cite{system-fc}.
 In Core, type class constraints are turned into
 explicit evidence (see Section~\ref{sec:desugaring}). Thanks to being fully
@@ -2112,8 +2112,8 @@ section, we consider some potential avenues for extensions.
 \label{sec:let-generalisation}
 
 As discussed in Section~\ref{sec:constraint-generation}, the~\rref*{G-Let} rule
-of our constraint generator does not generalise the type of let bindings.
-Not doing let generalisation is in line with \textsc{ghc}'s existing
+of our constraint generator does not generalise the type of |let|-bindings.
+Not doing |let|-generalisation is in line with \textsc{ghc}'s existing
 behaviour~\cite[Section 4.2]{OutsideIn}. There, this behaviour was guided
 by concerns around inferring type variables, which is harder in the
 presence of local equality assumptions (that is, \textsc{gadt} pattern
@@ -2123,7 +2123,7 @@ In this section, however, we argue that generalising over linear constraints
 may, in fact, improve user experience.
 Let us revisit the |firstLine| example from Section~\ref{sec:introduction}, but
 this time, instead of executing |closeFile| directly, we assign it to a variable
-in a let binding:
+in a |let|-binding:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =   do  {  pack' h <- openFile fp
@@ -2138,16 +2138,15 @@ consumes the linear constraint |Open h|. So, by the time we attempt
 |readLine h|, the constraint is no longer available.
 
 What the programmer really meant, here, was for |closeOp| to have type
-|constraint (Open h) =>. IOL ()|. After all a |let| definition is not part of the
-sequence of instructions, it is just a definition for later; it is not
-supposed to consume the current state of the file. With no let
-generalisation, the only way to give |closeOp| the type |constraint (Open h) =>. IOL
+|constraint (Open h) =>. IOL ()|. After all, a |let| definition is not part of the
+sequence of instructions: it is just a definition for later, not
+intended to consume the current state of the file. With no |let|-generalisation,
+the only way to give |closeOp| the type |constraint (Open h) =>. IOL
 ()| is to give |closeOp| a type signature. In current \textsc{ghc}, we
 can't write that signature down, since the type variable |h| is not
-bound in the program text, and there is no syntax for binding it
-(Even though \citet{variables-in-patterns} proposes a syntax for it). But
+bound in the program text, and there is no syntax for binding it\footnote{\citet{variables-in-patterns} describe a way to fix this shortcoming.}. But
 even ignoring this, it would be rather unfortunate if the default
-behaviour of |let|, in presence of linear constraints, almost never was
+behaviour of |let|, in the presence of linear constraints, almost never was
 what the programmer wants.
 
 To handle $\klet$-generalisation, let us consider the following rule
@@ -2160,10 +2159,12 @@ This rule is non-deterministic, because it requires finding $[[{Q_r}]]$ and
 $[[{Q}]]$. We can modify the constraint solver of
 Section~\ref{sec:constraint-solver} to find $[[{Q_r*Q}]]$. But we
 still have to determine how to split the residual into $[[{Q_r}]]$ and
-$[[{Q}]]$. What we would like to say is ``$[[{Q}]]$ is the set of linear
-constraints''. But it's not clear how to make it formal.
+$[[{Q}]]$. 
 
-Any predictable strategy would do: as long as it's an instance of the
+%% What we would like to say is ``$[[{Q}]]$ is the set of linear
+%% constraints''. But it's not clear how to make it formal.
+
+Any predictable strategy would do: as long as our rule an instance of the
 \rref*{G-LetGen} rule, constraint generation will be sound. Experience
 will tell whether we can find a better suited strategy than the current
 one, which never generalises any constraint.
@@ -2171,6 +2172,7 @@ one, which never generalises any constraint.
 \subsection{Empty cases}
 \label{sec:empty-cases}
 
+\rae{Is this subsection about linear constraints? I don't think so. I propose: remove.}
 Throughout the article we have assumed that $\kcase$-expressions
 always have a non-empty list of alternatives. This is, incidentally,
 also how Haskell originally behaved; though \textsc{ghc} now has an
@@ -2201,6 +2203,74 @@ presentation because has a very high overhead and would distract from
 the point. Instead, we refer readers
 to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
 careful treatment of $[[{Top}]]$.
+
+\subsection{Inferring $\ottkw{pack}$ and $\ottkw{unpack}$}
+
+Recent work~\cite{existentials} describes an algorithm (call it EDWL, after the
+authors' names) that
+can infer the location of $\ottkw{pack}$s and $\ottkw{unpack}$s\footnote{Actually,
+\citet{existentials} use an $\ottkw{open}$ construct instead of $\ottkw{unpack}$
+to access the contents of an existential package, but that distinction does
+not affect our usage of existentials with linear constraints.}
+in a user's program, given only the type annotations saying which
+variables have existential type. In Section~9.2 of that paper,
+the authors extend their system to include class constraints,
+much as we allow our existential packages to carry linear constraints.
+
+Accordingly, EDWL would work well for us here.
+The EDWL algorithm is only a small change on the way some types are treated during
+bidirectional type-checking. Though the presentation of linear constraints is not
+written using a bidirectional algorithm, our implementation in \textsc{ghc}
+is indeed bidirectional (as \textsc{ghc}'s existing type inference algorithm
+is bidirectional, as described by \citet{practical-type-inference} and
+\citet{visible-type-application}) and produces constraints much like we
+have presented here, formally. None of this would change in adapting EDWL.
+Indeed, it would seem that the two extensions are orthogonal in implementation,
+though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
+make linear constraints more usable.
+
+One challenge if existential packing and unpacking are inferred is that
+the order in which a program is executed might become ambiguous.
+Picking up the example from Section~\ref{sec:atomic-references},
+consider this function:
+
+> writeTwo :: constraint (RW n) =>. AtomRef a n -> a -> a -> () .<= constraint (RW n)
+> writeTwo ref val1 val2 =  let  unit1 = writeRef ref val1
+>                                unit2 = writeRef ref val2 in
+>                           ()
+
+In understanding this code, we first must worry about laziness. Haskell's |let|
+is lazy, meaning that the calls to |writeRef| might never be evaluated, if nothing
+forces them. Surprisingly, whether or not these get evaluated depends on the types
+that are inferred for |unit1| and |unit2|.
+
+One possibility is
+|unit1, unit2 :: constraint (RW n) =>. () .<= constraint (RW n)|. With this inferred type,
+the calls to |writeRef| are never evaluated: the provided |constraint (RW n)| is just
+packed with the |()| in the result, ignoring the two |unit|s.
+
+Another possibility is |unit1, unit2 :: ()|. With this inferred type, both |writeRef|s
+must consume and re-produce the |constraint (RW n)| constraint. Because the produced
+constraint is used, the |writeRef| call must be evaluated (so it can produce that |constraint (RW n)|
+constraint), and the reference |ref| will be updated. However, we still do not
+know the order in which the |writeRef|s will be evaluated: perhaps |unit1| consumes
+the |constraint (RW n)| produced by |unit2|, forcing the |writeRef|s in the
+opposite order to how they are written.
+
+This is disappointing: we cannot have type inference tell us what order
+our program is to be evaluated. One solution is to reject ambiguous programs
+like |writeTwo|. This could be achieved by changing \rref{Atom-OneL} of
+Figure~\ref{fig:simpl-solver} to require that the desired constraint
+has precisely one matching assumption. Then, when there is any ambiguity,
+we simply reject. Would this be too restrictive in practice? A middle ground
+might be to track (in our list of linear assumptions) when we enter a more
+local scope (this is actually already done by \textsc{ghc}), and reject only
+programs with multiple identical assumptions in the same local scope.
+
+The issues here---similar to those raised in Section~\ref{sec:let-generalisation}---have
+potential solutions, but the precise way forward is best informed by
+experience, as users begin to adopt these features and we get a better
+sense for prominent patterns and how our choices should be tuned.
 
 \section{Related work}
 \label{sec:related-work}
