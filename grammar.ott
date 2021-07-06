@@ -264,7 +264,7 @@ terminals :: 'terminals_' ::=
 | exists      ::   :: Exists  {{ tex \exists }}
 | =o          ::   :: Lolli   {{ tex \Lolly }}
 | o=          ::   :: illoL   {{ tex \RLolly }}
-| o-          ::   :: illol   {{ tex \rlolly }}
+| o-          ::   :: illol   {{ tex \qtensor }}
 | \in         ::   :: In      {{ tex \in }}
 | \notin      ::   :: NotIn   {{ tex \notin }}
 | omega       ::   :: Many    {{ tex \omega }}

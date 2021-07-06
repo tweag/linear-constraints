@@ -33,6 +33,7 @@ import GHC.Base
     urlcolor={blue!80!black}
   }
 \usepackage[plain]{fancyref}
+\usepackage[capitalize]{cleveref}
 \usepackage{mathpartir}
 \usepackage{newunicodechar}
 \input{newunicodedefs}
@@ -174,7 +175,7 @@ import GHC.Base
   \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
   \newcommand{\lollycirc}{\raisebox{-0.255ex}{\scalebox{1.4}{$\circ$}}}
   \newcommand{\Lolly}{\constraintop{=\kern-1.1ex \lollycirc}}
-  \newcommand{\RLolly}{\revop{\Lolly}}
+  \newcommand{\RLolly}{\mathop{\constraintfont \circledless}}
   \newcommand{\qtensor}{\constraintop{\otimes}}
 
   % language keywords
@@ -301,6 +302,7 @@ import GHC.Base
 \maketitle
 
 \renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, Spiwack, Wu}
+\newcommand{\maybesmall}{\small}
 
 \section{Introduction}
 \label{sec:introduction}
@@ -380,7 +382,7 @@ firstLine fp = do  {  pack' h <- openFile fp
 \end{code}
 The only changes from the unsafe version are that this version runs in the linear |IO| monad,
 and explicit |pack'| annotations are used to indicate the variables that require
-special treatment. (\Fref{sec:implicit-existentials}\jp{dangling ref}\nw{With |pack'| it's hard to argue that this code is simpler than the linear version.} suggests how we can get rid of
+special treatment. (\Fref{sec:implicit-existentials}\nw{With |pack'| it's hard to argue that this code is simpler than the linear version.} suggests how we can get rid of
 the |pack'|, too.) Crucially, the resource representing the open file is a linear constraint,
 and so it longer needs to be passed around manually. 
 
@@ -473,6 +475,7 @@ compile time error.
 \label{sec:what-it-looks-like}
 
 \begin{figure}%
+  \maybesmall
   \centering
   \begin{subfigure}{.3\linewidth}%
     \noindent%
@@ -499,10 +502,8 @@ closeFile  :: constraint (Open h) =>. Handle h -> IOL ()
 
 Consider the Haskell function |show|:
 \begin{code}
-show :: constraint (Show a) => a -> String
+show :: Show a => a -> String
 \end{code}
-\jp{Why is Show blue?}%
-\rae{A good question at this point.}%
 In addition to the function arrow |->|, common to all functional
 programming languages, the type of this function features a constraint arrow |=>|.
 Everything to the
@@ -561,7 +562,7 @@ as a generalisation of those presented by \citet[Chapter 24]{tapl}. See \Fref{se
 for a discussion of how work synergises with that of \citet{existentials-in-haskell}.}
   a type construction |exists a1 ... an. t .<= constraint(Q)|,
 where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
-paired with the type |t|. Here the left-pointing fat lolli is meant to indicate that the constraint |Q| is produced (instead of consumed when the lolli is right-pointing)\jp{Phrasing it this way shows how much it goes against traditional notation.}.\footnote{We will freely
+paired with the type |t|.\footnote{We will freely
 omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
 empty.}.  The type of |openFile| is thus:
 \begin{code}
@@ -802,7 +803,8 @@ crucially, |Ur b|.  Indeed, if we would allow returning any type |b|,
 then the |O n| constraint could be embedded in |b|, and therefore
 escape from the scope.
 This would defeat the point of |O n| be a linear constraint, and
-no longer guarantee that the reference has a unique owner.\jp{This is because newRef can be called in unrestricted contexts. Do we have enough space/reader attention to explain that ?}
+no longer guarantee that the reference has a unique owner.
+% JP: This is because newRef can be called in unrestricted contexts. Not enough space/reader attention to explain that.
 
 To read a reference, a simple |Read| constraint is demanded, and
 immediately returned. Writing is handled similarly.
@@ -947,7 +949,7 @@ The idea of multiplicity goes back at least
 to \citet{ghica_bounded_2014}, where it is dubbed a \emph{resource
   semiring}. The power of multiplicities is that they can encode the
 structural rules of linear logic with only the semiring
-operations: addition and multiplication\footnote{We adopt a convention that equations defining a function by pattern matching are marked with a $\left\{\right.$ to their left}.
+operations: addition and multiplication. Here and in the rest of the paper we adopt the convention that equations defining a function by pattern matching are marked with a $\left\{\right.$ to their left.
 
 \smallskip
 \begin{minipage}[c]{0.4\linewidth}
@@ -1056,6 +1058,7 @@ concrete representation of $[[Q]]$ as a pair of sets, instead
 using the operations defined just above.
 
 \begin{figure}
+  \maybesmall
   $$
     \begin{array}{l}
       [[Q ||- Q]] \\
@@ -1167,6 +1170,7 @@ is not a problem in practice, as the required condition for combining
 contexts is always satisfied.
 
 \begin{figure}
+  \maybesmall
   $$
   \begin{array}{lcll}
     [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
@@ -1430,6 +1434,7 @@ Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, a
 there is no way to assume the more elaborate $[[{C}]]$.
   \rae{Weird colors here. If we're dropping colors, not worth fixing.}
 \begin{figure}
+  \maybesmall
   \centering
   \drules[C]{$[[Q |- C]]$} {Wanted-constraint entailment}
   {Dom,Tensor,With,Impl}
@@ -1543,6 +1548,7 @@ admitted to (and which I agree with).}
   system, we would need $\kpack$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
 \begin{figure}
+  \maybesmall
   \centering
   \drules[G]{$[[G |-> e : t ~> C]]$}{Constraint generation}{Var, Abs,
     App, Pack, Unpack, Case, Let, LetSig}
@@ -1660,6 +1666,7 @@ by~\citet{resource-management-for-ll-proof-search}. Figure~\ref{fig:constraint-s
 presents the rules of the constraint solver.
 
 \begin{figure}
+  \maybesmall
   \centering
   \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Atom, Mult, ImplOne, Add, ImplMany}
   \caption{Constraint solver}
@@ -1710,7 +1717,9 @@ is already assumed---while respecting linearity.
 \rae{The entailment relation should really be defined over atoms, not
 simple-constraints.}
 
-\begin{figure}\centering
+\begin{figure}
+  \maybesmall
+  \centering
   \begin{subfigure}{\linewidth}
     \drules[Q]{$[[Q1 ||- Q2]]$}{Entailment relation}{Hyp,Prod,Empty}
     \caption{Entailment relation}
@@ -1798,6 +1807,7 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 \label{sec:ds:inferred-constraints}
 
 \begin{figure}
+  \maybesmall
   \centering
   $$
   \begin{array}{lcll}
@@ -1815,12 +1825,23 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 
 The core calculus is a variant of the type system defined in
 Section~\ref{sec:qualified-type-system}, but without constraints. That is, the evidence for constraints is passed explicitly in this core calculus.
+%
+Following $λ^q$, we assume the existence of the following data types:
+\begin{itemize}
+\item $[[{t1 * t2}]]$ with sole constructor
+  $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $[[(e1,
+  e2)]]$ for $[[{(,) e1 e2}]]$.
+\item $[[{unit}]]$ with sole constructor $[[() : unit]]$.
+\item $[[{Ur t}]]$ with sole constructor $[[ Ur : forall a. a ->_omega
+  Ur a]]$
+\end{itemize}
+%
 Figure~\ref{fig:core-typing-rules}
 highlights the differences from the qualified system:
 \begin{itemize}
   \item Type schemes $[[{s}]]$ do not support qualified types.
-  \item Existentially quantified types $[[{exists as. t2 o- t1}]]$\jp{Using left lolli as a pair is very nonstandard. Also, this notation does not seem to occur any more. I propose to simply delete the ``formula'' here.} now represent a
-(linear) pair of values. Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
+  \item Existentially quantified types ($[[{exists as. t o= Q}]]$) are now represented as an (existentially quantified, linear) pair of values ($[[{exists as. t2 o- t1}]]$).
+Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
 \end{itemize}
 %
 The differences between our core calculus and $λ^q$ are as follows:
@@ -1837,15 +1858,6 @@ comparison between an implicit core language D and an explicit one DC.}.
   family of datatypes.
 \end{itemize}
 %
-In addition, we assume the existence of the following data types:
-\begin{itemize}
-\item $[[{t1 * t2}]]$ with sole constructor
-  $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $[[(e1,
-  e2)]]$ for $[[{(,) e1 e2}]]$.
-\item $[[{unit}]]$ with sole constructor $[[() : unit]]$.
-\item $[[{Ur t}]]$ with sole constructor $[[ Ur : forall a. a ->_omega
-  Ur a]]$
-\end{itemize}
 %
 These are regular data types and constructors of the language: they
 are consumed with $\kcase$.
@@ -1931,7 +1943,8 @@ premises in the body of the definition.
 %
 We present some of the interesting cases in Figure~\ref{fig:desugaring}.
 \begin{figure}
-  \centering
+    \maybesmall
+\centering
   \begin{subfigure}{0.3\linewidth}%
 $$
 \left\{
@@ -2064,7 +2077,7 @@ constraint stored in it, the level (or depth) of the implication is recorded
 alongside it. Each interaction with nested assumptions (which might give rise to
 additional derived givens) is recorded at the appropriate level and
 multiplicity (decomposing a constraint tuple into its constituent parts is done
-by the simplifier, which must now record the multiplicities of the components).\jp{This is very tough to follow if one does not already have the solver in one's head. Also: wall of text.}
+by the simplifier, which must now record the multiplicities of the components).
 
 Atomic wanteds are then solved by finding a matching given in the inert set (or
 a top-level given, which is not relevant to linear constraints). When a linear
@@ -2101,9 +2114,8 @@ linearity.
 \section{Extensions}
 \label{sec:design-decisions}
 
-The system presented in Section~\ref{sec:qualified-type-system} and
-Section~\ref{sec:type-inference} is already capable of supporting the examples
-in Section~\ref{sec:what-it-looks-like} and Section~\ref{sec:memory-ownership}. In this
+The system presented in \cref{sec:qualified-type-system,sec:type-inference} is already capable of supporting the examples
+in \cref{sec:what-it-looks-like,sec:memory-ownership}. In this
 section, we consider some potential avenues for extensions.
 
 \subsection{let generalisation}
@@ -2203,7 +2215,7 @@ to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
 careful treatment of $[[{Top}]]$.
 
 \subsection{Inferring $\ottkw{pack}$ and $\ottkw{unpack}$}
-
+\label{sec:implicit-existentials}
 Recent work~\cite{existentials} describes an algorithm (call it EDWL, after the
 authors' names) that
 can infer the location of $\ottkw{pack}$s and $\ottkw{unpack}$s\footnote{Actually,
@@ -2341,14 +2353,8 @@ state will be unknown to the type system.
 \paragraph{Rust}
 
 The memory ownership example of Section~\ref{sec:memory-ownership} is
-strongly inspired by Rust. There seems to be something inescapable
-about Rust's model (itself inspired by C++'s move semantics) of owned
-and borrowed references, as the \textsc{api} in
-Section~\ref{sec:memory-ownership} follows naturally from the
-requirements (namely a pure interface for mutable arrays with the
-ability to freeze arrays). It is not
-clear that any other \textsc{api} could be essentially different.\jp{This paragraph does not seem to say anything. Delete?}
-
+strongly inspired by Rust.
+%
 Rust is built with ownership and borrowing for memory
 management from the ground up. As a consequence, it has a much more convenient syntax
 than Linear Haskell with linear constraints can propose. Rust's
@@ -2371,13 +2377,13 @@ mechanism.
 \paragraph{Languages with capabilities}
 
 Both Mezzo~\cite{mezzo-permissions} and
-\textsc{ats}~\cite{AtsLinearViews} served as inspiration for the design
-of linear constraints. Of the two, Mezzo is more specialised, being
-entirely built around its system of capabilities, and \textsc{ats} is
-the closest to our system with an explicit appeal to linear logic, and
-the capabilities (known as \emph{stateful views}) being a part of a
-bigger language\jp{Cannot parse this sentence?}. However, \textsc{ats} does not have full inference of
-capabilities. % , which the programmer may have to fill in.
+\textsc{ats}~\cite{AtsLinearViews} served as inspiration for the
+design of linear constraints. Of the two, Mezzo is more specialised,
+being entirely built around its system of capabilities.  \textsc{Ats}
+is the closest to our system because it appeals explicitly to linear
+logic, and because the capabilities (known as \emph{stateful views})
+are implemented in terms of more general features. However,
+\textsc{ats} does not have full inference of capabilities.
 
 Other than that, the two systems have a lot of similarities. They have a
 finer-grained capability system than is expressible in Rust (or our
@@ -2500,6 +2506,7 @@ Figure~\ref{fig:full:core-grammar} and the type system by
 Figure~\ref{fig:full:core-typing-rules}.
 
 \begin{figure}
+  \maybesmall
   \centering
   $$
   \begin{array}{lcll}
@@ -2524,6 +2531,7 @@ Figure~\ref{fig:full:core-typing-rules}.
 \end{figure}
 
 \begin{figure}
+  \maybesmall
   \centering
   \drules[L]{$[[G |- e : t]]$}{Core language
     typing}{Var,Abs,App,Pack,Unpack,Let,Case}
@@ -2565,6 +2573,7 @@ $[[{urify(e)}]]$ when it can be easily inferred from the context.
 
 
 \begin{figure}
+  \maybesmall
   \centering
 
 %{
