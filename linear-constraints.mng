@@ -2297,14 +2297,14 @@ the differences from that work.
 
 The solver judgement in OutsideIn takes the following form
 %
-\[\mathcal{Q}\ ;\ Q_{\textit{given}}\ ;\ \overline{\alpha}_{\textit{tch}} \overset{\textit{solv}}{\mapsto} C_{\textit{wanted}} \leadsto Q_{\textit{residual}} ; \ \theta\]
+\[\mathcal{Q}\ ;\ Q_{\mathit{given}}\ ;\ \overline{\alpha}_{\mathit{tch}} \overset{\mathit{solv}}{\mapsto} C_{\mathit{wanted}} \leadsto Q_{\mathit{residual}}\  ; \ \theta\]
 %
 The main differences from our solver judgement in Section~\ref{sec:constraint-solver} are
 \begin{itemize}
   \item OutsideIn's judgement includes top-level axioms schemes separately
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
-included in $Q_{given}$.
-  \item We present the given constraints ($Q_{\textit{given}}$ in OutsideIn) as two separate
+included in $Q_{\mathit{given}}$.
+  \item We present the given constraints ($Q_{\mathit{given}}$ in OutsideIn) as two separate
 constraints $[[UCtx]]$ and $[[LCtx_i]]$ standing for the unrestricted and linear
 parts respectively.
   \item In addition to constraint inference, OutsideIn also performs type
@@ -2317,10 +2317,10 @@ As discussed in Section~\ref{sec:type-inference}, we do not perform type
 inference, only constraint inference. Therefore, our solver need not return a
 type assignment.
   \item The most important difference is the output of the algorithms. Both
-OutsideIn and our solver output a set of constraints, $Q_{residual}$ and
+OutsideIn and our solver output a set of constraints, $Q_{\mathit{residual}}$ and
 $[[LCtx_o]]$ respectively. However, the meaning of these contexts is different.
-OutsideIn's \emph{residual} constraints $Q_{residual}$
-correspond to the part of $C_{wanted}$ that could not be solved from the
+OutsideIn's \emph{residual} constraints $Q_{\mathit{residual}}$
+correspond to the part of $C_{\mathit{wanted}}$ that could not be solved from the
 assumptions. These residuals are then quantified over in the generalisation step
 of the inference algorithm. We omit these residuals, which means that our
 algorithm can not infer qualified types, though extending it to do so would be
