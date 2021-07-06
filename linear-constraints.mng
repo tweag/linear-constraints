@@ -561,7 +561,7 @@ as a generalisation of those presented by \citet[Chapter 24]{tapl}. See \Fref{se
 for a discussion of how work synergises with that of \citet{existentials-in-haskell}.}
   a type construction |exists a1 ... an. t .<= constraint(Q)|,
 where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
-brought into scope (that is, the constraint is assumed)\footnote{We will freely
+paired with the type |t|. Here the left-pointing fat lolli is meant to indicate that the constraint |Q| is produced (instead of consumed when the lolli is right-pointing)\jp{Phrasing it this way shows how much it goes against traditional notation.}.\footnote{We will freely
 omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
 empty.}.  The type of |openFile| is thus:
 \begin{code}
