@@ -2296,15 +2296,15 @@ understanding of the OutsideIn algorithm is not necessary, we outline some of
 the differences from that work.
 
 The solver judgement in OutsideIn takes the following form
-
-\[\mathcal{Q}\ ;\ Q_{given}\ ;\ \overline{\alpha}_{tch} \overset{solv}{\mapsto} C_{wanted} \leadsto Q_{residual} ; \ \theta\]
-
+%
+\[\mathcal{Q}\ ;\ Q_{\textit{given}}\ ;\ \overline{\alpha}_{\textit{tch}} \overset{\textit{solv}}{\mapsto} C_{\textit{wanted}} \leadsto Q_{\textit{residual}} ; \ \theta\]
+%
 The main differences from our solver judgement in Section~\ref{sec:constraint-solver} are
 \begin{itemize}
   \item OutsideIn's judgement includes top-level axioms schemes separately
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
 included in $Q_{given}$.
-  \item We present the given constraints ($Q_{given}$ in OutsideIn) as two separate
+  \item We present the given constraints ($Q_{\textit{given}}$ in OutsideIn) as two separate
 constraints $[[UCtx]]$ and $[[LCtx_i]]$ standing for the unrestricted and linear
 parts respectively.
   \item In addition to constraint inference, OutsideIn also performs type
