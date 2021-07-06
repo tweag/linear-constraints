@@ -320,7 +320,7 @@ compiler doesn't know how to help, requiring the programmer to carefully thread
 resource tokens.
 
 To get a sense of the power and the pain of using linear types, consider the
-following example from~\citet{LinearHaskell}\footnote{|IOL| is the linear IO monad}:
+following example from~\citet{LinearHaskell}, where |IOL| refers to the linear |IO| monad:
 \begin{code}
 firstLine :: FilePath -> IOL String
 firstLine fp =   do  {  h <- openFile fp
@@ -404,9 +404,7 @@ Expressions in our qualified
  we
   prove that the output of our desugaring is well-typed~(\Fref{sec:desugaring}).
 \end{itemize}
-\jp{It isn't make super clear that this is a 'drop in' extension that you can apply to
-Linear Haskell/GHC}
-
+%
 Our design is intended to work well with other features of Haskell and its
 implementation within GHC and we have a prototype implementation.
 
