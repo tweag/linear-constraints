@@ -1414,7 +1414,10 @@ of this connective described here.
 
 The last form of wanted constraint $[[{C}]]$ is an implication $[[{pi.(Q=>C)}]]$.
 Proving $[[{pi.(Q=>C)}]]$ allows us to assume $[[{Q}]]$ linearly while proving $[[{C}]]$,
-a total of $[[{pi}]]$ times. These implications arise when we unpack an existential
+a total of $[[{pi}]]$
+\nw{Missing colour, but I can't work this magic}
+times.
+These implications arise when we unpack an existential
 package that contains a linear constraint and also when checking a |let|-binding.
 We can define scaling over wanted constraints by recursion as follows, where we
 use scaling over simple constraints in the simple-constraint case:
@@ -1526,6 +1529,7 @@ Section~\ref{sec:constraint-solver}. Constraint generation is described by
 the judgement $[[G |-> e : t ~> C]]$ (defined in
 Figure~\ref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
 required to make $[[e]]$ typecheck.
+\nw{I'm not familiar with \verb^|->^, is it standard notation?}
 The definition
 $[[G |-> e : t ~> C]]$ is syntax directed, so it can directly be read as an
 algorithm, taking as input a \emph{typing derivation} for $[[G |- e : t]]$
@@ -1565,7 +1569,7 @@ The rules of Figure~\ref{fig:constraint-generation} constitute a mostly
 unsurprising translation of the rules of Figure~\ref{fig:typing-rules},
 except for the following points of interest:
 
-\paragraph{case expressions}
+\paragraph{Case expressions}
 Note the use of $[[&]]$ in the conclusion of \rref{G-Case}.
 We require that each branch of a |case| expression use the exact
 same (linear) assumptions; this is enforced by combining the
@@ -2300,11 +2304,11 @@ presentation to that of OutsideIn~\cite{OutsideIn}, \textsc{ghc}'s
 constraint solver algorithm.  Even though our presentation is
 self-contained, we outline some of the differences from that work.
 
-The solver judgement in OutsideIn takes the following form
+The solver judgement in OutsideIn takes the following form:
 %
 \[\mathcal{Q}\ ;\ Q_{\mathit{given}}\ ;\ \overline{\alpha}_{\mathit{tch}} \overset{\mathit{solv}}{\mapsto} C_{\mathit{wanted}} \leadsto Q_{\mathit{residual}}\  ; \ \theta\]
 %
-The main differences from our solver judgement in Section~\ref{sec:constraint-solver} are
+The main differences from our solver judgement in Section~\ref{sec:constraint-solver} are:
 \begin{itemize}
   \item OutsideIn's judgement includes top-level axioms schemes separately
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
@@ -2372,7 +2376,7 @@ is to provide programmers with the tools to create safe interfaces and
 libraries. The language itself is agnostic about what linear
 constraints mean. Although linear constraints don't have the
 convenience of Rust's syntax, we expect that they will support a
-greater variety of abstractions. Even though, Rust programmers have
+greater variety of abstractions. Even though Rust programmers have
 come up with varied abstractions which leverage the borrowing
 mechanism to support applications going beyond memory management (for
 instance, safe file handling), it is unclear that all applications
@@ -2419,7 +2423,7 @@ domain. In fact, it should be possible to see Mezzo or \textsc{ats} as
 particular instantiations of the simple-constraint domain, with linear
 constraints providing the general inference mechanism.
 
-Though both Mezzo and \textsc{ats} have an advantage that we don't:
+However, both Mezzo and \textsc{ats} have an advantage that we don't:
 they assume that their instructions are properly sequenced, whereas
 basing linear constraints on Haskell, a lazy language, we are forced
 to make sequencing explicit in \textsc{api}s.
@@ -2451,7 +2455,7 @@ immediate consequence of this observation, however, is that
 the fragment of linear logic described by~\citet{hh-ll} (and
 for which~\citet{resource-management-for-ll-proof-search} provides a
 refined search strategy) contains the Hereditary Harrop fragment of
-intuitionistic logic guarantees that quantified constraints don't
+intuitionistic logic guarantees that quantified constraints do not
 break our proofs.
 
 \section{Conclusion}
