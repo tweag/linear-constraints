@@ -540,12 +540,12 @@ There are a few things to notice:
 \item First, there is now a type variable |h|. In contrast,
   the version in Figure~\ref{fig:linear-interface} without linear
   constraints  has type |closeFile :: Handle ->. IOL ()|.
-  The type variable |h| is a type-level name for the file handle which we are closing.
+  The type variable |h| is a type-level name for the file handle being closed.
   Ideally, the linear constraint would refer directly to the
   handle value, and have the type |closeFile :: (h :: Handle) -> constraint (Open h) =>. IOL ()|.
   While giving a name to a function argument is common in some
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris,
-Our approach, on the other hand, shows how we can still link a runtime value and a compile-time
+our approach, on the other hand, shows how we can still link a runtime value and a compile-time
 type variable without needing the full power of dependent types.
 \item Second, if we have a single, linear, |constraint (Open h)|
   available, then after |closeFile| there will not be any |constraint (Open h)|
@@ -567,7 +567,7 @@ for a discussion of how work synergises with that of \citet{existentials-in-hask
 where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
 paired with the type |t|.\footnote{We will freely
 omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
-empty.}.  The type of |openFile| is thus:
+empty.} The type of |openFile| is thus:
 \begin{code}
 openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
 \end{code}
