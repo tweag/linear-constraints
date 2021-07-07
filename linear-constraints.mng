@@ -416,7 +416,9 @@ implementation within GHC and we have a prototype implementation.
 
 There are \emph{many} approaches to marrying linear logic with functional
 programming; see, e.g., \citet[Section 6]{LinearHaskell} for a description
-of alternatives. This section, mostly cribbed from \citet[Section 2.1]{LinearHaskell},
+of alternatives.
+\nw{Seems like the footnote is making this point again? Do we really need to quote the Linear Haskell paper 4 times in quick succession?}
+This section, mostly cribbed from \citet[Section 2.1]{LinearHaskell},
 describes our baseline approach, as released in GHC~9.0.
 
 Linear Haskell~\cite{LinearHaskell} adds a new type of functions,
