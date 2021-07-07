@@ -442,10 +442,10 @@ Our definition is based on the type of the value concerned:
 \begin{definition}[Consume exactly once]~ \label{def:consume}
 \begin{itemize}
 \item To consume a value of atomic base type (like |Int| or |Handle|) exactly once, just evaluate it.
-\item To consume a function exactly once, apply it to one argument, and consume its result exactly once.
-\item To consume a pair exactly once, pattern-match on it, and consume each component exactly once.
+\item To consume a function exactly once, apply it to one argument, and then consume its result exactly once.
+\item To consume a pair exactly once, pattern-match on it, and then consume each component exactly once.
 \item In general, to consume a value of an algebraic datatype exactly once, pattern-match on it,
-  and consume all its linear components exactly once.
+  and then consume all its linear components exactly once.
 \end{itemize}
 \end{definition}
 %
