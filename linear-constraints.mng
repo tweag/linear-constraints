@@ -937,7 +937,8 @@ current approach to type inference.
 \subsection{Multiplicities}
 \label{sec:multiplicities}
 
-Like in Linear Haskell~\cite{LinearHaskell} we make use of a
+Like in Linear Haskell % ~\cite{LinearHaskell}  \nw{I don't think we need to cite this again at this stage}
+we make use of a
 system of \emph{multiplicities}, which describe how
 many times a function consumes its input.  For our purposes, we need only the
 simplest system of multiplicity: that composed of only $[[{1}]]$ (representing
