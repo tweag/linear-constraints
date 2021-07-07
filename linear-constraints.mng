@@ -382,7 +382,8 @@ firstLine fp = do  {  pack' h <- openFile fp
 \end{code}
 The only changes from the unsafe version are that this version runs in the linear |IO| monad,
 and explicit |pack'| annotations are used to indicate the variables that require
-special treatment. (\Fref{sec:implicit-existentials}\nw{With |pack'| it's hard to argue that this code is simpler than the linear version.} suggests how we can get rid of
+special treatment. (\Fref{sec:implicit-existentials}
+suggests how we can get rid of
 the |pack'|, too.) Crucially, the resource representing the open file is a linear constraint,
 and so it longer needs to be passed around manually. 
 
