@@ -200,7 +200,7 @@ import GHC.Base
   \newtheorem{property}[theorem]{Property}
   
   \theoremstyle{acmdefinition}
-  \newtheorem{definition}[theorem]{definition}
+  \newtheorem{definition}[theorem]{Definition}
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
