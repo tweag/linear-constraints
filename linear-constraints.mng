@@ -1573,13 +1573,6 @@ the other branches too.
   Otherwise, the file handle's state will be unknown to the type system
   after the |case|.
 %
-  The reason this distinction is not necessary in a structural type
-  system can be expressed by the
-  equation $[[{omega.(C1&C2)}]] = [[{omega.C1 * omega.C2}]]$. In other
-  words, in an unrestricted context, linear constraints do not
-  need two kinds of conjunctions.\jp{Looks like a wrong explanation to me. In the structural case we'll
-    generate an omega constraint for each branch of a case. So we may get \([[(omega.C1)&(omega.C2)]] \). This constraint
-    can be strengthened to \([[{omega.C1 * omega.C2}]]\). And in the structural case this is strengthening is not loosing any precision.  }
 \paragraph{Implications} The introduction of constraints local to a
   definition (\rref{G-LetSig}) corresponds to
   emitting an implication constraint.
