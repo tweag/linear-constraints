@@ -2092,24 +2092,24 @@ related to constraints. Of these, we point out two that require some extra care.
 Haskell's type classes can have \emph{superclasses}, which place constraints on
 all of the instances of that class. For example, the |Ord| class is defined as
 \begin{code}
-class Eq a => Ord a where
+class constraint(Eq a) => constraint(Ord a) where
   ...
 \end{code}
 which means that every orderable type must also support equality. Such
 superclass declarations extend the entailment relation: if we know that a type
 is orderable, we also know that it supports equality. This is troublesome if we
-have a linear occurrence of |Ord a|, because then using this entailment, we could
-conclude that a linear constraint (|Ord a|) implies an unrestricted constraint
-(|Eq a|), which violates \cref{lem:q:scaling-inversion}.
+have a linear occurrence of |constraint(Ord a)|, because then using this entailment, we could
+conclude that a linear constraint (|constraint(Ord a)|) implies an unrestricted constraint
+(|constraint(Eq a)|), which violates \cref{lem:q:scaling-inversion}.
 
-But even linear superclass constraints cause trouble. Consider a version of |Ord a|
-that has |Eq a| as a linear superclass.
+But even linear superclass constraints cause trouble. Consider a version of |constraint(Ord a)|
+that has |constraint(Eq a)| as a linear superclass.
 \begin{code}
-class Eq a =>. Ord a where
+class constraint(Eq a) =>. constraint(Ord a) where
   ...
 \end{code}
-Now, when given a linear |Ord a|, should we keep it as |Ord a|, or rewrite to
-|Eq a| using the entailment? Short of backtracking, the constraint solver would
+Now, when given a linear |constraint(Ord a)|, should we keep it as |constraint(Ord a)|, or rewrite to
+|constraint(Eq a)| using the entailment? Short of backtracking, the constraint solver would
 need to make a guess here, which \textsc{ghc} never does.
 
 To address both of these issues at once, we make the following rule: the
