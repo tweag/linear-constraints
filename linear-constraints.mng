@@ -697,7 +697,8 @@ Because the consumption of constraints is implicit, when there are
 several possible ways to consume a constraint, the particular order
 chosen will depend on the details of the constraint resolution
 algorithm. We do not want the semantics of programs to depend on this
-order, which would not be at home in a declarative specification of the type system.
+order, which would not be at home in a declarative specification of
+the type system.
 Consequently, if an
 \textsc{api} uses linear constraints, it must be designed to ensure that the
 runtime behaviour is not dependent on the order of constraint
@@ -730,10 +731,7 @@ readTwo h =  readLine h >>= \case pack' xs ->
 \end{code}
 If bind were not linear, the first occurrence of |readLine h| would
 not be able to consume the |constraint (Open h)| constraint
-linearly.\unsure{Arnaud: this is about the first linear arrow. The second
-  would simply lose all the benefits of linearity. The third one would
-  break the do notation (it's the functorial strength). We can link to
-  my blog post on the subject, possibly.}
+linearly.
 
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
@@ -1649,8 +1647,6 @@ We require the following property of the atomic-constraint solver:
 \item $[[(UCtx, LCtx_i) ||- pi.q * (emptyset, LCtx_o)]]$
 \end{enumerate}
 \end{property}
-\rae{That second part looks tautological. What is it saying? I think this is
-further motivation for making $[[||-]]$ concrete.}
 
 \subsubsection{Constraint solver algorithm}
 
@@ -1666,9 +1662,6 @@ presents the rules of the constraint solver.
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
-
-\csongor{Refer to lemma 5.2 here}
-\rae{Why?}
 
 \begin{itemize}
   \item The~\rref*{S-Mult} rule proceeds by solving one side of a
@@ -1779,11 +1772,12 @@ the first |useC| must use the unrestricted |constraint (C)|, while the
 second must use the linear |constraint (C)|. This assignment, however, would require
 the constraint solver to guess when solving the constraint from the first |useC|.
 Accordingly, in order to both avoid backtracking and to keep type inference
-independent of the order terms appear in the program text, |bad| is rejected.
-Our algorithm is thus not complete with respect to our specification.
-\rae{Say more about incompleteness? Say less? It would be nice to say more, ideally
-describing the exact way in which we are incomplete. Maybe it happens only when
-there is the same constraint in both contexts? Not sure.}
+independent of the order terms appear in the program text, |bad| is
+rejected.
+This introduces incompleteness with respect the entailment
+relation. We conjecture that this is the only source of
+incompleteness that we introduce beyond what is already in
+\textsc{ghc}~\cite[Section~6]{OutsideIn}.
 
 \section{Desugaring}
 \label{sec:desugaring}
