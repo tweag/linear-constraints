@@ -1416,13 +1416,11 @@ Thus, if $[[{C}]]$ is assumed linearly (and we have no other assumptions),
 then $[[{C*C}]]$ is not provable, while $[[{C&C}]]$ is.
 The intuition, here, is that in $[[{C1 & C2}]]$, only
 one of $[[{C1}]]$ or $[[{C2}]]$ will be eventually used. ``With'' constraints
-arise from separate branches in a $\kcase$-expression, inspiring the behaviour
-of this connective described here.
+arise from the branches in a $\kcase$-expression.
 
 The last form of wanted constraint $[[{C}]]$ is an implication $[[{pi.(Q=>C)}]]$.
 Proving $[[{pi.(Q=>C)}]]$ allows us to assume $[[{Q}]]$ linearly while proving $[[{C}]]$,
 a total of $[[{pi}]]$
-\nw{Missing colour, but I can't work this magic}
 times.
 These implications arise when we unpack an existential
 package that contains a linear constraint and also when checking a |let|-binding.
@@ -1446,7 +1444,6 @@ $$
 We define an entailment relation over wanteds in Figure~\ref{fig:wanted:entailment}.
 Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, as
 there is no way to assume the more elaborate $[[{C}]]$.
-  \rae{Weird colors here. If we're dropping colors, not worth fixing.}
 \begin{figure}
   \maybesmall
   \centering
@@ -1462,7 +1459,7 @@ constraints, and assumptions are created directly from the
 program text\footnote{Allowing the full wanted-constraint syntax
 in assumptions is the subject of work by \citet{quantified-constraints}.}.
 
-Before we move on to constraint generation proper, let us prove a few
+Before we move on to constraint generation proper, let us highlight a few
 technical, yet essential, lemmas about the wanted-constraint
 entailment relation.
 
