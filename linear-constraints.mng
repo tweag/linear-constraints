@@ -2449,10 +2449,9 @@ avoid backtracking for speed and predictability.
 
 The recent addition of quantified
 constraints~\cite{quantified-constraints} extends type class
-resolution to Hereditary Harrop \rae{citation?} programs. A generalisation of the
+resolution to Hereditary Harrop~\cite{hereditary-harrop} programs. A generalisation of the
 Hereditary Harrop fragment to linear logic, described by~\citet{hh-ll},
-is the foundation of the Lolli language \rae{citation? Arnaud: I don't
-know if there are better citation than Hodas\&Miller, will look}. Together with this fragment,
+is the foundation of the Lolli language~\cite{hodas-thesis-lolli}. Together with this fragment,
 the authors coin the notion of \emph{uniform} proof. A fragment where
 uniform proofs are complete supports goal-oriented proof search, like
 Prolog does.
