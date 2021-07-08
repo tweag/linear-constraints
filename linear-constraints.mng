@@ -73,7 +73,7 @@ import GHC.Base
 %format =>. = "\Lolly "
 %format poly_arrow = "\mathop{\to_{m}}"
 %format .<= = "\RLolly"
-%format <== = "\Leftarrow"
+%format <== = "\RFatArrow"
 %format IOL = "IO_L"
 %format . = "."
 %format exists = "\exists"
@@ -178,6 +178,7 @@ import GHC.Base
   \newcommand{\Lolly}{\constraintop{=\kern-1.1ex \lollycirc}}
   \newcommand{\FatArrow}{\constraintop{\Rightarrow}}
   \newcommand{\RLolly}{\mathop{\constraintfont \circledless}}
+  \newcommand{\RFatArrow}{\constraintop{\rtimes}}
   \newcommand{\qtensor}{\constraintop{\otimes}}
 
   % language keywords
@@ -752,7 +753,7 @@ enforces correct deallocation of memory.  Our approach, in the style of Rust,
 is to use a
 linear constraint to represent \emph{ownership} of a memory location.
 We use a linear constraint
-|Own n|, such that a program which has an |constraint(Own n)| constraint in
+|constraint(Own n)|, such that a program which has an |constraint(Own n)| constraint in
 context is responsible of deallocating the memory associated
 with a memory location |n|.  Because of linearity, this constraint
 must be consumed exactly once, so it is guaranteed that the memory
@@ -782,14 +783,14 @@ read access to the reference. Rust disallows mutable aliasing for the same
 reason: ensuring that writes cannot be observed through other references is what
 allows treating mutable structures as ``pure''.
 Therefore, writing also requires the read capability.  We
-systematically use the |RW| set of constraints, defined below, instead of
-|Write|.
+systematically use the |constraint(RW)| set of constraints, defined below, instead of
+|constraint(Write)|.
 
 > type constraint (RW n) = constraint ((Read n, Write n))
 
 Likewise, a location cannot be deallocated if any part of the program
-has a read or write reference to it, so all 3 capabilities are
-needed for ownership. So we use |O|, instead of |Own|, defined thus:
+has a read or write reference to it, so all three capabilities are
+needed for ownership. So we use |constraint(O)|, instead of |constraint(Own)|, defined thus:
 
 > type constraint (O n) = constraint ((Read n, Write n, Own n))
 
@@ -807,13 +808,13 @@ following function.
 The reference is made available in a function which we call the
 \emph{scope} of the reference. The return type of the scope is,
 crucially, |Ur b|.  Indeed, if we would allow returning any type |b|,
-then the |O n| constraint could be embedded in |b|, and therefore
+then the |constraint(O n)| constraint could be embedded in |b|, and therefore
 escape from the scope.
-This would defeat the point of |O n| be a linear constraint, and
+This would defeat the point of |constraint(O n)| be a linear constraint, and
 no longer guarantee that the reference has a unique owner.
 % JP: This is because newRef can be called in unrestricted contexts. Not enough space/reader attention to explain that.
 
-To read a reference, a simple |Read| constraint is demanded, and
+To read a reference, a simple |constraint(Read)| constraint is demanded, and
 immediately returned. Writing is handled similarly.
 
 > readRef :: constraint (Read n) =>. AtomRef a n -> Ur a .<= constraint (Read n)
@@ -821,7 +822,7 @@ immediately returned. Writing is handled similarly.
 
 Note that the above primitives do not need to explicitly declare
 effects in terms of a monad or another higher-order effect-tracking
-device: because the |RW n| constraint is linear, passing it suffices
+device: because the |constraint(RW n)| constraint is linear, passing it suffices
 to ensure proper sequencing of effects concerning location |n|.
 This is ensured by the combination of the language and library
 behaviour. For example, here is how to write two values (|a| and |b|) to the same reference |x|:
@@ -834,11 +835,11 @@ The language semantics forces the programmer to do case analysis to
 access the returned |Write| constraints, and |writeRef| must be strict
 in the |Write| constraint that it consumes.
 
-Deallocation consumes all linear constraints associated with |O n|.
+Deallocation consumes all linear constraints associated with |constraint(O n)|.
 
 > freeRef :: constraint (O n) =>. AtomRef a n -> ()
 
-As an alternative to freeing the reference, one could transfer control
+Instead of deallocating the reference, one could transfer control
 of the memory location to the garbage collector. This operation is
 sometimes called ``freezing'':
 
@@ -900,17 +901,17 @@ so we provide |lendPArrayElt|:
 The |lendPArrayElt a i k| primitive lends access to the reference at index |i| in
 |a|, to a scope function |k| (in Rust terminology, the scope
 ``borrows'' an element of the array). Here, the return type of the scope, |r|,
-is not in |Ur|: since the scope must return the |RW p| constraint, it is
+is not in |Ur|: since the scope must return the |constraint(RW p)| constraint, it is
 not possible to leak it out by packing it into |r|, so it's not necessary to
 wrap the result in |Ur|.
-Crucially, with this \textsc{api}, |RW n| and |RW p| are never simultaneously
-available. The following function would not be sound:
+Crucially, with this \textsc{api}, |constraint(RW n)| and |constraint(RW p)| are never simultaneously
+available. The following function, on the other hand, would not be sound:
 
 > extractEltWrong  :: constraint (RW n) =>. PArray a n -> Int -> exists p. Ur (a p) .<= constraint ((RW n, RW p))
 
 Indeed, when called from a context where the program owns |n|,
-|n| could immediately be deallocated, even though |RW
-p| would remain available, letting us write to freed memory. For the same reason,
+|n| could immediately be deallocated, even though |constraint(RW
+p)| would remain available, letting us write to freed memory. For the same reason,
 gaining read access to an element needs to be done using a
 scoped \textsc{api} as well:
 
@@ -923,11 +924,10 @@ following primitive:
 
 > freezePArray :: constraint (O n) =>. PArray a n -> () <== constraint (Read n)
 
-After |freezePArray n|, we have unrestricted read access to |n| (and
+Where |<==| is an unrestricted variant of |.<=|. That is, after |freezePArray n|, we have unrestricted read access to |n| (and
 any element of |n|), as expected.
 
 > readArray :: constraint (Read n) => PArray a n -> Int -> a n
-
 
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
