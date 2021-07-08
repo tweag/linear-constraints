@@ -50,11 +50,17 @@ UCtx {{ tex \ottnt{U} }} :: 'SetCt_' ::= {{ com Set of atomic constraints }}
 | q               ::   :: One
 | UCtx \u LCtx      ::   :: Forget {{ tex [[UCtx]] \cup [[LCtx]] }}
 
+UCtxF :: 'SetCt_' ::= {{ com Formatted set of atomic constraints }}
+| UCtx            ::   :: Formatted   {{ tex \constraintfont{[[UCtx]]} }}
+
 LCtx {{ tex \ottnt{L} }} :: 'MultisetCt_' ::= {{ com Multiset of atomic constraints }}
 | emptyset        ::   :: Empty
 | LCtx1 \u LCtx2  ::   :: Union   {{ tex [[LCtx1]] \uplus [[LCtx2]] }}
 | q               ::   :: One
 | LCtx1 , LCtx2   ::   :: Append
+
+LCtxF :: 'MultisetCt_' ::= {{ com Formatted multiset of atomic constraints }}
+| LCtx            ::   :: Formatted   {{ tex \constraintfont{[[LCtx]]} }}
 
 Q :: 'Ct_' ::=  {{ com Constraints }}
 | ( UCtx , LCtx )    ::   :: Sets
@@ -67,6 +73,9 @@ Q :: 'Ct_' ::=  {{ com Constraints }}
 | ( Q )              :: S :: Paren
 % Empty case
 | Top                ::   :: Top
+
+qF :: 'ACt_' ::= {{ com Formatted atomic constraints }}
+| q              ::   :: Formatted   {{ tex \constraintfont{[[q]]} }}
 
 QF :: 'Ct_' ::= {{ com Formatted constraints }}
 | Q              ::   :: Formatted   {{ tex \constraintfont{[[Q]]} }}
@@ -297,10 +306,10 @@ formula :: formula_ ::=
 | x \notin G                      ::   :: NotInCtx
 | binding \in G                   ::   :: binding_in
 | G1 = G2                         ::   :: ctx_equal
-| LCtx1 \subseteq LCtx2           ::   :: subset
-| q \in UCtx                      ::   :: q_in_UCtx
-| q \notin UCtx                   ::   :: q_notin_UCtx
-| q \notin LCtx                   ::   :: q_notin_LCtx
+| LCtxF1 \subseteq LCtxF2         ::   :: subset
+| qF \in UCtxF                    ::   :: q_in_UCtx
+| qF \notin UCtxF                 ::   :: q_notin_UCtx
+| qF \notin LCtxF                 ::   :: q_notin_LCtx
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Parsing rules  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
