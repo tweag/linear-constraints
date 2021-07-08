@@ -74,6 +74,7 @@ import GHC.Base
 %format poly_arrow = "\mathop{\to_{\multiplicityfont{m}}}"
 %format .<= = "\RLolly"
 %format <== = "\RFatArrow"
+%format omega = "\omega"
 %format IOL = "IO_L"
 %format . = "."
 %format exists = "\exists"
@@ -925,10 +926,16 @@ scoped \textsc{api} as well:
 Finally, we can freeze arrays, using the
 following primitive:
 
-> freezePArray :: constraint (O n) =>. PArray a n -> () <== constraint (Read n)
+> freezePArray :: constraint (O n) =>. PArray a n -> () .<= constraint (omega ⋅ (Read n))
 
-Where |<==| is an unrestricted variant of |.<=|. That is, after |freezePArray n|, we have unrestricted read access to |n| (and
-any element of |n|), as expected.
+Where |constraint(omega ⋅ (Read n))| means that the returned constraint is not linear. That is, after |freezePArray n|, we have unrestricted read access to |n| (and
+any element of |n|), as expected. We describe this syntax in more
+details in the next
+section, where, similarly, we shall treat |constraint(Read n) =>| as
+an abbreviation for |constraint(omega ⋅ (Read n)) =>.|.
+
+With an unrestricted |Read n| capability, we can read from the array
+more directly with the following primitive
 
 > readArray :: constraint (Read n) => PArray a n -> Int -> a n
 
