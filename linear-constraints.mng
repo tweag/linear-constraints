@@ -1827,8 +1827,8 @@ Section~\ref{sec:qualified-type-system}, but without constraints. That is, the e
 %
 Following $λ^q$, we assume the existence of the following data types:
 \begin{itemize}
-\item $[[{t1 * t2}]]$ with sole constructor
-  $[[ (,) : forall a b. a ->_1 b ->_1 a * b ]]$. We will write $[[(e1,
+\item $[[{t1 ** t2}]]$ with sole constructor
+  $[[ (,) : forall a b. a ->_1 b ->_1 a ** b ]]$. We will write $[[(e1,
   e2)]]$ for $[[{(,) e1 e2}]]$.
 \item $[[{unit}]]$ with sole constructor $[[() : unit]]$.
 \item $[[{Ur t}]]$ with sole constructor $[[ Ur : forall a. a ->_omega
@@ -1951,7 +1951,7 @@ $$
     [[{Ev(1.q)}]] & = & [[{Ev(q)}]] \\
     [[{Ev(omega.q)}]] & = & [[{Ur (Ev(q))}]] \\
     [[{Ev(Empty)}]] & = & [[{unit}]] \\
-    [[{Ev(Q1 * Q2)}]] & = & [[{Ev(Q1) * Ev(Q2)}]]
+    [[{Ev(Q1 * Q2)}]] & = & [[{Ev(Q1) ** Ev(Q2)}]]
   \end{array}
 \right.
 $$
@@ -1965,6 +1965,7 @@ $$
 %format G = "[[{G}]]"
 %format G1 = "[[{G1}]]"
 %format G2 = "[[{G2}]]"
+%format Q = "[[{Q}]]"
 %format Q1 = "[[{Q1}]]"
 %format Q2 = "[[{Q2}]]"
 %format * = "[[*]]"
@@ -2573,7 +2574,7 @@ $[[{urify(e)}]]$ when it can be easily inferred from the context.
 
 
 \begin{figure}
-  \maybesmall
+  \small
   \centering
 
 %{
@@ -2590,6 +2591,7 @@ $[[{urify(e)}]]$ when it can be easily inferred from the context.
 %format ListOf (b) = "\overline{" b "}"
 %format Of (w) (a) (b) = a"\mathop{:_{" w "}}"b
 %format OneOf (a) (b) = a"\mathop{:_{1}}"b
+%format Q = "[[{Q}]]"
 %format Q1 = "[[{Q1}]]"
 %format Q2 = "[[{Q2}]]"
 %format Sub t as bs = t "[" as "/" bs "]"

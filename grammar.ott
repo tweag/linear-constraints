@@ -123,7 +123,7 @@ t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com 
   {{ tex [[Ev]](\constraintfont{[[Q]]}) }}
 | Ur t                   ::   :: Unrestricted
 | unit                   ::   :: Unit   {{ tex \mathbf{1} }}
-| t1 * t2                ::   :: Prod
+| t1 ** t2               ::   :: Prod
 | t1 o- t2               ::   :: DsCarry
 % used for talking about Ds(_) as a family
 | Hole                   :: S :: Hole {{ tex \_ }}
@@ -264,6 +264,7 @@ terminals :: 'terminals_' ::=
 | &           ::   :: With    {{ tex \aand }}
 | &&          ::   :: BigWith {{ tex \bigaand }}
 | *           ::   :: Tensor  {{ tex \qtensor }}
+| **          ::   :: TypeTensor {{ tex \otimes }}
 | |-          ::   :: entails {{ tex \vdash }}
 | |->         ::   :: infer {{ tex \vdashi }}
 | |-s         ::   :: solve {{ tex \vdashs }}
@@ -276,7 +277,7 @@ terminals :: 'terminals_' ::=
 | exists      ::   :: Exists  {{ tex \exists }}
 | =o          ::   :: Lolli   {{ tex \Lolly }}
 | o=          ::   :: illoL   {{ tex \RLolly }}
-| o-          ::   :: illol   {{ tex \qtensor }}
+| o-          ::   :: illol   {{ tex \otimes }}
 | \in         ::   :: In      {{ tex \in }}
 | \notin      ::   :: NotIn   {{ tex \notin }}
 | omega       ::   :: Many    {{ tex \omega }}
