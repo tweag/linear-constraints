@@ -568,7 +568,7 @@ introduce\footnote{There is a variety of ways existential types can
   24]{tapl}.
   However a recent publication by \citet{existentials} works out an
   approach which could make linear constraint easier to use, as we
-  discuss in \Fref{sec:implicit-existentials}]}
+  discuss in \Fref{sec:implicit-existentials}.}
   a type construction |exists a1 ... an. t .<= constraint(Q)|,
 where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
 paired with the type |t|.\footnote{We will freely
