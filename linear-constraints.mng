@@ -1346,16 +1346,7 @@ We can make this simplification for two reasons:
 \begin{itemize}
 \item We do not formalize type equality constraints, and our implementation
   in \textsc{ghc} does not allow equality constraints to be
-  linear\footnote{\textsc{Ghc} actually uses (at least) two forms of
-equality constraint: lifted equality, used by the programmer; and unlifted
-equality, used internally~\cite{deferred-type-errors}.
-The |~| constraints in Haskell code are lifted
-ones, where lifted equality is actually just a fairly ordinary class that
-has unlifted equality as a superclass constraint. Our approach to dealing
-with linear constraints around equality is simply to have the superclass
-equality constraint of |~| be unrestricted. In that way, even if we have
-a linear |~| constraint, the actual internal equality will still be 
-unrestricted.}. Indeed, a typical treatment of unification
+  linear.\csongor{Actually it does, but they are inert.} Indeed, a typical treatment of unification
   would be
   unsound for linear equalities, because it reuses the same
   equality many times (or none at all). Linear equalities make sense
