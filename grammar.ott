@@ -33,7 +33,7 @@ parsable :: 'Parsable_' ::=  {{ com Toplevel productions allowed in Tex filterin
 | CF  :: :: cf
 | t  :: :: t
 | ts  :: :: ts
-| pi  :: :: pi
+| piF  :: :: pi
 | theta  :: :: theta
 | e  :: :: e
 | xs  :: :: xs
@@ -101,7 +101,7 @@ t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com 
 | exists as . t          ::   :: ExistsNested
   {{ tex [[exists]] [[as]]. [[t]] }}
 | ts1 -> t2              :: S :: NestedUrFunction
-| ts1 ->_ pis t2           :: S :: Function  {{ tex [[ts1]] \to_{[[pis]]} [[t2]] }}
+| ts1 ->_ pisF t2           :: S :: Function  {{ tex [[ts1]] \to_{[[pisF]]} [[t2]] }}
 | T ts                   ::   :: TyConApp
 | t [ theta ]            :: M :: Subst
 | ( t )                  :: S :: Paren
@@ -145,6 +145,9 @@ pis {{ tex \overline{\pi} }} :: 'Mults_' ::= {{ com Lists of multiplicities }}
 | empty                  ::   :: None
 | pi                     ::   :: One
 | pis1 , .... , pisi      ::   :: Many
+
+pisF :: 'Mults_' ::= {{ com Lists of multiplicities formatted }}
+| pis   ::   :: Formatted {{ tex \multiplicityfont{[[pis]]} }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Substitutions  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -71,7 +71,7 @@ import GHC.Base
 %format ->. = "⊸"
 %format => = "\FatArrow "
 %format =>. = "\Lolly "
-%format poly_arrow = "\mathop{\to_{m}}"
+%format poly_arrow = "\mathop{\to_{\multiplicityfont{m}}}"
 %format .<= = "\RLolly"
 %format <== = "\RFatArrow"
 %format IOL = "IO_L"
@@ -81,6 +81,7 @@ import GHC.Base
 %format pack = "\kpack"
 %format pack' = "\kpack!"
 %format constraint (c) = "\constraintfont{" c "}"
+%format multiplicity (p) = "\multiplicityfont{" p "}"
 %
 %format a1
 %format a_n
@@ -944,10 +945,12 @@ current approach to type inference.
 Like in Linear Haskell % ~\cite{LinearHaskell}  \nw{I don't think we need to cite this again at this stage}
 we make use of a
 system of \emph{multiplicities}, which describe how
-many times a function consumes its input.  For our purposes, we need only the
+many times a function consumes its input. As multiplicities are
+central to our constraint calculus, we will colour them in
+\multiplicityfont{blue} like constraints. For our purposes, we need only the
 simplest system of multiplicity: that composed of only $[[{1}]]$ (representing
 linear functions) and $[[{omega}]]$ (representing
-regular Haskell functions). \rae{Should these be colored? They're not.}
+regular Haskell functions).
 $$
 \begin{array}{lcll}
   [[{pi}]], [[{rho}]] & \bnfeq & [[{1}]] \bnfor [[{omega}]] & \text{Multiplicities}
@@ -988,7 +991,7 @@ arguments.
 Multiplicity polymorphism of regular function arguments is used to avoid
 duplicating the definition of higher-order functions. The prototypical example
 is |map :: (a poly_arrow b) -> [a] poly_arrow [b]|,
-where |poly_arrow| is the notation for a function arrow of multiplicity |m|.
+where |poly_arrow| is the notation for a function arrow of multiplicity |multiplicity(m)|.
  First-order functions, on the other hand, do not need multiplicity
 polymorphism, because
 linear functions can be $\eta$-expanded into unrestricted function as
@@ -1062,7 +1065,7 @@ $$
 \end{array}
 $$
 In practice, we do not need to concern ourselves with the
-concrete representation of $[[Q]]$ as a pair of sets, instead
+concrete representation of $[[{Q}]]$ as a pair of sets, instead
 using the operations defined just above.
 
 \begin{figure}
@@ -1264,7 +1267,7 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   For example, the bind combinator for |IOL| (Section~\ref{sec:introduction})
   requires linear arrows: |(>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b|.
 
-  Furthermore, the linearity of arrows interacts in interesting
+  Indeed, the linearity of arrows interacts in interesting
   ways with linear constraints: If $[[f : a ->_omega b]]$ and
   $[[x : 1.q =o a]]$, then calling $[[{f x}]]$ would actually use $[[{q}]]$
   many times. We must make sure it is impossible to derive
