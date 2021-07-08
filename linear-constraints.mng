@@ -69,6 +69,7 @@ import GHC.Base
 %include polycode.fmt
 %if style == poly
 %format ->. = "⊸"
+%format => = "\FatArrow "
 %format =>. = "\Lolly "
 %format poly_arrow = "\mathop{\to_{m}}"
 %format .<= = "\RLolly"
@@ -175,6 +176,7 @@ import GHC.Base
   \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
   \newcommand{\lollycirc}{\raisebox{-0.255ex}{\scalebox{1.4}{$\circ$}}}
   \newcommand{\Lolly}{\constraintop{=\kern-1.1ex \lollycirc}}
+  \newcommand{\FatArrow}{\constraintop{\Rightarrow}}
   \newcommand{\RLolly}{\mathop{\constraintfont \circledless}}
   \newcommand{\qtensor}{\constraintop{\otimes}}
 
@@ -500,22 +502,24 @@ closeFile  :: constraint (Open h) =>. Handle h -> IOL ()
 
 Consider the Haskell function |show|:
 \begin{code}
-show :: Show a => a -> String
+show :: constraint (Show a) => a -> String
 \end{code}
 In addition to the function arrow |->|, common to all functional
 programming languages, the type of this function features a constraint arrow |=>|.
 Everything to the
-left of a constraint arrow is called a \emph{constraint}. Here |Show a| is a
+left of a constraint arrow is called a \emph{constraint}, and will be
+highlighted in \constraintfont{blue} throughout the paper. Here
+|constraint (Show a)| is a
 class constraint.
 
 Constraints are handled implicitly by
 the typechecker. That is, if we want to |show| the integer |n :: Int| we would write |show
-n|, and the typechecker is responsible for proving that |Show Int| holds, without
+n|, and the typechecker is responsible for proving that |constraint (Show Int)| holds, without
 intervention from the programmer.
 
 For our |readLine| example, the implicit argument is the state of a handle |h|.
-This can be managed as a constraint |Open h|, which indicates that the
-file associated with the handle is open. That is, the constraint |Open h|
+This can be managed as a constraint |constraint(Open h)|, which indicates that the
+file associated with the handle is open. That is, the constraint |constraint(Open h)|
 is provable iff the file associated with |h| is open.
 This constraint is linear: it is consumed (that is, used as an assumption
 in a function call) exactly once.
@@ -523,7 +527,7 @@ In order to manage linearity implicitly, this paper introduces a
 linear constraint arrow (|=>.|), much like Linear Haskell introduces a linear
 function arrow (|->.|). Constraints to the left of a linear constraint
 arrow are \emph{linear constraints}.
-Using the linear constraint |Open h|, we can give
+Using the linear constraint |constraint(Open h)|, we can give
 the following type to |closeFile|:
 
 \begin{code}
@@ -589,15 +593,16 @@ readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint 
 %% handle. Existentially quantified types are paired with a constraint |Q|
 %% which we understand as being returned by functions.
 
-Haskell does not have an existential quantifier. However, one can
-be encoded as a \textsc{gadt}. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
+Haskell does not have an existential quantifier. However,
+existentially quantified types can
+be encoded as a \textsc{gadt}s. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
 be implemented as
 \begin{code}
 data PackHandle where
   Pack :: constraint (Open h) =>. Handle h -> PackHandle
 \end{code}
-In the implementation of our ideas in \textsc{ghc}, packed linear constraints
-piggy-back on the standard \textsc{gadt} syntax. Correspondingly, existential types are
+In our implementation (\Fref{sec:implementation}), packed linear constraints
+piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
 
 When pattern-matching on a |pack| constructor, all existentially quantified
@@ -664,7 +669,7 @@ appears as an argument to a linear function (whose result is itself consumed lin
 \subsubsection{Overusing}
 \label{sec:overusing}
 
-Finally, consider the following program, which should be rejected:
+Finally, consider the following program, which is rejected:
 \begin{code}
 overusing :: constraint (C) =>. (Int, Int)
 overusing = (useC, useC)
@@ -699,7 +704,7 @@ I would want an example.}
 The file-handling example discussed in sections~\ref{sec:linear-types}
 and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
 Compared to the traditional |IO| monad, the
-type of the monadic operations |>>=| and |return| are changed to
+type of the monadic operations |>>=| (aka \emph{bind})and |return| are changed to
 use linear arrows.
 %
 \begin{code}
@@ -717,8 +722,12 @@ readTwo h =  readLine h >>= \case pack' xs ->
              readLine h >>= \case pack' ys ->
              return (pack' (xs, ys))
 \end{code}
-If bind were not linear, the occurrence of |readLine h| would
-not be able to consume the |constraint (Open h)| constraint linearly.
+If bind were not linear, the first occurrence of |readLine h| would
+not be able to consume the |constraint (Open h)| constraint
+linearly.\unsure{Arnaud: this is about the first linear arrow. The second
+  would simply lose all the benefits of linearity. The third one would
+  break the do notation (it's the functorial strength). We can link to
+  my blog post on the subject, possibly.}
 
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
