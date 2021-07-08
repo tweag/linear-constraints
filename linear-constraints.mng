@@ -182,9 +182,9 @@ import GHC.Base
   \newcommand{\RFatArrow}{\constraintop{\rtimes}}
   \newcommand{\qtensor}{\constraintop{\otimes}}
   %% Desugarer notations
-  \newcommand{\dsterm}[2]{\mathbf{Ds}_{#1}(#2)}
-  \newcommand{\dstype}[1]{\mathbf{Ds}(#1)}
-  \newcommand{\dsevidence}[1]{\mathbf{Ev}(#1)}
+  \newcommand{\dsterm}[2]{\llbracket #2 \rrbracket_{#1}}
+  \newcommand{\dstype}[1]{\llbracket #1 \rrbracket}
+  \newcommand{\dsevidence}[1]{\llbracket #1 \rrbracket^{\mathbf{ev}}}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
