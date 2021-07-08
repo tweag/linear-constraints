@@ -2269,48 +2269,48 @@ Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
 make linear constraints more usable.
 
-One challenge if existential packing and unpacking are inferred is that
-the order in which a program is executed might become ambiguous.
-Picking up the example from Section~\ref{sec:atomic-references},
-consider this function:
+% One challenge if existential packing and unpacking are inferred is that
+% the order in which a program is executed might become ambiguous.
+% Picking up the example from Section~\ref{sec:atomic-references},
+% consider this function:
 
-> writeTwo :: constraint (RW n) =>. AtomRef a n -> a -> a -> () .<= constraint (RW n)
-> writeTwo ref val1 val2 =  let  unit1 = writeRef ref val1
->                                unit2 = writeRef ref val2 in
->                           ()
+% > writeTwo :: constraint (RW n) =>. AtomRef a n -> a -> a -> () .<= constraint (RW n)
+% > writeTwo ref val1 val2 =  let  unit1 = writeRef ref val1
+% >                                unit2 = writeRef ref val2 in
+% >                           ()
 
-In understanding this code, we first must worry about laziness. Haskell's |let|
-is lazy, meaning that the calls to |writeRef| might never be evaluated, if nothing
-forces them. Surprisingly, whether or not these get evaluated depends on the types
-that are inferred for |unit1| and |unit2|.
+% In understanding this code, we first must worry about laziness. Haskell's |let|
+% is lazy, meaning that the calls to |writeRef| might never be evaluated, if nothing
+% forces them. Surprisingly, whether or not these get evaluated depends on the types
+% that are inferred for |unit1| and |unit2|.
 
-One possibility is
-|unit1, unit2 :: constraint (RW n) =>. () .<= constraint (RW n)|. With this inferred type,
-the calls to |writeRef| are never evaluated: the provided |constraint (RW n)| is just
-packed with the |()| in the result, ignoring the two |unit|s.
+% One possibility is
+% |unit1, unit2 :: constraint (RW n) =>. () .<= constraint (RW n)|. With this inferred type,
+% the calls to |writeRef| are never evaluated: the provided |constraint (RW n)| is just
+% packed with the |()| in the result, ignoring the two |unit|s.
 
-Another possibility is |unit1, unit2 :: ()|. With this inferred type, both |writeRef|s
-must consume and re-produce the |constraint (RW n)| constraint. Because the produced
-constraint is used, the |writeRef| call must be evaluated (so it can produce that |constraint (RW n)|
-constraint), and the reference |ref| will be updated. However, we still do not
-know the order in which the |writeRef|s will be evaluated: perhaps |unit1| consumes
-the |constraint (RW n)| produced by |unit2|, forcing the |writeRef|s in the
-opposite order to how they are written.
+% Another possibility is |unit1, unit2 :: ()|. With this inferred type, both |writeRef|s
+% must consume and re-produce the |constraint (RW n)| constraint. Because the produced
+% constraint is used, the |writeRef| call must be evaluated (so it can produce that |constraint (RW n)|
+% constraint), and the reference |ref| will be updated. However, we still do not
+% know the order in which the |writeRef|s will be evaluated: perhaps |unit1| consumes
+% the |constraint (RW n)| produced by |unit2|, forcing the |writeRef|s in the
+% opposite order to how they are written.
 
-This is disappointing: we cannot have type inference tell us what order
-our program is to be evaluated. One solution is to reject ambiguous programs
-like |writeTwo|. This could be achieved by changing \rref{Atom-OneL} of
-Figure~\ref{fig:simpl-solver} to require that the desired constraint
-has precisely one matching assumption. Then, when there is any ambiguity,
-we simply reject. Would this be too restrictive in practice? A middle ground
-might be to track (in our list of linear assumptions) when we enter a more
-local scope (this is actually already done by \textsc{ghc}), and reject only
-programs with multiple identical assumptions in the same local scope.
+% This is disappointing: we cannot have type inference tell us what order
+% our program is to be evaluated. One solution is to reject ambiguous programs
+% like |writeTwo|. This could be achieved by changing \rref{Atom-OneL} of
+% Figure~\ref{fig:simpl-solver} to require that the desired constraint
+% has precisely one matching assumption. Then, when there is any ambiguity,
+% we simply reject. Would this be too restrictive in practice? A middle ground
+% might be to track (in our list of linear assumptions) when we enter a more
+% local scope (this is actually already done by \textsc{ghc}), and reject only
+% programs with multiple identical assumptions in the same local scope.
 
-The issues here---similar to those raised in Section~\ref{sec:let-generalisation}---have
-potential solutions, but the precise way forward is best informed by
-experience, as users begin to adopt these features and we get a better
-sense for prominent patterns and how our choices should be tuned.
+% The issues here---similar to those raised in Section~\ref{sec:let-generalisation}---have
+% potential solutions, but the precise way forward is best informed by
+% experience, as users begin to adopt these features and we get a better
+% sense for prominent patterns and how our choices should be tuned.
 
 \section{Related work}
 \label{sec:related-work}
