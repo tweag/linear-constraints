@@ -2043,7 +2043,13 @@ Thanks to the desugaring machinery, the semantics of a language with linear
 constraints can be understood in terms of a simple core language with linear
 types, such as $λ^q$, or indeed, \textsc{ghc} Core.
 
-\section{Implementation}
+\section{Integrating into \textsc{ghc}}
+
+One of the guiding principles behind our design was ease of integration with
+modern Haskell. In this section we describe some of the particulars of adding
+linear constraints to \textsc{ghc}.
+
+\subsection{Implementation}
 \label{sec:implementation}
 
 We have written a prototype implementation of linear constraints on top of \textsc{ghc} 9.1, a version that already
@@ -2060,46 +2066,16 @@ of term variables. We simply modified the scaling function to capture all the
 generated constraints and re-emit a scaled version of them -- a fairly local
 change.
 
-The constraint solver maintains a set of given constraints (the \emph{inert set} in \textsc{ghc} jargon),
-which corresponds to the $[[{UCtx}]]$ and $[[{LCtx}]]$ contexts in our solver
-judgements in Section~\ref{sec:constraint-solver}. A property of the inert set
-is that constraints contained in it do not interact pairwise. These interactions are
-dictated by the constraint domain. For example, equality constraints interact
-with other constraints by applying a substitution.
-
-The treatment of implication constraints is of particular interest.
-Implications, by their nature, introduce assumptions which do not necessarily
-hold in the outer context; therefore, recording these assumptions in the inert
-set is a destructive operation. To ensure proper scoping, \textsc{ghc} creates a fresh
-copy of the inert set for each nested implication that it solves, so these
-destructive operations do not leak out. We modify the inert set so that for each
-constraint stored in it, the level (or depth) of the implication is recorded
-alongside it. Each interaction with nested assumptions (which might give rise to
-additional derived givens) is recorded at the appropriate level and
-multiplicity (decomposing a constraint tuple into its constituent parts is done
-by the simplifier, which must now record the multiplicities of the components).
-
-Atomic wanteds are then solved by finding a matching given in the inert set (or
-a top-level given, which is not relevant to linear constraints). When a linear
-given is used to solve a linear wanted, our prototype removes the given from the
-inert set so it can not be used again. Before, the inert set only held a single
-copy of each given, but now it must hold multiple copies of linear givens,
-together with their implication level. When solving an atomic wanted, the
-matching given with the largest implication level (i.e. the innermost given) is
-selected, as per the \rref*{Atom-OneL} rule.
-
-When an implication is finally solved, we must check that every linear
-constraint introduced in this implication was consumed, which is done by
-checking that the level of every linear constraint in the inert set is less than
-the implication.
-
-When a linear equality constraint is encountered, it is automatically promoted
-to an unrestricted one and handled accordingly. \rae{We have decided not to do this.} This may happen in many
-different scenarios, as the entailment relation of \textsc{ghc}'s constraint domain does
-produce many equalities, and thus we need to ensure they are made
-unrestricted before interacting with the inert set. \textsc{ghc} Core already represents
-the equality constraint as a boxed type, so we can simply modify it to store an
-unrestricted payload.
+The constraint solver maintains a set of given constraints (the \emph{inert set}
+in \textsc{ghc} jargon), which corresponds to the $[[{UCtx}]]$ and $[[{LCtx}]]$
+contexts in our solver judgements in Section~\ref{sec:constraint-solver}. When
+the solver goes under an implication, the assumptions of the implication are
+added to set of givens. When a new given is added, we record the \emph{level} of
+the implication (how many implications deep the constraint arises from) along
+with the constraint. This is to ensure that in case there are multiple matching
+givens, the constraint solver selects the innermost one
+(in~\cref{sec:constraint-solver} we use an ordered list of linear assumptions
+for this purpose).
 
 As constraint solving proceeds, the compiler pipeline constructs a term in an
 typed language
@@ -2110,6 +2086,60 @@ annotated, Core has decidable typechecking which is useful in sanity
 checking modifications to the compiler. Thus, the soundness of our
 implementation is verified by the Core typechecker, which already supports
 linearity.
+
+\subsection{Interaction with other features}
+
+Since constraints play an important role in \textsc{ghc}'s type system, we must
+pay close attention to the interaction of linearity with other language features
+related to constraints. Of these, we point out two that require some extra care.
+
+\subsubsection{Superclasses}
+
+Haskell's type classes can have \emph{superclasses}, which place constraints on
+all of the instances of that class. For example, the |Ord| class is defined as
+\begin{code}
+class Eq a => Ord a where
+  ...
+\end{code}
+which means that every orderable type must also support equality. Such
+superclass declarations extend the entailment relation: if we know that a type
+is orderable, we also know that it supports equality. This is troublesome if we
+have a linear occurrence of |Ord a|, because then using this entailment, we could
+conclude that a linear constraint (|Ord a|) implies an unrestricted constraint
+(|Eq a|), which violates \cref{lem:q:scaling-inversion}.
+
+But even linear superclass constraints cause trouble. Consider a version of |Ord a|
+that has |Eq a| as a linear superclass.
+\begin{code}
+class Eq a =>. Ord a where
+  ...
+\end{code}
+Now, when given a linear |Ord a|, should we keep it as |Ord a|, or rewrite to
+|Eq a| using the entailment? Short of backtracking, the constraint solver would
+need to make a guess here, which \textsc{ghc} never does.
+
+To address both of these issues at once, we make the following rule: the
+superclasses of a linear constraint are \emph{never} expanded.
+
+\subsubsection{Equality constraints}
+
+In \cref{sec:type-inference} we argued that \emph{type} inference and
+\emph{constraint} inference can be performed independently. However, this is not
+the case for \textsc{ghc}'s constraint domain, because it supports equality
+constraints, which allows unification problems to be deferred, and potentially
+be solvable only after solving other constraints first.
+
+To reconcile this with our presentation, we need to ensure that
+\emph{unrestricted constraint} inference and \emph{linear constraint} inference
+can be performed independently. That is, solving a linear constraint should
+never be required for solving an unrestricted constraint. This is ensured by
+\cref{lem:q:scaling-inversion}.
+
+They key is to represent unification problems as \emph{unrestricted} equality
+constraints, so a given linear equality constraints can not be used during type
+inference.  Then, the only way a given linear equality constraint can be used is
+to solve a wanted linear equality. This way, linear equalities require no
+special treatment, and are harmless.
 
 \section{Extensions}
 \label{sec:design-decisions}
