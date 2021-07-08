@@ -1434,7 +1434,7 @@ $$
 \rae{Describe the strangeness in these rules here.}
 %% Like in Section~\ref{sec:constraint-domain}, we will typically drop
 %% the scaling factor for implication when it is $[[{1}]]$ and write
-%% $[[Q => C]]$ for $[[{1.(Q=>C)}]]$.
+%% $[ [Q => C] ]$ for $[[{1.(Q=>C)}]]$.
 
 We define an entailment relation over wanteds in Figure~\ref{fig:wanted:entailment}.
 Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, as
