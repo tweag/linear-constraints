@@ -2230,7 +2230,7 @@ careful treatment of $[[{Top}]]$.
 
 \subsection{Inferring $\ottkw{pack}$ and $\ottkw{unpack}$}
 \label{sec:implicit-existentials}
-Recent work~\cite{existentials} describes an algorithm (call it EDWL, after the
+Recent work~\cite{existentials} describes an algorithm (call it \textsc{edwl}, after the
 authors' names) that
 can infer the location of $\ottkw{pack}$s and $\ottkw{unpack}$s\footnote{Actually,
 \citet{existentials} use an $\ottkw{open}$ construct instead of $\ottkw{unpack}$
@@ -2241,14 +2241,14 @@ variables have existential type. In Section~9.2 of that paper,
 the authors extend their system to include class constraints,
 much as we allow our existential packages to carry linear constraints.
 
-Accordingly, EDWL would work well for us here.
-The EDWL algorithm is only a small change on the way some types are treated during
+Accordingly, \textsc{edwl} would work well for us here.
+The \textsc{edwl} algorithm is only a small change on the way some types are treated during
 bidirectional type-checking. Though the presentation of linear constraints is not
 written using a bidirectional algorithm, our implementation in \textsc{ghc}
 is indeed bidirectional (as \textsc{ghc}'s existing type inference algorithm
 is bidirectional, as described by \citet{practical-type-inference} and
 \citet{visible-type-application}) and produces constraints much like we
-have presented here, formally. None of this would change in adapting EDWL.
+have presented here, formally. None of this would change in adapting \textsc{edwl}.
 Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
 make linear constraints easier to use. For example, the |writeTwo| function could
