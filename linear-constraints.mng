@@ -1677,7 +1677,7 @@ presents the rules of the constraint solver.
 
 \begin{itemize}
   \item The~\rref*{S-Mult} rule proceeds by solving one side of a
-conjunction first, then passing the output constraint to the other side.
+conjunction first, then passing the output constraints to the other side.
 The unrestricted context is shared between both sides.
   \item The~\rref*{S-Add} rule handles additive conjunction. Here, the linear
 constraints are also shared between the branches (since additive conjunction is
@@ -1713,8 +1713,6 @@ For the sake of our examples, we need very little: linear
 constraints can remain abstract. It is thus sufficient for the entailment relation
 (Figure~\ref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
 is already assumed---while respecting linearity.
-\rae{The entailment relation should really be defined over atoms, not
-simple-constraints.}
 
 \begin{figure}
   \maybesmall
