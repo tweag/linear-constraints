@@ -2328,7 +2328,7 @@ The main differences from our solver judgement in Section~\ref{sec:constraint-so
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
 included in $Q_{\mathit{given}}$.
   \item We present the \emph{given} constraints ($Q_{\mathit{given}}$ in OutsideIn) as two separate
-constraint sets $[[UCtx]]$ and $[[LCtx]]$, standing for the unrestricted and linear
+constraint sets $[[{UCtx}]]$ and $[[{LCtx}]]$, standing for the unrestricted and linear
 parts respectively.
   \item In addition to constraint inference, OutsideIn performs type
 inference, requiring additional bookkeeping in the solver judgment. The solver
@@ -2341,20 +2341,20 @@ inference, only constraint inference. Therefore, our solver need not\jp{explicit
 type assignment.
   \item The most important difference is the output of the algorithms. Both
 OutsideIn and our solver output a set of constraints, $Q_{\mathit{residual}}$ and
-$[[LCtx_o]]$ respectively. However, the meaning of these contexts is different.
+$[[{LCtx_o}]]$ respectively. However, the meaning of these contexts is different.
 OutsideIn's \emph{residual} constraints $Q_{\mathit{residual}}$
 correspond to the part of $C_{\mathit{wanted}}$ that could not be solved from the
 assumptions. These residuals are then quantified over in the generalisation step
 of the inference algorithm. We omit these residuals, which means that our
 algorithm cannot infer qualified types, though extending it to do so would be
 possible as discussed in Section~\ref{sec:let-generalisation}.
-Our \emph{output} constraints $[[LCtx_o]]$ instead correspond to the part of the
-\emph{linear} givens $[[LCtx_i]]$ that were not used in the solution for $[[C_w]]$.
+Our \emph{output} constraints $[[{LCtx_o}]]$ instead correspond to the part of the
+\emph{linear} givens $[[{LCtx_i}]]$ that were not used in the solution for $[[{C_w}]]$.
 Keeping track of these unused constraints is crucial: ultimately we need to
 make sure that every linear constraint is used.
 
 \item Finally, while OutsideIn has a single kind of conjunction, our constraint
-language requires two: $[[Q1*Q2]]$ and $[[Q1&Q2]]$ \rae{color problems}. This shows up when
+language requires two: $[[{Q1*Q2}]]$ and $[[{Q1&Q2}]]$. This shows up when
 generating constraints for $\kcase$ expressions in the~\rref{G-Case} rule.
 OutsideIn accumulates constraints across branches (taking the union of each
 branch), whereas we need to make sure that each branch of a $\kcase$-expression
@@ -2405,7 +2405,7 @@ design of linear constraints. Of the two, Mezzo is more specialised,
 being entirely built around its system of capabilities.  \textsc{Ats}
 is the closest to our system because it appeals explicitly to linear
 logic, and because the capabilities (known as \emph{stateful views})
-are implemented in terms of more general features. However,
+are not tied to a particular use case. However,
 \textsc{ats} does not have full inference of capabilities.
 
 Other than that, the two systems have a lot of similarities. They have a
@@ -2453,7 +2453,8 @@ The recent addition of quantified
 constraints~\cite{quantified-constraints} extends type class
 resolution to Hereditary Harrop \rae{citation?} programs. A generalisation of the
 Hereditary Harrop fragment to linear logic, described by~\citet{hh-ll},
-is the foundation of the Lolli language \rae{citation?}. Together with this fragment,
+is the foundation of the Lolli language \rae{citation? Arnaud: I don't
+know if there are better citation than Hodas\&Miller, will look}. Together with this fragment,
 the authors coin the notion of \emph{uniform} proof. A fragment where
 uniform proofs are complete supports goal-oriented proof search, like
 Prolog does.
