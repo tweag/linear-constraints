@@ -361,3 +361,112 @@ url = {https://web.archive.org/web/20200926082552/https://www.tweag.io/blog/2020
   numpages     = 12,
   keywords     = {generalized algebraic data types, type inference, type families, type classes, haskell}
 }
+
+@article{existentials,
+author = {Eisenberg, Richard A. and Duboc, Guillaume and Weirich, Stephanie and Lee, Daniel},
+title = {An Existential Crisis Resolved: Type inference for first-class existential types},
+year = {2021},
+issue_date = {August 2021},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {5},
+number = {ICFP},
+journal = {Proc. ACM Program. Lang.}
+}
+
+@inproceedings{deferred-type-errors,
+author = {Vytiniotis, Dimitrios and Peyton Jones, Simon and Magalh\~{a}es, Jos\'{e} Pedro},
+title = {Equality Proofs and Deferred Type Errors: A Compiler Pearl},
+year = {2012},
+isbn = {9781450310543},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2364527.2364554},
+doi = {10.1145/2364527.2364554},
+abstract = {The Glasgow Haskell Compiler is an optimizing compiler that expresses and manipulates
+first-class equality proofs in its intermediate language. We describe a simple, elegant
+technique that exploits these equality proofs to support deferred type errors. The
+technique requires us to treat equality proofs as possibly-divergent terms; we show
+how to do so without losing either soundness or the zero-overhead cost model that
+the programmer expects.},
+booktitle = {Proceedings of the 17th ACM SIGPLAN International Conference on Functional Programming},
+pages = {341–352},
+numpages = {12},
+keywords = {type equalities, system fc, deferred type errors},
+location = {Copenhagen, Denmark},
+series = {ICFP '12}
+}
+
+
+@article{practical-type-inference, title={Practical type inference for arbitrary-rank types}, volume={17}, DOI={10.1017/S0956796806006034}, number={1}, journal={Journal of Functional Programming}, publisher={Cambridge University Press}, author={JONES, SIMON PEYTON and VYTINIOTIS, DIMITRIOS and WEIRICH, STEPHANIE and SHIELDS, MARK}, year={2007}, pages={1–82}}
+
+@Book{tapl,
+  Title                    = {Types and Programming Languages},
+  Author                   = {Pierce, Benjamin C.},
+  Publisher                = {MIT Press},
+  Year                     = {2002},
+
+  Address                  = {Cambridge, MA},
+
+  Owner                    = {rae},
+  Timestamp                = {2016.06.28}
+}
+
+@InProceedings{visible-type-application,
+author="Eisenberg, Richard A.
+and Weirich, Stephanie
+and Ahmed, Hamidhasan G.",
+editor="Thiemann, Peter",
+title="Visible Type Application",
+booktitle="Programming Languages and Systems",
+year="2016",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="229--254",
+abstract="The Hindley-Milner (HM) type system automatically infers the types at which polymorphic functions are used. In HM, the inferred types are unambiguous, and every expression has a principal type. Type annotations make HM compatible with extensions where complete type inference is impossible, such as higher-rank polymorphism and type-level functions. However, programmers cannot use annotations to explicitly provide type arguments to polymorphic functions, as HM requires type instantiations to be inferred.",
+isbn="978-3-662-49498-1"
+}
+
+@article{weirich-icfp17,
+author = {Weirich, Stephanie and Voizard, Antoine and de Amorim, Pedro Henrique Azevedo and Eisenberg, Richard A.},
+title = {A Specification for Dependent Types in Haskell},
+year = {2017},
+issue_date = {September 2017},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {1},
+number = {ICFP},
+url = {https://doi.org/10.1145/3110275},
+doi = {10.1145/3110275},
+abstract = { We propose a core semantics for Dependent Haskell, an extension of Haskell with full-spectrum
+dependent types. Our semantics consists of two related languages. The first is a Curry-style
+dependently-typed language with nontermination, irrelevant arguments, and equality
+abstraction. The second, inspired by the Glasgow Haskell Compiler's core language
+FC, is its explicitly-typed analogue, suitable for implementation in GHC. All of our
+results---chiefly, type safety, along with theorems that relate these two languages---have
+been formalized using the Coq proof assistant. Because our work is backwards compatible
+with Haskell, our type safety proof holds in the presence of nonterminating computation.
+However, unlike other full-spectrum dependently-typed languages, such as Coq, Agda
+or Idris, because of this nontermination, Haskell's term language does not correspond
+to a consistent logic. },
+journal = {Proc. ACM Program. Lang.},
+month = aug,
+articleno = {31},
+numpages = {29},
+keywords = {Dependent Types, Haskell}
+}
+
+@Article{type-classes-impl,
+  Title                    = {Type Classes in Haskell},
+  Author                   = {Hall, Cordelia V. and Hammond, Kevin and Peyton Jones, Simon L. and Wadler, Philip L.},
+  Journal                  = {ACM Trans. Program. Lang. Syst.},
+  Year                     = {1996},
+
+  Month                    = mar,
+  Number                   = {2},
+  Volume                   = {18},
+
+  Issue_date               = {March 1996},
+  Keywords                 = {Haskell, functional programming, type classes, types},
+  Publisher                = {ACM}
+}
