@@ -2197,7 +2197,6 @@ one, which never generalises any constraint.
 \subsection{Empty cases}
 \label{sec:empty-cases}
 
-\rae{Is this subsection about linear constraints? I don't think so. I propose: remove.}
 Throughout the article we have assumed that $\kcase$-expressions
 always have a non-empty list of alternatives. This is, incidentally,
 also how Haskell originally behaved; though \textsc{ghc} now has an
@@ -2218,13 +2217,13 @@ $$
 That is $[[{Top}]]$ is unconditionally true, and can consume any number
 of linear given constraints--- indeed, the corresponding program is already crashing.
 The \rref*{C-Top} rule thus induces a
-considerable amount of non-determinism. Eliminating the
+considerable amount of non-determinism in the constraint solver. Eliminating the
 non-determinism induced by $[[{Top}]]$ is ultimately
-what~\citet{resource-management-for-ll-proof-search} build up
+what~\citet{resource-management-for-ll-proof-search} builds up
 to. Their methods can be adapted to the constraint solver of
 Section~\ref{sec:constraint-solver} without any technical
 difficulty. We chose, however, to keep empty cases out the
-presentation because has a very high overhead and would distract from
+presentation because they have a very high overhead and would distract from
 the point. Instead, we refer readers
 to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
 careful treatment of $[[{Top}]]$.
