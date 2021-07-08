@@ -181,6 +181,10 @@ import GHC.Base
   \newcommand{\RLolly}{\mathop{\constraintfont \circledless}}
   \newcommand{\RFatArrow}{\constraintop{\rtimes}}
   \newcommand{\qtensor}{\constraintop{\otimes}}
+  %% Desugarer notations
+  \newcommand{\dsterm}[2]{\mathbf{Ds}_{#1}(#2)}
+  \newcommand{\dstype}[1]{\mathbf{Ds}(#1)}
+  \newcommand{\dsevidence}[1]{\mathbf{Ev}(#1)}
 
   % language keywords
   \newcommand{\keyword}[1]{\mathbf{#1}}
@@ -202,7 +206,7 @@ import GHC.Base
   \newtheorem{lemma}[theorem]{Lemma}
   \newtheorem{corollary}[theorem]{Corollary}
   \newtheorem{property}[theorem]{Property}
-  
+
   \theoremstyle{acmdefinition}
   \newtheorem{definition}[theorem]{Definition}
 
@@ -336,7 +340,7 @@ firstLine fp =   do  {  h <- openFile fp
 \end{code}
 This function opens a file, reads its first line, then closes
 it. Linearity ensures that the file handle |h| is consumed at the end.
-% 
+%
 Forgetting to call |closeFile h| would result in a type error because |h| would
 remain unused at the end of the function. Notice that |readLine| consumes the
 file handle, and returns a fresh |h| that shadows the previous version, to be
@@ -389,7 +393,7 @@ and explicit |pack'| annotations are used to indicate the variables that require
 special treatment (\Fref{sec:implicit-existentials}
 suggests how we can get rid of
 the |pack'|, too). Crucially, the resource representing the open file is a linear constraint,
-and so it longer needs to be passed around manually. 
+and so it longer needs to be passed around manually.
 
 Our contributions are as follows:
 \begin{itemize}
@@ -716,7 +720,7 @@ return :: a ->. IOL a
 %
 Bind must be linear because, as explained in the previous section, a linear
 constraint can be consumed in only a linear context. Consider
-the 
+the
 following program:
 \begin{code}
 readTwo ::  constraint (Open h) =>. Handle h -> IOL (Ur (String, String) .<= constraint (Open h))
@@ -1219,7 +1223,7 @@ contexts is always satisfied.
   \end{array}
   \right.
   \end{array}
-  $$  
+  $$
   \caption{Grammar of the qualified type system}
   \label{fig:declarative:grammar}
 \end{figure}
@@ -1289,7 +1293,7 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 \paragraph{Local assumptions}
 \Rref{E-Let} includes support for local
   assumptions. We thus have the ability to generalise a subset of
-  the constraints needed by $[[{e1}]]$ (but not the type variables---no 
+  the constraints needed by $[[{e1}]]$ (but not the type variables---no
   |let|-generalisation here, though it could be added). The inference algorithm of
   Section~\ref{sec:type-inference} will not make use of this
   possibility, but we revisit this capability in Section~\ref{sec:let-generalisation}.
@@ -1609,7 +1613,7 @@ $$
 The judgement
 takes in two contexts: $[[{UCtx}]]$, which holds all the unrestricted
 atomic constraint assumptions and $[[{LCtx_i}]]$, which holds all the linear
-atomic constraint assumptions. 
+atomic constraint assumptions.
 The linear contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ have been described
 as multisets (Section~\ref{sec:constraint-domain}), but we treat them
 as ordered lists in the more concrete setting here; we will see soon
@@ -1724,7 +1728,7 @@ is already assumed---while respecting linearity.
 \end{figure}
 
 The corresponding atomic-constraint solver
-(Figure~\ref{fig:simpl-solver}) is more interesting. 
+(Figure~\ref{fig:simpl-solver}) is more interesting.
 The rules here are deterministic: in all circumstances,
 only one of the three rules can apply. This means that the
 algorithm does not guess, and thus never needs to backtrack.
@@ -1870,7 +1874,7 @@ we pass evidence explicitly\footnote{This technique is also often called
 To do so, we require some more material from
 constraints. Namely, we assume a type $[[{Ev(q)}]]$ for each atomic
 constraint $[[{q}]]$,
-defined in Figure~\ref{fig:evidence}.  The $[[Ev]]$ operation
+defined in Figure~\ref{fig:evidence}.  The $[[Ev(Hole)]]$ operation
 extends to simple constraints as
 $[[{Ev(Q)}]]$.
 Furthermore, we require that for every $[[{Q1}]]$ and $[[{Q2}]]$
@@ -1883,7 +1887,7 @@ types, type schemes, contexts, and terms of the core calculus.
 
 \subsubsection{Translating types}
 Type schemes $[[{s}]]$ are translated by turning the implicit argument $[[{Q}]]$
-into an explicit one of type $[[{Ev(Q)}]]$. Translating types $[[{t}]]$ 
+into an explicit one of type $[[{Ev(Q)}]]$. Translating types $[[{t}]]$
 and contexts $[[{G}]]$ proceeds as
 expected.
 
@@ -1955,8 +1959,8 @@ $$
 %format Q1 = "[[{Q1}]]"
 %format Q2 = "[[{Q2}]]"
 %format * = "[[*]]"
-%format Ds(z)(j) = "\ottkw{Ds}_{\ottmv{" z "}}\ottsym{(}" j "\ottsym{)}"
-%format Ev(x) = "\ottkw{Ev}\ottsym{(}" x "\ottsym{)}"
+%format Ds(z)(j) = "\dsterm{\ottmv{" z "}}{" j "}"
+%format Ev(x) = "\dsevidence{" x "}"
 %format unpack = "\ottkw{unpack}"
 %format u = "[[{u}]]"
 %format OneOf (a) (b) = a"\mathop{:_{1}}"b
@@ -2013,13 +2017,13 @@ is inserted by passing $[[{z}]]$ as an argument.
 Handling $\kunpack$ requires splitting the context into two: $[[{e1}]]$ is desugared as a pair, and the evidence
 it contains is passed to $[[{e2}]]$. Finally, subsumption summons the function corresponding to the entailment relation $[[Q ||- Q1]]$
 and applies it to $[[{z}]]$ : $[[{Ev(Q)}]]$ then proceeds to desugar $[[{e}]]$ with the resulting evidence for $[[{Q1}]]$.
-Crucially, since $[[{Ds(Hole)}]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
+Crucially, since $[[{Ds(z;Hole)}]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
 Namely, $[[{Q1}]]$ is available in this last case from the~\rref*{E-Sub} rule's premise.
 
 It is straightforward by induction, to verify that desugaring is correct:
 %
 \begin{theorem}[Desugaring]
-If $[[Q;G |- e : t]]$, then 
+If $[[Q;G |- e : t]]$, then
 $[[Ds(G), z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$, for any fresh
 variable $[[{z}]]$.
 \end{theorem}
@@ -2184,7 +2188,7 @@ This rule is non-deterministic, because it requires finding $[[{Q_r}]]$ and
 $[[{Q}]]$. We can modify the constraint solver of
 Section~\ref{sec:constraint-solver} to find $[[{Q_r*Q}]]$. But we
 still have to determine how to split the residual into $[[{Q_r}]]$ and
-$[[{Q}]]$. 
+$[[{Q}]]$.
 
 %% What we would like to say is ``$[[{Q}]]$ is the set of linear
 %% constraints''. But it's not clear how to make it formal.
@@ -2601,13 +2605,13 @@ $[[{urify(e)}]]$ when it can be easily inferred from the context.
   \centering
 
 %{
-%format (Ds(x)) = "\ottkw{Ds}\,\ottsym{(}" x "\ottsym{)}"
+%format Ds(z)(j) = "\dsterm{\ottmv{" z "}}{" j "}"
 %format * = "[[*]]"
 %format ** = "\mathbin{⋅}"
 %format ->. = "\to_{1}"
 %format ->> = "\to_{\pi}"
 %format ->>> = "\to_{\omega}"
-%format Ev(x) = "\ottkw{Ev}\,\ottsym{(}" x "\ottsym{)}"
+%format Ev(x) = "\dsevidence{" x "}"
 %format G = "[[{G}]]"
 %format G1 = "[[{G1}]]"
 %format G2 = "[[{G2}]]"
@@ -2650,48 +2654,48 @@ $$
 \left\{\;
 \begin{minipage}{0.8\linewidth}
 \begin{code}
-Ds(z;Q;G |- x : u[ts/as])  =
+Ds(z)(Q;G |- x : u[ts/as])  =
     x z
-Ds(z;Q;G |- \x.e : t1 ->> t2) =
-  \x. Ds(z;Q;G, Of pi x t1 |- e : t2)
-Ds(z;Q1*Q2; G1+G2 |- e1 e2 : t) =
+Ds(z)(Q;G |- \x.e : t1 ->> t2) =
+  \x. Ds(z)(Q;G, Of pi x t1 |- e : t2)
+Ds(z)(Q1*Q2; G1+G2 |- e1 e2 : t) =
   case_1 z of { (z1, z2) ->
-    (Ds(z1;Q1;G1 |- e1 : t1 ->. t)) (Ds(z2;Q2;G2 |- e2 : t1)) }
-Ds(z;Q1* omega ** Q2; G1+ omega ** G2 |- e1 e2 : t) =
+    (Ds(z1)(Q1;G1 |- e1 : t1 ->. t)) (Ds(z2)(Q2;G2 |- e2 : t1)) }
+Ds(z)(Q1* omega ** Q2; G1+ omega ** G2 |- e1 e2 : t) =
   case_1 z of { (z1, urified(z2)) ->
-    (Ds(z1;Q1;G1 |- e1 : t1 ->>> t)) (Ds(z2;Q2;G2 |- e2 : t1)) }
-Ds(z;Q * Sub Q1 us as;G |- pack e : exists as. t .<= Q1) =
+    (Ds(z1)(Q1;G1 |- e1 : t1 ->>> t)) (Ds(z2)(Q2;G2 |- e2 : t1)) }
+Ds(z)(Q * Sub Q1 us as;G |- pack e : exists as. t .<= Q1) =
   case_1 z of { (z', z'') ->
-    pack (z'', Ds(z'; Q ; G |- e : Sub t us as))}
-Ds(z;Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t) =
+    pack (z'', Ds(z')( Q ; G |- e : Sub t us as))}
+Ds(z)(Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t) =
   case_1 z of { (z1, z2) ->
-    unpack (z',x) = Ds(z';Q1;G1 |- e1 : exists as. t1 .<= Q) in
+    unpack (z',x) = Ds(z')(Q1;G1 |- e1 : exists as. t1 .<= Q) in
     let_1 z2' = (z2,z') in
-    Ds(z2';Q2 * Q;G2, OneOf x t1 |- e2 : t)}
-Ds(z;Q1 * Q2 ;G1+G2 |- let_1 x = e1 in e2 : t) =
+    Ds(z2')(Q2 * Q;G2, OneOf x t1 |- e2 : t)}
+Ds(z)(Q1 * Q2 ;G1+G2 |- let_1 x = e1 in e2 : t) =
   case_1 z of { (z1, z2) ->
-    let_1 x : Ev(Q) ->. t1 = Ds(z1;Q1*Q;G1 |- e1 : t1)
-    in Ds(z2;Q2;G2, OneOf x t1 |- e2 : t)}
-Ds(z;omega ** Q1 * Q2 ;omega ** G1+G2 |- let_omega x = e1 in e2 : t) =
+    let_1 x : Ev(Q) ->. t1 = Ds(z1)(Q1*Q;G1 |- e1 : t1)
+    in Ds(z2)(Q2;G2, OneOf x t1 |- e2 : t)}
+Ds(z)(omega ** Q1 * Q2 ;omega ** G1+G2 |- let_omega x = e1 in e2 : t) =
   case_1 z of { (urified(z1), z2) ->
-    let_omega x : Ev(Q) ->. t1 = Ds(z1;Q1*Q;G1 |- e1 : t1) in
-    Ds(z2;Q2;G2, Of omega x t1 |- e2 : t)}
-Ds(z;Q1 * Q2 ;G1+G2 |- let_1 x : forall as. Q =>. t1 = e1 in e2 : t) =
+    let_omega x : Ev(Q) ->. t1 = Ds(z1)(Q1*Q;G1 |- e1 : t1) in
+    Ds(z2)(Q2;G2, Of omega x t1 |- e2 : t)}
+Ds(z)(Q1 * Q2 ;G1+G2 |- let_1 x : forall as. Q =>. t1 = e1 in e2 : t) =
   case_1 z of { (z1, z2) ->
-    let_1 x : forall as. Ev(Q) ->. t1 = Ds(z1;Q1*Q;G1 |- e1 : t1) in
-    Ds(z2;Q2;G2, OneOf x (forall as. Q =>. t1) |- e2 : t)}
-Ds(z;omega ** Q1 * Q2 ;omega ** G1+G2 |- let_omega x : forall as. Q =>. t1 = e1 in e2 : t) =
+    let_1 x : forall as. Ev(Q) ->. t1 = Ds(z1)(Q1*Q;G1 |- e1 : t1) in
+    Ds(z2)(Q2;G2, OneOf x (forall as. Q =>. t1) |- e2 : t)}
+Ds(z)(omega ** Q1 * Q2 ;omega ** G1+G2 |- let_omega x : forall as. Q =>. t1 = e1 in e2 : t) =
   case_1 z of { (urified(z1), z2) ->
-    let_omega x : forall as. Ev(Q) ->. t1 = Ds(z1;Q1*Q;G1 |- e1 : t1) in
-    Ds(z2;Q2;G2, Of omega x t1 |- e2 : t)}
-Ds(z;omega ** Q1*Q2;omega ** G1+G2 |- case_1 e of { alts } : t)  =
+    let_omega x : forall as. Ev(Q) ->. t1 = Ds(z1)(Q1*Q;G1 |- e1 : t1) in
+    Ds(z2)(Q2;G2, Of omega x t1 |- e2 : t)}
+Ds(z)(omega ** Q1*Q2;omega ** G1+G2 |- case_1 e of { alts } : t)  =
   case_1 z of { (urified(z1), z2) ->
-    case_1 (Ds(z1;Q1;G1 |- e : T ts)) of
-      { ListOf(K xsi -> Ds(z2; Q2; G2, ListOf(Of ((pi ** pii)) xi (Sub ui ts as)) |- ei : t))}}
-Ds(z;Q1*Q2;G1+G2 |- case_omega e of { alts } : t)  =
+    case_1 (Ds(z1)(Q1;G1 |- e : T ts)) of
+      { ListOf(K xsi -> Ds(z2)( Q2; G2, ListOf(Of ((pi ** pii)) xi (Sub ui ts as)) |- ei : t))}}
+Ds(z)(Q1*Q2;G1+G2 |- case_omega e of { alts } : t)  =
   case_1 z of { (z1, z2) ->
-    case_omega (Ds(z1;Q1;G1 |- e : T ts)) of
-      { ListOf(K xsi -> Ds(z2; Q2; G2, ListOf(Of ((pi**pii)) xi (Sub ui ts as)) |- ei : t))}}
+    case_omega (Ds(z1)(Q1;G1 |- e : T ts)) of
+      { ListOf(K xsi -> Ds(z2)( Q2; G2, ListOf(Of ((pi**pii)) xi (Sub ui ts as)) |- ei : t))}}
 \end{code}
 \end{minipage}
 \right.

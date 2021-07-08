@@ -116,17 +116,19 @@ t {{ tex \tau }}, u {{ tex \upsilon }}, s {{ tex \sigma}} :: 'Type_' ::= {{ com 
 | ( t )                  :: S :: Paren
 % Desugared types (see also expressions)
 | Ds ( t )               :: M :: Desugared
-  {{ tex [[Ds]]([[t]]) }}
+  {{ tex \dstype{[[t]]} }}
 | Ev ( q )               :: M :: Evidence
-  {{ tex [[Ev]](\constraintfont{[[q]]}) }}
+  {{ tex \dsevidence{\constraintfont{[[q]]} } }}
 | Ev ( Q )               :: M :: EvSimple
-  {{ tex [[Ev]](\constraintfont{[[Q]]}) }}
+  {{ tex \dsevidence{\constraintfont{[[Q]]} } }}
+| Ev ( Hole )            :: S :: EvHole
+  {{ tex \dsevidence{\constraintfont{[[Hole]]} } }}
 | Ur t                   ::   :: Unrestricted
 | unit                   ::   :: Unit   {{ tex \mathbf{1} }}
 | t1 ** t2               ::   :: Prod
 | t1 o- t2               ::   :: DsCarry
 % used for talking about Ds(_) as a family
-| Hole                   :: S :: Hole {{ tex \_ }}
+| Hole                   :: S :: Hole
 
 ts {{ tex \overline{\tau} }}, us {{ tex \overline{\upsilon} }}, ss {{ tex \overline{\sigma} }}
   :: 'Types_' ::= {{ com List of types }}
@@ -181,9 +183,11 @@ e :: 'Expr_' ::= {{ com Expressions }}
 % Cheating a little by adding desugared expressions to the same grammar below.
 % This is not formally correct, but it should do.
 | Ev ( Q1 ||- Q2 )       :: M :: Evidence
-  {{ tex [[Ev]](\constraintfont{[[Q1]]} [[||-]] \constraintfont{[[Q2]]}) }}
+  {{ tex \dsevidence{\constraintfont{[[Q1]]} [[||-]] \constraintfont{[[Q2]]} } }}
 | Ds ( z ; Ty )          :: M :: Desugar
-  {{ tex [[Ds]]_{[[z]]}([[Ty]]) }}
+  {{ tex \dsterm{[[z]]}{[[Ty]]} }}
+| Ds ( z ; Hole )          :: S :: DesugarHole
+  {{ tex \dsterm{[[z]]}{[[Hole]]} }}
 | Ur                     :: M :: UnrestrictedCon
 | urify ( QF ; e )       :: M :: Urify  {{ tex \underline{[[e]]}_{[[QF]]} }}
 | urify ( e )            :: M :: UrifyShortened {{ tex \underline{[[e]]} }}
@@ -250,11 +254,10 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 | < binding >       :: M :: Repeat  {{ tex \overline{[[binding]]} }}
 | ( G )             :: S :: Paren
 % Desugared contexts (see also expressions)
-| Evs ( QF )        :: M :: Evidence
 | G1 \u G2          :: M :: Union
   {{ tex [[G1]] \cup [[G2]] }}
 | Ds ( G )          :: M :: DsCtx
-  {{ tex [[Ds]]([[G]]) }}
+  {{ tex \dstype{[[G]]} }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Terminals  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -286,8 +289,7 @@ terminals :: 'terminals_' ::=
 | Top         ::   :: Top     {{ tex \constraintfont{⊤} }}
 | emptyset    ::   :: emptyset {{ tex \emptyset }}
 | \subseteq   ::   :: subset   {{ tex \subseteq }}
-| Ev          ::   :: Ev       {{ tex \ottkw{Ev} }}
-| Ds          ::   :: Ds       {{ tex \ottkw{Ds} }}
+| Hole        ::   :: Hole     {{ tex \_ }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
