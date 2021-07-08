@@ -563,12 +563,12 @@ The above deals with closing files and ensuring that a handle cannot be
 closed more than once.  However, we still need to explain how a
 constraint |constraint (Open h)| can come into existence. For this, we
 introduce\footnote{There is a variety of ways existential types can
-be worked into a language. A recent publication by \citet{existentials}
-works out one such approach. Our development does not build directly on that
-work, in order to show how linear constraints can be described independently
-of the approach taken there. The existentials we use here might best be understood
-as a generalisation of those presented by \citet[Chapter 24]{tapl}. See \Fref{sec:implicit-existentials}
-for a discussion of how work synergises with that of \citet{existentials}.}
+  be worked into a language. The existentials we use here might best be understood
+  as a mild generalisation of those presented by \citet[Chapter
+  24]{tapl}.
+  However a recent publication by \citet{existentials} works out an
+  approach which could make linear constraint easier to use, as we
+  discuss in \Fref{sec:implicit-existentials}]}
   a type construction |exists a1 ... an. t .<= constraint(Q)|,
 where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
 paired with the type |t|.\footnote{We will freely
