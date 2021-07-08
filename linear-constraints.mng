@@ -173,7 +173,7 @@ import GHC.Base
   \newcommand{\scale}{\constraintfont{\cdot}}
   %% Constraint notations
   \newcommand{\constraintop}[1]{\mathop{\constraintfont{#1}}}
-  \newcommand{\aand}{\mathop{\&}}
+  \newcommand{\aand}{\constraintop{\&}}
   \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
   \newcommand{\lollycirc}{\raisebox{-0.255ex}{\scalebox{1.4}{$\circ$}}}
   \newcommand{\Lolly}{\constraintop{=\kern-1.1ex \lollycirc}}
@@ -1533,7 +1533,6 @@ Section~\ref{sec:constraint-solver}. Constraint generation is described by
 the judgement $[[G |-> e : t ~> C]]$ (defined in
 Figure~\ref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
 required to make $[[e]]$ typecheck.
-\nw{I'm not familiar with \verb^|->^, is it standard notation?}
 The definition
 $[[G |-> e : t ~> C]]$ is syntax directed, so it can directly be read as an
 algorithm, taking as input a \emph{typing derivation} for $[[G |- e : t]]$
@@ -1541,19 +1540,6 @@ algorithm, taking as input a \emph{typing derivation} for $[[G |- e : t]]$
 algorithm has access to the context splitting from the (previously computed)
 typing derivation, and is
 thus indeed syntax directed.
-\rae{How is this syntax-directed? It splits contexts non-deterministically.
-I have no idea how I would implement this (without the rather involved
-treatment of multiplicity checking in GHC). I think this claim of syntax-direction
-should be removed, but then how is this an algorithm? We may want to think
-carefully about this. Possibly we should include, in the output, usage information,
-to make this really into an algorithm. That actually shouldn't really be all
-that hard, and it would be informative to readers. Or, cite a paper that
-explains how to do this part. Or, really try to understand this judgment
-as a second pass, which also solves my second concern.}
-\rae{Separately, we've said nothing about how to infer the multiplicity
-of lambdas. That, to me, is quite separate from the type oracle we've
-admitted to (and which I agree with).}
-
 \info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
 
 \info{Not caring about inferences simplifies $\kpack$ quite a bit, we
