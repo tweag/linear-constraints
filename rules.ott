@@ -29,7 +29,7 @@ defns
 Entail :: '' ::=
 
 defn
-QF |- C :: :: Crules :: 'C_'  {{ com Generalised constraint entailment }}
+QF |- CF :: :: Crules :: 'C_'  {{ com Generalised constraint entailment }}
 by
 
 Q1 ||- Q2
