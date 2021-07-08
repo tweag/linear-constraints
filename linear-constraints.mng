@@ -2063,7 +2063,7 @@ The key changes affect constraint generation and constraint solving. Constraints
 are now annotated with a multiplicity, according to the context from
 which they arise. With @LinearTypes@, \textsc{ghc} already scales the usage
 of term variables. We simply modified the scaling function to capture all the
-generated constraints and re-emit a scaled version of them -- a fairly local
+generated constraints and re-emit a scaled version of them, which is a fairly local
 change.
 
 The constraint solver maintains a set of given constraints (the \emph{inert set}
@@ -2136,7 +2136,7 @@ never be required for solving an unrestricted constraint. This is ensured by
 \cref{lem:q:scaling-inversion}.
 
 They key is to represent unification problems as \emph{unrestricted} equality
-constraints, so a given linear equality constraints can not be used during type
+constraints, so a given linear equality constraint can not be used during type
 inference.  Then, the only way a given linear equality constraint can be used is
 to solve a wanted linear equality. This way, linear equalities require no
 special treatment, and are harmless.
