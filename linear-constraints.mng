@@ -2267,7 +2267,15 @@ is bidirectional, as described by \citet{practical-type-inference} and
 have presented here, formally. None of this would change in adapting EDWL.
 Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
-make linear constraints more usable.
+make linear constraints easier to use. For example, the |writeTwo| function could
+simply be written as
+
+> writeTwo :: constraint (RW n) =>. AtomRef a n -> a -> a -> () .<= constraint (RW n)
+> writeTwo ref val1 val2 =  let  unit1 = writeRef ref val1 in
+>                           let  unit2 = writeRef ref val2 in
+>                           ()
+
+\csongor{Should this example be included at all? do we need to say anything more?}
 
 % One challenge if existential packing and unpacking are inferred is that
 % the order in which a program is executed might become ambiguous.
