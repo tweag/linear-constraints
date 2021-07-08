@@ -710,7 +710,7 @@ I would want an example.}
 The file-handling example discussed in sections~\ref{sec:linear-types}
 and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
 Compared to the traditional |IO| monad, the
-type of the monadic operations |>>=| (aka \emph{bind})and |return| are changed to
+type of the monadic operations |>>=| (aka \emph{bind}) and |return| are changed to
 use linear arrows.
 %
 \begin{code}
