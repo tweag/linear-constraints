@@ -1333,7 +1333,7 @@ latter case, we issue an error to the programmer.
 The procedure is responsible for inferring both \emph{types} and \emph{constraints}.
 For our type system, type inference can be done independently from constraint
 inference. Indeed, we focus on the latter, and defer type inference to
-an external oracle. \csongor{what's a good citation here?}
+an external oracle (\emph{e.g.}~\cite{linear-types-inference}).
 That is, we assume an algorithm that produces typing derivations for the
 judgement $[[G |- e : t]]$, ignoring all the constraints. Then, we describe a
 constraint generation algorithm that passes over these typing derivations.

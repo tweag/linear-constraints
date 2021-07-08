@@ -470,3 +470,16 @@ keywords = {Dependent Types, Haskell}
   Keywords                 = {Haskell, functional programming, type classes, types},
   Publisher                = {ACM}
 }
+
+@InProceedings{linear-types-inference,
+author="Matsuda, Kazutaka",
+editor="M{\"u}ller, Peter",
+title="Modular Inference of Linear Types for Multiplicity-Annotated Arrows",
+booktitle="Programming Languages and Systems",
+year="2020",
+publisher="Springer International Publishing",
+address="Cham",
+pages="456--483",
+abstract="Bernardy et al. [2018] proposed a linear type system {\$}{\$}{\backslash}lambda ^q{\_}{\backslash}rightarrow {\$}{\$}$\lambda${\textrightarrow}qas a core type system of Linear Haskell. In the system, linearity is represented by annotated arrow types {\$}{\$}A {\backslash}rightarrow {\_}m B{\$}{\$}A{\textrightarrow}mB, where m denotes the multiplicity of the argument. Thanks to this representation, existing non-linear code typechecks as it is, and newly written linear code can be used with existing non-linear code in many cases. However, little is known about the type inference of {\$}{\$}{\backslash}lambda ^q{\_}{\backslash}rightarrow {\$}{\$}$\lambda${\textrightarrow}q. Although the Linear Haskell implementation is equipped with type inference, its algorithm has not been formalized, and the implementation often fails to infer principal types, especially for higher-order functions. In this paper, based on OutsideIn(X) [Vytiniotis et al., 2011], we propose an inference system for a rank 1 qualified-typed variant of {\$}{\$}{\backslash}lambda ^q{\_}{\backslash}rightarrow {\$}{\$}$\lambda${\textrightarrow}q, which infers principal types. A technical challenge in this new setting is to deal with ambiguous types inferred by naive qualified typing. We address this ambiguity issue through quantifier elimination and demonstrate the effectiveness of the approach with examples.",
+isbn="978-3-030-44914-8"
+}
