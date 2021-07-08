@@ -2314,7 +2314,7 @@ The main differences from our solver judgement in Section~\ref{sec:constraint-so
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
 included in $Q_{\mathit{given}}$.
   \item We present the \emph{given} constraints ($Q_{\mathit{given}}$ in OutsideIn) as two separate
-constraints $[[UCtx]]$ and $[[LCtx_i]]$, standing for the unrestricted and linear
+constraint sets $[[UCtx]]$ and $[[LCtx]]$, standing for the unrestricted and linear
 parts respectively.
   \item In addition to constraint inference, OutsideIn performs type
 inference, requiring additional bookkeeping in the solver judgment. The solver
@@ -2332,16 +2332,15 @@ OutsideIn's \emph{residual} constraints $Q_{\mathit{residual}}$
 correspond to the part of $C_{\mathit{wanted}}$ that could not be solved from the
 assumptions. These residuals are then quantified over in the generalisation step
 of the inference algorithm. We omit these residuals, which means that our
-algorithm can not infer qualified types, though extending it to do so would be
+algorithm cannot infer qualified types, though extending it to do so would be
 possible as discussed in Section~\ref{sec:let-generalisation}.
 Our \emph{output} constraints $[[LCtx_o]]$ instead correspond to the part of the
 \emph{linear} givens $[[LCtx_i]]$ that were not used in the solution for $[[C_w]]$.
 Keeping track of these unused constraints is crucial: ultimately we need to
 make sure that every linear constraint is used.
-\end{itemize}
 
-Finally\jp{Why is it outside of the itemize?}, while OutsideIn has a single kind of conjunction, our constraint
-language requires two: $[[Q1*Q2]]$ and $[[Q1&Q2]]$. This shows up when
+\item Finally, while OutsideIn has a single kind of conjunction, our constraint
+language requires two: $[[Q1*Q2]]$ and $[[Q1&Q2]]$ \rae{color problems}. This shows up when
 generating constraints for $\kcase$ expressions in the~\rref{G-Case} rule.
 OutsideIn accumulates constraints across branches (taking the union of each
 branch), whereas we need to make sure that each branch of a $\kcase$-expression
@@ -2349,8 +2348,9 @@ consumes the same constraints.
 %
 This is easily understood in terms of the file example of
 Section~\ref{sec:introduction}: if a file is closed in one branch of a $\kcase$,
-it had better be closed in the other branches too. Otherwise, after the case its
-state will be unknown to the type system.
+it must be closed in the other branches, too. Otherwise, its state will
+be unknown to the type system after the $\kcase$.
+\end{itemize}
 
 %% I (csongor) don't think this is worth mentioning
 %% \item A more minor difference with OutsideIn is that we have an
@@ -2374,7 +2374,7 @@ perspective of a functional programmer.
 On the other hand, the focus of Linear Haskell, as well as this paper,
 is to provide programmers with the tools to create safe interfaces and
 libraries. The language itself is agnostic about what linear
-constraints mean. Although linear constraints don't have the
+constraints mean. Although linear constraints do not have the
 convenience of Rust's syntax, we expect that they will support a
 greater variety of abstractions. Even though Rust programmers have
 come up with varied abstractions which leverage the borrowing
@@ -2423,7 +2423,7 @@ domain. In fact, it should be possible to see Mezzo or \textsc{ats} as
 particular instantiations of the simple-constraint domain, with linear
 constraints providing the general inference mechanism.
 
-However, both Mezzo and \textsc{ats} have an advantage that we don't:
+However, both Mezzo and \textsc{ats} have an advantage that we do not:
 they assume that their instructions are properly sequenced, whereas
 basing linear constraints on Haskell, a lazy language, we are forced
 to make sequencing explicit in \textsc{api}s.
@@ -2431,15 +2431,15 @@ to make sequencing explicit in \textsc{api}s.
 \paragraph{Logic programming}
 
 There are a lot of commonalities between \textsc{ghc}'s constraint and logic
-programs. Traditional type classes can be seen as Horn Clauses programs, much
-like Prolog's programs. \textsc{ghc} puts further restrictionss in order to
+programs. Traditional type classes can be seen as Horn clause programs, much
+like Prolog programs. \textsc{ghc} puts further restrictionss in order to
 avoid backtracking for speed and predictability.
 
 The recent addition of quantified
 constraints~\cite{quantified-constraints} extends type class
-resolution to Hereditary Harrop programs. A generalisation of the
+resolution to Hereditary Harrop \rae{citation?} programs. A generalisation of the
 Hereditary Harrop fragment to linear logic, described by~\citet{hh-ll},
-is the foundation of the Lolli language. Together with this fragment,
+is the foundation of the Lolli language \rae{citation?}. Together with this fragment,
 the authors coin the notion of \emph{uniform} proof. A fragment where
 uniform proofs are complete supports goal-oriented proof search, like
 Prolog does.
@@ -2483,7 +2483,7 @@ soundness of constraint generation.
 In some cases, like the file example of Section~\ref{sec:introduction},
 linear constraints are a mere convenience that reduce line noise and
 make code more idiomatic. But the memory management \textsc{api} of
-Section~\ref{sec:memory-ownership} is not feasible without
+Section~\ref{sec:memory-ownership} is not practical without
 linear constraints. Certainly, ownership proofs could be managed manually, but
 it is hard to imagine a circumstance where this tedious task would be worth the
 cost.
