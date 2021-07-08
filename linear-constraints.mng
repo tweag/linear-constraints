@@ -1854,15 +1854,12 @@ comparison between an implicit core language D and an explicit one DC.}.
 \item We have existential types. These can be realised in regular Haskell as a
   family of datatypes.
 \end{itemize}
-%
-%
-These are regular data types and constructors of the language: they
-are consumed with $\kcase$.
-
-% \subsection{Inferred constraints}
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
-Property~\ref{prop:solver-soundness} we know that if
+Property~\ref{prop:solver-soundness}\unsure{This is wrong, it only
+  points to the soundness requirement for the atomic constraint
+  solver. General soundness doesn't appear to exist (anymore?). Add
+  the corresponding lemma and link to it} we know that if
 $[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C ~> emptyset ]]$, then
 $[[(UCtx, LCtx) ; G |- e : t]]$.
 %
@@ -2009,7 +2006,6 @@ $$
   \end{subfigure}
   \caption{Evidence passing and desugaring}
 \end{figure}
-\rae{Bad coloring there. Either remove or fix.}
 
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}\footnote{The attentive
 reader may note that the case for $\ottkw{unpack}$ extracts out $[[{Q1}]]$ and $[[{Q2}]]$
