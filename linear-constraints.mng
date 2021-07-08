@@ -1534,7 +1534,8 @@ The definition
 $[[G |-> e : t ~> C]]$ is syntax directed, so it can directly be read as an
 algorithm, taking as input a \emph{typing derivation} for $[[G |- e : t]]$
 (produced by an external type inference oracle as discussed above). Notably, the
-algorithm has access to the context splitting from the typing derivation, and is
+algorithm has access to the context splitting from the (previously computed)
+typing derivation, and is
 thus indeed syntax directed.
 \rae{How is this syntax-directed? It splits contexts non-deterministically.
 I have no idea how I would implement this (without the rather involved
