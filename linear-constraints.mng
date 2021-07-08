@@ -165,7 +165,7 @@ import GHC.Base
   \newcommand{\vdashi}{%
       \mathrel{%
           \vdash\hspace*{-4pt}%
-          \raisebox{1pt}{\scalebox{.66}{\(\blacktriangleright\)}}%
+          \raisebox{0.9pt}{\scalebox{.66}{\(\blacktriangleright\)}}%
       }%
   }
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
