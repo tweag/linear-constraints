@@ -681,7 +681,7 @@ Finally, consider the following program, which is rejected:
 overusing :: constraint (C) =>. (Int, Int)
 overusing = (useC, useC)
 \end{code}
-This is program is rejected because it uses |C| twice.
+This program is rejected because it uses |C| twice.
 %
 % However, the
 % following version is accepted:
