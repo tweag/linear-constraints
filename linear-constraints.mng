@@ -2457,11 +2457,8 @@ the authors coin the notion of \emph{uniform} proof. A fragment where
 uniform proofs are complete supports goal-oriented proof search, like
 Prolog does.
 
-\unsure{Maybe rephrase the uniformity paragraph, now that we have
-  moved these references about (don't forget to speak about uniformity
-  again)}
-Uniformity is used in the proof of
-\cref{lem:inversion}, which, in turn is used in the proof of the
+Completeness of uniform proofs is equivalent to
+\cref{lem:inversion}, which, in turn, is used in the proof of the
 soundness lemma~\ref{lem:generation-soundness}. This seems to indicate
 that goal-oriented search is baked into the definition of OutsideIn. An
 immediate consequence of this observation, however, is that
