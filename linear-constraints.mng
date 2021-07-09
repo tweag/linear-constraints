@@ -2046,9 +2046,9 @@ all of the instances of that class. For example, the |Ord| class is defined as
 class constraint(Eq a) => constraint(Ord a) where
   ...
 \end{code}
-which means that every orderable type must also support equality. Such
+which means that every ordered type must also support equality. Such
 superclass declarations extend the entailment relation: if we know that a type
-is orderable, we also know that it supports equality. This is troublesome if we
+is ordered, we also know that it supports equality. This is troublesome if we
 have a linear occurrence of |constraint(Ord a)|, because then using this entailment, we could
 conclude that a linear constraint (|constraint(Ord a)|) implies an unrestricted constraint
 (|constraint(Eq a)|), which violates \cref{lem:q:scaling-inversion}.
