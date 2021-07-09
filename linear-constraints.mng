@@ -1435,7 +1435,8 @@ $$
 
 We define an entailment relation over wanteds in \Cref{fig:wanted:entailment}.
 Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, as
-there is no way to assume the more elaborate $[[{C}]]$.
+there is no way to assume the more elaborate $[[{C}]]$\footnote{Allowing the full wanted-constraint syntax
+in assumptions is the subject of work by \citet{quantified-constraints}.}.
 \begin{figure}
   \maybesmall
   \centering
@@ -1444,12 +1445,6 @@ there is no way to assume the more elaborate $[[{C}]]$.
   \caption{Wanted-constraint entailment}
   \label{fig:wanted:entailment}
 \end{figure}
-%
-Note that it is always a simple constraint which entails a wanted: we
-generate wanted constraints, but programs mention only simple
-constraints, and assumptions are created directly from the
-program text\footnote{Allowing the full wanted-constraint syntax
-in assumptions is the subject of work by \citet{quantified-constraints}.}.
 
 Before we move on to constraint generation proper, let us highlight a few
 technical, yet essential, lemmas about the wanted-constraint
