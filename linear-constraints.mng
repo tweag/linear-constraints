@@ -1034,7 +1034,7 @@ qualified type system.
 Atomic constraints are assembled into \emph{simple constraints}
 $[[{Q}]]$, which play the hybrid role of constraint contexts and
 (linear) logic formulae.
-The following operations need simple constraints:
+The following operations work with simple constraints:
 \begin{description}
 \item[Scaled atomic constraints] $[[{pi.q}]]$ is a simple constraint,
   where $[[{pi}]]$ specifies whether $[[{q}]]$ is to be used linearly
