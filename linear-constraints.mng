@@ -2890,7 +2890,7 @@ $$
     \item $[[Q_2 |- Q[us/as] ]]$
     \item $[[{Q_g}]] = [[{Q_1*Q_2}]]$
     \end{itemize}
-    Bu induction hypothesis
+    By induction hypothesis
     \begin{itemize}
     \item $[[Q_1 ; G |- e : t[us/as] ]]$
     \end{itemize}
@@ -2937,6 +2937,83 @@ $$
     \item For each $i$, $[[Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
     \end{itemize}
     Therefore $[[Q_g ; pi.G + D |- case_pi e of {alts} : t]]$.
+  \end{description}
+\end{proof}
+
+\begin{proof}[Proof of \cref{lem:solver-soundness}]
+  By induction on $[[UCtx; LCtx_i |-s C ~> LCtx_o]]$
+  \begin{description}
+  \item[\rref*{S-Atom}] We have
+  \begin{itemize}
+          \item $[[UCtx ; LCtx_i |-s pi.q ~> LCtx_o]]$
+          \item $[[UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]$
+  \end{itemize}
+  By \cref{prop:atomic-solver-soundness} we have
+  \begin{enumerate}
+  \item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
+  \item $[[(UCtx, LCtx_i) ||- pi.q * (emptyset, LCtx_o)]]$
+  \end{enumerate}
+  Then by \rref*{C-Dom} we have $[[(UCtx, LCtx_i) |- pi.q * (emptyset, LCtx_o)]]$.
+  \item[\rref*{S-Add}] We have
+  \begin{itemize}
+          \item $[[UCtx ; LCtx_i |-s C1 & C2 ~> LCtx_o]]$
+          \item $[[UCtx ; LCtx_i |-s C1 ~> LCtx_o]]$
+          \item $[[UCtx ; LCtx_i |-s C2 ~> LCtx_o]]$
+  \end{itemize}
+  By induction hypothesis we have
+  \begin{itemize}
+          \item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
+          \item $[[(UCtx, LCtx_i) |- C1 * (emptyset, LCtx_o)]]$
+          \item $[[(UCtx, LCtx_i) |- C2 * (emptyset, LCtx_o)]]$
+  \end{itemize}
+  Then by \rref*{C-With} we have $[[(UCtx, LCtx_i) |- C1 & C2 * (emptyset, LCtx_o)]]$.
+  \item[\rref*{S-Mult}] We have
+  \begin{itemize}
+          \item $[[UCtx ; LCtx_i |-s C1 * C2 ~> LCtx_o]]$
+          \item $[[UCtx ; LCtx_i |-s C1 ~> LCtx_o']]$
+          \item $[[UCtx ; LCtx_o' |-s C2 ~> LCtx_o]]$
+  \end{itemize}
+  By induction hypothesis we have
+  \begin{itemize}
+          \item $[[{LCtx_o}]]\subseteq [[{LCtx_o'}]]$
+          \item $[[{LCtx_o'}]]\subseteq [[{LCtx_i}]]$
+          \item $[[(UCtx, LCtx_i) |- C1 * (emptyset, LCtx_o')]]$
+          \item $[[(UCtx, LCtx_o') |- C2 * (emptyset, LCtx_o)]]$
+  \end{itemize}
+  Then by transitivity of $\subseteq$ we have $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$, and
+  by \rref*{C-Tensor} we have
+  $[[(UCtx, LCtx_i) * (UCtx , LCtx_o') |- C1 * C2 * (emptyset, LCtx_o') * (emptyset, LCtx_o)]]$
+   by \cref{lem:inversion} we have $[[(UCtx, LCtx_i) |- C1 * C2 * (emptyset, LCtx_o)]]$.
+  \item[\rref*{S-ImplOne}] We have
+  \begin{itemize}
+          \item $[[UCtx ; LCtx_i |-s 1.((UCtx0, LCtx0) => C) ~> LCtx_o]]$
+          \item $[[UCtx \u UCtx0 ; LCtx_i \u LCtx0 |-s C ~> LCtx_o]]$
+          \item $[[LCtx_o \subseteq LCtx_i]]$
+  \end{itemize}
+  By induction hypothesis we have
+  \begin{itemize}
+          \item $[[(UCtx \u UCtx0, LCtx_i \u LCtx0) |- C * (emptyset, LCtx_o)]]$
+          \item $[[LCtx_o \subseteq LCtx_i \u LCtx0]]$
+  \end{itemize}
+  Then we know that
+  $[[{(emptyset, LCtx_i)}]] = [[{(emptyset, LCtx_o) * (emptyset, LCtx_i')}]]$ for
+  some $[[{LCtx_i'}]]$.
+  Then by \cref{lem:inversion} we know that $[[(UCtx \u UCtx0, LCtx_i' \u LCtx0) |- C]]$ and by
+  \rref*{C-Impl} we have $[[(UCtx, LCtx_i') |- 1.((UCtx0, LCtx0) => C)]]$.
+  Finally, by \rref*{C-Tensor} we conclude that $[[(UCtx, LCtx_i) |- 1.((UCtx0, LCtx0) => C) * (emptyset, LCtx_o)]]$
+  \item[\rref*{S-ImplMany}] We have
+  \begin{itemize}
+          \item $[[UCtx ; LCtx_i |-s omega.((UCtx0, LCtx0) => C) ~> LCtx_i]]$
+          \item $[[UCtx \u UCtx0 ; LCtx0 |-s C ~> emptyset]]$
+  \end{itemize}
+  By induction hypothesis we have
+  \begin{itemize}
+          \item $[[(UCtx \u UCtx0, LCtx0) |- C * (emptyset, emptyset)]]$
+  \end{itemize}
+  Then by \cref{lem:inversion} we have $[[(UCtx \u UCtx0, LCtx0) |- C]]$ and by
+  \rref*{C-Impl} $[[(UCtx, emptyset) |- omega.((UCtx0, LCtx0) => C)]]$ and finally by
+  \rref{C-Tensor} we have $[[(UCtx, LCtx_i) |- omega.((UCtx0, LCtx0) => C) * (emptyset, LCtx_i)]]$.
+  $[[LCtx_i \subseteq LCtx_i]]$ holds trivially.
   \end{description}
 \end{proof}
 
