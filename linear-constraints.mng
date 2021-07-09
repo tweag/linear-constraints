@@ -1685,9 +1685,9 @@ is already assumed---while respecting linearity.
 
 The corresponding atomic-constraint solver
 (\Cref{fig:simpl-solver}) is more interesting.
-The rules here are deterministic: in all circumstances,
+It is deterministic: in all circumstances,
 only one of the three rules can apply. This means that the
-algorithm does not guess, and thus never needs to backtrack.
+algorithm does not guess, thus never needs to backtrack.
 Avoiding guesses is a key property of \textsc{ghc}'s solver~\cite[Section~6.4]{OutsideIn},
 one we must maintain if we are to be compatible with \textsc{ghc}.
 
@@ -2100,7 +2100,7 @@ of our constraint generator does not generalise the type of |let|-bindings.
 Not doing |let|-generalisation is in line with \textsc{ghc}'s existing
 behaviour~\cite[Section 4.2]{OutsideIn}. There, this behaviour was guided
 by concerns around inferring type variables, which is harder in the
-presence of local equality assumptions (that is, \textsc{gadt} pattern
+presence of local equality assumptions (\emph{i.e.} \textsc{gadt} pattern
 matching).
 
 In this section, however, we argue that generalising over linear constraints
@@ -2127,8 +2127,8 @@ sequence of instructions: it is just a definition for later, not
 intended to consume the current state of the file. With no |let|-generalisation,
 the only way to give |closeOp| the type |constraint (Open h) =>. IOL
 ()| is to give |closeOp| a type signature. In current \textsc{ghc}, we
-can't write that signature down, since the type variable |h| is not
-bound in the program text, and there is no syntax for binding it\footnote{\citet{variables-in-patterns} describe a way to fix this shortcoming.}. But
+can't write that signature down, since there is no syntax to bind
+the type variable |h| in the program text\footnote{\citet{variables-in-patterns} describe a way to fix this shortcoming.}. But
 even ignoring this, it would be rather unfortunate if the default
 behaviour of |let|, in the presence of linear constraints, almost never was
 what the programmer wants.
@@ -2195,8 +2195,7 @@ can infer the location of $\ottkw{pack}$s and $\ottkw{unpack}$s\footnote{Actuall
 \citet{existentials} use an $\ottkw{open}$ construct instead of $\ottkw{unpack}$
 to access the contents of an existential package, but that distinction does
 not affect our usage of existentials with linear constraints.}
-in a user's program, given only the type annotations saying which
-variables have existential type. In Section~9.2 of that paper,
+in a user's program. In Section~9.2 of that paper,
 the authors extend their system to include class constraints,
 much as we allow our existential packages to carry linear constraints.
 
@@ -2305,8 +2304,7 @@ OutsideIn's \emph{residual} constraints $Q_{\mathit{residual}}$
 correspond to the part of $C_{\mathit{wanted}}$ that could not be solved from the
 assumptions. These residuals are then quantified over in the generalisation step
 of the inference algorithm. We omit these residuals, which means that our
-algorithm cannot infer qualified types, though extending it to do so would be
-possible as discussed in \cref{sec:let-generalisation}.
+algorithm cannot infer qualified types (though see \cref{sec:let-generalisation}).
 Our \emph{output} constraints $[[{LCtx_o}]]$ instead correspond to the part of the
 \emph{linear} givens $[[{LCtx_i}]]$ that were not used in the solution for $[[{C_w}]]$.
 Keeping track of these unused constraints is crucial: ultimately we need to
