@@ -1040,7 +1040,7 @@ following operations
   where $[[{pi}]]$ specifies whether $[[{q}]]$ is to be used linearly
   or not.
 \item[Conjunction] Two simple constraints can be paired up
-  $[[{Q1 * Q2}]]$. Semantically, this corresponds the multiplicative
+  $[[{Q1 * Q2}]]$. Semantically, this corresponds to the multiplicative
   conjunction of linear logic. Tensor products represent pairs of
   constraints such as |constraint((Read n, Write n))| from Haskell.
 \item[Empty conjunction] Finally we need a neutral element
