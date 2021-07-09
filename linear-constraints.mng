@@ -1470,41 +1470,6 @@ entailment relation.
   \end{itemize}
 \end{lemma}
 
-%% \begin{proof}
-%%   The cases $[[Q |- C1 & C2]]$ and $[[Q |- pi.(Q2 => C)]]$ are
-%%   immediate, since there is only one rule (\rref*{C-With} and
-%%   \rref*{C-Impl} respectively) which can have them as their
-%%   conclusion.
-
-%%   For $[[Q |- C1 * C2]]$ we have two cases:
-%%   \begin{itemize}
-%%   \item either it is the conclusion of a \rref*{C-Tensor} rule, and
-%%     the result is immediate.
-%%   \item or it is the result of a \rref*{C-Dom} rule, in which case we
-%%     have $[[{C1}]]=[[{Q1}]]$, $[[{C2}]]=[[{Q2}]]$, and the result follows from
-%%     the definition of the entailment relation.
-%%   \end{itemize}
-
-%%   It may look like a slight change in the hypotheses would invalidate this proof.
-%%   After all in a system with
-%%   quantified constraints~\cite{quantified-constraints}, such as the
-%%   current implementation of \textsc{ghc}, there are rules with
-%%   non-atomic wanteds which do not introduce a connective. So, does
-%%   this proof break when moving to the full \textsc{ghc}? Fortunately
-%%   not!
-
-%%   What we really need is that any proof can be \emph{rewritten} into a
-%%   proof which ends in an introduction rule. Such proofs have been
-%%   called \emph{uniform} in~\citet{hh-ll}. More precisely, a uniform
-%%   proof is a proof where every rule whose conclusion has a non-atomic
-%%   wanted is an introduction rule. The authors prove that all proofs in
-%%   a fragment of linear logic can be rewritten into a uniform
-%%   proof. This fragment includes quantified constraints and linear
-%%   generalisations thereof. So, we can conclude that this lemma indeed
-%%   extends to the complete set of constraints supported by \textsc{ghc}.
-%% \end{proof}
-\rae{Restore discussion of uniformity somewhere?}
-
 \begin{lemma}[Scaling]
   \label{lem:wanted:promote}
   If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$.
