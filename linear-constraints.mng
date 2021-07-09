@@ -938,7 +938,7 @@ details in the next
 section, where, similarly, we shall treat |constraint(Read n) =>| as
 an abbreviation for |constraint(omega ⋅ (Read n)) =>.|.
 
-With an unrestricted |Read n| capability, we can read from the array
+With an unrestricted |constraint(Read n)| capability, we can read from the array
 more directly with the following primitive
 
 > readArray :: constraint (Read n) => PArray a n -> Int -> a n
