@@ -2743,8 +2743,7 @@ are now proved.}
     the result is immediate.
   \item or it is the result of a \rref*{C-Dom} rule, in which case we
     have $[[{C1}]]=[[{Q1}]]$, $[[{C2}]]=[[{Q2}]]$, and the result follows from
-    the definition of the entailment relation.\unsure{The last case of this proof needs to change to point to the
-  appropriate property}
+    \cref{def:entailment-relation}.
   \end{itemize}
 \end{proof}
 
