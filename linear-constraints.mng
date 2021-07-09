@@ -2822,7 +2822,7 @@ $$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \end{itemize}
-    By \cref{lem:inversion,lem:wanted:demote} there exist $[[{Q1}]]$ and $[[{Q_2}]]$ such that
+    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$ and $[[{Q_2}]]$ such that
     \begin{itemize}
     \item $[[Q_1 |- C1]]$
     \item $[[Q_2 |- C2]]$
