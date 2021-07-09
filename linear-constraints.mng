@@ -2661,11 +2661,6 @@ $$
 \subsection{Lemmas on the qualified type system}
 \label{sec:appendix:qual-type-syst}
 
-\unsure{With the set-representation of constraints, the proofs of this
-section need to be reworked. They should be simpler, which is
-nice. Possibly we have more proofs to do as some of the requirements
-are now proved.}
-
 \begin{proof}[Proof of \cref{lem:q:scaling}]
   Let us prove separately the cases $[[{pi}]]=[[{1}]]$ and
   $[[{pi}]]=[[{omega}]]$.
