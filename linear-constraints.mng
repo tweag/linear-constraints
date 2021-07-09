@@ -2691,30 +2691,26 @@ are now proved.}
     $[[omega.Q1 ||- Q2]]$ (\cref{def:entailment-relation}) and the
     property, shown above, that $[[omega.Q1 ||- Q2 * Q2']]$ if and
     only if $[[omega.Q1 ||- Q2]]$ and $[[omega.Q1 ||- Q2']]$.
-
   \end{itemize}
 \end{proof}
 
 \begin{proof}[Proof of \cref{lem:q:scaling-inversion}]
-  Let us prove this lemma by induction on the syntax of $[[{Q2}]]$
+  Let us prove separately the cases $[[{pi}]]=[[{1}]]$ and
+  $[[{pi}]]=[[{omega}]]$.
   \begin{itemize}
-  \item If $[[{Q2}]] = [[{rho.q}]]$, then, by \cref{def:entailment-relation}, there exists
-    $[[{Q1'}]]$ such that $[[{Q1}]]=[[{pi.Q1'}]]$ and $[[Q1' ||- rho.q]]$.
-  \item If $[[{Q2}]] = [[{Q2' * Q2''}]]$, then, by \cref{def:entailment-relation}, we know
-    that
-    $[[{Q1}]] = [[{Q1' * Q1''}]]$ for some $[[{Q1'}]]$ and $[[{Q1''}]]$, and
-    that
-    $[[Q1' ||- pi.Q2']]$ and $[[Q1'' ||- pi.Q2'']]$ (remember that, by
-    definition, $[[{pi.Q2}]] = [[{pi.Q2' * pi.Q2''}]]$). By induction hypothesis,
-    we have
-    constraints $[[{Q'}]]$ and $[[{Q''}]]$, such that $[[{Q1'}]] =
-    [[{pi.Q'}]]$ and $[[{Q1''}]] = [[{pi.Q''}]]$, and $[[Q' ||- Q2']]$ and
-    $[[Q'' ||- Q2'']]$.
-    It follows that $[[{Q1}]] = [[{pi.(Q' * Q'')}]]$ and
-    $[[Q' * Q'' ||- Q2]]$.
-  \item If $[[{Q2}]]=[[{Empty}]]$, then, since $[[{pi.Empty}]]=[[{Empty}]]$, by
-    \cref{def:entailment-relation}, $[[{Q1}]]=[[{Empty}]]$ and
-    the result is immediate.
+  \item When $[[{pi}]]=[[{1}]]$, then $[[{pi.Q}]]=[[{Q}]]$ for all
+    $[[{Q}]]$, in particular $[[Q1||- 1.Q2]]$ implies that
+    $[[{Q1}]]=[[{1.Q1}]]$ with $[[Q1 ||- Q2]]$.
+  \item When $[[{pi}]]=[[{omega}]]$, then let us first remark, letting
+    $[[{omega.Q2}]]=[[{(UCtx, emptyset)}]]$ that, by a straightforward
+    induction on the cardinality of $[[{UCtx}]]$ it is sufficient to
+    prove that the result holds for atomic constraints.
+
+    That is, we need to prove that if $[[Q1 ||- omega.q2]]$ then
+    there exists $[[{Q'}]]$ such that $[[{Q1}]]=[[{omega.Q'}]]$ and
+    $[[Q' ||- rho.q2]]$ (for all $[[{rho}]]$).
+
+    This result, in turns, holds by \cref{def:entailment-relation}.
   \end{itemize}
 \end{proof}
 
