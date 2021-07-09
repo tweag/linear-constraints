@@ -2059,9 +2059,9 @@ that has |constraint(Eq a)| as a linear superclass.
 class constraint(Eq a) =>. constraint(Ord a) where
   ...
 \end{code}
-Now, when given a linear |constraint(Ord a)|, should we keep it as |constraint(Ord a)|, or rewrite to
-|constraint(Eq a)| using the entailment? Short of backtracking, the constraint solver would
-need to make a guess here, which \textsc{ghc} never does.
+When given a linear |constraint(Ord a)|, should we keep it as |constraint(Ord a)|, or rewrite to
+|constraint(Eq a)| using the entailment? Short of backtracking, the constraint solver
+needs to make a guess, which \textsc{ghc} never does.
 
 To address both of these issues at once, we make the following rule: the
 superclasses of a linear constraint are \emph{never} expanded.
