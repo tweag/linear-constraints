@@ -2718,8 +2718,7 @@ are now proved.}
   The following equality holds $[[{pi.(rho.Q)}]]=[[{(pi.rho).Q}]]$
 \end{lemma}
 \begin{proof}
-  This result can be proved by a straightforward induction on the
-  structure of $[[{Q}]]$.
+  Immediate by case analysis of $[[{pi}]]$ and $[[{rho}]]$.
 \end{proof}
 
 \setcounter{subsection}{5}
