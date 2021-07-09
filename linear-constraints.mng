@@ -1614,6 +1614,17 @@ is what $[[{LCtx_o}]]$ is for: it contains the hypotheses of
 $[[{LCtx_i}]]$ which are not consumed when proving $[[{C}]]$. As
 suggested by the notation, it is an output of the algorithm.
 
+If the constraint solver finds a solution, then the output linear constraints
+must be a subset of the input linear constraints, and the solution must indeed
+be entailed from the given assumptions.
+\begin{lemma}[Constraint solver soundness]
+\label{lem:solver-soundness} If $[[UCtx; LCtx_i |-s C ~> LCtx_o]]$, then:
+\begin{enumerate}
+\item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
+\item $[[(UCtx, LCtx_i) |- C * (emptyset, LCtx_o)]]$
+\end{enumerate}
+\end{lemma}
+
 To handle simple wanted constraints, we will need  a domain-specific
 \emph{atomic-constraint solver} to be the algorithmic counterpart of the
 abstract entailment relation of Section~\ref{sec:constraint-domain}. The
@@ -1632,8 +1643,8 @@ Section~\ref{sec:simple-constr-solv}.
 %
 We require the following property of the atomic-constraint solver:
 
-\begin{property}[Atomic-constraint solver]
-\label{prop:solver-soundness} If $[[UCtx; LCtx_i |-simp pi.q ~> LCtx_o]]$, then:
+\begin{property}[Atomic-constraint solver soundness]
+\label{prop:atomic-solver-soundness} If $[[UCtx; LCtx_i |-simp pi.q ~> LCtx_o]]$, then:
 \begin{enumerate}
 \item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
 \item $[[(UCtx, LCtx_i) ||- pi.q * (emptyset, LCtx_o)]]$
@@ -1837,7 +1848,7 @@ comparison between an implicit core language D and an explicit one DC.}.
 \end{itemize}
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
-Property~\ref{prop:solver-soundness}\unsure{This is wrong, it only
+Property~\ref{lem:solver-soundness}\unsure{This is wrong, it only
   points to the soundness requirement for the atomic constraint
   solver. General soundness doesn't appear to exist (anymore?). Add
   the corresponding lemma and link to it} we know that if
