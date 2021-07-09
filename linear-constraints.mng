@@ -699,12 +699,18 @@ several possible ways to consume a constraint, the particular order
 chosen will depend on the details of the constraint resolution
 algorithm. We do not want the semantics of programs to depend on this
 order, which would not be at home in a declarative specification of
-the type system.
-Consequently, if an
-\textsc{api} uses linear constraints, it must be designed to ensure that the
-runtime behaviour is not dependent on the order of constraint
-resolution. \rae{This is a bit disturbing here. What does this mean, precisely?
-I would want an example.}
+the type system. Specifically, we require that the choice of
+given constraint (when there are multiple) cannot influence the
+behavior of the running program. In the domain of class constraints,
+this property is called \emph{coherence}: that only one instance of
+a specific type is in scope. Haskell already has mechanisms to ensure
+coherence~\cite{coherence}, though expert users have discovered ways
+to introduce incoherence\footnote{Kmett's \textsf{reflection} library,
+\url{https://hackage.haskell.org/package/reflection}, both uses incoherence
+to its advantage and also demonstrates techniques to keep its interface
+safe.}. As usual, any introduction of incoherence in the design of
+an \textsc{api} must be carefully considered for possible negative effects;
+the addition of linear constraints does not change this.
 
 \subsection{Linear I/O}
 \label{sec:linear-io}
