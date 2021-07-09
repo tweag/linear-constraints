@@ -1434,7 +1434,7 @@ assumptions of both $[[{C1}]]$ and $[[{C2}]]$. In practice, this rule is used
 when a $\kcase$-expression occurs in an unrestricted context. In that case, the
 different branches may use different constraints, and on the whole the
 expression will require the union of the branches' wanted  constraints. Note
-that $[[omega.(C1*C2)]]$ coincides with $[[omega.(C1&C2)]]$, which explains why
+that $[[{omega.(C1*C2)}]]$ coincides with $[[{omega.(C1&C2)}]]$, which explains why
 $\kcase$-expressions in Haskell without linear types do not require this
 second form of conjunction.
 %% Like in \cref{sec:constraint-domain}, we will typically drop
