@@ -681,36 +681,34 @@ Finally, consider the following program, which is rejected:
 overusing :: constraint (C) =>. (Int, Int)
 overusing = (useC, useC)
 \end{code}
-This is program is rejected because it uses |C| twice. However, the
-following version is accepted:
-\begin{code}
-notOverusing :: constraint ((C, C)) =>. (Int, Int)
-notOverusing = (useC, useC)
-\end{code}
-We see here that it is possible to have multiple copies of a given
-constraint.
+This is program is rejected because it uses |C| twice.
+%
+% However, the
+% following version is accepted:
+% \begin{code}
+% notOverusing :: constraint ((C, C)) =>. (Int, Int)
+% notOverusing = (useC, useC)
+% \end{code}
+% We see here that it is possible to have multiple copies of a given
+% constraint.
 
-%JP: this used to say:
-% Our system is designed so that the order of resolution is
-% non-deterministic. This corresponds to the assumption that all
-% instances of a linear constraint are equivalent.
-Because the consumption of constraints is implicit, when there are
-several possible ways to consume a constraint, the particular order
-chosen will depend on the details of the constraint resolution
-algorithm. We do not want the semantics of programs to depend on this
-order, which would not be at home in a declarative specification of
-the type system. Specifically, we require that the choice of
-given constraint (when there are multiple) cannot influence the
-behavior of the running program. In the domain of class constraints,
-this property is called \emph{coherence}: that only one instance of
-a specific type is in scope. Haskell already has mechanisms to ensure
-coherence~\cite{coherence}, though expert users have discovered ways
-to introduce incoherence\footnote{Kmett's \textsf{reflection} library,
-\url{https://hackage.haskell.org/package/reflection}, both uses incoherence
-to its advantage and also demonstrates techniques to keep its interface
-safe.}. As usual, any introduction of incoherence in the design of
-an \textsc{api} must be carefully considered for possible negative effects;
-the addition of linear constraints does not change this.
+% Because the consumption of constraints is implicit, when there are
+% several possible ways to consume a constraint, the particular order
+% chosen will depend on the details of the constraint resolution
+% algorithm. We do not want the semantics of programs to depend on this
+% order, which would not be at home in a declarative specification of
+% the type system. Specifically, we require that the choice of
+% given constraint (when there are multiple) cannot influence the
+% behavior of the running program. In the domain of class constraints,
+% this property is called \emph{coherence}: that only one instance of
+% a specific type is in scope. Haskell already has mechanisms to ensure
+% coherence~\cite{coherence}, though expert users have discovered ways
+% to introduce incoherence\footnote{Kmett's \textsf{reflection} library,
+% \url{https://hackage.haskell.org/package/reflection}, both uses incoherence
+% to its advantage and also demonstrates techniques to keep its interface
+% safe.}. As usual, any introduction of incoherence in the design of
+% an \textsc{api} must be carefully considered for possible negative effects;
+% the addition of linear constraints does not change this.
 
 \subsection{Linear I/O}
 \label{sec:linear-io}
