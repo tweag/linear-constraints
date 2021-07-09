@@ -544,7 +544,7 @@ closeFile :: constraint (Open h) =>. Handle h -> IOL ()
 There are a few things to notice:
 \begin{itemize}
 \item First, there is now a type variable |h|. In contrast,
-  the version in Figure~\ref{fig:linear-interface} without linear
+  the version in \Cref{fig:linear-interface} without linear
   constraints  has type |closeFile :: Handle ->. IOL ()|.
   The type variable |h| is a type-level name for the file handle being closed.
   Ideally, the linear constraint would refer directly to the
@@ -1010,12 +1010,12 @@ where |poly_arrow| is the notation for a function arrow of multiplicity |multipl
  First-order functions, on the other hand, do not need multiplicity
 polymorphism, because
 linear functions can be $\eta$-expanded into unrestricted function as
-explained in Section~\ref{sec:linear-types}. Higher-order functions
+explained in \cref{sec:linear-types}. Higher-order functions
 whose arguments are themselves constrained functions are rare,
 so we do not yet see the need to extend multiplicity polymorphism
 to apply to constraints.
 Futhermore, it is not clear how to extend the constraint solver of
-Section~\ref{sec:constraint-solver} to support multiplicity-polymorphic
+\cref{sec:constraint-solver} to support multiplicity-polymorphic
 constraints.
 
 \subsection{Simple Constraints and Entailment}
@@ -1167,13 +1167,13 @@ If $[[Q1 ||- omega.Q2]]$, then $[[{Q1}]]$ contains no linear assumptions.
 \end{corollary}
 
 Proofs of these lemmas (and others) appear in our anonymized supplementary material;
-they can be proved by straightforward use of the properties in Figure~\ref{fig:entailment-relation}.
+they can be proved by straightforward use of the properties in \Cref{fig:entailment-relation}.
 
 \subsection{Typing rules}
 \label{sec:typing-rules}
 
 With this material in place, we can now present our type system. The
-grammar is given in Figure~\ref{fig:declarative:grammar}, which also
+grammar is given in \Cref{fig:declarative:grammar}, which also
 includes the definitions of scaling on contexts $[[{pi.G}]]$ and addition
 of contexts $[[{G1+G2}]]$. Note that addition on contexts is actually
 a partial function, as it requires that, if a variable $[[{x}]]$ is bound
@@ -1234,26 +1234,26 @@ contexts is always satisfied.
   \label{fig:typing-rules}
 \end{figure}
 
-The typing rules are in Figure~\ref{fig:typing-rules}.
+The typing rules are in \Cref{fig:typing-rules}.
 A qualified type system~\cite{QualifiedTypes} such as ours introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[{G}]]$ is a standard
 type context, and $[[{Q}]]$ is a constraint we have assumed to be true.
 $[[{Q}]]$ behaves
 much like $[[{G}]]$, which will be instrumental for
-desugaring in Section~\ref{sec:desugaring}; the main difference is
+desugaring in \cref{sec:desugaring}; the main difference is
 that $[[{G}]]$ is addressed explicitly, whereas $[[{Q}]]$
 is used implicitly in \rref{E-Var}.
 
-The type system of Figure~\ref{fig:typing-rules} is purely
+The type system of \Cref{fig:typing-rules} is purely
 declarative: note, for example, that \rref{E-App} does not describe
 how to break the typing assumptions into constraints
 $[[{Q1}]]$/$[[{Q2}]]$ and contexts $[[{G1}]]$/$[[{G2}]]$. We will see
-how to infer constraints in Section~\ref{sec:type-inference}. Yet,
+how to infer constraints in \cref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
 definition that programmers can reason about typing. We do not
 directly give a dynamic
 semantics to this language; instead, we will give it meaning via
-desugaring to a simpler core language in Section~\ref{sec:desugaring}.
+desugaring to a simpler core language in \cref{sec:desugaring}.
 
 We survey several distinctive features of our qualified type system below:
 %
@@ -1266,7 +1266,7 @@ think.}
 The type of linear functions is written $[[{a ->_1 b}]]$.
   Despite our focus on linear constraints,
   we still need linearity in ordinary arguments.
-  For example, the bind combinator for |IOL| (Section~\ref{sec:introduction})
+  For example, the bind combinator for |IOL| (\cref{sec:introduction})
   requires linear arrows: |(>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b|.
 
   Indeed, the linearity of arrows interacts in interesting
@@ -1275,7 +1275,7 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   many times. We must make sure it is impossible to derive
   $[[1.q ; f :_omega a ->_omega b, x :_omega 1.q =o a |- f x : b]]$.
   Otherwise we could make, for instance, the |overusing| function from
-  Section~\ref{sec:overusing}.
+  \cref{sec:overusing}.
   You can check that $[[1.q ; f :_omega a ->_omega b, x :_omega 1.q =o a |- f x : b]]$
   indeed does not
   type check, because the scaling of $[[{Q2}]]$ in \rref{E-App} ensures that
@@ -1293,8 +1293,8 @@ Bindings in a |let| may be for either linear or unrestricted variables.
   assumptions. We thus have the ability to generalise a subset of
   the constraints needed by $[[{e1}]]$ (but not the type variables---no
   |let|-generalisation here, though it could be added). The inference algorithm of
-  Section~\ref{sec:type-inference} will not make use of this
-  possibility, but we revisit this capability in Section~\ref{sec:let-generalisation}.
+  \cref{sec:type-inference} will not make use of this
+  possibility, but we revisit this capability in \cref{sec:let-generalisation}.
 %% \item Data types are not \textsc{gadt}s.
 %%   This serves to considerably simplify the \rref*{E-Case}
 %%   rule. It would be
@@ -1302,7 +1302,7 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 %%   \textsc{gadt}s.
 \paragraph{Existentials}
  We include $[[{exists as. t o= Q}]]$, as
-  introduced in Section~\ref{sec:what-it-looks-like}, together with
+  introduced in \cref{sec:what-it-looks-like}, together with
   the $\kpack$ and $\kunpack$ constructions. See rules~\rref*{E-Pack} and
   \rref*{E-Unpack}.
 \info{No substitution on $[[{Q1}]]$ in the $\kunpack$ rule, because there is
@@ -1312,7 +1312,7 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 \section{Constraint inference}
 \label{sec:type-inference}
 
-The type system of Figure~\ref{fig:typing-rules} gives a declarative description
+The type system of \Cref{fig:typing-rules} gives a declarative description
 of what programs are acceptable. We now present the algorithmic counterpart to
 this system. Our algorithm is structured, unsurprisingly, around generating and
 solving constraints, broadly following the template of
@@ -1429,11 +1429,11 @@ $$
 \right.
 $$
 \rae{Describe the strangeness in these rules here.}
-%% Like in Section~\ref{sec:constraint-domain}, we will typically drop
+%% Like in \cref{sec:constraint-domain}, we will typically drop
 %% the scaling factor for implication when it is $[[{1}]]$ and write
 %% $[ [Q => C] ]$ for $[[{1.(Q=>C)}]]$.
 
-We define an entailment relation over wanteds in Figure~\ref{fig:wanted:entailment}.
+We define an entailment relation over wanteds in \Cref{fig:wanted:entailment}.
 Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, as
 there is no way to assume the more elaborate $[[{C}]]$.
 \begin{figure}
@@ -1459,7 +1459,7 @@ entailment relation.
   \label{lem:inversion}
   The inference rules of $[[Q |- C]]$ can be read bottom-up as well
   as top-down, as is required of $[[Q1 ||- Q2]]$ in
-  Figure~\ref{fig:entailment-relation}. That is:
+  \Cref{fig:entailment-relation}. That is:
   \begin{itemize}
   \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$ and $[[{Q2}]]$
     such that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
@@ -1521,9 +1521,9 @@ entailment relation.
 
 The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
-Section~\ref{sec:constraint-solver}. Constraint generation is described by
+\cref{sec:constraint-solver}. Constraint generation is described by
 the judgement $[[G |-> e : t ~> C]]$ (defined in
-Figure~\ref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
+\Cref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
 required to make $[[e]]$ typecheck.
 The definition
 $[[G |-> e : t ~> C]]$ is syntax directed, so it can directly be read as an
@@ -1548,8 +1548,8 @@ thus indeed syntax directed.
   \label{fig:constraint-generation}
 \end{figure}
 
-The rules of Figure~\ref{fig:constraint-generation} constitute a mostly
-unsurprising translation of the rules of Figure~\ref{fig:typing-rules},
+The rules of \Cref{fig:constraint-generation} constitute a mostly
+unsurprising translation of the rules of \Cref{fig:typing-rules},
 except for the following points of interest:
 
 \paragraph{Case expressions}
@@ -1559,7 +1559,7 @@ same (linear) assumptions; this is enforced by combining the
 emitted constraints with $[[&]]$, not $[[*]]$.
 %
   This can also be understood in terms of the file-handle example of
-  Section~\ref{sec:introduction}:
+  \cref{sec:introduction}:
   if a file is closed in one branch of a $\kcase$, we require it to be closed in
 the other branches too.
   Otherwise, the file handle's state will be unknown to the type system
@@ -1571,7 +1571,7 @@ the other branches too.
 \paragraph{Unannotated |let|}
  However, the~\rref*{G-Let} rule does not produce an implication
   constraint, as we do not model |let|-generalisation~\cite{let-should-not-be-generalised}.
-  Section~\ref{sec:let-generalisation} discusses this design
+  \cref{sec:let-generalisation} discusses this design
   choice further.
 
 
@@ -1579,7 +1579,7 @@ the other branches too.
 The key property of the constraint-generation algorithm is that,
 if the generated constraint is solvable, then we can indeed type the
 term in the qualified type system of
-Section~\ref{sec:qualified-type-system}. That is,
+\cref{sec:qualified-type-system}. That is,
 these rules are simply an implementation of our declarative qualified
 type system.
 
@@ -1593,7 +1593,7 @@ type system.
 
 In this section,
 we build a \emph{constraint solver} that proves
-that $[[Q_g |- C]]$ holds, as required by Lemma~\ref{lem:generation-soundness}.
+that $[[Q_g |- C]]$ holds, as required by \cref{lem:generation-soundness}.
 The constraint solver is represented by the following judgement:
 %
 $$
@@ -1605,7 +1605,7 @@ takes in two contexts: $[[{UCtx}]]$, which holds all the unrestricted
 atomic constraint assumptions and $[[{LCtx_i}]]$, which holds all the linear
 atomic constraint assumptions.
 The linear contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ have been described
-as multisets (Section~\ref{sec:constraint-domain}), but we treat them
+as multisets (\cref{sec:constraint-domain}), but we treat them
 as ordered lists in the more concrete setting here; we will see soon
 why this treatment is necessary.
 
@@ -1627,7 +1627,7 @@ be entailed from the given assumptions.
 
 To handle simple wanted constraints, we will need  a domain-specific
 \emph{atomic-constraint solver} to be the algorithmic counterpart of the
-abstract entailment relation of Section~\ref{sec:constraint-domain}. The
+abstract entailment relation of \cref{sec:constraint-domain}. The
 main solver will appeal to this atomic-constraint solver when solving atomic
 constraints.  The atomic-constraint solver is represented by the following
 judgement:
@@ -1639,7 +1639,7 @@ $$
 It has a similar structure to the main solver, but only deals with atomic
 constraints. Even though the main solver is parameterised by this
 atomic-constraint solver, we will give an instantiation in
-Section~\ref{sec:simple-constr-solv}.
+\cref{sec:simple-constr-solv}.
 %
 We require the following property of the atomic-constraint solver:
 
@@ -1655,7 +1655,7 @@ We require the following property of the atomic-constraint solver:
 
 Building on this atomic-constraint solver, we use a linear proof
 search algorithm based on the recipe given
-by~\citet{resource-management-for-ll-proof-search}. Figure~\ref{fig:constraint-solver}
+by~\citet{resource-management-for-ll-proof-search}. \Cref{fig:constraint-solver}
 presents the rules of the constraint solver.
 
 \begin{figure}
@@ -1681,7 +1681,7 @@ both cases, the assumption of the implication is split into its
 unrestricted and linear components.
 When solving a linear implication, we union the assumptions with their respective context, and
 proceed with solving the conclusion. Importantly (see
-Section~\ref{sec:simple-constr-solv} below), the linear assumptions are
+\cref{sec:simple-constr-solv} below), the linear assumptions are
 added to the front of the list.
  The side condition requires that the output
 context is a subset of the input context: this is to ensure that the implication
@@ -1702,7 +1702,7 @@ domain which supports our examples.
 
 For the sake of our examples, we need very little: linear
 constraints can remain abstract. It is thus sufficient for the entailment relation
-(Figure~\ref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
+(\Cref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
 is already assumed---while respecting linearity.
 
 \begin{figure}
@@ -1724,14 +1724,14 @@ is already assumed---while respecting linearity.
 \end{figure}
 
 The corresponding atomic-constraint solver
-(Figure~\ref{fig:simpl-solver}) is more interesting.
+(\Cref{fig:simpl-solver}) is more interesting.
 The rules here are deterministic: in all circumstances,
 only one of the three rules can apply. This means that the
 algorithm does not guess, and thus never needs to backtrack.
 Avoiding guesses is a key property of \textsc{ghc}'s solver~\cite[Section~6.4]{OutsideIn},
 one we must maintain if we are to be compatible with \textsc{ghc}.
 
-Figure~\ref{fig:simpl-solver} is also where the fact that the
+\Cref{fig:simpl-solver} is also where the fact that the
 $[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
 takes care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the front of
@@ -1752,7 +1752,7 @@ choice among the constraints will lead the algorithm to fail.
 Choosing the first $[[{q}]]$ linear assumption guarantees we get the
 most local one.
 
-Another interesting feature of the solver (Figure~\ref{fig:simpl-solver}) is that
+Another interesting feature of the solver (\Cref{fig:simpl-solver}) is that
 no rule solves a linear constraint if it appears both in the
 unrestricted and the linear context.
 Consider the following (contrived) \textsc{api}:
@@ -1769,7 +1769,7 @@ bad :: constraint (C) =>. (Int, Int)
 bad = (giveC useC, useC)
 \end{code}
 It is possible to give a type derivation to |bad| in the qualified type system
-of Section~\ref{sec:qualified-type-system}. In this case, the constraint assignment
+of \cref{sec:qualified-type-system}. In this case, the constraint assignment
 is actually unambiguous:
 the first |useC| must use the unrestricted |constraint (C)|, while the
 second must use the linear |constraint (C)|. This assignment, however, would require
@@ -1813,7 +1813,7 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 \end{figure}
 
 The core calculus is a variant of the type system defined in
-Section~\ref{sec:qualified-type-system}, but without constraints. That is, the evidence for constraints is passed explicitly in this core calculus.
+\cref{sec:qualified-type-system}, but without constraints. That is, the evidence for constraints is passed explicitly in this core calculus.
 %
 Following $λ^q$, we assume the existence of the following data types:
 \begin{itemize}
@@ -1825,7 +1825,7 @@ Following $λ^q$, we assume the existence of the following data types:
   Ur a]]$
 \end{itemize}
 %
-Figure~\ref{fig:core-typing-rules}
+\Cref{fig:core-typing-rules}
 highlights the differences from the qualified system:
 \begin{itemize}
   \item Type schemes $[[{s}]]$ do not support qualified types.
@@ -1868,7 +1868,7 @@ we pass evidence explicitly\footnote{This technique is also often called
 To do so, we require some more material from
 constraints. Namely, we assume a type $[[{Ev(q)}]]$ for each atomic
 constraint $[[{q}]]$,
-defined in Figure~\ref{fig:evidence}.  The $[[Ev(Hole)]]$ operation
+defined in \Cref{fig:evidence}.  The $[[Ev(Hole)]]$ operation
 extends to simple constraints as
 $[[{Ev(Q)}]]$.
 Furthermore, we require that for every $[[{Q1}]]$ and $[[{Q2}]]$
@@ -1924,7 +1924,7 @@ concluding judgement, the translation is defined recursively on the
 whole typing derivation: in particular, we have access to typing rule
 premises in the body of the definition.
 %
-We present some of the interesting cases in Figure~\ref{fig:desugaring}.
+We present some of the interesting cases in \Cref{fig:desugaring}.
 \begin{figure}
     \maybesmall
 \centering
@@ -2051,20 +2051,20 @@ change.
 
 The constraint solver maintains a set of given constraints (the \emph{inert set}
 in \textsc{ghc} jargon), which corresponds to the $[[{UCtx}]]$ and $[[{LCtx}]]$
-contexts in our solver judgements in Section~\ref{sec:constraint-solver}. When
+contexts in our solver judgements in \cref{sec:constraint-solver}. When
 the solver goes under an implication, the assumptions of the implication are
 added to set of givens. When a new given is added, we record the \emph{level} of
 the implication (how many implications deep the constraint arises from) along
 with the constraint. This is to ensure that in case there are multiple matching
 givens, the constraint solver selects the innermost one
-(in~\cref{sec:constraint-solver} we use an ordered list of linear assumptions
+(in \cref{sec:constraint-solver} we use an ordered list of linear assumptions
 for this purpose).
 
 As constraint solving proceeds, the compiler pipeline constructs a term in an
 typed language
 known as \textsc{ghc} Core~\cite{system-fc}.
 In Core, type class constraints are turned into
-explicit evidence (see Section~\ref{sec:desugaring}). Thanks to being fully
+explicit evidence (see \cref{sec:desugaring}). Thanks to being fully
 annotated, Core has decidable typechecking which is useful in debugging
 modifications to the compiler. Thus, the soundness of our
 implementation is verified by the Core typechecker, which already supports
@@ -2135,7 +2135,7 @@ section, we consider some potential avenues for extensions.
 \subsection{let generalisation}
 \label{sec:let-generalisation}
 
-As discussed in Section~\ref{sec:constraint-generation}, the~\rref*{G-Let} rule
+As discussed in \cref{sec:constraint-generation}, the~\rref*{G-Let} rule
 of our constraint generator does not generalise the type of |let|-bindings.
 Not doing |let|-generalisation is in line with \textsc{ghc}'s existing
 behaviour~\cite[Section 4.2]{OutsideIn}. There, this behaviour was guided
@@ -2145,7 +2145,7 @@ matching).
 
 In this section, however, we argue that generalising over linear constraints
 may, in fact, improve user experience.
-Let us revisit the |firstLine| example from Section~\ref{sec:introduction}, but
+Let us revisit the |firstLine| example from \cref{sec:introduction}, but
 this time, instead of executing |closeFile| directly, we assign it to a variable
 in a |let|-binding:
 \begin{code}
@@ -2181,7 +2181,7 @@ $$
 %
 This rule is non-deterministic, because it requires finding $[[{Q_r}]]$ and
 $[[{Q}]]$. We can modify the constraint solver of
-Section~\ref{sec:constraint-solver} to find $[[{Q_r*Q}]]$. But we
+\cref{sec:constraint-solver} to find $[[{Q_r*Q}]]$. But we
 still have to determine how to split the residual into $[[{Q_r}]]$ and
 $[[{Q}]]$.
 
@@ -2220,7 +2220,7 @@ considerable amount of non-determinism in the constraint solver. Eliminating the
 non-determinism induced by $[[{Top}]]$ is ultimately
 what~\citet{resource-management-for-ll-proof-search} builds up
 to. Their methods can be adapted to the constraint solver of
-Section~\ref{sec:constraint-solver} without any technical
+\cref{sec:constraint-solver} without any technical
 difficulty. We chose, however, to keep empty cases out the
 presentation because they have a very high overhead and would distract from
 the point. Instead, we refer readers
@@ -2262,7 +2262,7 @@ simply be written as
 
 % One challenge if existential packing and unpacking are inferred is that
 % the order in which a program is executed might become ambiguous.
-% Picking up the example from Section~\ref{sec:atomic-references},
+% Picking up the example from \cref{sec:atomic-references},
 % consider this function:
 
 % > writeTwo :: constraint (RW n) =>. AtomRef a n -> a -> a -> () .<= constraint (RW n)
@@ -2291,14 +2291,14 @@ simply be written as
 % This is disappointing: we cannot have type inference tell us what order
 % our program is to be evaluated. One solution is to reject ambiguous programs
 % like |writeTwo|. This could be achieved by changing \rref{Atom-OneL} of
-% Figure~\ref{fig:simpl-solver} to require that the desired constraint
+% \Cref{fig:simpl-solver} to require that the desired constraint
 % has precisely one matching assumption. Then, when there is any ambiguity,
 % we simply reject. Would this be too restrictive in practice? A middle ground
 % might be to track (in our list of linear assumptions) when we enter a more
 % local scope (this is actually already done by \textsc{ghc}), and reject only
 % programs with multiple identical assumptions in the same local scope.
 
-% The issues here---similar to those raised in Section~\ref{sec:let-generalisation}---have
+% The issues here---similar to those raised in \cref{sec:let-generalisation}---have
 % potential solutions, but the precise way forward is best informed by
 % experience, as users begin to adopt these features and we get a better
 % sense for prominent patterns and how our choices should be tuned.
@@ -2311,8 +2311,8 @@ simply be written as
 
 Our aim is to integrate the present work in \textsc{ghc}, and
 accordingly the qualified type system in
-Section~\ref{sec:qualified-type-system} and the constraint inference
-algorithm in Section~\ref{sec:type-inference} follow a similar
+\cref{sec:qualified-type-system} and the constraint inference
+algorithm in \cref{sec:type-inference} follow a similar
 presentation to that of OutsideIn~\cite{OutsideIn}, \textsc{ghc}'s
 constraint solver algorithm.  Even though our presentation is
 self-contained, we outline some of the differences from that work.
@@ -2321,7 +2321,7 @@ The solver judgement in OutsideIn takes the following form:
 %
 \[\mathcal{Q}\ ;\ Q_{\mathit{given}}\ ;\ \overline{\alpha}_{\mathit{tch}} \overset{\mathit{solv}}{\mapsto} C_{\mathit{wanted}} \leadsto Q_{\mathit{residual}}\  ; \ \theta\]
 %
-The main differences from our solver judgement in Section~\ref{sec:constraint-solver} are:
+The main differences from our solver judgement in \cref{sec:constraint-solver} are:
 \begin{itemize}
   \item OutsideIn's judgement includes top-level axioms schemes separately
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
@@ -2335,7 +2335,7 @@ takes as input a set of \emph{touchable} variables $\overline{\alpha}_{tch}$
 which record the type variables that can be unified at any given time, and
 produces a type substitution $\theta$ as an output (whose domain is a subset of
 the touchable variables).
-As discussed in Section~\ref{sec:type-inference}, we do not perform\jp{describe?} type
+As discussed in \cref{sec:type-inference}, we do not perform\jp{describe?} type
 inference, only constraint inference. Therefore, our solver need not\jp{explicitly?} return a
 type assignment.
   \item The most important difference is the output of the algorithms. Both
@@ -2346,7 +2346,7 @@ correspond to the part of $C_{\mathit{wanted}}$ that could not be solved from th
 assumptions. These residuals are then quantified over in the generalisation step
 of the inference algorithm. We omit these residuals, which means that our
 algorithm cannot infer qualified types, though extending it to do so would be
-possible as discussed in Section~\ref{sec:let-generalisation}.
+possible as discussed in \cref{sec:let-generalisation}.
 Our \emph{output} constraints $[[{LCtx_o}]]$ instead correspond to the part of the
 \emph{linear} givens $[[{LCtx_i}]]$ that were not used in the solution for $[[{C_w}]]$.
 Keeping track of these unused constraints is crucial: ultimately we need to
@@ -2360,7 +2360,7 @@ branch), whereas we need to make sure that each branch of a $\kcase$-expression
 consumes the same constraints.
 %
 This is easily understood in terms of the file example of
-Section~\ref{sec:introduction}: if a file is closed in one branch of a $\kcase$,
+\cref{sec:introduction}: if a file is closed in one branch of a $\kcase$,
 it must be closed in the other branches, too. Otherwise, its state will
 be unknown to the type system after the $\kcase$.
 \end{itemize}
@@ -2374,7 +2374,7 @@ be unknown to the type system after the $\kcase$.
 %%   dedicated rule.
 \paragraph{Rust}
 
-The memory ownership example of Section~\ref{sec:memory-ownership} is
+The memory ownership example of \cref{sec:memory-ownership} is
 strongly inspired by Rust.
 %
 Rust is built with ownership and borrowing for memory
@@ -2409,11 +2409,11 @@ are not tied to a particular use case. However,
 
 Other than that, the two systems have a lot of similarities. They have a
 finer-grained capability system than is expressible in Rust (or our
-in our encoding of it in Section~\ref{sec:memory-ownership}) which makes it possible to change
+in our encoding of it in \cref{sec:memory-ownership}) which makes it possible to change
 the type of a reference cell upon write. They also eschew scoped
 borrowing in favour of more traditional read and write capabilities. In
 exchange, neither Mezzo nor \textsc{ats} support $O(1)$ freezing like
-in Section~\ref{sec:memory-ownership}.
+in \cref{sec:memory-ownership}.
 
 Mezzo, being geared towards functional programming, does support
 freezing, but freezing a nested data structure requires traversing it.
@@ -2422,7 +2422,7 @@ freezing. \textsc{Ats} is more oriented towards system programming.
 
 %if False
 We chose an example in the style of rust for
-Section~\ref{sec:memory-ownership} because freezing arrays of arrays
+\cref{sec:memory-ownership} because freezing arrays of arrays
 in $O(1)$ was one of the initial motivations of this article. However,
 a Mezzo or \textsc{ats} style of capabilities could certainly be
 encoded within linear constraints.
@@ -2461,7 +2461,7 @@ Prolog does.
   moved these references about (don't forget to speak about uniformity
   again)}
 Uniformity is used in the proof of
-Lemma~\ref{lem:inversion}, which, in turn is used in the proof of the
+\cref{lem:inversion}, which, in turn is used in the proof of the
 soundness lemma~\ref{lem:generation-soundness}. This seems to indicate
 that goal-oriented search is baked into the definition of OutsideIn. An
 immediate consequence of this observation, however, is that
@@ -2493,10 +2493,10 @@ proof from \citet{hh-ll}, which was introduced to prove the
 completeness of a proof search strategy, ends up being crucial to the
 soundness of constraint generation.
 
-In some cases, like the file example of Section~\ref{sec:introduction},
+In some cases, like the file example of \cref{sec:introduction},
 linear constraints are a mere convenience that reduce line noise and
 make code more idiomatic. But the memory management \textsc{api} of
-Section~\ref{sec:memory-ownership} is not practical without
+\cref{sec:memory-ownership} is not practical without
 linear constraints. Certainly, ownership proofs could be managed manually, but
 it is hard to imagine a circumstance where this tedious task would be worth the
 cost.
@@ -2523,9 +2523,9 @@ body of the article.
 \label{sec:appendix:core-calculus}
 
 This is the complete version of the core calculus described in
-Section~\ref{sec:core-calculus}. The full grammar is given by
-Figure~\ref{fig:full:core-grammar} and the type system by
-Figure~\ref{fig:full:core-typing-rules}.
+\cref{sec:core-calculus}. The full grammar is given by
+\Cref{fig:full:core-grammar} and the type system by
+\Cref{fig:full:core-typing-rules}.
 
 \begin{figure}
   \maybesmall
@@ -2565,8 +2565,8 @@ Figure~\ref{fig:full:core-typing-rules}.
 \label{sec:appendix:desugaring}
 
 The complete definition of the desugaring function from
-Section~\ref{sec:desugaring} can be found in
-Figure~\ref{fig:full:desugaring}.
+\cref{sec:desugaring} can be found in
+\Cref{fig:full:desugaring}.
 
 For the sake of concision, we allow ourselves to write nested patterns
 in case expressions of the core language. Desugaring nested patterns
@@ -2713,12 +2713,12 @@ section need to be reworked. They should be simpler, which is
 nice. Possibly we have more proofs to do as some of the requirements
 are now proved.}
 
-\begin{proof}[Proof of Lemma~\ref{lem:q:scaling}]
+\begin{proof}[Proof of \cref{lem:q:scaling}]
   Let us prove this lemma by induction on the syntax of $[[{Q2}]]$:
   \begin{itemize}
   \item If $[[{Q2}]] = [[{rho.q}]]$, then $[[pi.Q1 ||- (pi.rho).q]]$ holds by
-    Definition~\ref{def:entailment-relation}.
-  \item If $[[{Q2}]] = [[{Q2' * Q2''}]]$, then, by Definition~\ref{def:entailment-relation}, we know that
+    \cref{def:entailment-relation}.
+  \item If $[[{Q2}]] = [[{Q2' * Q2''}]]$, then, by \cref{def:entailment-relation}, we know that
     $[[{Q1}]] = [[{Q1' * Q1''}]]$ for some $[[{Q1'}]]$ and $[[{Q1''}]]$, and
     that
     $[[Q1' ||- Q2']]$ and $[[Q1'' ||- Q2'']]$. By induction hypothesis,
@@ -2727,19 +2727,19 @@ are now proved.}
     follows that
     $[[pi.Q1 ||- pi.Q2]]$.
   \item If $[[{Q2}]]=[[{Empty}]]$, then, by
-    Definition~\ref{def:entailment-relation}, we know that
+    \cref{def:entailment-relation}, we know that
     $[[{Q1}]]=[[{omega.Q1'}]]$, for some $[[{Q1'}]]$
-    and the result follows from Lemma~\ref{lem:simples:monoid-action},
+    and the result follows from \cref{lem:simples:monoid-action},
     since $[[{pi.Q1}]]=[[{pi.(omega.Q1')}]]=[[{omega.Q1'}]]$.
   \end{itemize}
 \end{proof}
 
-\begin{proof}[Proof of Lemma~\ref{lem:q:scaling-inversion}]
+\begin{proof}[Proof of \cref{lem:q:scaling-inversion}]
   Let us prove this lemma by induction on the syntax of $[[{Q2}]]$
   \begin{itemize}
-  \item If $[[{Q2}]] = [[{rho.q}]]$, then, by Definition~\ref{def:entailment-relation}, there exists
+  \item If $[[{Q2}]] = [[{rho.q}]]$, then, by \cref{def:entailment-relation}, there exists
     $[[{Q1'}]]$ such that $[[{Q1}]]=[[{pi.Q1'}]]$ and $[[Q1' ||- rho.q]]$.
-  \item If $[[{Q2}]] = [[{Q2' * Q2''}]]$, then, by Definition~\ref{def:entailment-relation}, we know
+  \item If $[[{Q2}]] = [[{Q2' * Q2''}]]$, then, by \cref{def:entailment-relation}, we know
     that
     $[[{Q1}]] = [[{Q1' * Q1''}]]$ for some $[[{Q1'}]]$ and $[[{Q1''}]]$, and
     that
@@ -2752,7 +2752,7 @@ are now proved.}
     It follows that $[[{Q1}]] = [[{pi.(Q' * Q'')}]]$ and
     $[[Q' * Q'' ||- Q2]]$.
   \item If $[[{Q2}]]=[[{Empty}]]$, then, since $[[{pi.Empty}]]=[[{Empty}]]$, by
-    Definition~\ref{def:entailment-relation}, $[[{Q1}]]=[[{Empty}]]$ and
+    \cref{def:entailment-relation}, $[[{Q1}]]=[[{Empty}]]$ and
     the result is immediate.
   \end{itemize}
 \end{proof}
@@ -2769,7 +2769,7 @@ are now proved.}
 \subsection{Lemmas on constraint inference}
 \label{sec:appendix:constraint-inference}
 
-\begin{proof}[Proof of Lemma~\ref{lem:inversion}]
+\begin{proof}[Proof of \cref{lem:inversion}]
   The cases $[[Q |- C1 & C2]]$ and $[[Q |- pi.(Q2 => C)]]$ are
   immediate, since there is only one rule (\rref*{C-With} and
   \rref*{C-Impl} respectively) which can have them as their
@@ -2787,26 +2787,26 @@ are now proved.}
 \end{proof}
 
 
-\begin{proof}[Proof of Lemma~\ref{lem:wanted:promote}]
+\begin{proof}[Proof of \cref{lem:wanted:promote}]
   By induction on the syntax of $[[{C}]]$
   \begin{itemize}
   \item If $[[{C}]]=[[{Q'}]]$, then the result follows
-    from Lemma~\ref{lem:q:scaling}
+    from \cref{lem:q:scaling}
   \item If $[[{C}]]=[[{C1*C2}]]$, then we can prove the result like we
-    proved the corresponding case in Lemma~\ref{lem:q:scaling},
-    using Lemma~\ref{lem:inversion}.
+    proved the corresponding case in \cref{lem:q:scaling},
+    using \cref{lem:inversion}.
   \item If $[[{C}]]=[[{C1&C2}]]$, then we the case where $[[{pi}]]=[[{1}]]$ is
     immediate, so we can assume without loss of generality that
     $[[{pi}]]=[[{omega}]]$, and, therefore, that $[[{pi.C}]] = [[pi.C1 *
     pi.C2]]$.
-    By Lemma~\ref{lem:inversion}, we have that $[[Q|-C1]]$ and
+    By \cref{lem:inversion}, we have that $[[Q|-C1]]$ and
     $[[Q|-C2]]$; hence, by induction, $[[omega.Q |- omega.C1]]$ and
     $[[omega.Q |- omega.C1]]$.
     Then, by definition of the entailment relation, we have $[[omega.Q
     * omega.Q |- omega.C1 * omega.C2]]$, which concludes,
     since $[[{omega.Q}]] = [[{omega.Q * omega.Q}]]$.
   \item If $[[{C}]]=[[{rho.(Q1 => C')}]]$, then by
-    Lemma~\ref{lem:inversion}, there is a $[[{Q'}]]$ such that
+    \cref{lem:inversion}, there is a $[[{Q'}]]$ such that
     $[[{Q}]]=[[{pi.Q'}]]$ and $[[Q'*Q1 |- C']]$. Applying
     rule~\rref*{C-Impl} with $[[{pi.rho}]]$, we get
     $[[(pi.rho).Q' |- (pi.rho).(Q1 => C')]]$.
@@ -2815,35 +2815,35 @@ are now proved.}
   \end{itemize}
 \end{proof}
 
-\begin{proof}[Proof of Lemma~\ref{lem:wanted:demote}]
+\begin{proof}[Proof of \cref{lem:wanted:demote}]
   By induction on the syntax of $[[{C}]]$
   \begin{itemize}
   \item If $[[{C}]]=[[{Q'}]]$, then the result follows from
-    Lemma~\ref{lem:q:scaling-inversion}
+    \cref{lem:q:scaling-inversion}
   \item If $[[{C}]]=[[{C1*C2}]]$, then we can prove the result like we
     proved the corresponding case in
-    Lemma~\ref{lem:q:scaling-inversion} using
-    Lemma~\ref{lem:inversion}.
+    \cref{lem:q:scaling-inversion} using
+    \cref{lem:inversion}.
   \item If $[[{C}]]=[[{C1&C2}]]$, then we the case where $[[{pi}]]=[[{1}]]$ is
     immediate, so we can assume without loss of generality that
     $[[{pi}]]=[[{omega}]]$, and, therefore, that
-    $[[{pi.C}]] = [[{pi.C1 * pi.C2}]]$. By Lemma~\ref{lem:inversion},
+    $[[{pi.C}]] = [[{pi.C1 * pi.C2}]]$. By \cref{lem:inversion},
     there exist $[[{Q1}]]$ and $[[{Q2}]]$ such that $[[Q1|- omega.C1]]$,
     $[[Q2|- omega.C2]]$ and $[[{Q}]]=[[{Q1 * Q2}]]$. By induction
     hypothesis, we get $[[{Q1}]] = [[{omega.Q1'}]]$ and $[[{Q2}]] = [[{omega.Q2'}]]$
     such that $[[Q1' |- C1]]$ and $[[Q2' |- C2]]$. From which it
     follows that $[[omega.Q1'*omega.Q2' |- C1]]$ and
     $[[omega.Q1'*omega.Q2' |- C1]]$ (by
-    Lemma~\ref{lem:wanteds:weakening}) and, finally,
-    $[[{Q}]]=[[{omega.Q}]]$ (by Lemma~\ref{lem:wanteds:module-action})
+    \cref{lem:wanteds:weakening}) and, finally,
+    $[[{Q}]]=[[{omega.Q}]]$ (by \cref{lem:wanteds:module-action})
     and $[[Q |- C1 & C2]]$.
   \item If $[[{C}]]=[[{rho.(Q1 => C')}]]$, then
     $[[{pi.C}]] = [[{(pi.rho). (Q1 => C')}]]$. The result follows
-    immediately by Lemma~\ref{lem:inversion}.
+    immediately by \cref{lem:inversion}.
   \end{itemize}
 \end{proof}
 
-\begin{proof}[Proof of Lemma~\ref{lem:generation-soundness}]
+\begin{proof}[Proof of \cref{lem:generation-soundness}]
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
   \item[\rref*{G-Var}] We have
@@ -2872,7 +2872,7 @@ are now proved.}
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \end{itemize}
-    By Lemmas~\ref{lem:inversion} and~\ref{lem:wanted:demote}, there exist $[[{Q1}]]$ and $[[{Q_2}]]$ such that
+    By \cref{lem:inversion,lem:wanted:demote} there exist $[[{Q1}]]$ and $[[{Q_2}]]$ such that
     \begin{itemize}
     \item $[[Q_1 |- C1]]$
     \item $[[Q_2 |- C2]]$
@@ -2893,7 +2893,7 @@ are now proved.}
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By Lemmas~\ref{lem:inversion} and~\ref{lem:wanted:demote}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
+    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
     that
     \begin{itemize}
     \item $[[Q2 |- C2]]$
@@ -2915,7 +2915,7 @@ are now proved.}
     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
-    By Lemmas~\ref{lem:inversion} and~\ref{lem:wanted:demote}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such that
+    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such that
     \begin{itemize}
     \item $[[Q1 |- C1]]$
     \item $[[Q2 |- C2]]$
@@ -2933,7 +2933,7 @@ are now proved.}
     \item $[[Q_g |- C * Q[us/as] ]]$
     \item $[[G |-> e : t[us/as] ~> C]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
+    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
     such that
     \begin{itemize}
     \item $[[Q_1 |- C]]$
@@ -2954,7 +2954,7 @@ are now proved.}
     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By Lemma~\ref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
+    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
     such that
     \begin{itemize}
     \item $[[Q_1 |- C1]]$
@@ -2974,7 +2974,7 @@ are now proved.}
     \item $[[G |-> e : T ss ~> C]]$
     \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
     \end{itemize}
-    By repeated uses of Lemma~\ref{lem:inversion} as well as Lemma~\ref{lem:wanted:demote}, there exist
+    By repeated uses of \cref{lem:inversion} as well as \cref{lem:wanted:demote}, there exist
     $[[{Q}]]$, $[[{Q'}]]$ such that
     \begin{itemize}
     \item $[[Q |- C]]$
@@ -2997,7 +2997,7 @@ are now proved.}
   This is proved by a straightforward induction on the derivation of
   $[[Q |- C]]$, using the corresponding property on the
   simple-constraint entailment relation from
-  Definition~\ref{def:entailment-relation}, for the \rref*{C-Dom} case.
+  \cref{def:entailment-relation}, for the \rref*{C-Dom} case.
 \end{proof}
 
 \begin{lemma}\label{lem:wanteds:module-action}
@@ -3005,7 +3005,7 @@ are now proved.}
 \end{lemma}
 \begin{proof}
   This is proved by a straightforward induction on the structure of
-  $[[{C}]]$, using Lemma~\ref{lem:simples:monoid-action} for the case
+  $[[{C}]]$, using \cref{lem:simples:monoid-action} for the case
   $[[{C}]]=[[{Q}]]$.
 \end{proof}
 \end{document}
