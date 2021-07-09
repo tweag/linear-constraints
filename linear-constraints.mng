@@ -1848,10 +1848,7 @@ comparison between an implicit core language D and an explicit one DC.}.
 \end{itemize}
 
 Using Lemma~\ref{sec:constraint-generation-soundness} together with
-Property~\ref{lem:solver-soundness}\unsure{This is wrong, it only
-  points to the soundness requirement for the atomic constraint
-  solver. General soundness doesn't appear to exist (anymore?). Add
-  the corresponding lemma and link to it} we know that if
+Property~\ref{lem:solver-soundness} we know that if
 $[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C ~> emptyset ]]$, then
 $[[(UCtx, LCtx) ; G |- e : t]]$.
 %
