@@ -1021,17 +1021,36 @@ constraints.
 \subsection{Simple Constraints and Entailment}
 \label{sec:constraint-domain}
 
-Types are constrained by \emph{simple constraints} $[[{Q}]]$, which contain
-\emph{atomic constraints} $[[{q}]]$. The atomic constraints $[[{q}]]$ refer to
-the base constraints supported in a qualified type system: these might include
-class constraints and equality constraints, for example. Interestingly, our
-approach puts no requirements on what this set includes, and thus could
-conceivably be used in a qualified-type language other than Haskell.
+Let us now turn to constraints themselves. We call constraints such as
+|constraint(Read n)| or |constraint(Write n)| \emph{atomic
+  constraints}. What precisely the atomic constraints are, is left
+unspecified: the set of atomic constraint is a parameter of our
+qualified type system.
 
-The simple constraint $[[{Q}]]$ can be formed from a scaled atomic constraint
-$[[{pi.q}]]$ or by taking the conjunction of two existing simple constraints
-$[[{Q1*Q2}]]$. In addition, a simple constraint can be the empty conjunction
-$[[{Empty}]]$. However, we do not define $[[{Q}]]$ inductively, because we
+\begin{definition}[Atomic constraints]
+  The qualified type system is parameterised by a set, whose elements
+  are called \emph{atomic constraints}. We use the variable $[[{q}]]$
+  to denote atomic constraints.
+\end{definition}
+
+Atomic constraints are assembled into \emph{simple constraints}
+$[[{Q}]]$, which play the hybrid role of constraint contexts and
+(linear) logic formulae. We need simple constraints to support the
+following operations
+\begin{description}
+\item[Scaled atomic constraints] $[[{pi.q}]]$ is a simple constraint,
+  where $[[{pi}]]$ specifies whether $[[{q}]]$ is to be used linearly
+  or not.
+\item[Conjunction] Two simple constraints can be paired up
+  $[[{Q1 * Q2}]]$. Semantically, this corresponds the multiplicative
+  conjunction of linear logic. Tensor products represent pairs of
+  constraints such as |constraint((Read n, Write n))| from Haskell.
+\item[Empty conjunction] Finally we need a neutral element
+  $[[{Empty}]]$ to the tensor product. The empty conjunction is used
+  to represent functions which don't require any constraints.
+\end{description}
+
+However, we do not define $[[{Q}]]$ inductively, because we
 require certain equalities to hold among simple constraints:
 $$
 \begin{array}{rcl}
@@ -1045,43 +1064,46 @@ We thus say that a simple constraint is a pair combining a set of unrestricted
 constraints $[[{UCtx}]]$ and a multiset of linear constraints $[[{LCtx}]]$.
 The linear constraints must
 be stored in a multiset, because assuming the same constraint twice is distinct
-from assuming it only once:
+from assuming it only once.
+
+\begin{definition}[Simple constraints]
 $$
 \begin{array}{rcll}
-[[{UCtx}]] & \bnfeq & \ldots & \text{set of atomic constraints $[[{q}]]$} \\
-[[{LCtx}]] & \bnfeq & \ldots & \text{multiset of atomic constraints $[[{q}]]$} \\
-[[{Q}]] & \bnfeq & [[{(UCtx,LCtx)}]] & \text{simple constraints}
+  [[{UCtx}]] & \bnfeq & \ldots & \text{set of atomic constraints $[[{q}]]$} \\
+  [[{LCtx}]] & \bnfeq & \ldots & \text{multiset of atomic constraints $[[{q}]]$} \\
+  [[{Q}]] & \bnfeq & [[{(UCtx,LCtx)}]] & \text{simple constraints}
 \end{array}
 $$
-We can now straightforwardly define the operations we need on simple constraints:
+We can now straightforwardly define the operations we need on simple
+constraints:
 $$
-\begin{array}{cccc}
-\begin{array}{r@@{\;}c@@{\;}l}
-[[{Empty}]] &=& [[{(emptyset, emptyset)}]]
-\end{array}
-&
-\left\{
-\begin{array}{r@@{\;}c@@{\;}l}
-[[{1.q}]] &=& [[{(emptyset, q)}]] \\
-[[{omega.q}]] &=& [[{(q, emptyset)}]]
-\end{array}
-\right.
-&
-\begin{array}{r@@{\;}c@@{\;}l}
-[[{(UCtx1,LCtx1)*(UCtx2,LCtx2)}]] &=& [[{(UCtx1 \u UCtx2, LCtx1 \u LCtx2)}]]
-\end{array}
-&
-\left\{
-\begin{array}{r@@{\;}c@@{\;}l}
-[[{1.(UCtx,LCtx)}]] &=& [[{(UCtx,LCtx)}]] \\
-[[{omega.(UCtx,LCtx)}]] &=& [[{(UCtx \u LCtx, emptyset)}]]
-\end{array}
-\right.
+\begin{array}{ccc}
+  \begin{array}{r@@{\;}c@@{\;}l}
+    [[{Empty}]] &=& [[{(emptyset, emptyset)}]]
+  \end{array}
+  &
+    \left\{
+    \begin{array}{r@@{\;}c@@{\;}l}
+      [[{1.q}]] &=& [[{(emptyset, q)}]] \\
+      [[{omega.q}]] &=& [[{(q, emptyset)}]]
+    \end{array}
+                        \right.
+  &
+    \begin{array}{r@@{\;}c@@{\;}l}
+      [[{(UCtx1,LCtx1)*(UCtx2,LCtx2)}]] &=& [[{(UCtx1 \u UCtx2, LCtx1 \u LCtx2)}]]
+    \end{array}
 \end{array}
 $$
+\end{definition}
+
 In practice, we do not need to concern ourselves with the
 concrete representation of $[[{Q}]]$ as a pair of sets, instead
 using the operations defined just above.
+
+The semantics of simple constraints (and, indeed, of atomic
+constraints) is given by an \emph{entailment relation}. Just like the
+set of atomic constraints, the entailment relation is a parameter of
+our system
 
 \begin{figure}
   \maybesmall
@@ -1104,67 +1126,32 @@ using the operations defined just above.
 \label{fig:entailment-relation}
 \end{figure}
 
-Type checking refers to an entailment relation
-$[[Q1 ||- Q2]]$ that defines how some constraints can imply
-others. The properties we need from this relation appear in
-Figure~\ref{fig:entailment-relation}.
+\begin{definition}[Entailment relation]
+  \label{def:entailment-relation}
+  The qualified type system is parameterised by a relation $[[Q1 ||-
+    Q2]]$ between two simple constraints. The entailment relation must
+    obey the laws listed in \Fref{fig:entailment-relation}
+\end{definition}
 %
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
 %
-%
-%% Atomic constraints are treated abstractly by our system
-%% (just like they are in OutsideIn). For
-%% inference, in Section~\ref{sec:type-inference}, we will need a domain-specific solver, of which
-%% we only require that it adheres to the interface given in
-%% Section~\ref{sec:constraint-solver}. But for the sake of this section,
-%% we only need that the domain be equipped with the entailment relation.
-
-%%  This corresponds to the
-%% multiplicative truth $\mathbf{1}$ of linear logic, but we chose this notation
-%% because it is more distinct from the $[[{1}]]$ multiplicity.
-
-%% OutsideIn introduces, as part of the constraint domain, a generalised
-%% kind of constraint $\mathcal{Q}$, which includes top-level axioms, such
-%% as type-class instance declarations. Such top-level axioms
-%% are never linear\,--\,just like how top-level definitions are never linear in
-%% Linear Haskell\,--\,and as such they don't have
-%% interesting interactions with the rest of the system, and we choose to
-%% omit them for simplicity.
-
-%
-%% The rule $[[{omega.(Q1 * Q2)}]] = [[{omega.Q1 * omega.Q2}]]$ is not a
-%% typical feature of linear logic. \rae{This last statement needs more context. I
-%% don't understand the implications. Can we just strike this para?}
-%% Linear Haskell, however, introduces
-%% the corresponding type isomorphism for the sake of polymorphism. While this
-%% article isn't concerned with polymorphism, this equality does make
-%% the overall presentation a bit simpler. Note, in particular, that $[[{1.Q}]] = [[{Q}]]$ and
-%% $[[{omega.Q * omega.Q}]] = [[{omega.Q}]]$.
-%% \rae{Can we please be more careful around equality? Some of our
-%% $=$ are definitional equality, and some are really bi-implications. I think
-%% this is about bi-implication. But is this something implied by the previous
-%% bi-implications, or is this new?}
-
-%% We will often omit the scaling factor for linear atomic constraints
-%% and write $[[{q}]]$ for $[[{1.q}]]$. %% This convention does not induce any
-%% %% ambiguity. Indeed the only potential ambiguity is between $[[{pi.q}]]$
-%% %% and $[[{pi.(1.q)}]]$, which are  equal.
-%% \rae{Really? This surprises me, given that the linear constraints are the
-%% new ones. I propose not doing this.}
-
-%% \begin{definition}[Requirements for the entailment relation]\label{def:entailment-relation}
-%%   The constraint entailment relation must satisfy the properties
-%%   in \autoref{fig:entailment-relation}.
-%% \end{definition}
-%% Apart from linearity, the main difference with OutsideIn is that we
-%% don't require the presence of equality constraints. We come back to
-%% the motivation for this simplification in
-%% Section~\ref{sec:type-inference}.
 
 An important feature of simple constraints is that, while scaling
 syntactically happens at the level of atomic constraints, these properties
-of scaling extend to scaling of arbitrary constraints.
+of scaling extend to scaling of arbitrary constraints. Define
+$[[{pi.Q}]]$ as:
 
+$$
+                      \left\{
+                      \begin{array}{r@@{\;}c@@{\;}l}
+                        [[{1.(UCtx,LCtx)}]] &=& [[{(UCtx,LCtx)}]] \\
+                        [[{omega.(UCtx,LCtx)}]] &=& [[{(UCtx \u LCtx, emptyset)}]]
+                      \end{array}
+                                                    \right.
+$$
+%
+Then the following properties hold
+%
 \begin{lemma}[Scaling]
   \label{lem:q:scaling}
   If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
