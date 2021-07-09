@@ -2424,6 +2424,16 @@ refined search strategy) contains the Hereditary Harrop fragment of
 intuitionistic logic guarantees that quantified constraints do not
 break our proofs.
 
+\paragraph{Resource usage analysis}
+
+\Citet{resource-usage-analysis} introduce a framework which can be
+instantiated into many resource analyses (such as proper deallocation
+of resources) can be modelled and analysed. In particular they give a
+decision procedure for a wide class of such analyses. Although our
+objects of study intersect, our purpose is quite different as theirs
+is a tool for language designer to design analyses, while ours is for
+programmers to implement new abstractions as libraries.
+
 \section{Conclusion}
 \label{sec:conclusion}
 
