@@ -1359,11 +1359,10 @@ constraint generation algorithm that passes over these typing derivations.
 %
 We can make this simplification for two reasons:
 \begin{itemize}
-\item We do not formalize type equality constraints, and our implementation
-  in \textsc{ghc} does not allow equality constraints to be
-  linear.\csongor{Actually it does, but they are inert.} Indeed, a typical treatment of unification
-  would be
-  unsound for linear equalities, because it reuses the same
+\item We do not formalise type equality constraints, and our implementation
+  in \textsc{ghc} (\cref{sec:equality-constraints}) takes care to not allow linear equality constraints to influence type inference.
+  Indeed, a typical treatment of unification
+  would be unsound for linear equalities, because it reuses the same
   equality many times (or none at all). Linear equalities make sense
   (\citet{shulman2018linear} puts linear
   equalities to great use), but they do not seem to lend themselves to
@@ -2111,6 +2110,7 @@ To address both of these issues at once, we make the following rule: the
 superclasses of a linear constraint are \emph{never} expanded.
 
 \subsubsection{Equality constraints}
+\label{sec:equality-constraints}
 
 In \cref{sec:type-inference} we argued that \emph{type} inference and
 \emph{constraint} inference can be performed independently. However, this is not
