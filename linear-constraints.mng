@@ -2848,19 +2848,17 @@ are now proved.}
   \end{itemize}
 \end{proof}
 
-\unsure{Update the proofs for the new rule presentations. I think only
-the Var rule changed}
 \begin{proof}[Proof of Lemma~\ref{lem:generation-soundness}]
   By induction on $[[G |-> e : t ~> C]]$
   \begin{description}
   \item[\rref*{G-Var}] We have
     \begin{itemize}
-    \item $[[x :_1 forall as. Q =o u \in G]]$
-    \item $[[G |-> x : u[ts/as] ~> Q[ts/as] ]]$
+    \item $[[G1 = x :_1 forall as. Q =o u]]$
+    \item $[[G1 + omega.G2 |-> x : u[ts/as] ~> Q[ts/as] ]]$
     \item $[[Q_g |- Q[ts/as] ]]$
     \end{itemize}
     Therefore, by rules~\rref*{E-Var} and~\rref*{E-Sub}, it follows
-    immediately that $[[Q_g ; G |- x : u[ts/as] ]]$
+    immediately that $[[Q_g ; G1 + omega.G2 |- x : u[ts/as] ]]$
   \item[\rref*{G-Abs}] We have
     \begin{itemize}
     \item $[[G |-> \x. e : t0 ->_pi t ~> C]]$
