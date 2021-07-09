@@ -2143,9 +2143,9 @@ $$
 %
 This rule is non-deterministic, because it requires finding $[[{Q_r}]]$ and
 $[[{Q}]]$. We can modify the constraint solver of
-\cref{sec:constraint-solver} to find $[[{Q_r*Q}]]$. But we
-still have to determine how to split the residual into $[[{Q_r}]]$ and
-$[[{Q}]]$.
+\cref{sec:constraint-solver} to find $[[{Q_r*Q}]]$, but we
+still have to split the residual into $[[{Q_r}]]$ and
+$[[{Q}]]$ somehow.
 
 %% What we would like to say is ``$[[{Q}]]$ is the set of linear
 %% constraints''. But it's not clear how to make it formal.
@@ -2163,13 +2163,13 @@ always have a non-empty list of alternatives. This is, incidentally,
 also how Haskell originally behaved; though \textsc{ghc} now has an
 |EmptyCase| extension to allow empty lists of alternatives.
 
-Not allowing empty lists of alternatives is, therefore not terrible in
-principle. Though it makes empty types more awkward than they need to
-be, and, of course, to support the entirety of \textsc{ghc}, we will
-need to support empty lists of alternatives.
+% Not allowing empty lists of alternatives is, therefore not terrible in
+% principle. Though it makes empty types more awkward than they need to
+% be, and, of course, to support the entirety of \textsc{ghc}, we will
+% need to support empty lists of alternatives.
 
 The reason why it has been omitted from the rest of the article is
-that generating constraints for an empty requires an $0$-ary version
+that generating constraints for an empty $\kcase$ requires an $0$-ary version
 of $[[{C1&C2}]]$, usually written $[[{Top}]]$ in Linear Logic. The
 corresponding entailment rule would be
 $$
@@ -2211,8 +2211,8 @@ is bidirectional, as described by \citet{practical-type-inference} and
 have presented here, formally. None of this would change in adapting \textsc{edwl}.
 Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
-make linear constraints easier to use. For example, the |writeTwo| function could
-simply be written as
+make linear constraints easier to use. Then |writeTwo| could
+just be written as
 
 > writeTwo :: constraint (RW n) =>. AtomRef a n -> a -> a -> () .<= constraint (RW n)
 > writeTwo ref val1 val2 =  let  unit1 = writeRef ref val1 in
@@ -2369,7 +2369,7 @@ are not tied to a particular use case. However,
 
 Other than that, the two systems have a lot of similarities. They have a
 finer-grained capability system than is expressible in Rust (or our
-in our encoding of it in \cref{sec:memory-ownership}) which makes it possible to change
+encoding of it in \cref{sec:memory-ownership}) which makes it possible to change
 the type of a reference cell upon write. They also eschew scoped
 borrowing in favour of more traditional read and write capabilities. In
 exchange, neither Mezzo nor \textsc{ats} support $O(1)$ freezing like
