@@ -1021,8 +1021,8 @@ constraints.
 
 Let us now turn to constraints themselves. We call constraints such as
 |constraint(Read n)| or |constraint(Write n)| \emph{atomic
-  constraints}. What precisely the atomic constraints are, is left
-unspecified: the set of atomic constraint is a parameter of our
+  constraints}. The exact nature of atomic constraints is left
+unspecified: the set of atomic constraints is a parameter of our
 qualified type system.
 
 \begin{definition}[Atomic constraints]
@@ -1033,8 +1033,8 @@ qualified type system.
 
 Atomic constraints are assembled into \emph{simple constraints}
 $[[{Q}]]$, which play the hybrid role of constraint contexts and
-(linear) logic formulae. We need simple constraints to support the
-following operations:
+(linear) logic formulae.
+The following operations need simple constraints:
 \begin{description}
 \item[Scaled atomic constraints] $[[{pi.q}]]$ is a simple constraint,
   where $[[{pi}]]$ specifies whether $[[{q}]]$ is to be used linearly
