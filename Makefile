@@ -38,12 +38,12 @@ $(OTT_TEX): $(OTT_FILES)
 	lhs2TeX -o $@ $<
 
 linear-constraints-submission.pdf: linear-constraints.pdf
-	pdftk $< cat 1-26 output temp.pdf
+	pdftk $< cat 1-27 output temp.pdf
 	pdftk $< dump_data_utf8 | pdftk temp.pdf update_info_utf8 - output $@
 	rm -f temp.pdf
 
 linear-constraints-supplementary.pdf: linear-constraints.pdf
-	pdftk $< cat 27-end output $@
+	pdftk $< cat 28-end output $@
 
 linear-constraints.tar.gz: linear-constraints.tex linear-constraints.bbl newunicodedefs.tex ott.tex ottalt.sty listproc.sty acmart.cls
 	tar -cvzf $@ $^
