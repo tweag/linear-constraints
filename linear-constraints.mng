@@ -1847,8 +1847,8 @@ comparison between an implicit core language D and an explicit one DC.}.
   family of datatypes.
 \end{itemize}
 
-Using Lemma~\ref{sec:constraint-generation-soundness} together with
-Property~\ref{lem:solver-soundness} we know that if
+Using \cref{lem:generation-soundness} together with
+\cref{lem:solver-soundness} we know that if
 $[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C ~> emptyset ]]$, then
 $[[(UCtx, LCtx) ; G |- e : t]]$.
 %
