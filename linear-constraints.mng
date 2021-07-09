@@ -2671,7 +2671,7 @@ are now proved.}
   $[[{pi}]]=[[{omega}]]$.
   \begin{itemize}
   \item When $[[{pi}]]=[[{1}]]$, then $[[{pi.Q}]]=[[{Q}]]$ for all
-    $[[{Q}]]$, hence $[[Q1||-Q2]]$ implies $[[pi.Q1 ||- Q2]]$.
+    $[[{Q}]]$, hence $[[Q1||-Q2]]$ implies $[[pi.Q1 ||- pi.Q2]]$.
   \item For the case $[[{pi}]]=[[{omega}]]$, let us consider a few
     properties. First note that, for any $[[{Q}]]$,
     $[[{omega.Q}]]=[[{omega.Q * omega.Q}]]$. From which it follows,
