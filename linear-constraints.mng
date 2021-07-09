@@ -1128,7 +1128,7 @@ our system
   \label{def:entailment-relation}
   The qualified type system is parameterised by a relation $[[Q1 ||-
     Q2]]$ between two simple constraints. The entailment relation must
-    obey the laws listed in \Fref{fig:entailment-relation}
+    obey the laws listed in \Fref{fig:entailment-relation}.
 \end{definition}
 %
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
@@ -1164,7 +1164,7 @@ Then the following properties hold
 If $[[Q1 ||- omega.Q2]]$, then $[[{Q1}]]$ contains no linear assumptions.
 \end{corollary}
 
-Proofs of these lemmas (and others) appear in our anonymized supplementary material;
+Proofs of these lemmas (and others) appear in our anonymised supplementary material;
 they can be proved by straightforward use of the properties in \Cref{fig:entailment-relation}.
 
 \subsection{Typing rules}
