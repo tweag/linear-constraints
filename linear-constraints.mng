@@ -1034,7 +1034,7 @@ qualified type system.
 Atomic constraints are assembled into \emph{simple constraints}
 $[[{Q}]]$, which play the hybrid role of constraint contexts and
 (linear) logic formulae. We need simple constraints to support the
-following operations
+following operations:
 \begin{description}
 \item[Scaled atomic constraints] $[[{pi.q}]]$ is a simple constraint,
   where $[[{pi}]]$ specifies whether $[[{q}]]$ is to be used linearly
@@ -1047,9 +1047,9 @@ following operations
   $[[{Empty}]]$ to the tensor product. The empty conjunction is used
   to represent functions which don't require any constraints.
 \end{description}
-
+%
 However, we do not define $[[{Q}]]$ inductively, because we
-require certain equalities to hold among simple constraints:
+require certain equalities to hold:
 $$
 \begin{array}{rcl}
   [[{Q1 * Q2}]] & = & [[{Q2 * Q1}]] \\
