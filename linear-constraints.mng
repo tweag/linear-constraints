@@ -1430,13 +1430,7 @@ For the most part, scaling of wanted constraints is straightforward. The only
 peculiar case is when we scale the additive conjunction $[[{C1&C2}]]$ by
 $[[{omega}]]$, the result is a multiplicative conjunction. The intuition here is
 that when proving $[[{omega.(C1 & C2)}]]$, we need to have unrestricted access to the
-assumptions of both $[[{C1}]]$ and $[[{C2}]]$. In practice, this rule is used
-when a $\kcase$-expression occurs in an unrestricted context. In that case, the
-different branches may use different constraints, and on the whole the
-expression will require the union of the branches' wanted  constraints. Note
-that $[[{omega.(C1*C2)}]]$ coincides with $[[{omega.(C1&C2)}]]$, which explains why
-$\kcase$-expressions in Haskell without linear types do not require this
-second form of conjunction.
+assumptions of both $[[{C1}]]$ and $[[{C2}]]$.
 %% Like in \cref{sec:constraint-domain}, we will typically drop
 %% the scaling factor for implication when it is $[[{1}]]$ and write
 %% $[ [Q => C] ]$ for $[[{1.(Q=>C)}]]$.
@@ -2418,8 +2412,8 @@ The recent addition of quantified
 constraints~\cite{quantified-constraints} extends type class
 resolution to Hereditary Harrop~\cite{hereditary-harrop} programs. A generalisation of the
 Hereditary Harrop fragment to linear logic, described by~\citet{hh-ll},
-is the foundation of the Lolli language~\cite{hodas-thesis-lolli}. Together with this fragment,
-the authors coin the notion of \emph{uniform} proof. A fragment where
+is the foundation of the Lolli language~\cite{hodas-thesis-lolli}.
+The authors also coin the notion of \emph{uniform} proof. A fragment where
 uniform proofs are complete supports goal-oriented proof search, like
 Prolog does.
 
