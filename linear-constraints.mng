@@ -2097,13 +2097,12 @@ section, we consider some potential avenues for extensions.
 \subsection{let generalisation}
 \label{sec:let-generalisation}
 
-As discussed in \cref{sec:constraint-generation}, the~\rref*{G-Let} rule
-of our constraint generator does not generalise the type of |let|-bindings.
-Not doing |let|-generalisation is in line with \textsc{ghc}'s existing
-behaviour~\cite[Section 4.2]{OutsideIn}. There, this behaviour was guided
-by concerns around inferring type variables, which is harder in the
-presence of local equality assumptions (\emph{i.e.} \textsc{gadt} pattern
-matching).
+As discussed in \cref{sec:constraint-generation}, the~\rref*{G-Let} rule of our
+constraint generator does not generalise the type of |let|-bindings, which is in
+line with \textsc{ghc}'s existing behaviour~\cite[Section 4.2]{OutsideIn}.
+There, this behaviour was guided by concerns around inferring type variables,
+which is harder in the presence of local equality assumptions (\emph{i.e.}
+\textsc{gadt} pattern matching).
 
 In this section, however, we argue that generalising over linear constraints
 may, in fact, improve user experience.
