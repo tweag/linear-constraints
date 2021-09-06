@@ -67,7 +67,10 @@
 > Weaknesses
 > ----------
 > * There is no evaluation, despite that there is an implementation.
-> 
+>
+
+JP: Not exactly true: our evaluation is the ability to implement prototypical examples. Which we can do.
+
 > * The resulting program still needs boilerplate annotations (pack and
 >   unpack), although it is claimed that they can be also inferred.
 > 
@@ -187,7 +190,7 @@
 > possible extension etc. Don't get me wrong, all of these points are
 > worth discussing, but this is probably not possible within the given
 > page frame, or only at the cost of omitting much-wanted explanations.
-> 
+>  
 > In more detail, the examples in §4 only discuss APIs but do not
 > provide any applications that make use of these APIs. In other words,
 > I get a feel how expressive the proposed addition is for library
@@ -210,7 +213,12 @@
 > 
 > There is no proof of soundness for this system. You later state that
 > "Thus, the soundness of our *implementation* is verified by the Core
-> typechecker, which already supports linearity." which seems to be
+> typechecker, which already supports linearity."
+
+JP: this sentence should be clarified; reviewer misunderstood the
+point (†) completely.
+
+> which seems to be
 > misleading. The Core typechecker surely does not *verify* the
 > soundness of the implementation, it helps *debuggin* the
 > implementation, acting as a safe-guard. Bad programs do not make it to
@@ -277,7 +285,11 @@
 > references and arrays), but it is difficult to ascertain in a formal sense
 > what are the guarantees offered by this discipline. ("The language itself is
 > agnostic about what linear constraints mean", line 1154.)
-> 
+
+JP: tied to the above point (†). The meaning is actually given by the
+underlying language without constraints. (It itself may be agnostic,
+but beside the point at this stage of the paper.)
+
 > Another potential shortcoming of the system is its limited expressiveness. The
 > example of arrays presents a classic difficulty: because an array owns its
 > elements, when one wishes to read an element, one must "borrow" the element
@@ -293,7 +305,9 @@
 > In summary, the example of references and arrays does not convince me of the
 > need for linear constraints in Haskell. It is not clear to me that programmers
 > will want to use this API. Are there more convincing motivating examples?
-> 
+
+JP: Good points, but a large chunk of work to address them.
+ 
 > The remainder of the paper is concerned with the metatheory of linear
 > constraints: typing rules, constraint generation and constraint solving.
 > The typing rules seem relatively straightforward (which is arguably good).
@@ -317,7 +331,9 @@
 > system falls largely into this category (people use `unsafe` blocks to
 > implement various operations whose safe use can then be enforced by the type
 > system).
-> 
+
+JP: the same point again (†)
+
 > Strengths
 > ---------
 > + Relatively simple and natural design.
@@ -327,7 +343,7 @@
 > Weaknesses
 > ----------
 > + No really convincing examples of the applications of the type system.
-> 
+>
 > + Doubts on the expressiveness of the system. (The "focusing" API seems
 >   heavy and inflexible.)
 > 
@@ -352,16 +368,25 @@
 > literature, enforcing various properties (unique pointer, unique use, ...),
 > so I do not expect any single system to be "general purpose" (more powerful
 > than every other system).
-> 
+
+JP: we should cite concrete evidence that this style of linear types
+is heavily used in the literature with good benefits and there are
+already applications of it.
+ 
 > line 63, why "linear constraints", as opposed to, say, "linearity
 > constraints"? As far as I understand, the constraint itself is not "linear"
 > (whatever that would mean), but enforces linearity of certain values or types.
-> 
+
+
 > line 80, "the resource representing the open file is a linear constraint".
 > As someone who is familiar with Separation Logic, I would tend to think
 > of the resource as a linear "token", or "permission", or "ghost token".
 > But the word "constraint" does not seem appropriate here.
-> 
+
+JP: Not sure if the reviewer is acting in good faith here. But perhaps
+the paper should be called "Linear Constraints = Capabilities" (or similar) to
+clarify this point as early as possible.
+ 
 > line 84, ok, I understand. "Linear assumption" makes sense, and for some
 > reason, sounds better to me than "linear constraint".
 > 
@@ -401,7 +426,9 @@
 > novelty into the system, and should perhaps be stressed. The fact that I have
 > been given no explanations about this may be part of the reason why I do not
 > know how to mentally typecheck readTwo.
-> 
+
+JP: the above comment make me question whether the reviewer has any clue.
+
 > line 312, you might wish to note the similarity with the type of `runST`.
 > The idea is the same, at the granularity of a single location, and with
 > linearity.
@@ -440,7 +467,9 @@
 > line 406, "The idea of multiplicity goes back at least to Ghica and Smith
 > [2014]". Really? Isn't it much older? What about, say, Wansbrough and Peyton
 > Jones, POPL 1999?
-> 
+
+JP: learn the difference between "at least" and "at most".
+
 > Figure 2, "entailent"
 > 
 > line 537, what is the metavariable `q`? Is it a constraint `Q`?
