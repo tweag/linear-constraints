@@ -2023,7 +2023,7 @@ givens, the constraint solver selects the innermost one
 for this purpose).
 
 As constraint solving proceeds, the compiler pipeline constructs a
-term in an typed language known as \textsc{ghc} Core~\cite{system-fc}.
+term in a typed language known as \textsc{ghc} Core~\cite{system-fc}.
 In Core, type class constraints are turned into explicit evidence (see
 \cref{sec:desugaring}). Thanks to being fully annotated, Core has
 decidable typechecking which is useful in debugging modifications to
