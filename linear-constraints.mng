@@ -2022,15 +2022,14 @@ givens, the constraint solver selects the innermost one
 (in \cref{sec:constraint-solver} we use an ordered list of linear assumptions
 for this purpose).
 
-As constraint solving proceeds, the compiler pipeline constructs a term in an
-typed language
-known as \textsc{ghc} Core~\cite{system-fc}.
-In Core, type class constraints are turned into
-explicit evidence (see \cref{sec:desugaring}). Thanks to being fully
-annotated, Core has decidable typechecking which is useful in debugging
-modifications to the compiler. Thus, the soundness of our
-implementation is verified by the Core typechecker, which already supports
-linearity.
+As constraint solving proceeds, the compiler pipeline constructs a
+term in an typed language known as \textsc{ghc} Core~\cite{system-fc}.
+In Core, type class constraints are turned into explicit evidence (see
+\cref{sec:desugaring}). Thanks to being fully annotated, Core has
+decidable typechecking which is useful in debugging modifications to
+the compiler. Thus, the Core typechecker verifies that the desugaring
+procedure produced a linearity-respecting program before code
+generation occurs.
 
 \subsection{Interaction with other features}
 
