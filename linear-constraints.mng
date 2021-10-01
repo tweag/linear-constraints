@@ -1185,6 +1185,7 @@ contexts is always satisfied.
   \begin{array}{lcll}
     [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
     [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[T]] & \bnfeq & \ldots & \text{Type constructors} \\
     [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
     [[{s}]] & \bnfeq & [[{forall as. Q =o t}]] & \text{Type schemes} \\
     [[{t}]], [[{u}]] & \bnfeq & [[{a}]] \bnfor [[{exists as. t o= Q}]] \bnfor [[{t1 ->_pi t2}]]
