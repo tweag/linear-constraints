@@ -752,40 +752,36 @@ resort to explicit memory allocation and deallocation. This task is
 error prone: one can easily forget a deallocation (causing a memory
 leak) or deallocate several times (corrupting data).
 
-\subsection{Ownership constraints}
+\subsection{Capability constraints}
 \label{sec:atomic-references}
 
 With linear constraints, it is possible to provide a \emph{pure} interface for
 manual memory management, which
-enforces correct deallocation of memory.  Our approach, in the style of Rust,
-is to use a
-linear constraint to represent \emph{ownership} of a memory location.
-We use a linear constraint
-|constraint(Own n)|, such that a program which has an |constraint(Own n)| constraint in
-context is responsible of deallocating the memory associated
-with a memory location |n|.  Because of linearity, this constraint
-must be consumed exactly once, so it is guaranteed that the memory
+enforces correct deallocation of memory.  Our approach, in the style of Rust, is
+to represent \emph{ownership} of a memory location, and more specifically,
+whether the reference is mutable or read-only.
+We use linear constraints |constraint(Read n)| and |constraint(Write n)|,
+granting read access and write access to a reference respectively.
+Because of linearity, these constraints
+must be consumed, so it is guaranteed that the memory
 is deallocated correctly.
 %
 In |constraint(Own n)|, |n| is a type variable (of a special kind |Location|)
 which represents a memory location. Locations mediate
 the relationship between references and ownership constraints.
 %
-In fact, for more granular control, we will be using three linear constraints:
-one for reading, one for writing, and one for ownership.
 
-\begin{minipage}{0.3\linewidth}
+\begin{minipage}{0.5\linewidth}
 > class constraint (Read (n :: Location))
 \end{minipage}
-\begin{minipage}{0.3\linewidth}
+\begin{minipage}{0.5\linewidth}
 > class constraint (Write (n :: Location))
 \end{minipage}
-\begin{minipage}{0.3\linewidth}
-> class constraint (Own (n :: Location))
-\end{minipage}
+% \begin{minipage}{0.3\linewidth}
+% > class constraint (Own (n :: Location))
+% \end{minipage}
 \\
-Thanks to this extended set of constraints, programs are able to read from or write
-to a memory reference without owning it. To ensure referential transparency,
+To ensure referential transparency,
 writes can be done only when we are sure that no other part of the program has
 read access to the reference. Rust disallows mutable aliasing for the same
 reason: ensuring that writes cannot be observed through other references is what
@@ -796,13 +792,7 @@ systematically use the |constraint(RW)| set of constraints, defined below, inste
 
 > type constraint (RW n) = constraint ((Read n, Write n))
 
-Likewise, a location cannot be deallocated if any part of the program
-has a read or write reference to it, so all three capabilities are
-needed for ownership. So we use |constraint(O)|, instead of |constraint(Own)|, defined thus:
-
-> type constraint (O n) = constraint ((Read n, Write n, Own n))
-
-With these components in place, we can provide an \textsc{api} for ownable
+With these components in place, we can provide an \textsc{api} for mutable
 references.
 
 > data AtomRef (a :: Type) (n :: Location)
@@ -811,14 +801,14 @@ The type |AtomRef| is the type of references to values of a type |a| at
 location |n|. Allocation of a reference can be done using the
 following function.
 
-> newRef :: (forall n. ^^ constraint (O n) =>. AtomRef a n -> Ur b) ⊸ Ur b
+> newRef :: (forall n. ^^ constraint (RW n) =>. AtomRef a n -> Ur b) ⊸ Ur b
 
 The reference is made available in a function which we call the
 \emph{scope} of the reference. The return type of the scope is,
 crucially, |Ur b|.  Indeed, if we would allow returning any type |b|,
-then the |constraint(O n)| constraint could be embedded in |b|, and therefore
+then the |constraint(RW n)| constraint could be embedded in |b|, and therefore
 escape from the scope.
-This would defeat the point of |constraint(O n)| be a linear constraint, and
+This would defeat the point of |constraint(RW n)| be a linear constraint, and
 no longer guarantee that the reference has a unique owner.
 % JP: This is because newRef can be called in unrestricted contexts. Not enough space/reader attention to explain that.
 
@@ -843,15 +833,16 @@ The language semantics forces the programmer to do case analysis to
 access the returned |Write| constraints, and |writeRef| must be strict
 in the |Write| constraint that it consumes.
 
-Deallocation consumes all linear constraints associated with |constraint(O n)|.
+Deallocation requires full ownership of reference |n|, and consumes all
+capabilities accordingly.
 
-> freeRef :: constraint (O n) =>. AtomRef a n -> ()
+> freeRef :: constraint (RW n) =>. AtomRef a n -> ()
 
 Instead of deallocating the reference, one could transfer control
 of the memory location to the garbage collector. This operation is
 sometimes called ``freezing'':
 
-> freezeRef :: constraint (O n) =>. AtomRef a n -> Ur a
+> freezeRef :: constraint (RW n) =>. AtomRef a n -> Ur a
 
 \subsection{Arrays}
 \label{sec:arrays}
@@ -890,42 +881,49 @@ For this purpose we introduce the type |PArray a n|, where the kind of
 reference in the array refers to the same location |n|. Both types
 |AtomRef a| and |PArray a| have kind |Location -> Type|, and therefore
 one can allocate, and manipulate arrays of arrays with this
-\textsc{api}.
+\textsc{api}. For example, an array of integers would have type
+|PArray (AtomRef Int) n| and an array of arrays of integers would have type
+|PArray (PArray Int) n|. Thus, the framework handles nested mutable structures
+without any additional difficulty.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is transferred to the array.
 
-> writePArray  :: constraint ((RW n, O p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
+> writePArray  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
 
 More precisely, the ownership of the location |p| is absorbed into that
 of |n|. Therefore, the associated operational semantics is to move the
 reference inside the array (and deallocate any previous reference at that index).
 
+\subsubsection{Borrowing}
+
 We still want to have read and write access to references in the array
-so we provide |lendPArrayElt|:
+so we provide |lendMut|:
 
-> lendPArrayElt  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
+> lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 
-The |lendPArrayElt a i k| primitive lends access to the reference at index |i| in
-|a|, to a scope function |k| (in Rust terminology, the scope
-``borrows'' an element of the array). Here, the return type of the scope, |r|,
-is not in |Ur|: since the scope must return the |constraint(RW p)| constraint, it is
-not possible to leak it out by packing it into |r|, so it's not necessary to
-wrap the result in |Ur|.
+The |lendMut arr i k| primitive lends access to the reference at index |i| in
+|arr|, to a scope function |k| (in Rust terminology, the scope
+``borrows'' an element of the array). Note that the scope must return the
+read-write capability, so the ownership transfer is indeed temporary, and the
+type system guarantees that the borrowed reference can not be freed or shared.
+
+% Here, the return type of the scope, |r|,
+% is not in |Ur|: since the scope must return the |constraint(RW p)| constraint, it is
+% not possible to leak it out by packing it into |r|, so it's not necessary to
+% wrap the result in |Ur|.
 Crucially, with this \textsc{api}, |constraint(RW n)| and |constraint(RW p)| are never simultaneously
 available. The following function, on the other hand, would not be sound:
 
-> extractEltWrong  :: constraint (RW n) =>. PArray a n -> Int -> exists p. Ur (a p) .<= constraint ((RW n, RW p))
+> extractWrong  :: constraint (RW n) =>. PArray a n -> Int -> exists p. Ur (a p) .<= constraint ((RW n, RW p))
 
-Indeed, when called from a context where the program owns |n|,
-|n| could immediately be deallocated, even though |constraint(RW
-p)| would remain available, letting us write to freed memory. For the same reason,
-gaining read access to an element needs to be done using a
+Indeed, right after calling |extractWrong|, the array could immediately be deallocated, even though |RW p| remains available, letting us write to freed memory.
+For the same reason, gaining read access to an element needs to be done using a
 scoped \textsc{api} as well:
 
-> lendPArrayEltRead  ::  constraint (Read n) =>. PArray a n -> Int
->                    ->  (forall p. ^^ constraint (Read p) =>. a p -> r .<= constraint (Read p))
->                    ⊸   r .<= constraint (Read n)
+> lend  ::  constraint (Read n) =>. PArray a n -> Int
+>           ->  (forall p. ^^ constraint (Read p) =>. a p -> r .<= constraint (Read p))
+>           ⊸   r .<= constraint (Read n)
 
 Finally, we can freeze arrays, using the
 following primitive:
@@ -942,6 +940,58 @@ With an unrestricted |constraint(Read n)| capability, we can read from the array
 more directly with the following primitive
 
 > readArray :: constraint (Read n) => PArray a n -> Int -> a n
+
+\subsubsection{Slices}
+
+Finally, it is also possible to give a safe interface to array \emph{slices}. A
+slice represents a part of an array, and allows splitting the ownership of the
+array into multiple disjoint parts to be shared between different consumers.
+Crucially, creating a slice does not require copying thanks to the ownership
+system.
+
+Splitting consumes all capabilities of an array and returns two new arrays that
+represent the contiguous blocks of memory before and starting at a given index.
+
+> split :: constraint (RW n) =>. PArray a n -> Int -> exists l r. Ur (PArray a l, PArray a r) .<= constraint ((RW l, RW r, omega ⋅ (Slices n l r)))
+
+In addition to the array capabilities, the output constraints also include
+|constraint (omega ⋅ (Slices n l r))|, which witnesses the fact that locations
+|l| and |r| indeed make up location |n|, so that they can be joined back
+together:
+
+> join :: constraint ((RW r, RW l, omega ⋅ (Slices n l r))) =>. PArray a l -> PArray a r -> Ur (PArray a n) .<= constraint (RW n)
+
+Note that the constraint |constraint (omega ⋅ (Slices n l r))| is unrestricted, which means that it is not necessary to join the two arrays.
+
+\subsubsection{In-place quicksort}
+
+As an example of using the machinery defined above, we implement an in-place
+quicksort algorithm.
+
+\begin{minipage}{0.5\linewidth}
+> quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
+> quicksort arr =
+>   let pack len = length arr in
+>     if len < 1 then pack ()
+>     else
+>       let pack p = partition arr in
+>       let pack (l, r) = split arr p in
+>       let pack _ = quicksort l in
+>       let pack _ = quicksort r in
+>       join l r
+\end{minipage}
+\begin{minipage}{0.5\linewidth}
+> partition :: constraint (RW n) =>. PArray a n -> Int .<= constraint (RW n)
+> partition arr
+>   = let pack len = length arr in
+>     let pack pivot = readArray arr (len - 1) in
+>     fold (\(pack i) j ->
+>            let pack a_j = readArray arr j
+>            if a_j <= pivot then pack (i + 1)
+>            else let pack _ = swap arr i j in
+>                 pack i
+>          ) (pack 0) [0..len-1]
+\end{minipage}
 
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
@@ -2221,13 +2271,14 @@ is bidirectional, as described by \citet{practical-type-inference} and
 have presented here, formally. None of this would change in adapting \textsc{edwl}.
 Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
-make linear constraints easier to use. Then |writeTwo| could
+make linear constraints easier to use. Then |quicksort| could
 just be written as
 
-> writeTwo :: constraint (RW n) =>. AtomRef a n -> a -> a -> () .<= constraint (RW n)
-> writeTwo ref val1 val2 =  let  unit1 = writeRef ref val1 in
->                           let  unit2 = writeRef ref val2 in
->                           ()
+> quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
+> quicksort arr =
+>   let (l, r) = split arr (partition arr) in
+>   join (quicksort l) (quicksort r)
+
 
 \csongor{Should this example be included at all? do we need to say anything more?}
 
