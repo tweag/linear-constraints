@@ -1281,6 +1281,15 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   it is perfectly fine to have $[[1.q ; f :_omega a ->_1 b, x :_omega 1.q
   =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
 
+\paragraph{Variable rule}
+As is standard, the \rref{E-Var} rule can weaken variables, but only
+unrestricted variables can be weaken (linear variables \emph{must} be
+used), hence the weakened context being $[[{omega.G_2}]]$. The rule
+also requires the variable $[[{x}]]$ to be available for linear use ($[[{G_1}]]$);
+but note that $[[{G_2}]]$ can contain a binding for $[[{x}]]$, in
+which case $[[{G_1+omega.G_2}]]=[[{omega.G_2}]]$. This takes care of
+the case where $[[{x}]]$ is unrestricted.
+
 \paragraph{let-bindings}
 Bindings in a |let| may be for either linear or unrestricted variables.
   We could require all bindings to be linear and to implement unrestricted
