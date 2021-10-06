@@ -552,7 +552,7 @@ There are a few things to notice:
   While giving a name to a function argument is common in some
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris,
 our approach, on the other hand, shows how we can still link a runtime value and a compile-time
-type variable without needing the full power of dependent types.
+type variable without needing any dependent types.
 \item Second, if we have a single, linear, |constraint (Open h)|
   available, then after |closeFile| there will not be any |constraint (Open h)|
   left to use, thus preventing the file from being closed
