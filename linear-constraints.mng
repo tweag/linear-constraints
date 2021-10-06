@@ -972,7 +972,7 @@ quicksort algorithm.
 > quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
 > quicksort arr =
 >   let pack len = length arr in
->     if len < 1 then pack ()
+>     if len <= 1 then pack ()
 >     else
 >       let pack p = partition arr in
 >       let pack (l, r) = split arr p in
@@ -2276,8 +2276,9 @@ just be written as
 
 > quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
 > quicksort arr =
->   let (l, r) = split arr (partition arr) in
->   join (quicksort l) (quicksort r)
+>   if length arr <= 1 then ()
+>   else let (l, r) = split arr (partition arr) in
+>     join (quicksort l) (quicksort r)
 
 
 \csongor{Should this example be included at all? do we need to say anything more?}
