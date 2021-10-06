@@ -986,7 +986,7 @@ quicksort algorithm.
 >   = let pack len = length arr in
 >     let pack pivot = readArray arr (len - 1) in
 >     fold (\(pack i) j ->
->            let pack a_j = readArray arr j
+>            let pack a_j = readArray arr j in
 >            if a_j <= pivot then pack (i + 1)
 >            else let pack _ = swap arr i j in
 >                 pack i
@@ -2274,11 +2274,24 @@ though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
 make linear constraints easier to use. Then |quicksort| could
 just be written as
 
+\begin{minipage}{0.5\linewidth}
 > quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
 > quicksort arr =
 >   if length arr <= 1 then ()
 >   else let (l, r) = split arr (partition arr) in
->     join (quicksort l) (quicksort r)
+>        let _ = quicksort l
+>        let _ = quicksort r
+>     join l r
+\end{minipage}
+\begin{minipage}{0.5\linewidth}
+> partition :: constraint (RW n) =>. PArray a n -> Int .<= constraint (RW n)
+> partition arr
+>   = let pivot = readArray arr (length arr - 1) in
+>     fold (\i j ->
+>            if readArray arr j <= pivot then i + 1
+>            else let _ = swap arr i j in i
+>          ) 0 [0..len-1]
+\end{minipage}
 
 
 \csongor{Should this example be included at all? do we need to say anything more?}
