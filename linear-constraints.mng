@@ -340,9 +340,9 @@ swap arr i j =
         arr'''  = write arr'' i arr_j
   in write arr''' j arr_i
 \end{code}
-This functions swaps two elements of an array. Linearity ensures that there is
-only one reference to the array, and therefore it can be mutated in-place without
-violating referential transparency.
+This functions swaps two elements of an array. Linearity enables the array
+library to ensure that there is only one reference an the array, and therefore
+it can be mutated in-place without violating referential transparency.
 \csongor{linearity+library design, but maybe we can be a little loose here}
 %
 Notice that the |read| and |write| functions consume the array, and return a
@@ -363,7 +363,7 @@ swap :: MArray a -> Int -> Int -> ()
 swap arr i j =
   let   arr_i = read arr i
         arr_j = read arr j
-        _  = write arr i arr_j
+        ()  = write arr i arr_j
   in write arr j arr_i
 \end{code}
 This non-linear version does not guarantee that there is a unique reference to
@@ -401,12 +401,12 @@ swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
 swap arr i j =
   let   pack' arr_i = read arr i
         pack' arr_j = read arr j
-        pack' _  = write arr i arr_j
+        pack ()  = write arr i arr_j
   in write arr j arr_i
 \end{code}
 The only changes from the impure version are that this version requires having
 read and write access to the array,
-and explicit |pack'| annotations are used to indicate the variables that require
+and explicit |pack| and |pack'| annotations are used to indicate the variables that require
 special treatment (\Fref{sec:implicit-existentials}
 suggests how we can get rid of
 the |pack'|, too). Crucially, the resource representing the ownership of the
