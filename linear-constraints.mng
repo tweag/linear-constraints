@@ -331,43 +331,55 @@ compiler doesn't know how to help, requiring the programmer to carefully thread
 resource tokens.
 
 To get a sense of the power and the pain of using linear types, consider the
-following example from~\citet{LinearHaskell}, where |IOL| refers to the linear |IO| monad:
+following function:
 \begin{code}
-firstLine :: FilePath -> IOL String
-firstLine fp =   do  {  h <- openFile fp
-                     ;  (h, Ur xs) <- readLine h
-                     ;  closeFile h
-                     ;  return xs }
+swap :: MArray a ->. Int -> Int -> MArray a
+swap arr i j =
+  let   (arr', Ur arr_i) = read arr i
+        (ar'', Ur arr_j) = read arr' j
+        arr'''  = write arr'' i arr_j
+  in write arr''' j arr_i
 \end{code}
-This function opens a file, reads its first line, then closes
-it. Linearity ensures that the file handle |h| is consumed at the end.
+This functions swaps two elements of an array. Linearity ensures that there is
+only one reference to the array, and therefore it can be mutated in-place without
+violating referential transparency.
+\csongor{linearity+library design, but maybe we can be a little loose here}
 %
-Forgetting to call |closeFile h| would result in a type error because |h| would
-remain unused at the end of the function. Notice that |readLine| consumes the
-file handle, and returns a fresh |h| that shadows the previous version, to be
-used in further interactions with the file. The line's content is a string
-|xs| that is returned in an |Ur| wrapper (pronounced ``unrestricted'') to
-signify that it can be used arbitrarily many times.
+Notice that the |read| and |write| functions consume the array, and return a
+fresh array, to be used in future operations. Operationally, the array remains
+the same, but each operation assigns a new name to it, to facilitate tracking
+references statically.
+The values |arr_i| and |arr_j| read from the array are returned in an |Ur|
+wrapper (pronounced ``unrestricted'') to signify that they can be used
+arbitrarily many times.
 %
-Compare the above function with what one would write in a non-linear language:
+In a non-linear language, one would have to forgo referential transparency to
+handle mutable operations either by using a monadic interface or allowing
+arbitrary effects.
+Compare the above function with what one would write in a non-linear impure
+language:
 \begin{code}
-firstLine :: FilePath -> IO String
-firstLine fp = do  {  h <- openFile fp
-                   ;  xs <- readLine h
-                   ;  closeFile h
-                   ;  return xs }
+swap :: MArray a -> Int -> Int -> ()
+swap arr i j =
+  let   arr_i = read arr i
+        arr_j = read arr j
+        _  = write arr i arr_j
+  in write arr j arr_i
 \end{code}
-This version is less safe, because the type system does not track the linearity
-of the file handle. However, it is simpler because there is less bureaucracy to manage.
+This version is unsafe, because the type system does not track the linearity of
+the array, and so it is possible to have multiple references to the same
+array, violating referential transparency. However, it is simpler because there
+is less bureaucracy to manage: we are clearly interacting with \emph{same} array
+throughout, and this version makes that apparent.
 We see here a clear tension between extra safety and clarity of code---one
 we wish, as language designers, to avoid. %%  When
 %% modelling a handle as a linear resource, the type system must know at all
 %% times where it is being consumed, so the file handle is passed around
 %% manually, resulting in extra noise.
 %
-Reading the non-linear version, it is clear where the
-handle is used, and ultimately, consumed. How can we get the compiler
-to see that the handle is used safely without explicit threading?
+Reading the non-linear version, it is clear that it keeps a single reference to
+the array. How can we get the compiler to see that the handle is used safely
+without explicit threading?
 
 Rust introduces the \emph{borrow checker} for this very purpose.
 Our approach is, in some ways, simpler: we show in this paper
@@ -380,21 +392,24 @@ handles. Thus, linear constraints are the combination of these two
 concepts, which have been studied independently elsewhere
 \citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.
 
-With our extension, we can write a new safe version of |firstLine| which does
-not require explicit threading of the handle:
+With our extension, we can write a new pure version of |swap| which does
+not require explicit threading of the array:
 \begin{code}
-firstLine :: FilePath -> IOL String
-firstLine fp = do  {  pack' h <- openFile fp
-                   ;  pack' xs <- readLine h
-                   ;  closeFile h
-                   ;  return xs }
+swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
+swap arr i j =
+  let   pack' arr_i = read arr i
+        pack' arr_j = read arr j
+        pack' _  = write arr i arr_j
+  in write arr j arr_i
 \end{code}
-The only changes from the unsafe version are that this version runs in the linear |IO| monad,
+The only changes from the impure version are that this version requires having
+read and write access to the array,
 and explicit |pack'| annotations are used to indicate the variables that require
 special treatment (\Fref{sec:implicit-existentials}
 suggests how we can get rid of
-the |pack'|, too). Crucially, the resource representing the open file is a linear constraint,
-and so it longer needs to be passed around manually.
+the |pack'|, too). Crucially, the resource representing the ownership of the
+array is a linear constraint and is separate from the array itself, which no
+longer needs to be passed around manually.
 
 Our contributions are as follows:
 \begin{itemize}
@@ -445,7 +460,7 @@ To make sense of this statement we need to know what ``consumed exactly once'' m
 Our definition is based on the type of the value concerned:
 \begin{definition}[Consume exactly once]~ \label{def:consume}
 \begin{itemize}
-\item To consume a value of atomic base type (like |Int| or |Handle|) exactly once, just evaluate it.
+\item To consume a value of atomic base type (like |Int|) exactly once, just evaluate it.
 \item To consume a function exactly once, apply it to one argument, and then consume its result exactly once.
 \item To consume a pair exactly once, pattern-match on it, and then consume each component exactly once.
 \item In general, to consume a value of an algebraic datatype exactly once, pattern-match on it,
