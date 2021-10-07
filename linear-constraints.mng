@@ -976,8 +976,8 @@ quicksort algorithm.
 >     else
 >       let pack p = partition arr in
 >       let pack (l, r) = split arr p in
->       let pack _ = quicksort l in
->       let pack _ = quicksort r in
+>       let pack () = quicksort l in
+>       let pack () = quicksort r in
 >       join l r
 \end{minipage}
 \begin{minipage}{0.5\linewidth}
@@ -985,12 +985,12 @@ quicksort algorithm.
 > partition arr
 >   = let pack len = length arr in
 >     let pack pivot = readArray arr (len - 1) in
->     fold (\(pack i) j ->
->            let pack a_j = readArray arr j in
->            if a_j <= pivot then pack (i + 1)
->            else let pack _ = swap arr i j in
->                 pack i
->          ) (pack 0) [0..len-1]
+>     foldl (\(pack i) j ->
+>             let pack a_j = readArray arr j in
+>             if a_j <= pivot then pack (i + 1)
+>             else let pack _ = swap arr i j in
+>                  pack i
+>           ) (pack 0) [0..len-1]
 \end{minipage}
 
 \section{A qualified type system for linear constraints}
