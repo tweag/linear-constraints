@@ -399,16 +399,20 @@ not require explicit threading of the array:
 \begin{code}
 swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
 swap arr i j =
-  let   pack' arr_i = read arr i
-        pack' arr_j = read arr j
+  let   pack' arr_i = extract arr i
+        pack' arr_j = extract arr j
         pack ()  = write arr i arr_j
   in write arr j arr_i
 \end{code}
-The only changes from the impure version are that this version requires having
-read and write access to the array,
-and explicit |pack| and |pack'| annotations are used to indicate the variables that require
-special treatment (\Fref{sec:implicit-existentials}
-suggests how we can get rid of
+There are three key changes from the impure version. First, that this version
+requires having read and write access to the array in the form of linear
+constraints (|RW n|). Second, instead of |read|, an |extract| operation is used,
+which \emph{moves} out the element from the array instead of copying it. Indeed,
+the linear constraints-powered array API is more powerful than the ordinary
+linear types one, because it allows mutable arrays whose fields themselves are
+also mutable structures (arrays of arrays). Third,  explicit |pack| and |pack'|
+annotations are used to indicate the variables that require special treatment
+(\Fref{sec:implicit-existentials} suggests how we can get rid of
 the |pack'|, too). Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be passed around manually.
@@ -482,18 +486,16 @@ g x = f x
 The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
-The |readLine| example in the introduction consumes
-the linear handle |h| created by |openFile|. Therefore |h| can no longer be used to close the file:
-doing so would result in a type error.  To resolve this, a new handle for the
-same file is produced that can be used with |closeFile|. In the code, the same
-name |h| is given to the new handle, thus shadowing the old |h| that can no
-longer be used anyway, and giving the illusion that |h| is threaded around.
+The |read| and |write| functions in the introduction consume the array they
+operate on. Therefore the same array can no longer be used to in further
+operations: doing so would result in a type error.
+To resolve this, a new name for the same array is produced by each operation.
 
 From the perspective of the programmer, this is unwanted boilerplate.
-The approach with linear constraints is to let the handle behave non-linearly, and let its
-state (i.e., that the handle is open) be a linear constraint. Once this open state is consumed,
-the handle can no longer be read from or be closed without triggering a
-compile time error.
+The approach with linear constraints is to let the array behave non-linearly, and let its
+capabilities (i.e., having read or write access) be linear constraints. Once
+these capabilities are consumed, the array can no longer be read from or written
+to without triggering a compile time error.
 
 \section{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
@@ -504,9 +506,9 @@ compile time error.
   \begin{subfigure}{.3\linewidth}%
     \noindent%
 \begin{code}
-openFile   :: FilePath -> IOL Handle
-readLine   :: Handle ⊸ IOL (Handle, Ur String)
-closeFile  :: Handle ⊸ IOL ()
+newMArray  :: (MArray ->. Ur r) ->. Ur r
+write :: MArray a ->. Int -> a -> MArray a
+read :: MArray a ->. Int -> (MArray a, Ur a)
 \end{code}
 \caption{Linear Types}
 \label{fig:linear-interface}
@@ -514,9 +516,9 @@ closeFile  :: Handle ⊸ IOL ()
   \hfill
   \begin{subfigure}{.55\linewidth}
 \begin{code}
-openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
-readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint (Open h))
-closeFile  :: constraint (Open h) =>. Handle h -> IOL ()
+newPArray    :: (forall n. ^^ constraint (O n) =>. PArray a n -> Ur b) ⊸ Ur b
+write :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
+read :: constraint (Read n) => PArray a n -> Int -> a n
 \end{code}
 \caption{Linear Constraints}
 \label{fig:constraints-interface}
@@ -906,16 +908,24 @@ without any additional difficulty.
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is transferred to the array.
 
-> writePArray  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
+> write  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
 
 More precisely, the ownership of the location |p| is absorbed into that
 of |n|. Therefore, the associated operational semantics is to move the
 reference inside the array (and deallocate any previous reference at that index).
 
+Conversely, a reference can be \emph{extracted} from the array:
+
+> extract  :: constraint (RW n) =>. PArray a n -> Int -> exists p. Ur (a p) .<= constraint ((RW n, RW p))
+
+Crucially, this operation \emph{removes} the reference from the array. Leaving
+the reference in place would be unsound, because it would create a mutable
+alias.
+
 \subsubsection{Borrowing}
 
-We still want to have read and write access to references in the array
-so we provide |lendMut|:
+We still want to have read and write access to references in the array without
+having to remove them first, so we provide |lendMut|:
 
 > lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 
@@ -929,18 +939,16 @@ type system guarantees that the borrowed reference can not be freed or shared.
 % is not in |Ur|: since the scope must return the |constraint(RW p)| constraint, it is
 % not possible to leak it out by packing it into |r|, so it's not necessary to
 % wrap the result in |Ur|.
-Crucially, with this \textsc{api}, |constraint(RW n)| and |constraint(RW p)| are never simultaneously
-available. The following function, on the other hand, would not be sound:
-
-> extractWrong  :: constraint (RW n) =>. PArray a n -> Int -> exists p. Ur (a p) .<= constraint ((RW n, RW p))
-
-Indeed, right after calling |extractWrong|, the array could immediately be deallocated, even though |RW p| remains available, letting us write to freed memory.
+Crucially, with this \textsc{api}, |constraint(RW n)| and |constraint(RW p)| are
+never simultaneously available.
 For the same reason, gaining read access to an element needs to be done using a
 scoped \textsc{api} as well:
 
 > lend  ::  constraint (Read n) =>. PArray a n -> Int
 >           ->  (forall p. ^^ constraint (Read p) =>. a p -> r .<= constraint (Read p))
 >           ⊸   r .<= constraint (Read n)
+
+\subsubsection{Freezing}
 
 Finally, we can freeze arrays, using the
 following primitive:
@@ -956,7 +964,7 @@ an abbreviation for |constraint(omega ⋅ (Read n)) =>.|.
 With an unrestricted |constraint(Read n)| capability, we can read from the array
 more directly with the following primitive
 
-> readArray :: constraint (Read n) => PArray a n -> Int -> a n
+> read :: constraint (Read n) => PArray a n -> Int -> a n
 
 \subsubsection{Slices}
 
@@ -1001,9 +1009,9 @@ quicksort algorithm.
 > partition :: constraint (RW n) =>. PArray a n -> Int .<= constraint (RW n)
 > partition arr
 >   = let pack len = length arr in
->     let pack pivot = readArray arr (len - 1) in
+>     let pack pivot = read arr (len - 1) in
 >     foldl (\(pack i) j ->
->             let pack a_j = readArray arr j in
+>             let pack a_j = read arr j in
 >             if a_j <= pivot then pack (i + 1)
 >             else let pack _ = swap arr i j in
 >                  pack i
@@ -2303,9 +2311,9 @@ just be written as
 \begin{minipage}{0.5\linewidth}
 > partition :: constraint (RW n) =>. PArray a n -> Int .<= constraint (RW n)
 > partition arr
->   = let pivot = readArray arr (length arr - 1) in
+>   = let pivot = read arr (length arr - 1) in
 >     fold (\i j ->
->            if readArray arr j <= pivot then i + 1
+>            if read arr j <= pivot then i + 1
 >            else let _ = swap arr i j in i
 >          ) 0 [0..len-1]
 \end{minipage}
