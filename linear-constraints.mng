@@ -366,11 +366,13 @@ swap arr i j =
         _  = write arr i arr_j
   in write arr j arr_i
 \end{code}
-This version is unsafe, because the type system does not track the linearity of
-the array, and so it is possible to have multiple references to the same
-array, violating referential transparency. However, it is simpler because there
-is less bureaucracy to manage: we are clearly interacting with \emph{same} array
-throughout, and this version makes that apparent.
+This non-linear version does not guarantee that there is a unique reference to
+the array, and therefore modifications to it could be observed through another
+alias. Mutable aliasing is a common source of bugs, so this version is less safe
+overall.
+However, it is simpler because there is less bureaucracy to manage: we are
+clearly interacting with \emph{same} array throughout, and this version makes
+that apparent.
 We see here a clear tension between extra safety and clarity of code---one
 we wish, as language designers, to avoid. %%  When
 %% modelling a handle as a linear resource, the type system must know at all
@@ -378,7 +380,7 @@ we wish, as language designers, to avoid. %%  When
 %% manually, resulting in extra noise.
 %
 Reading the non-linear version, it is clear that it keeps a single reference to
-the array. How can we get the compiler to see that the handle is used safely
+the array. How can we get the compiler to see that the array is used safely
 without explicit threading?
 
 Rust introduces the \emph{borrow checker} for this very purpose.
