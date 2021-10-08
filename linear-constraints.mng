@@ -479,8 +479,8 @@ In particular, a linear function cannot assume that it is given the
 unique pointer to its argument.  For example, if |f :: a ⊸ b|, then
 the following is fine:
 \begin{code}
-g :: a -> b
-g x = f x
+g :: a -> (b, b)
+g x = (f x, f x)
 \end{code}
 The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
