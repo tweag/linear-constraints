@@ -1047,18 +1047,17 @@ quicksort algorithm.
 > quicksort arr =
 >   let pack len = length arr in
 >     if len <= 1 then pack ()
->     else
->       let pack p = partition arr in
->       let pack (l, r) = split arr p in
->       let pack () = quicksort l in
->       let pack () = quicksort r in
->       join l r
+>     else let  pack p = partition arr
+>               pack (l, r) = split arr p
+>               pack () = quicksort l
+>               pack () = quicksort r
+>          in join l r
 \end{minipage}
 \begin{minipage}{0.5\linewidth}
 > partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
 > partition arr
->   = let pack len = length arr in
->     let pack pivot = read arr (len - 1) in
+>   = let   pack len = length arr
+>           pack pivot = read arr (len - 1) in
 >     foldl (\(pack i) j ->
 >             let pack a_j = read arr j in
 >             if a_j <= pivot then pack (i + 1)
@@ -2352,19 +2351,19 @@ just be written as
 > quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
 > quicksort arr =
 >   if length arr <= 1 then ()
->   else let (l, r) = split arr (partition arr) in
->        let _ = quicksort l
->        let _ = quicksort r
->     join l r
+>   else let   (l, r) = split arr (partition arr)
+>              () = quicksort l
+>              () = quicksort r
+>        in join l r
 \end{minipage}
 \begin{minipage}{0.5\linewidth}
 > partition :: constraint (RW n) =>. PArray a n -> Int .<= constraint (RW n)
 > partition arr
 >   = let pivot = read arr (length arr - 1) in
->     fold (\i j ->
->            if read arr j <= pivot then i + 1
->            else let _ = swap arr i j in i
->          ) 0 [0..len-1]
+>     foldl (\i j ->
+>             if read arr j <= pivot then i + 1
+>             else let _ = swap arr i j in i
+>           ) 0 [0..len-1]
 \end{minipage}
 
 
