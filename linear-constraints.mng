@@ -332,23 +332,26 @@ resource tokens.
 To get a sense of the power and the pain of using linear types, consider the
 following function:
 \begin{code}
-swap :: MArray a ->. Int -> Int -> MArray a
-swap arr i j =
-  let   (arr', Ur arr_i) = read arr i
-        (ar'', Ur arr_j) = read arr' j
-        arr'''  = write arr'' i arr_j
-  in write arr''' j arr_i
+readFirstTwo :: MArray a ->. Ur (a, a)
+readFirstTwo arr =
+  let   (arr', Ur x) = read arr i
+        (arr'', Ur y) = read arr' i
+        () = free arr''
+  in Ur (x, y)
 \end{code}
-This functions swaps two elements of an array. Linearity enables the array
-library to ensure that there is only one reference an the array, and therefore
-it can be mutated in-place without violating referential transparency.
-\csongor{linearity+library design, but maybe we can be a little loose here}
+This function reads the first two elements of an array, then deallocates the
+array.
+Linearity enables the array library to ensure that there is only one reference
+an the array, and therefore it can be mutated in-place without violating
+referential transparency. After the array has been freed, it is no longer
+possible to read or write to it.
 %
 Notice that the |read| and |write| functions consume the array, and return a
 fresh array, to be used in future operations. Operationally, the array remains
 the same, but each operation assigns a new name to it, to facilitate tracking
-references statically.
-The values |arr_i| and |arr_j| read from the array are returned in an |Ur|
+references statically. Finally, |free| consumes the array without returning a
+new one, statically guaranteeing that it can no longer be used.
+The values |x| and |y| read from the array are returned in an |Ur|
 wrapper (pronounced ``unrestricted'') to signify that they can be used
 arbitrarily many times.
 %
@@ -358,17 +361,15 @@ arbitrary effects.
 Compare the above function with what one would write in a non-linear impure
 language:
 \begin{code}
-swap :: MArray a -> Int -> Int -> ()
-swap arr i j =
-  let   arr_i = read arr i
-        arr_j = read arr j
-        ()  = write arr i arr_j
-  in write arr j arr_i
+readFirstTwo :: MArray a -> (a, a)
+readFirstTwo arr =
+  let   x = read arr x
+        y = read arr y
+        () = unsafeFree arr
+  in (x, y)
 \end{code}
 This non-linear version does not guarantee that there is a unique reference to
-the array, and therefore modifications to it could be observed through another
-alias. Mutable aliasing is a common source of bugs, so this version is less safe
-overall.
+the array, so freeing the array is a potentially unsafe operation.
 However, it is simpler because there is less bureaucracy to manage: we are
 clearly interacting with \emph{same} array throughout, and this version makes
 that apparent.
@@ -383,36 +384,32 @@ the array. How can we get the compiler to see that the array is used safely
 without explicit threading?
 
 Rust introduces the \emph{borrow checker} for this very purpose.
-Our approach is, in some ways, simpler: we show in this paper
+Our approach is, in some ways, more lightweight: we show in this paper
 how a natural generalisation of Haskell's type class
 constraints does the trick. We call our new constraints \emph{linear constraints}.
 Like class constraints,
 linear constraints are propagated implicitly by the compiler.
-Like linear arguments, they can safely be used to track resources such as file
-handles. Thus, linear constraints are the combination of these two
+Like linear arguments, they can safely be used to track resources such as arrays
+or file handles. Thus, linear constraints are the combination of these two
 concepts, which have been studied independently elsewhere
 \citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.
 
-With our extension, we can write a new pure version of |swap| which does
+With our extension, we can write a new pure version of |readFirstTwo| which does
 not require explicit threading of the array:
 \begin{code}
-swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
-swap arr i j =
-  let   pack' arr_i = extract arr i
-        pack' arr_j = extract arr j
-        pack ()  = write arr i arr_j
-  in write arr j arr_i
+readFristTwo :: constraint (RW n) =>. UArray a n -> Ur (a, a)
+readFirstTwo arr =
+  let   pack (Ur x) = read arr i
+        pack (Ur y) = read arr' i
+        pack () = free arr''
+  in Ur (x, y)
 \end{code}
-There are three key changes from the impure version. First, that this version
-requires having read and write access to the array in the form of linear
-constraints (|RW n|). Second, instead of |read|, an |extract| operation is used,
-which \emph{moves} out the element from the array instead of copying it. Indeed,
-the linear constraints-powered array API is more powerful than the ordinary
-linear types one, because it allows mutable arrays whose fields themselves are
-also mutable structures (arrays of arrays). Third,  explicit |pack| and |pack'|
-annotations are used to indicate the variables that require special treatment
-(\Fref{sec:implicit-existentials} suggests how we can get rid of
-the |pack'|, too). Crucially, the resource representing the ownership of the
+The only changes from the impure version are that this version explicitly requires having
+read and write access to the array,
+and explicit |pack| annotations are used to indicate the binders that require
+special treatment (\Fref{sec:implicit-existentials}
+suggests how we can get rid of
+the |pack|, too). Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be passed around manually.
 
@@ -486,7 +483,7 @@ The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
 The |read| and |write| functions in the introduction consume the array they
-operate on. Therefore the same array can no longer be used to in further
+operate on, therefore the same array can no longer be used in further
 operations: doing so would result in a type error.
 To resolve this, a new name for the same array is produced by each operation.
 
@@ -508,6 +505,7 @@ to without triggering a compile time error.
 newMArray  :: (MArray ->. Ur r) ->. Ur r
 write :: MArray a ->. Int -> a -> MArray a
 read :: MArray a ->. Int -> (MArray a, Ur a)
+free :: MArray a ->. ()
 \end{code}
 \caption{Linear Types}
 \label{fig:linear-interface}
@@ -515,9 +513,10 @@ read :: MArray a ->. Int -> (MArray a, Ur a)
   \hfill
   \begin{subfigure}{.55\linewidth}
 \begin{code}
-newPArray    :: (forall n. ^^ constraint (O n) =>. PArray a n -> Ur b) ⊸ Ur b
-write :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
-read :: constraint (Read n) => PArray a n -> Int -> a n
+newUArray    :: (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
+write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
+read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
+free :: constraint (RW n) =>. UArray a n -> ()
 \end{code}
 \caption{Linear Constraints}
 \label{fig:constraints-interface}
@@ -542,70 +541,66 @@ the typechecker. That is, if we want to |show| the integer |n :: Int| we would w
 n|, and the typechecker is responsible for proving that |constraint (Show Int)| holds, without
 intervention from the programmer.
 
-For our |readLine| example, the implicit argument is the state of a handle |h|.
-This can be managed as a constraint |constraint(Open h)|, which indicates that the
-file associated with the handle is open. That is, the constraint |constraint(Open h)|
-is provable iff the file associated with |h| is open.
+For our |readFirstTwo| example, the implicit argument represents read and write
+access to the array.
+This can be managed as a constraint |constraint(RW n)|, which indicates that the
+array at location |n| is readable and writable. That is, the constraint |constraint(RW n)|
+is provable if and only if the array at location |n| is readable and writable.
 This constraint is linear: it is consumed (that is, used as an assumption
 in a function call) exactly once.
 In order to manage linearity implicitly, this paper introduces a
 linear constraint arrow (|=>.|), much like Linear Haskell introduces a linear
 function arrow (|->.|). Constraints to the left of a linear constraint
 arrow are \emph{linear constraints}.
-Using the linear constraint |constraint(Open h)|, we can give
-the following type to |closeFile|:
+Using the linear constraint |constraint(RW n)|, we can give
+the following type to |free|:
 
 \begin{code}
-closeFile :: constraint (Open h) =>. Handle h -> IOL ()
+free :: constraint (RW n) =>. UArray a n -> ()
 \end{code}
 
 There are a few things to notice:
 \begin{itemize}
-\item First, there is now a type variable |h|. In contrast,
+\item First, there is now a type variable |n|. In contrast,
   the version in \Cref{fig:linear-interface} without linear
-  constraints  has type |closeFile :: Handle ->. IOL ()|.
-  The type variable |h| is a type-level name for the file handle being closed.
+  constraints  has type |free :: MArray a ->. ()|.
+  The type variable |n| is a type-level name representing the location of the array.
   Ideally, the linear constraint would refer directly to the
-  handle value, and have the type |closeFile :: (h :: Handle) -> constraint (Open h) =>. IOL ()|.
-  While giving a name to a function argument is common in some
-  dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris,
-our approach, on the other hand, shows how we can still link a runtime value and a compile-time
-type variable without needing any dependent types.
-\item Second, if we have a single, linear, |constraint (Open h)|
-  available, then after |closeFile| there will not be any |constraint (Open h)|
-  left to use, thus preventing the file from being closed
-  twice. This is precisely what we were trying to achieve.
+  array value, and have the type |free :: (n :: Array a) -> constraint (RW n) =>. ()|.
+  While giving a typ-level name to a function argument is common in some
+  dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris, our
+  approach, on the other hand, shows how we can still link a runtime value and a
+  compile-time type variable without needing any dependent types.
+\item Second, the variable representing the array can now be used multiple
+  times. Indeed, the linear constraint |constraint(RW n)| controls access to the
+  array instead.
+\item Third, if  we have a single, linear, |constraint (RW n)|
+  available, then after |free| there will not be any |constraint (RW h)|
+  left to use, thus preventing the array from being used after freeing.
+  This is precisely what we were trying to achieve.
 \end{itemize}
 
-The above deals with closing files and ensuring that a handle cannot be
-closed more than once.  However, we still need to explain how a
-constraint |constraint (Open h)| can come into existence. For this, we
-introduce\footnote{There is a variety of ways existential types can
-  be worked into a language. The existentials we use here might best be understood
-  as a mild generalisation of those presented by \citet[Chapter
-  24]{tapl}.
-  However a recent publication by \citet{existentials} works out an
-  approach which could make linear constraint easier to use, as we
-  discuss in \Fref{sec:implicit-existentials}.}
-  a type construction |exists a1 ... an. t .<= constraint(Q)|,
-where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
-paired with the type |t|.\footnote{We will freely
-omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
-empty.} The type of |openFile| is thus:
+The above deals with freeing an array and ensuring that it cannot be used after.
+However, we still need to explain how a constraint |constraint (RW n)| can come
+into existence.
+The type of |newUArray| is:
 \begin{code}
-openFile   :: FilePath -> IOL (exists h. Ur (Handle h) .<= constraint (Open h))
+newUArray    :: (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
 \end{code}
-The output of this function is a new unrestricted handle,
-along with a new constraint that indicates that the handle is open.
-Since the handle is unrestricted it can be freely passed around. The
-handle's state is implicitly tracked by the |constraint(Open h)| constraint.
+This higher-order function can be thought of as a computation that allocates an
+array in a \emph{scope}. The scope is given an array with read and write
+capability. The scope must return an unrestricted value. This is to ensure that
+the linear constraitn cannot be embedded into the return value. This
+construction ensures that within the scope, the array can safely be assumed to
+have a unique pointer to it at all times, and that the array is freed at the
+end, because the only way to remove the |constraint(RW n)| constraint is to use |free|.
 
-We must also ensure that |readLine| can both promise to only operate on an open
-file and to keep that file open after reading. To do so, its signature
-indicates that given a handle |h|, it consumes and produces the implicit |Open h|
-constraint, while also producing an unrestricted |String|.
+We must also ensure that |write| can both promise to only operate on a writable array
+and to that array writable after. To do so, its signature
+indicates that given an array |n|, it consumes and produces the implicit |constraint (RW n)|
+constraint.
 \begin{code}
-readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint (Open h))
+write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 \end{code}
 %% The fact that existential quantification generates new type-level names
 %% is folklore. It's used crucially in the interface of the
@@ -617,6 +612,19 @@ readLine   :: constraint (Open h) =>. Handle h -> IOL (Ur String .<= constraint 
 %% quantifier to generate the type-level name of the file
 %% handle. Existentially quantified types are paired with a constraint |Q|
 %% which we understand as being returned by functions.
+For this, we
+introduce\footnote{There is a variety of ways existential types can
+  be worked into a language. The existentials we use here might best be understood
+  as a mild generalisation of those presented by \citet[Chapter
+  24]{tapl}.
+  However a recent publication by \citet{existentials} works out an
+  approach which could make linear constraint easier to use, as we
+  discuss in \Fref{sec:implicit-existentials}.}
+a type construction |exists a1 ... an. t .<= constraint(Q)|,
+where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
+paired with the type |t|.\footnote{We will freely
+omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
+empty.}
 
 Haskell does not have an existential quantifier. However,
 existentially quantified types can
@@ -634,7 +642,7 @@ When pattern-matching on a |pack| constructor, all existentially quantified
 names are brought into scope and all the returned constraints are
 assumed. We also use |pack' x| as a shorthand
 for |pack (Ur x)|. We have now seen all the ingredients needed to write
-the |firstLine| example as in the introduction.
+the |readFirstTwo| example as in the introduction.
 
 \subsection{Minimal Examples}
 \label{sec:examples}
@@ -836,6 +844,15 @@ immediately returned. Writing is handled similarly.
 > readRef :: constraint (Read n) =>. AtomRef a n -> Ur a .<= constraint (Read n)
 > writeRef :: constraint (RW n) =>. AtomRef a n -> a -> () .<= constraint (RW n)
 
+> swap :: RW =>. PArray a n -> Int -> Int -> () .<= RW n
+> swap arr i j
+>   | i == j = arr
+>   | i > j = swap arr j i
+> swap arr i j =
+>   let (l, r) = split arr (i + 1)
+>       pack! () = lendMut l i (replace r (j - (i + 1)))
+>   in join l r
+
 Note that the above primitives do not need to explicitly declare
 effects in terms of a monad or another higher-order effect-tracking
 device: because the |constraint(RW n)| constraint is linear, passing it suffices
@@ -892,7 +909,7 @@ references, (including arrays of arrays), as a typical case.
 % linear constraints, this is all managed automatically by the compiler.
 
 > data PArray (a :: Location -> Type) (n :: Location)
-> newPArray    :: (forall n. ^^ constraint (O n) =>. PArray a n -> Ur b) ⊸ Ur b
+> newPArray    :: (forall n. ^^ constraint (RW n) =>. PArray a n -> Ur b) ⊸ Ur b
 
 For this purpose we introduce the type |PArray a n|, where the kind of
 |a| is |Location -> Type|: this way we can easily enforce that each
@@ -916,6 +933,8 @@ reference inside the array (and deallocate any previous reference at that index)
 Conversely, a reference can be \emph{extracted} from the array:
 
 > extract  :: constraint (RW n) =>. PArray a n -> Int -> exists p. Ur (a p) .<= constraint ((RW n, RW p))
+
+> replace  :: constraint (RW n, RW p) =>. PArray a n -> Int -> a p -> Ur (a p) .<= constraint ((RW n, RW p))
 
 Crucially, this operation \emph{removes} the reference from the array. Leaving
 the reference in place would be unsound, because it would create a mutable
