@@ -637,6 +637,7 @@ data PackHandle where
 In our implementation (\Fref{sec:implementation}), packed linear constraints
 piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
+\csongor{The intro no longer uses an existential.}
 
 When pattern-matching on a |pack| constructor, all existentially quantified
 names are brought into scope and all the returned constraints are
@@ -736,37 +737,38 @@ This program is rejected because it uses |C| twice.
 % an \textsc{api} must be carefully considered for possible negative effects;
 % the addition of linear constraints does not change this.
 
-\subsection{Linear I/O}
-\label{sec:linear-io}
+% \subsection{Linear I/O}
+% \label{sec:linear-io}
 
-The file-handling example discussed in sections~\ref{sec:linear-types}
-and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
-Compared to the traditional |IO| monad, the
-type of the monadic operations |>>=| (aka \emph{bind}) and |return| are changed to
-use linear arrows.
-%
-\begin{code}
-(>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b
-return :: a ->. IOL a
-\end{code}
-%
-Bind must be linear because, as explained in the previous section, a linear
-constraint can be consumed in only a linear context. Consider
-the
-following program:
-\begin{code}
-readTwo ::  constraint (Open h) =>. Handle h -> IOL (Ur (String, String) .<= constraint (Open h))
-readTwo h =  readLine h >>= \case pack' xs ->
-             readLine h >>= \case pack' ys ->
-             return (pack' (xs, ys))
-\end{code}
-If bind were not linear, the first occurrence of |readLine h| would
-not be able to consume the |constraint (Open h)| constraint
-linearly.
+% The file-handling example discussed in sections~\ref{sec:linear-types}
+% and~\ref{sec:what-it-looks-like} uses a linear version of the |IO| monad, |IOL|.
+% Compared to the traditional |IO| monad, the
+% type of the monadic operations |>>=| (aka \emph{bind}) and |return| are changed to
+% use linear arrows.
+% %
+% \begin{code}
+% (>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b
+% return :: a ->. IOL a
+% \end{code}
+% %
+% Bind must be linear because, as explained in the previous section, a linear
+% constraint can be consumed in only a linear context. Consider
+% the
+% following program:
+% \begin{code}
+% readTwo ::  constraint (Open h) =>. Handle h -> IOL (Ur (String, String) .<= constraint (Open h))
+% readTwo h =  readLine h >>= \case pack' xs ->
+%              readLine h >>= \case pack' ys ->
+%              return (pack' (xs, ys))
+% \end{code}
+% If bind were not linear, the first occurrence of |readLine h| would
+% not be able to consume the |constraint (Open h)| constraint
+% linearly.
 
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
 
+\csongor{Now this picks up from the Introduction}
 Let us now turn to a more substantial example: manual memory
 management.  In Haskell, memory deallocation is normally the
 responsibility of a garbage collector. However, garbage collection is
@@ -792,7 +794,7 @@ Because of linearity, these constraints
 must be consumed, so it is guaranteed that the memory
 is deallocated correctly.
 %
-In |constraint(Own n)|, |n| is a type variable (of a special kind |Location|)
+In |constraint(Read n)|, |n| is a type variable (of a special kind |Location|)
 which represents a memory location. Locations mediate
 the relationship between references and ownership constraints.
 %
@@ -836,7 +838,13 @@ then the |constraint(RW n)| constraint could be embedded in |b|, and therefore
 escape from the scope.
 This would defeat the point of |constraint(RW n)| be a linear constraint, and
 no longer guarantee that the reference has a unique owner.
-% JP: This is because newRef can be called in unrestricted contexts. Not enough space/reader attention to explain that.
+
+Since having access to a |constraint(RW n)| is proof that we are inside a scope
+with a unique resource, we can also allocate a reference to the same scope as |n|:
+
+> newRefBeside :: constraint (RW n) =>. a n -> exists m. Ur (AtomRef m) .<= constraint ((RW n, RW m))
+
+\csongor{I think this is now the first time we talk about existentials? Need to be careful not to forget introducting them}
 
 To read a reference, a simple |constraint(Read)| constraint is demanded, and
 immediately returned. Writing is handled similarly.
@@ -844,29 +852,21 @@ immediately returned. Writing is handled similarly.
 > readRef :: constraint (Read n) =>. AtomRef a n -> Ur a .<= constraint (Read n)
 > writeRef :: constraint (RW n) =>. AtomRef a n -> a -> () .<= constraint (RW n)
 
-> swap :: RW =>. PArray a n -> Int -> Int -> () .<= RW n
-> swap arr i j
->   | i == j = arr
->   | i > j = swap arr j i
-> swap arr i j =
->   let (l, r) = split arr (i + 1)
->       pack! () = lendMut l i (replace r (j - (i + 1)))
->   in join l r
-
 Note that the above primitives do not need to explicitly declare
 effects in terms of a monad or another higher-order effect-tracking
 device: because the |constraint(RW n)| constraint is linear, passing it suffices
 to ensure proper sequencing of effects concerning location |n|.
-This is ensured by the combination of the language and library
-behaviour. For example, here is how to write two values (|a| and |b|) to the same reference |x|:
 
-> case writeRef x a of
->   pack _ -> case writeRef x b of
->     pack _ -> ...
+% This is ensured by the combination of the language and library
+% behaviour. For example, here is how to write two values (|a| and |b|) to the same reference |x|:
 
-The language semantics forces the programmer to do case analysis to
-access the returned |Write| constraints, and |writeRef| must be strict
-in the |Write| constraint that it consumes.
+% > case writeRef x a of
+% >   pack _ -> case writeRef x b of
+% >     pack _ -> ...
+
+% The language semantics forces the programmer to do case analysis to
+% access the returned |Write| constraints, and |writeRef| must be strict
+% in the |Write| constraint that it consumes.
 
 Deallocation requires full ownership of reference |n|, and consumes all
 capabilities accordingly.
@@ -884,8 +884,10 @@ sometimes called ``freezing'':
 
 The above toolkit handles references to base types just fine.  But
 what about storing references in objects managed by the ownership
-system? In this section, we show how to deal with arrays of
-references, (including arrays of arrays), as a typical case.
+system? In \cref{sec:introduction} we presented an interface for mutable
+arrays whose contents are themselves immutable. In fact, with linear
+constraints, we can scale beyond that use case, and support arrays of
+references, including arrays of (mutable) arrays.
 
 % JP: the discussion below sounds quite petty. Not many (zero
 % non-conflicting?)  people will be aware of the issue with linear
@@ -917,33 +919,38 @@ reference in the array refers to the same location |n|. Both types
 |AtomRef a| and |PArray a| have kind |Location -> Type|, and therefore
 one can allocate, and manipulate arrays of arrays with this
 \textsc{api}. For example, an array of integers would have type
-|PArray (AtomRef Int) n| and an array of arrays of integers would have type
-|PArray (PArray Int) n|. Thus, the framework handles nested mutable structures
-without any additional difficulty.
+|PArray (AtomRef Int) n|, and indeed, the |UArray| type from
+\cref{sec:introduction} is a synonym for an array of atomic references.
+An array of arrays of integers would have type |PArray (PArray Int) n|. Thus,
+the framework handles nested mutable structures without any additional
+difficulty.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is transferred to the array.
 
-> write  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
+> writeWrong  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
 
-More precisely, the ownership of the location |p| is absorbed into that
-of |n|. Therefore, the associated operational semantics is to move the
-reference inside the array (and deallocate any previous reference at that index).
+However, this operation would simply remove the old reference from the array,
+leaking memory. In order to keep hold of the old reference, we provide the
+|replace| function, which swaps a reference with an element of the array.
 
-Conversely, a reference can be \emph{extracted} from the array:
+> replace  :: constraint (RW n, RW p) =>. PArray a n -> Int -> a p -> () .<= constraint ((RW n, RW p))
 
-> extract  :: constraint (RW n) =>. PArray a n -> Int -> exists p. Ur (a p) .<= constraint ((RW n, RW p))
+For the special case where the array stores atomic references (|UArray|) which we know how
+to deallocate, the |write| function can be implemented using |replace|:
 
-> replace  :: constraint (RW n, RW p) =>. PArray a n -> Int -> a p -> Ur (a p) .<= constraint ((RW n, RW p))
-
-Crucially, this operation \emph{removes} the reference from the array. Leaving
-the reference in place would be unsound, because it would create a mutable
-alias.
+> write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
+> write arr i x =
+>   let   pack' ref = newRefBeside arr
+>         pack () = writeRef ref x
+>         pack () = replace arr i ref
+>   in freeRef ref
 
 \subsubsection{Borrowing}
 
-We still want to have read and write access to references in the array without
-having to remove them first, so we provide |lendMut|:
+Since the elements of an array can be mutable structures (such as other arrays),
+reading can only be done safely if we can ensure that no one else has access to
+the array in the meantime. To this end, we provide |lendMut|
 
 > lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 
@@ -962,9 +969,16 @@ never simultaneously available.
 For the same reason, gaining read access to an element needs to be done using a
 scoped \textsc{api} as well:
 
-> lend  ::  constraint (Read n) =>. PArray a n -> Int
->           ->  (forall p. ^^ constraint (Read p) =>. a p -> r .<= constraint (Read p))
->           ⊸   r .<= constraint (Read n)
+> lend  ::  constraint (Read n) =>. PArray a n -> Int ->  (forall p. ^^ constraint (Read p) =>. a p -> r .<= constraint (Read p)) ⊸ r .<= constraint (Read n)
+
+Once again, for the special case of |UArray|s, a more traditional reading
+operation can be implemented:
+
+> read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
+> read arr i = lend arr i readRef
+
+|read| lends the reference to |readRef| which creates an unrestricted copy of
+the value.
 
 \subsubsection{Freezing}
 
@@ -982,7 +996,7 @@ an abbreviation for |constraint(omega ⋅ (Read n)) =>.|.
 With an unrestricted |constraint(Read n)| capability, we can read from the array
 more directly with the following primitive
 
-> read :: constraint (Read n) => PArray a n -> Int -> a n
+> readP :: constraint (Read n) => PArray a n -> Int -> a n
 
 \subsubsection{Slices}
 
@@ -1006,13 +1020,30 @@ together:
 
 Note that the constraint |constraint (omega ⋅ (Slices n l r))| is unrestricted, which means that it is not necessary to join the two arrays.
 
+With these buildings blocks, we can now implement various utility functions on
+arrays, such as swapping two elements of an array.  This is not so simple to
+implement\footnote{Indeed, Rust's implementation uses an \emph{unsafe} block.}, because we need to elements of an array simultaneously, but only one
+element can be borrowed at a time. To solve this, we split the array into two
+slices such that the two indices fall in two different slices. Then simply
+borrow the element from the first slice, and replace it with the element in the
+second slice. Finally, join the two slices back together.
+
+> swap :: RW =>. PArray a n -> Int -> Int -> () .<= RW n
+> swap arr i j
+>   | i == j = arr
+>   | i > j = swap arr j i
+> swap arr i j =
+>   let (l, r) = split arr (i + 1)
+>       pack' () = lendMut l i (replace r (j - (i + 1)))
+>   in join l r
+
 \subsubsection{In-place quicksort}
 
 As an example of using the machinery defined above, we implement an in-place
 quicksort algorithm.
 
 \begin{minipage}{0.5\linewidth}
-> quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
+> quicksort :: constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
 > quicksort arr =
 >   let pack len = length arr in
 >     if len <= 1 then pack ()
@@ -1024,15 +1055,15 @@ quicksort algorithm.
 >       join l r
 \end{minipage}
 \begin{minipage}{0.5\linewidth}
-> partition :: constraint (RW n) =>. PArray a n -> Int .<= constraint (RW n)
+> partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
 > partition arr
 >   = let pack len = length arr in
 >     let pack pivot = read arr (len - 1) in
 >     foldl (\(pack i) j ->
 >             let pack a_j = read arr j in
 >             if a_j <= pivot then pack (i + 1)
->             else let pack _ = swap arr i j in
->                  pack i
+>             else let pack _ = swap arr i j
+>                  in pack i
 >           ) (pack 0) [0..len-1]
 \end{minipage}
 
