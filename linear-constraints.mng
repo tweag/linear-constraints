@@ -326,9 +326,9 @@ scope. Rust deploys treasures of dedicated syntax and code generation
 to support management of resources, while Linear Haskell is merely a
 type system change without any other compiler support. Linear Haskell
 purports to be general purpose, but
-using them to emulate Rust's ownership model is a painful exercise, because the
-compiler doesn't know how to help, requiring the programmer to carefully thread
-resource tokens.
+using them to emulate Rust's ownership model is a painful exercise, because
+% the compiler doesn't know how to help, requiring
+the programmer is required to carefully thread resource tokens.
 
 To get a sense of the power and the pain of using linear types, consider the
 following function:
@@ -423,7 +423,7 @@ Our contributions are as follows:
   several resource-aware systems, such as ownership à la Rust (\Fref{sec:memory-ownership}), or
   capabilities in the style of Mezzo~\cite{mezzo-permissions}
   or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
-  may serve as a way to unify these lines of research.
+  points towards a possible unification of these lines of research.
 \item An inference algorithm that respects the multiplicity of
   assumptions. We prove that this algorithm is sound with respect to
   our type system~(\Fref{sec:type-inference}).
@@ -436,7 +436,7 @@ Expressions in our qualified
 \end{itemize}
 %
 Our design is intended to work well with other features of Haskell and its
-implementation within GHC and we have a prototype implementation.
+implementation within \textsc{ghc} and we have a prototype implementation.
 
 \section{Background: Linear Haskell}
 \label{sec:linear-types}
