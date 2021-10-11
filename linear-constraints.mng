@@ -1489,13 +1489,13 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
 
 \paragraph{Variables}
-As is standard, the \rref{E-Var} rule can weaken variables, but only
-unrestricted variables can be weaken (linear variables \emph{must} be
-used), hence the weakened context being $[[{omega.G_2}]]$. The rule
-also requires the variable $[[{x}]]$ to be available for linear use ($[[{G_1}]]$);
-but note that $[[{G_2}]]$ can contain a binding for $[[{x}]]$, in
-which case $[[{G_1+omega.G_2}]]=[[{omega.G_2}]]$. This takes care of
-the case where $[[{x}]]$ is unrestricted.
+As is standard, the \rref{E-Var} rule works in a context containing more
+than just the used binding for $[[{x}]]$. However, crucially,
+our rule allows only
+\emph{unrestricted} variables to be discarded; linear variables \emph{must} be
+used. We can see this in the rule by noticing that the context has an unrestricted
+component $[[{omega.G_2}]]$. The $[[{G1}]]$ component might be restricted or might not,
+allowing this rule to apply both for restricted and unrestricted $[[{x}]]$.
 
 \paragraph{Data constructors}
 Data constructors $[[{K}]]$ don't have a dedicated typing
