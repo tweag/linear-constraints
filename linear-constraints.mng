@@ -358,8 +358,8 @@ Notice that the |read| function consumes the array and returns a
 fresh array, to be used in future operations. Operationally, the array remains
 the same, but each operation assigns a new name to it, thus facilitating tracking
 references statically. Finally, |free| consumes the array without returning a
-new one, statically guaranteeing that it can no longer be used.
-\footnote{We assume that all pattern bindings $\klet$-expressions are
+new one, statically guaranteeing that it can no longer be used.%
+\footnote{We assume that all pattern bindings in $\klet$-expressions are
 \emph{strict}. This ensures that the array actually gets freed. We discuss this
 point in \cref{sec:linear-types}.}
 The values |x| and |y| read from the array are returned; their
