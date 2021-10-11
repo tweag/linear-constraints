@@ -955,9 +955,6 @@ function which which swaps a reference with an element of the array.
 
 \subsubsection{Borrowing}
 
-
-> lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
-
 The |lendMut arr i k| primitive lends access to the reference at index |i| in
 |arr|, to a scope function |k| (in Rust terminology, the scope
 \emph{borrows} an element of the array). Note that the scope must return the
@@ -970,6 +967,8 @@ type system guarantees that the borrowed reference can not be shared, let alone 
 % wrap the result in |Ur|.
 Indeed, with this \textsc{api}, |constraint(RW n)| and |constraint(RW p)| are
 never simultaneously available.
+
+> lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 
 Because the elements of an array can be mutable structures (such as
 other arrays), reading can only be done safely if we can ensure that
