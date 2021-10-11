@@ -1055,6 +1055,7 @@ swap arr i j   | i == j   = arr
                                    pack' () = lendMut l i (replace r (j - (i + 1)))
                              in join l r
 \end{code}
+\jp{Why |pack'|? Not |pack| ?}
 \subsubsection{In-place quicksort}
 
 As an example of using the machinery defined above, we implement an in-place
@@ -1066,13 +1067,16 @@ quicksort algorithm.
     quicksort arr =
       let pack len = length arr
       in   if len <= 1 then pack ()
-           else   let  pack p = partition arr
-                       pack (l, r) = split arr p
+           else   let  pack pivotIdx = partition arr
+                       pack (l, r) = split arr pivotIdx
                        pack () = quicksort l
                        pack () = quicksort r
                   in join l r
   \end{code}
 \end{minipage}
+\jp{I propose that we consider the length of arrays statically
+  fixed. This way |length| needs no linear constraint, and the
+  code can be shorter.}
 \begin{minipage}{0.5\linewidth}
   \begin{code}
 partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
@@ -1080,10 +1084,10 @@ partition arr
   = let   pack len = length arr
           pack pivot = read arr (len - 1)
     in foldl (\(pack i) j ->
-            let pack a_j = read arr j in
-            if a_j <= pivot then pack (i + 1)
-            else  let pack _ = swap arr i j
-                  in pack i
+            let  pack a_j = read arr j
+            in   if a_j <= pivot then pack (i + 1)
+                 else  let pack _ = swap arr i j
+                       in pack i
           ) (pack 0) [0..len-1]
         \end{code}
 \end{minipage}
