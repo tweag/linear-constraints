@@ -2435,9 +2435,9 @@ just be written as
 > quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
 > quicksort arr =
 >   if length arr <= 1 then ()
->   else let   (l, r) = split arr (partition arr)
->              () = quicksort l
->              () = quicksort r
+>   else let   (l, r)  = split arr (partition arr)
+>              ()      = quicksort l
+>              ()      = quicksort r
 >        in join l r
 \end{minipage}
 \begin{minipage}{0.5\linewidth}
@@ -2449,7 +2449,8 @@ just be written as
 >             else let _ = swap arr i j in i
 >           ) 0 [0..len-1]
 \end{minipage}
-
+\rae{Type errors are here, around the return value}
+\rae{Get rid of |foldl| here, too.}
 
 \csongor{Should this example be included at all? do we need to say anything more?}
 
