@@ -591,7 +591,7 @@ newUArray    :: (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
 This higher-order function can be thought of as a computation that allocates an
 array in a \emph{scope}. The scope is given an array with read and write
 capability. The scope must return an unrestricted value. This is to ensure that
-the linear constraitn cannot be embedded into the return value. This
+the linear constraint cannot be embedded into the return value. This
 construction ensures that within the scope, the array can safely be assumed to
 have a unique pointer to it at all times, and that the array is freed at the
 end, because the only way to remove the |constraint(RW n)| constraint is to use |free|.
