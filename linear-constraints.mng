@@ -337,14 +337,6 @@ the programmer to carefully thread resource tokens.
 
 To get a sense of the power and the pain of using linear types, consider the
 following function:
-\begin{code}
-readFirstTwo :: MArray a ->. Ur (a, a)
-readFirstTwo arr =
-  let   (arr', Ur x) = read arr i
-        (arr'', Ur y) = read arr' i
-        () = free arr''
-  in Ur (x, y)
-\end{code}
 \rae{I see a number of challenges here: 1. I was surprised to see the call
 to |free|. Maybe change the name of the function to readFirstTwoAndDiscard?
 2. We must clarify that we have a linearly bound array of unrestricted elements.
@@ -370,7 +362,7 @@ read2AndDiscard arr0 =
 This function reads the first two elements of an array and returns them, and
 then deallocates the array.
 Linearity enables the array library to ensure that there is only one reference
-an the array, and therefore it can be mutated in-place without violating
+to the array, and therefore it can be mutated in-place without violating
 referential transparency. After the array has been freed, it is no longer
 possible to read or write to it.
 %
