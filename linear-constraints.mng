@@ -89,6 +89,10 @@ import GHC.Base
 %format a_n
 %format an = a_n
 %format ^^ = "\,"
+%
+%format ! = "!"
+  %% ^^ this suppresses some space. I think lhs2TeX would otherwise use \mathop
+%format spack = "!\kpack"
 %endif
 
 %let full = False
@@ -291,14 +295,15 @@ import GHC.Base
 \begin{abstract}
   A linear parameter must be consumed exactly once in the body of its
   function. When declaring resources such as file handles and manually
-  managed memory as linear arguments, a type system can verify the
-  correct.  But writing code with explicit linear arguments requires bureaucracy.
+  managed memory as linear arguments, a linear type system can verify
+  these resources are neither duplicated nor forgotten.
+  However, writing code with explicit linear arguments requires bureaucracy.
   %
   This paper presents \emph{linear constraints}, a front-end feature for
   linear typing that
   decreases the bureaucracy of working with linear types.
   %
-  Linear constraints are implicit linear arguments that are 
+  Linear constraints are implicit linear arguments that are
   filled in automatically by the compiler.
   %
   We present linear constraints as a qualified type system,
@@ -322,13 +327,13 @@ memory safety for systems programmers, Haskell's \textsc{ghc}~9.0 includes
 support for linear types, and even
 dependently typed programmers can now use linear types with Idris 2.
 All of these systems are vastly different in ergonomics and
-scope. Rust deploys treasures of dedicated syntax and code generation
-to support management of resources, while Linear Haskell is merely a
-type system change without any other compiler support. Linear Haskell
-purports to be general purpose, but
-using them to emulate Rust's ownership model is a painful exercise, because
+scope. Rust uses dedicated syntax and code generation
+to support management of resources, while Linear Haskell is a
+type system change without any core-language or other back-end support. Linear Haskell
+is designed to be general purpose, but
+using linear arguments to emulate Rust's ownership model is a painful exercise, requiring
 % the compiler doesn't know how to help, requiring
-the programmer is required to carefully thread resource tokens.
+the programmer to carefully thread resource tokens.
 
 To get a sense of the power and the pain of using linear types, consider the
 following function:
@@ -340,33 +345,60 @@ readFirstTwo arr =
         () = free arr''
   in Ur (x, y)
 \end{code}
-This function reads the first two elements of an array, then deallocates the
-array.
+\rae{I see a number of challenges here: 1. I was surprised to see the call
+to |free|. Maybe change the name of the function to readFirstTwoAndDiscard?
+2. We must clarify that we have a linearly bound array of unrestricted elements.
+That is, we are \emph{not} guaranteeing that each element of the array be
+used exactly once. Instead, we are guaranteeing that the array itself is
+used exactly once. This is a tiny bit subtle. 3. The binding that frees the
+array is lazy and won't happen in practice. Yet introducing a strict binding with
+! here would be distracting. 4. Once the Haskell programmer starts worrying
+about laziness, then they will start worrying about the order of operations.
+This is distracting. 5. What's |i|?
+Instead, I propose the version below, along with a little
+text explaining the difference between a linear array and linear elements.}
+\begin{code}
+read  ::  MArray a ->. Int -> (MArray a, Ur a)   -- defined in the library for |MArray|
+free  ::  MArray a ->. ()                        -- defined in the library for |MArray|
+read2AndDiscard :: MArray a ->. (Ur a, Ur a)
+read2AndDiscard arr0 =
+  let  (arr1, x)  = read arr0 0
+       (arr2, y)  = read arr1 1
+       !()        = free arr2
+  in (x, y)
+\end{code}
+This function reads the first two elements of an array and returns them, and
+then deallocates the array.
 Linearity enables the array library to ensure that there is only one reference
 an the array, and therefore it can be mutated in-place without violating
 referential transparency. After the array has been freed, it is no longer
 possible to read or write to it.
 %
-Notice that the |read| and |write| functions consume the array, and return a
+Notice that the |read| function consumes the array and returns a
 fresh array, to be used in future operations. Operationally, the array remains
-the same, but each operation assigns a new name to it, to facilitate tracking
+the same, but each operation assigns a new name to it, thus facilitating tracking
 references statically. Finally, |free| consumes the array without returning a
-new one, statically guaranteeing that it can no longer be used.
-The values |x| and |y| read from the array are returned in an |Ur|
-wrapper (pronounced ``unrestricted'') to signify that they can be used
-arbitrarily many times.
+new one, statically guaranteeing that it can no longer be used. (The |!| we see
+makes this a \emph{strict} binding in Haskell, making sure we actually free the
+array. The code would be rejected without the strictness annotation.)
+\rae{Is that last claim correct? I hope it is!}
+The values |x| and |y| read from the array are returned; their
+types include elements wrapped by the |Ur|
+(pronounced ``unrestricted'') type, allowing them to be used
+arbitrarily many times. This works because |read2AndDiscard| takes a restricted-use array
+containing unrestricted elements.
 %
 In a non-linear language, one would have to forgo referential transparency to
 handle mutable operations either by using a monadic interface or allowing
 arbitrary effects.
-Compare the above function with what one would write in a non-linear impure
+Compare the above function with what one would write in a non-linear, impure
 language:
 \begin{code}
-readFirstTwo :: MArray a -> (a, a)
-readFirstTwo arr =
-  let   x = read arr x
-        y = read arr y
-        () = unsafeFree arr
+read2AndDiscard :: MArray a -> (a, a)
+read2AndDiscard arr =
+  let   x    = read arr 0
+        y    = read arr 1
+        !()  = unsafeFree arr
   in (x, y)
 \end{code}
 This non-linear version does not guarantee that there is a unique reference to
@@ -380,8 +412,9 @@ we wish, as language designers, to avoid. %%  When
 %% times where it is being consumed, so the file handle is passed around
 %% manually, resulting in extra noise.
 %
-Reading the non-linear version, it is clear that it keeps a single reference to
-the array. How can we get the compiler to see that the array is used safely
+% Reading the non-linear version, it is clear that it keeps a single reference to
+% the array.
+How can we get the compiler to see that the array is used safely
 without explicit threading?
 
 Rust introduces the \emph{borrow checker} for this very purpose.
@@ -395,15 +428,17 @@ or file handles. Thus, linear constraints are the combination of these two
 concepts, which have been studied independently elsewhere
 \citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.
 
-With our extension, we can write a new pure version of |readFirstTwo| which does
+With our extension, we can write a new pure version of |read2AndDiscard| which does
 not require explicit threading of the array:
 \begin{code}
-readFristTwo :: constraint (RW n) =>. UArray a n -> Ur (a, a)
-readFirstTwo arr =
-  let   pack (Ur x) = read arr i
-        pack (Ur y) = read arr' i
-        pack () = free arr''
-  in Ur (x, y)
+read   :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)  -- defined in the library for |UArray|
+free   :: constraint ((Read n, Write n)) =>. UArray a n -> ()                        -- defined in the library for |UArray|
+read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
+read2AndDiscard arr =
+  let   spack x   = read arr 0
+        spack y   = read arr 1
+        spack ()  = free arr
+  in (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
 read and write access to the array,
@@ -413,6 +448,9 @@ suggests how we can get rid of
 the |pack|, too). Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be passed around manually.
+\rae{This is a very nice example. And, the way it's phrased around making it
+clear that the array is the same array makes one not worry as much about the
+pack.}
 
 Our contributions are as follows:
 \begin{itemize}
@@ -542,7 +580,7 @@ the typechecker. That is, if we want to |show| the integer |n :: Int| we would w
 n|, and the typechecker is responsible for proving that |constraint (Show Int)| holds, without
 intervention from the programmer.
 
-For our |readFirstTwo| example, the implicit argument represents read and write
+For our |read2AndDiscard| example, the implicit argument represents read and write
 access to the array.
 This can be managed as a constraint |constraint(RW n)|, which indicates that the
 array at location |n| is readable and writable. That is, the constraint |constraint(RW n)|
@@ -644,7 +682,7 @@ When pattern-matching on a |pack| constructor, all existentially quantified
 names are brought into scope and all the returned constraints are
 assumed. We also use |pack' x| as a shorthand
 for |pack (Ur x)|. We have now seen all the ingredients needed to write
-the |readFirstTwo| example as in the introduction.
+the |read2AndDiscard| example as in the introduction.
 
 \subsection{Minimal Examples}
 \label{sec:examples}
