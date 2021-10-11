@@ -501,7 +501,7 @@ g x = (f x, f x)
 The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
-The |read| function in the introduction consumes the array it
+The |read| function in \cref{sec:introduction} consumes the array it
 operate on. Therefore, the same array can no longer be used in further
 operations: doing so would result in a type error.
 To resolve this, a new name for the same array is produced by each operation.
@@ -683,7 +683,7 @@ introduced by a data constructor, which we write as |pack|.
 When pattern-matching on a |pack| constructor, all existentially quantified
 type variables are brought into scope and all the packed constraints are
 assumed. We have now seen all the ingredients needed to write
-the |read2AndDiscard| example as in the introduction.
+the |read2AndDiscard| example as in \cref{sec:introduction}.
 
 \subsection{Minimal Examples}
 \label{sec:examples}
