@@ -513,8 +513,8 @@ g x = (f x, f x)
 The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
-The |read| and |write| functions in the introduction consume the array they
-operate on, therefore the same array can no longer be used in further
+The |read| function in the introduction consumes the array it
+operate on. Therefore, the same array can no longer be used in further
 operations: doing so would result in a type error.
 To resolve this, a new name for the same array is produced by each operation.
 
@@ -544,6 +544,7 @@ free :: MArray a ->. ()
   \hfill
   \begin{subfigure}{.55\linewidth}
 \begin{code}
+type constraint(RW n) = constraint((Read n, Write n))
 newUArray    :: (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
 write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
@@ -572,12 +573,13 @@ the typechecker. That is, if we want to |show| the integer |n :: Int| we would w
 n|, and the typechecker is responsible for proving that |constraint (Show Int)| holds, without
 intervention from the programmer.
 
-For our |read2AndDiscard| example, the implicit argument represents read and write
-access to the array.
-This can be managed as a constraint |constraint(RW n)|, which indicates that the
-array at location |n| is readable and writable. That is, the constraint |constraint(RW n)|
-is provable if and only if the array at location |n| is readable and writable.
-This constraint is linear: it is consumed (that is, used as an assumption
+For our |read2AndDiscard| example, the |constraint((Read n, Write n))| (abbreviated as |constraint(RW n)|)
+constraint represents read and write
+access to the array tagged with the type variable |n|. (The full \textsc{api} under consideration appears
+in \cref{fig:constraints-interface}.)
+That is, the constraint |constraint(RW n)|
+is provable if and only if the array tagged with |n| is readable and writable.
+This constraint is linear: it must be consumed (that is, used as an assumption
 in a function call) exactly once.
 In order to manage linearity implicitly, this paper introduces a
 linear constraint arrow (|=>.|), much like Linear Haskell introduces a linear
@@ -592,46 +594,55 @@ free :: constraint (RW n) =>. UArray a n -> ()
 
 There are a few things to notice:
 \begin{itemize}
-\item First, there is now a type variable |n|. In contrast,
+\item We have introduced a new type variable |n|. In contrast,
   the version in \Cref{fig:linear-interface} without linear
   constraints  has type |free :: MArray a ->. ()|.
-  The type variable |n| is a type-level name representing the location of the array.
+  The type variable |n| is a type-level tag used to identify the array.
+  \rae{I'm trying to avoid ``location'' because I initially confused ``location'' with
+  ``index'', and our reviewers might, too.}
   Ideally, the linear constraint would refer directly to the
-  array value, and have the type |free :: (n :: Array a) -> constraint (RW n) =>. ()|.
-  While giving a typ-level name to a function argument is common in some
+  array value, and have the dependent type |free :: (n :: Array a) -> constraint (RW n) =>. ()|.
+  While giving a compile-time name to a function argument is common in
   dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris, our
-  approach, on the other hand, shows how we can still link a runtime value and a
-  compile-time type variable without needing any dependent types.
-\item Second, the variable representing the array can now be used multiple
-  times. Indeed, the linear constraint |constraint(RW n)| controls access to the
-  array instead.
-\item Third, if  we have a single, linear, |constraint (RW n)|
-  available, then after |free| there will not be any |constraint (RW h)|
+  approach, on the other hand, shows how we can still link a run-time value and a
+  compile-time tag without needing any dependent types.
+\item The run-time variable representing the array can now be used multiple
+  times. Instead of restricting the use of this variable,
+  the linear constraint |constraint(RW n)| now controls access to the
+  array.
+\item If we have a single, linear, |constraint (RW n)|
+  available, then after |free| there will not be any |constraint (RW n)|
   left to use, thus preventing the array from being used after freeing.
   This is precisely what we were trying to achieve.
 \end{itemize}
 
-The above deals with freeing an array and ensuring that it cannot be used after.
+The above deals with freeing an array and ensuring that it cannot be used afterwards.
 However, we still need to explain how a constraint |constraint (RW n)| can come
-into existence.
+into scope.
 The type of |newUArray| is:
 \begin{code}
-newUArray    :: (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
+newUArray    :: (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ->. Ur r
 \end{code}
-This higher-order function can be thought of as a computation that allocates an
+This higher-rank function can be thought of as a computation that allocates an
 array in a \emph{scope}. The scope is given an array with read and write
-capability. The scope must return an unrestricted value. This is to ensure that
-the linear constraint cannot be embedded into the return value. This
-construction ensures that within the scope, the array can safely be assumed to
-have a unique pointer to it at all times, and that the array is freed at the
-end, because the only way to remove the |constraint(RW n)| constraint is to use |free|.
+capability. The scope must return an unrestricted value to ensure that
+the linear constraint cannot be embedded into the return value. The construction here
+ensures that, within the scope, we can be sure both that one
+unique pointer refers to the array at all times, and that the array is freed at the
+end, given that the only way to remove the |constraint(RW n)| constraint is to use |free|.
+\rae{I'm a little worred about "one unique pointer refers to the array at all times". When
+we call |read|, for example, the |read| function has a local copy of the pointer to the
+array. There will really be two pointers to the array on the stack. I mean, morally, the
+one-unique-pointer property is true, but I don't know how best to state it so that the
+statement is \emph{actually} true.}
 
-We must also ensure that |write| can both promise to only operate on a writable array
-and to that array writable after. To do so, its signature
-indicates that given an array |n|, it consumes and produces the implicit |constraint (RW n)|
-constraint.
+We must also ensure that |read| can both promise to operate only on a readable array
+and that the array remains readable afterwards. That is, |read| must both consume
+a linear constraint |constraint(Read n)| and also produce a fresh linear constraint
+|constraint(Read n)|, as we see in \cref{fig:constraints-interface}, and repeated
+here:
 \begin{code}
-write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
+read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 \end{code}
 %% The fact that existential quantification generates new type-level names
 %% is folklore. It's used crucially in the interface of the
@@ -643,37 +654,38 @@ write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n
 %% quantifier to generate the type-level name of the file
 %% handle. Existentially quantified types are paired with a constraint |Q|
 %% which we understand as being returned by functions.
-For this, we
+This type has a new symbol, |.<=|, which allows us to pack a produced constraint
+with a returned value. We will see \rae{where?} that these produced constraints
+will also sometimes need to come with fresh type variables. Combining these
+ideas, we
 introduce\footnote{There is a variety of ways existential types can
   be worked into a language. The existentials we use here might best be understood
-  as a mild generalisation of those presented by \citet[Chapter
+  as a generalisation of those presented by \citet[Chapter
   24]{tapl}.
-  However a recent publication by \citet{existentials} works out an
-  approach which could make linear constraint easier to use, as we
+  However, a recent publication by \citet{existentials} works out an
+  approach that will make linear constraints easier to use, as we
   discuss in \Fref{sec:implicit-existentials}.}
 a type construction |exists a1 ... an. t .<= constraint(Q)|,
-where |constraint(Q)| is a linear constraint (scoped over the |a1 ... an|) that is
-paired with the type |t|.\footnote{We will freely
+where |constraint(Q)| is a linear constraint (with the |a1 ... an| in scope) that is
+paired with the type |t|.\footnote{We freely
 omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
 empty.}
 
-Haskell does not have an existential quantifier. However,
+Today's Haskell does not have an existential quantifier. However,
 existentially quantified types can
-be encoded as a \textsc{gadt}. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
+be encoded as datatypes. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
 be implemented as
 \begin{code}
 data PackHandle where
-  Pack :: constraint (Open h) =>. Handle h -> PackHandle
+  Pack :: forall h. constraint (Open h) =>. Handle h -> PackHandle
 \end{code}
 In our implementation (\Fref{sec:implementation}), packed linear constraints
 piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
 introduced by a data constructor, which we write as |pack|.
-\csongor{The intro no longer uses an existential.}
 
 When pattern-matching on a |pack| constructor, all existentially quantified
-names are brought into scope and all the returned constraints are
-assumed. We also use |pack' x| as a shorthand
-for |pack (Ur x)|. We have now seen all the ingredients needed to write
+type variables are brought into scope and all the packed constraints are
+assumed. We have now seen all the ingredients needed to write
 the |read2AndDiscard| example as in the introduction.
 
 \subsection{Minimal Examples}
@@ -734,7 +746,7 @@ appears as an argument to a linear function (whose result is itself consumed lin
 \subsubsection{Overusing}
 \label{sec:overusing}
 
-Finally the following program is rejected because it uses |C| twice:
+Finally, the following program is rejected because it uses |C| twice:
 \begin{code}
 overusing :: constraint (C) =>. (Int, Int)
 overusing = (useC, useC)
@@ -843,10 +855,8 @@ read access to the reference.
 % Rust disallows mutable aliasing for the same reason: ensuring that writes cannot be observed through other references is what allows treating mutable structures as ``pure''.
 % jp: commented this tangent because it obscures the logical connection. It could perhaps go in a parenthesis
 Therefore, writing also requires the read capability. Thus we
-systematically use the |constraint(RW)| set of constraints, defined below, instead of
-|constraint(Write)|.
-
-> type constraint (RW n) = constraint ((Read n, Write n))
+systematically use the |constraint(RW n)|, pairing both the read and write
+capabilities.
 
 With these components in place, we can provide an \textsc{api} for mutable
 references.
@@ -855,18 +865,10 @@ references.
 
 The type |AtomRef| is the type of references to values of a type |a| at
 location |n|. Allocation of a reference can be done using the
-following function.
+following function. As with |newUArray|, the return value must be unrestricted.
 
 > newRef :: (forall n. ^^ constraint (RW n) =>. AtomRef a n -> Ur b) ⊸ Ur b
 
-The reference is made available in a function which we call the
-\emph{scope} of the reference. The return type of the scope is,
-crucially, |Ur b|.  Indeed, if we would allow returning any type |b|,
-then the |constraint(RW n)| constraint could be embedded in |b|, and therefore
-escape from the scope.
-This would defeat the point of |constraint(RW n)| be a linear constraint, and
-no longer guarantee that the reference has a unique owner.
-%
 To read a reference, a simple |constraint(Read)| constraint is demanded, and
 immediately returned. Writing is handled similarly.
 
@@ -889,7 +891,7 @@ to ensure proper sequencing of effects concerning location |n|.
 % access the returned |Write| constraints, and |writeRef| must be strict
 % in the |Write| constraint that it consumes.
 
-Since there is a unique |constraint(RW)| constraint per reference, we
+Since there is a unique |constraint(RW n)| constraint per reference, we
 can also use it to represent ownership of the reference: access to |RW
 n| represents responsibility (and obligation) to deallocate |n|:
 
@@ -906,7 +908,7 @@ sometimes called ``freezing'':
 
 The above toolkit handles references to base types just fine.  But
 what about storing references in objects managed by the ownership
-system? In \cref{sec:introduction} we presented an interface for mutable
+system? In \cref{sec:introduction}, we presented an interface for mutable
 arrays whose contents are themselves immutable. In fact, with linear
 constraints, we can scale beyond that use case, and support arrays of
 references, including arrays of (mutable) arrays.
@@ -1082,10 +1084,9 @@ swap :: RW =>. PArray a n -> Int -> Int -> () .<= RW n
 swap arr i j   | i == j   = arr
                | i > j    = swap arr j i
                | i < j    =  let   (l, r) = split arr (i + 1)
-                                   pack' () = lendMut l i (replace r (j - (i + 1)))
+                                   pack () = lendMut l i (replace r (j - (i + 1)))
                              in join l r
 \end{code}
-\jp{Why |pack'|? Not |pack| ?}
 \subsubsection{In-place quicksort}
 
 As an example of using the machinery defined above, we implement an in-place
@@ -2301,9 +2302,9 @@ this time, instead of executing |closeFile| directly, we assign it to a variable
 in a |let|-binding:
 \begin{code}
 firstLine :: FilePath -> IOL String
-firstLine fp =   do  {  pack' h <- openFile fp
+firstLine fp =   do  {  pack (Ur h) <- openFile fp
                      ;  let closeOp = closeFile h
-                     ;  pack' xs <- readLine h
+                     ;  pack (Ur xs) <- readLine h
                      ;  closeOp
                      ;  return xs }
 \end{code}
