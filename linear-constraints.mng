@@ -337,18 +337,6 @@ the programmer to carefully thread resource tokens.
 
 To get a sense of the power and the pain of using linear types, consider the
 following function:
-\rae{I see a number of challenges here: 1. I was surprised to see the call
-to |free|. Maybe change the name of the function to readFirstTwoAndDiscard?
-2. We must clarify that we have a linearly bound array of unrestricted elements.
-That is, we are \emph{not} guaranteeing that each element of the array be
-used exactly once. Instead, we are guaranteeing that the array itself is
-used exactly once. This is a tiny bit subtle. 3. The binding that frees the
-array is lazy and won't happen in practice. Yet introducing a strict binding with
-! here would be distracting. 4. Once the Haskell programmer starts worrying
-about laziness, then they will start worrying about the order of operations.
-This is distracting. 5. What's |i|?
-Instead, I propose the version below, along with a little
-text explaining the difference between a linear array and linear elements.}
 \begin{code}
 read  ::  MArray a ->. Int -> (MArray a, Ur a)   -- defined in the library for |MArray|
 free  ::  MArray a ->. ()                        -- defined in the library for |MArray|
@@ -356,11 +344,11 @@ read2AndDiscard :: MArray a ->. (Ur a, Ur a)
 read2AndDiscard arr0 =
   let  (arr1, x)  = read arr0 0
        (arr2, y)  = read arr1 1
-       !()        = free arr2
+       ()         = free arr2
   in (x, y)
 \end{code}
-This function reads the first two elements of an array and returns them, and
-then deallocates the array.
+This function reads the first two elements of an array and returns them after
+deallocating the array.
 Linearity enables the array library to ensure that there is only one reference
 to the array, and therefore it can be mutated in-place without violating
 referential transparency. After the array has been freed, it is no longer
@@ -370,10 +358,10 @@ Notice that the |read| function consumes the array and returns a
 fresh array, to be used in future operations. Operationally, the array remains
 the same, but each operation assigns a new name to it, thus facilitating tracking
 references statically. Finally, |free| consumes the array without returning a
-new one, statically guaranteeing that it can no longer be used. (The |!| we see
-makes this a \emph{strict} binding in Haskell, making sure we actually free the
-array. The code would be rejected without the strictness annotation.)
-\rae{Is that last claim correct? I hope it is!}
+new one, statically guaranteeing that it can no longer be used.
+\footnote{We assume that all pattern bindings $\klet$-expressions are
+\emph{strict}. This ensures that the array actually gets freed. We discuss this
+point in \cref{sec:linear-types}.}
 The values |x| and |y| read from the array are returned; their
 types include elements wrapped by the |Ur|
 (pronounced ``unrestricted'') type, allowing them to be used
@@ -390,7 +378,7 @@ read2AndDiscard :: MArray a -> (a, a)
 read2AndDiscard arr =
   let   x    = read arr 0
         y    = read arr 1
-        !()  = unsafeFree arr
+        ()   = unsafeFree arr
   in (x, y)
 \end{code}
 This non-linear version does not guarantee that there is a unique reference to
@@ -427,9 +415,9 @@ read   :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read
 free   :: constraint ((Read n, Write n)) =>. UArray a n -> ()                        -- defined in the library for |UArray|
 read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
 read2AndDiscard arr =
-  let   spack x   = read arr 0
-        spack y   = read arr 1
-        spack ()  = free arr
+  let   pack x   = read arr 0
+        pack y   = read arr 1
+        pack ()  = free arr
   in (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
@@ -523,6 +511,15 @@ The approach with linear constraints is to let the array behave non-linearly, an
 capabilities (i.e., having read or write access) be linear constraints. Once
 these capabilities are consumed, the array can no longer be read from or written
 to without triggering a compile time error.
+
+In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
+in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which means that
+|let  (a, b) = p in ()|
+will not actually evaluate the pair. To force evaluation, a strictness annotation can be added:
+|let  ^^ !(a, b) = p in ()|.
+Pattern matching in linear $\klet$ bindings must always be strict, so writing
+the lazy version would be rejected by the compiler. To simplify the
+presentation, we assume that all patterns in $\klet$ bindings are strict.
 
 \section{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
