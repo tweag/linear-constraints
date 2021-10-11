@@ -1047,15 +1047,14 @@ indices fall in two different slices. Then simply borrow the element
 from the first slice, and replace it with the element in the second
 slice. Finally, join the two slices back together.
 
-> swap :: RW =>. PArray a n -> Int -> Int -> () .<= RW n
-> swap arr i j
->   | i == j = arr
->   | i > j = swap arr j i
-> swap arr i j =
->   let (l, r) = split arr (i + 1)
->       pack' () = lendMut l i (replace r (j - (i + 1)))
->   in join l r
-
+\begin{code}
+swap :: RW =>. PArray a n -> Int -> Int -> () .<= RW n
+swap arr i j   | i == j   = arr
+               | i > j    = swap arr j i
+               | i < j    =  let   (l, r) = split arr (i + 1)
+                                   pack' () = lendMut l i (replace r (j - (i + 1)))
+                             in join l r
+\end{code}
 \subsubsection{In-place quicksort}
 
 As an example of using the machinery defined above, we implement an in-place
@@ -1075,16 +1074,18 @@ quicksort algorithm.
   \end{code}
 \end{minipage}
 \begin{minipage}{0.5\linewidth}
-> partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
-> partition arr
->   = let   pack len = length arr
->           pack pivot = read arr (len - 1)
->     in foldl (\(pack i) j ->
->             let pack a_j = read arr j in
->             if a_j <= pivot then pack (i + 1)
->             else  let pack _ = swap arr i j
->                   in pack i
->           ) (pack 0) [0..len-1]
+  \begin{code}
+partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
+partition arr
+  = let   pack len = length arr
+          pack pivot = read arr (len - 1)
+    in foldl (\(pack i) j ->
+            let pack a_j = read arr j in
+            if a_j <= pivot then pack (i + 1)
+            else  let pack _ = swap arr i j
+                  in pack i
+          ) (pack 0) [0..len-1]
+        \end{code}
 \end{minipage}
 
 \section{A qualified type system for linear constraints}
