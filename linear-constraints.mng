@@ -625,14 +625,9 @@ This higher-rank function can be thought of as a computation that allocates an
 array in a \emph{scope}. The scope is given an array with read and write
 capability. The scope must return an unrestricted value to ensure that
 the linear constraint cannot be embedded into the return value. The construction here
-ensures that, within the scope, we can be sure both that one
-unique pointer refers to the array at all times, and that the array is freed at the
+ensures that, within the scope, we can be sure both that there is one
+unique owner of the array at all times, and that the array is freed at the
 end, given that the only way to remove the |constraint(RW n)| constraint is to use |free|.
-\rae{I'm a little worred about "one unique pointer refers to the array at all times". When
-we call |read|, for example, the |read| function has a local copy of the pointer to the
-array. There will really be two pointers to the array on the stack. I mean, morally, the
-one-unique-pointer property is true, but I don't know how best to state it so that the
-statement is \emph{actually} true.}
 
 We must also ensure that |read| can both promise to operate only on a readable array
 and that the array remains readable afterwards. That is, |read| must both consume
