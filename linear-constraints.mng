@@ -1125,11 +1125,11 @@ partition arr =
         go :: (Int .<= constraint (RW n)) -> [Int] -> Int .<= constraint (RW n)
         go i [] = i
         go (pack i) (j : js) =
-          let a_j    = read arr j
-              new_i  = if a_j <= pivot then pack (i + 1)
-                      else   let pack _ = swap arr i j
-                             in (pack i)
-          in go new_i js
+          let   a_j    = read arr j
+                i'     = if a_j <= pivot then pack (i + 1)
+                        else   let pack _ = swap arr i j
+                               in (pack i)
+          in go i' js
   in  go (pack 0) [0..length arr-1]
 \end{code}
 \end{minipage}
