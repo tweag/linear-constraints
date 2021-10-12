@@ -418,7 +418,7 @@ read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
 read2AndDiscard arr =
   let   pack x   = read arr 0
         pack y   = read arr 1
-        pack ()  = free arr
+        ()  = free arr
   in (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
@@ -952,7 +952,7 @@ write:
 %
 > write  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
 %
-But we'd rather not assume such a mechanism, and instead the borrowing primitives described below.
+But we'd rather not assume such a mechanism, and instead use the borrowing primitives described below.
 
 % JP: I propose to cut down the following, since it appears unused in the rest of the paper.
 % (The "quicksort" example is a lot more convincing as an example)
