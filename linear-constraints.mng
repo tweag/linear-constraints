@@ -955,6 +955,12 @@ require that the scope returns the linear constraint: |forall n. constraint (RW
 n) =>. PArray a n -> b .<= constraint (RW n)|. This version is less flexible,
 because it doesn't allow the scope to deallocate or freeze the array.
 
+The actual runtime value of a |PArray| is a pointer to a contiguous block of
+memory together with the size of the memory block. This means that the length of the
+array can be accessed without having ownership of the array: |length :: PArray a n -> Int|.
+While the |PArray| reference itself is managed by the garbage collector, the
+pointer it contains points to manually managed memory.
+
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is transferred to the array. Given a
 generic deallocation mechanism for references, we could
@@ -962,7 +968,7 @@ write:
 %
 > write  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
 %
-But we'd rather not assume such a mechanism, and instead use the borrowing primitives described below.
+Instead of assuming such a mechanism, we instead use the borrowing primitives described below.
 
 % JP: I propose to cut down the following, since it appears unused in the rest of the paper.
 % (The "quicksort" example is a lot more convincing as an example)
