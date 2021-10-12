@@ -2266,8 +2266,7 @@ related to constraints. Of these, we point out two that require some extra care.
 Haskell's type classes can have \emph{superclasses}, which place constraints on
 all of the instances of that class. For example, the |Ord| class is defined as
 \begin{code}
-class constraint(Eq a) => constraint(Ord a) where
-  ...
+class constraint(Eq a) => constraint(Ord a) where ...
 \end{code}
 which means that every ordered type must also support equality. Such
 superclass declarations extend the entailment relation: if we know that a type
@@ -2279,8 +2278,7 @@ conclude that a linear constraint (|constraint(Ord a)|) implies an unrestricted 
 But even linear superclass constraints cause trouble. Consider a version of |constraint(Ord a)|
 that has |constraint(Eq a)| as a linear superclass.
 \begin{code}
-class constraint(Eq a) =>. constraint(Ord a) where
-  ...
+class constraint(Eq a) =>. constraint(Ord a) where ...
 \end{code}
 When given a linear |constraint(Ord a)|, should we keep it as |constraint(Ord a)|, or rewrite to
 |constraint(Eq a)| using the entailment? Short of backtracking, the constraint solver
@@ -2543,27 +2541,32 @@ consumes the same constraints.
 %%   dedicated rule.
 \paragraph{Rust}
 
-The memory ownership example of \cref{sec:memory-ownership} is
-strongly inspired by Rust.
+% The memory ownership example of \cref{sec:memory-ownership} is
+% strongly inspired by Rust.
 %
-Rust is built with ownership and borrowing for memory
-management from the ground up. As a consequence, it has a much more convenient syntax
-than Linear Haskell with linear constraints can propose. Rust's
-convenient syntax comes at the price that it is almost impossible to
-write tail-recursive functions, which is surprising from the
-perspective of a functional programmer.
-
-On the other hand, the focus of Linear Haskell, as well as this paper,
-is to provide programmers with the tools to create safe interfaces and
-libraries. The language itself is agnostic about what linear
-constraints mean. Although linear constraints do not have the
+Ownership and borrowing are the key features of Rust's memory management model.
+% As a consequence, it has a much more convenient syntax
+% than Linear Haskell with linear constraints can propose.
+% Rust's
+% convenient syntax comes at the price that it is almost impossible to
+% write tail-recursive functions, which is surprising from the
+% perspective of a functional programmer.
+% On the other hand, the focus of Linear Haskell, as well as this paper,
+% is to provide programmers with the tools to create safe interfaces and
+% libraries.
+In \cref{sec:memory-ownership} we show how linear constraints can be used to
+implement Rust's ownership model as a library.
+% The language itself is agnostic about what linear
+% constraints mean.
+Although linear constraints do not have the
 convenience of Rust's syntax, we expect that they will support a
-greater variety of abstractions. Even though Rust programmers have
-come up with varied abstractions which leverage the borrowing
-mechanism to support applications going beyond memory management (for
-instance, safe file handling), it is unclear that all applications
-supported by linear constraints are reducible to the borrowing
-mechanism.
+greater variety of abstractions.
+% Even though Rust programmers have
+% come up with varied abstractions which leverage the borrowing
+% mechanism to support applications going beyond memory management (for
+% instance, safe file handling), it is unclear that all applications
+% supported by linear constraints are reducible to the borrowing
+% mechanism.
 
 \paragraph{Languages with capabilities}
 
@@ -2579,15 +2582,14 @@ are not tied to a particular use case. However,
 Other than that, the two systems have a lot of similarities. They have a
 finer-grained capability system than is expressible in Rust (or our
 encoding of it in \cref{sec:memory-ownership}) which makes it possible to change
-the type of a reference cell upon write. They also eschew scoped
-borrowing in favour of more traditional read and write capabilities. In
-exchange, neither Mezzo nor \textsc{ats} support $O(1)$ freezing like
-in \cref{sec:memory-ownership}.
-
-Mezzo, being geared towards functional programming, does support
-freezing, but freezing a nested data structure requires traversing it.
-As far as we know, \textsc{ats} doesn't support
-freezing. \textsc{Ats} is more oriented towards system programming.
+the type of a reference cell upon write (though linear constraints could be used to implement such type-changing references too). They also eschew scoped
+borrowing in favour of more traditional read and write capabilities.
+% In exchange, neither Mezzo nor \textsc{ats} support $O(1)$ freezing like in
+% \cref{sec:memory-ownership}.
+% Mezzo, being geared towards functional programming, does support
+% freezing, but freezing a nested data structure requires traversing it.
+% As far as we know, \textsc{ats} doesn't support
+% freezing. \textsc{Ats} is more oriented towards system programming.
 
 %if False
 We chose an example in the style of rust for
@@ -2605,10 +2607,10 @@ domain. In fact, it should be possible to see Mezzo or \textsc{ats} as
 particular instantiations of the simple-constraint domain, with linear
 constraints providing the general inference mechanism.
 
-However, both Mezzo and \textsc{ats} have an advantage that we do not:
-they assume that their instructions are properly sequenced, whereas
-basing linear constraints on Haskell, a lazy language, we are forced
-to make sequencing explicit in \textsc{api}s.
+% However, both Mezzo and \textsc{ats} have an advantage that we do not:
+% they assume that their instructions are properly sequenced, whereas
+% basing linear constraints on Haskell, a lazy language, we are forced
+% to make sequencing explicit in \textsc{api}s.
 
 \paragraph{Logic programming}
 
@@ -2637,15 +2639,15 @@ refined search strategy) contains the Hereditary Harrop fragment of
 intuitionistic logic guarantees that quantified constraints do not
 break our proofs.
 
-\paragraph{Resource usage analysis}
+% \paragraph{Resource usage analysis}
 
-\Citet{resource-usage-analysis} introduce a framework which can be
-instantiated into many resource analyses (such as proper deallocation
-of resources) can be modelled and analysed. In particular they give a
-decision procedure for a wide class of such analyses. Although our
-objects of study intersect, our purpose is quite different as theirs
-is a tool for language designer to design analyses, while ours is for
-programmers to implement new abstractions as libraries.
+% \Citet{resource-usage-analysis} introduce a framework which can be
+% instantiated into many resource analyses (such as proper deallocation
+% of resources). In particular they give a
+% decision procedure for a wide class of such analyses. Although our
+% objects of study intersect, our purpose is quite different as theirs
+% is a tool for language designer to design analyses, while ours is for
+% programmers to implement new abstractions as libraries.
 
 \section{Conclusion}
 \label{sec:conclusion}
