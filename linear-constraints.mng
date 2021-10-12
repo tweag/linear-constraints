@@ -543,7 +543,7 @@ free :: MArray a ->. ()
   \begin{subfigure}{.55\linewidth}
 \begin{code}
 type constraint(RW n) = constraint((Read n, Write n))
-newUArray    :: (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
+newUArray    :: Int -> (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
 write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 free :: constraint (RW n) =>. UArray a n -> ()
@@ -551,7 +551,7 @@ free :: constraint (RW n) =>. UArray a n -> ()
 \caption{Linear Constraints}
 \label{fig:constraints-interface}
   \end{subfigure}
-\caption{Interfaces for file manipulation}
+\caption{Interfaces for mutable arrays}
 \end{figure}
 
 Consider the Haskell function |show|:
@@ -619,7 +619,7 @@ However, we still need to explain how a constraint |constraint (RW n)| can come
 into scope.
 The type of |newUArray| is:
 \begin{code}
-newUArray    :: (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ->. Ur r
+newUArray    :: Int -> (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ->. Ur r
 \end{code}
 This higher-rank function can be thought of as a computation that allocates an
 array in a \emph{scope}. The scope is given an array with read and write
@@ -930,7 +930,7 @@ references, including arrays of (mutable) arrays.
 % linear constraints, this is all managed automatically by the compiler.
 
 > data PArray (a :: Location -> Type) (n :: Location)
-> newPArray    :: (forall n. ^^ constraint (RW n) =>. PArray a n -> Ur b) ⊸ Ur b
+> newPArray    :: Int -> (forall n. ^^ constraint (RW n) =>. PArray a n -> Ur b) ⊸ Ur b
 
 For this purpose we introduce the type |PArray a n|, where the kind of
 |a| is |Location -> Type|: this way we can easily enforce that each
@@ -1744,12 +1744,12 @@ We require that each branch of a |case| expression use the exact
 same (linear) assumptions; this is enforced by combining the
 emitted constraints with $[[&]]$, not $[[*]]$.
 %
-  This can also be understood in terms of the file-handle example of
+  This can also be understood in terms of the array example of
   \cref{sec:introduction}:
-  if a file is closed in one branch of a $\kcase$, we require it to be closed in
+  if an array is freed in one branch of a $\kcase$, we require it to be freed (or freezed) in
 the other branches too.
-  Otherwise, the file handle's state will be unknown to the type system
-  after the |case|.
+  Otherwise, the array's state will be unknown to the type system
+  after the $\kcase$.
 %
 \paragraph{Implications} The introduction of constraints local to a
   definition (\rref{G-LetSig}) corresponds to
@@ -1923,17 +1923,17 @@ takes care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the front of
 the list). To understand why, consider the following example:
 \begin{code}
-f :: FilePath -> IOL ()
-f fp =   do  {  pack h <- openFile fp
-             ;  let  {  cl :: constraint (Open h) =>. IOL ()
-                     ;  cl = closeFile h }
-             ;  cl }
+f = newUArray 10 (\arr ->
+      let   fr :: constraint (RW n) =>. ()
+            fr = free arr
+            () = fr
+      in Ur ())
 \end{code}
 In this example, the programmer meant for
-|closeFile| to use the |Open h| constraint introduced locally in the type
-of |cl|. Yet
-there are actually two |Open h| constraints: this local one and the
-one assumed in the unpacking of the result of |openFile|. The wrong
+|free| to use the |RW n| constraint introduced locally in the type
+of |fr|. Yet
+there are actually two |RW n| constraints: this local one and the
+one assumed when entering the scope of |newUArray|. The wrong
 choice among the constraints will lead the algorithm to fail.
 Choosing the first $[[{q}]]$ linear assumption guarantees we get the
 most local one.
@@ -2532,11 +2532,6 @@ generating constraints for $\kcase$ expressions in the~\rref{G-Case} rule.
 OutsideIn accumulates constraints across branches (taking the union of each
 branch), whereas we need to make sure that each branch of a $\kcase$-expression
 consumes the same constraints.
-%
-This is easily understood in terms of the file example of
-\cref{sec:introduction}: if a file is closed in one branch of a $\kcase$,
-it must be closed in the other branches, too. Otherwise, its state will
-be unknown to the type system after the $\kcase$.
 \end{itemize}
 
 %% I (csongor) don't think this is worth mentioning
@@ -2674,13 +2669,11 @@ proof from \citet{hh-ll}, which was introduced to prove the
 completeness of a proof search strategy, ends up being crucial to the
 soundness of constraint generation.
 
-In some cases, like the file example of \cref{sec:introduction},
-linear constraints are a mere convenience that reduce line noise and
-make code more idiomatic. But the memory management \textsc{api} of
-\cref{sec:memory-ownership} is not practical without
-linear constraints. Certainly, ownership proofs could be managed manually, but
-it is hard to imagine a circumstance where this tedious task would be worth the
-cost.
+The memory management \textsc{api} of \cref{sec:memory-ownership} shows how
+Rust's memory ownership model can be implemented as a library using our
+framework. This would not be practical without linear constraints. Certainly,
+ownership proofs could be managed manually, but it is hard to imagine a
+circumstance where this tedious task would be worth the cost.
 
 This, really, is the philosophy of linear constraints: lowering
 the cost of linear types so that more theoretical applications become
