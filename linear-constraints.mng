@@ -945,6 +945,15 @@ An array of arrays of integers would have type |PArray (PArray (AtomRef Int)) n|
 the framework handles nested mutable structures without any additional
 difficulty.
 
+As discussed in \cref{sec:what-it-looks-like}, the scope of |newPArray| returns
+an unrestricted value to ensure that the linear constraint is consumed within
+the scope (since linear values can not be embedded into an unrestricted value).
+As this is the only introduction form of |constraint (RW n)|, it can safely be
+assumed to be unique within the scope. An alternative design would be to
+require that the scope returns the linear constraint: |forall n. constraint (RW
+n) =>. PArray a n -> b .<= constraint (RW n)|. This version is less flexible,
+because it doesn't allow the scope to deallocate or freeze the array.
+
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is transferred to the array. Given a
 generic deallocation mechanism for references, we could
@@ -995,9 +1004,6 @@ never simultaneously available. \rae{Even more confused. If |RW n| and |RW p| ar
 
 > lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 %
-\rae{The type of |lendMut| is different than the other scoped functions: its continuation's return value is paired with |RW p|.
-Other examples have an unrestricted return value. Why the difference? What changes here? This version seems more powerful.
-Should it be used with e.g. |newUArray|?}
 Because the elements of an array can be mutable structures (such as
 other arrays), reading can only be done safely if we can ensure that
 no one else has access to the array \rae{which one? the inner one or the outer one? JP: there is no "inner" array. That's a reference to an element.} 
