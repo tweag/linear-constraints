@@ -2298,106 +2298,106 @@ inference.  Then, the only way a given linear equality constraint can be used is
 to solve a wanted linear equality. This way, linear equalities require no
 special treatment, and are harmless.
 
-\section{Extensions}
-\label{sec:design-decisions}
+% \section{Extensions}
+% \label{sec:design-decisions}
 
-The system presented in \cref{sec:qualified-type-system,sec:type-inference} is already capable of supporting the examples
-in \cref{sec:what-it-looks-like,sec:memory-ownership}. In this
-section, we consider some potential avenues for extensions.
+% The system presented in \cref{sec:qualified-type-system,sec:type-inference} is already capable of supporting the examples
+% in \cref{sec:what-it-looks-like,sec:memory-ownership}. In this
+% section, we consider some potential avenues for extensions.
 
-\subsection{let generalisation}
-\label{sec:let-generalisation}
+% \subsection{let generalisation}
+% \label{sec:let-generalisation}
 
-As discussed in \cref{sec:constraint-generation}, the~\rref*{G-Let} rule of our
-constraint generator does not generalise the type of |let|-bindings, which is in
-line with \textsc{ghc}'s existing behaviour~\cite[Section 4.2]{OutsideIn}.
-There, this behaviour was guided by concerns around inferring type variables,
-which is harder in the presence of local equality assumptions (\emph{i.e.}
-\textsc{gadt} pattern matching).
+% As discussed in \cref{sec:constraint-generation}, the~\rref*{G-Let} rule of our
+% constraint generator does not generalise the type of |let|-bindings, which is in
+% line with \textsc{ghc}'s existing behaviour~\cite[Section 4.2]{OutsideIn}.
+% There, this behaviour was guided by concerns around inferring type variables,
+% which is harder in the presence of local equality assumptions (\emph{i.e.}
+% \textsc{gadt} pattern matching).
 
-In this section, however, we argue that generalising over linear constraints
-may, in fact, improve user experience.
-Let us revisit the |firstLine| example from \cref{sec:introduction}, but
-this time, instead of executing |closeFile| directly, we assign it to a variable
-in a |let|-binding:
-\begin{code}
-firstLine :: FilePath -> IOL String
-firstLine fp =   do  {  pack (Ur h) <- openFile fp
-                     ;  let closeOp = closeFile h
-                     ;  pack (Ur xs) <- readLine h
-                     ;  closeOp
-                     ;  return xs }
-\end{code}
-This program looks reasonable; however, it is rejected. The type of
-|closeOp| is |IOL ()|, which means that the definition of |closeOp|
-consumes the linear constraint |Open h|. So, by the time we attempt
-|readLine h|, the constraint is no longer available.
+% In this section, however, we argue that generalising over linear constraints
+% may, in fact, improve user experience.
+% Let us revisit the |firstLine| example from \cref{sec:introduction}, but
+% this time, instead of executing |closeFile| directly, we assign it to a variable
+% in a |let|-binding:
+% \begin{code}
+% firstLine :: FilePath -> IOL String
+% firstLine fp =   do  {  pack (Ur h) <- openFile fp
+%                      ;  let closeOp = closeFile h
+%                      ;  pack (Ur xs) <- readLine h
+%                      ;  closeOp
+%                      ;  return xs }
+% \end{code}
+% This program looks reasonable; however, it is rejected. The type of
+% |closeOp| is |IOL ()|, which means that the definition of |closeOp|
+% consumes the linear constraint |Open h|. So, by the time we attempt
+% |readLine h|, the constraint is no longer available.
 
-What the programmer really meant, here, was for |closeOp| to have type
-|constraint (Open h) =>. IOL ()|. After all, a |let| definition is not part of the
-sequence of instructions: it is just a definition for later, not
-intended to consume the current state of the file. With no |let|-generalisation,
-the only way to give |closeOp| the type |constraint (Open h) =>. IOL
-()| is to give |closeOp| a type signature. In current \textsc{ghc}, we
-can't write that signature down, since there is no syntax to bind
-the type variable |h| in the program text\footnote{\citet{variables-in-patterns} describe a way to fix this shortcoming.}. But
-even ignoring this, it would be rather unfortunate if the default
-behaviour of |let|, in the presence of linear constraints, almost never was
-what the programmer wants.
+% What the programmer really meant, here, was for |closeOp| to have type
+% |constraint (Open h) =>. IOL ()|. After all, a |let| definition is not part of the
+% sequence of instructions: it is just a definition for later, not
+% intended to consume the current state of the file. With no |let|-generalisation,
+% the only way to give |closeOp| the type |constraint (Open h) =>. IOL
+% ()| is to give |closeOp| a type signature. In current \textsc{ghc}, we
+% can't write that signature down, since there is no syntax to bind
+% the type variable |h| in the program text\footnote{\citet{variables-in-patterns} describe a way to fix this shortcoming.}. But
+% even ignoring this, it would be rather unfortunate if the default
+% behaviour of |let|, in the presence of linear constraints, almost never was
+% what the programmer wants.
 
-To handle $\klet$-generalisation, let us consider the following rule
-%
-$$
-\drule{G-LetGen}
-$$
-%
-This rule is non-deterministic, because it requires finding $[[{Q_r}]]$ and
-$[[{Q}]]$. We can modify the constraint solver of
-\cref{sec:constraint-solver} to find $[[{Q_r*Q}]]$, but we
-still have to split the residual into $[[{Q_r}]]$ and
-$[[{Q}]]$ somehow.
+% To handle $\klet$-generalisation, let us consider the following rule
+% %
+% $$
+% \drule{G-LetGen}
+% $$
+% %
+% This rule is non-deterministic, because it requires finding $[[{Q_r}]]$ and
+% $[[{Q}]]$. We can modify the constraint solver of
+% \cref{sec:constraint-solver} to find $[[{Q_r*Q}]]$, but we
+% still have to split the residual into $[[{Q_r}]]$ and
+% $[[{Q}]]$ somehow.
 
-%% What we would like to say is ``$[[{Q}]]$ is the set of linear
-%% constraints''. But it's not clear how to make it formal.
+% %% What we would like to say is ``$[[{Q}]]$ is the set of linear
+% %% constraints''. But it's not clear how to make it formal.
 
-Any predictable strategy would do: as long as our rule an instance of the
-\rref*{G-LetGen} rule, constraint generation will be sound. Experience
-will tell whether we can find a better suited strategy than the current
-one, which never generalises any constraint.
+% Any predictable strategy would do: as long as our rule an instance of the
+% \rref*{G-LetGen} rule, constraint generation will be sound. Experience
+% will tell whether we can find a better suited strategy than the current
+% one, which never generalises any constraint.
 
-\subsection{Empty cases}
-\label{sec:empty-cases}
+% \subsection{Empty cases}
+% \label{sec:empty-cases}
 
-Throughout the article we have assumed that $\kcase$-expressions
-always have a non-empty list of alternatives. This is, incidentally,
-also how Haskell originally behaved; though \textsc{ghc} now has an
-|EmptyCase| extension to allow empty lists of alternatives.
+% Throughout the article we have assumed that $\kcase$-expressions
+% always have a non-empty list of alternatives. This is, incidentally,
+% also how Haskell originally behaved; though \textsc{ghc} now has an
+% |EmptyCase| extension to allow empty lists of alternatives.
 
-% Not allowing empty lists of alternatives is, therefore not terrible in
-% principle. Though it makes empty types more awkward than they need to
-% be, and, of course, to support the entirety of \textsc{ghc}, we will
-% need to support empty lists of alternatives.
+% % Not allowing empty lists of alternatives is, therefore not terrible in
+% % principle. Though it makes empty types more awkward than they need to
+% % be, and, of course, to support the entirety of \textsc{ghc}, we will
+% % need to support empty lists of alternatives.
 
-The reason why it has been omitted from the rest of the article is
-that generating constraints for an empty $\kcase$ requires an $0$-ary version
-of $[[{C1&C2}]]$, usually written $[[{Top}]]$ in Linear Logic. The
-corresponding entailment rule would be
-$$
-\drule{C-Top}
-$$
-That is $[[{Top}]]$ is unconditionally true, and can consume any number
-of linear given constraints--- indeed, the corresponding program is already crashing.
-The \rref*{C-Top} rule thus induces a
-considerable amount of non-determinism in the constraint solver. Eliminating the
-non-determinism induced by $[[{Top}]]$ is ultimately
-what~\citet{resource-management-for-ll-proof-search} builds up
-to. Their methods can be adapted to the constraint solver of
-\cref{sec:constraint-solver} without any technical
-difficulty. We chose, however, to keep empty cases out the
-presentation because they have a very high overhead and would distract from
-the point. Instead, we refer readers
-to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
-careful treatment of $[[{Top}]]$.
+% The reason why it has been omitted from the rest of the article is
+% that generating constraints for an empty $\kcase$ requires an $0$-ary version
+% of $[[{C1&C2}]]$, usually written $[[{Top}]]$ in Linear Logic. The
+% corresponding entailment rule would be
+% $$
+% \drule{C-Top}
+% $$
+% That is $[[{Top}]]$ is unconditionally true, and can consume any number
+% of linear given constraints--- indeed, the corresponding program is already crashing.
+% The \rref*{C-Top} rule thus induces a
+% considerable amount of non-determinism in the constraint solver. Eliminating the
+% non-determinism induced by $[[{Top}]]$ is ultimately
+% what~\citet{resource-management-for-ll-proof-search} builds up
+% to. Their methods can be adapted to the constraint solver of
+% \cref{sec:constraint-solver} without any technical
+% difficulty. We chose, however, to keep empty cases out the
+% presentation because they have a very high overhead and would distract from
+% the point. Instead, we refer readers
+% to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
+% careful treatment of $[[{Top}]]$.
 
 \subsection{Inferring $\ottkw{pack}$ and $\ottkw{unpack}$}
 \label{sec:implicit-existentials}
