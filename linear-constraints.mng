@@ -418,7 +418,7 @@ read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
 read2AndDiscard arr =
   let   pack x   = read arr 0
         pack y   = read arr 1
-        ()  = free arr
+        ()       = free arr
   in (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
