@@ -944,24 +944,25 @@ one can allocate, and manipulate arrays of arrays with this
 \cref{sec:introduction} is a synonym for an array of atomic references. \rae{Really?
 This surprises me, because we end up discarding the references. Key question: are
 the elements in the array restricted or not?}
-An array of arrays of integers would have type |PArray (PArray Int) n|. \rae{That type
-is ill-kinded. Did you mean |PArray (PArray (AtomRef Int)) n|?} Thus,
+An array of arrays of integers would have type |PArray (PArray (AtomRef Int)) n|. Thus,
 the framework handles nested mutable structures without any additional
 difficulty.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is transferred to the array. Given a
-generic deallocation mechanism for references (|Freeable|), we could
+generic deallocation mechanism for references, we could
 write:
-
-> write  :: constraint ((RW n, RW p)) =>. Freeable p => PArray a n -> Int -> a p -> () .<= constraint (RW n)
-
-The |write| function can be written in terms of another, more primitive and precise,
-function which which swaps a reference with an element of the array.
-
+%
+> write  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
+%
+But we'd rather not assume such a mechanism. Besides, the |write|
+function can be written in terms of another, more primitive and
+precise, function which which swaps a reference with an element of the
+array.
+%
 > replace  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint ((RW n, RW p))
 
-\rae{We need to say more here. What does |replace| do? What is |Freeable|? I'm pretty lost here.}
+\rae{We need to say more here. What does |replace| do? I'm pretty lost here.}
 
 % JP: I propose to cut down the following, since it appears unused in the rest of the paper.
 % (The "quicksort" example is a lot more convincing as an example)
