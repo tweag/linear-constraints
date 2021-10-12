@@ -427,7 +427,7 @@ special treatment (\Fref{sec:implicit-existentials}
 suggests how we can get rid of
 the |pack|, too). Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
-longer needs to be passed around manually.
+longer needs to be threaded manually.
 \rae{This is a very nice example. And, the way it's phrased around making it
 clear that the array is the same array makes one not worry as much about the
 pack.}
@@ -889,8 +889,8 @@ to ensure proper sequencing of effects concerning location |n|.
 % in the |Write| constraint that it consumes.
 
 Since there is a unique |constraint(RW n)| constraint per reference, we
-can also use it to represent ownership of the reference: access to |RW
-n| represents responsibility (and obligation) to deallocate |n|:
+can also use it to represent ownership of the reference: access to |constraint(RW
+n)| represents responsibility (and obligation) to deallocate |n|:
 
 > freeRef :: constraint (RW n) =>. AtomRef a n -> ()
 
