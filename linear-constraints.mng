@@ -1105,46 +1105,45 @@ swap arr i j   | i == j   = arr
 As an example of using the machinery defined above, we implement an in-place, pure
 quicksort algorithm.
 
-\begin{minipage}{0.5\linewidth}
-  \begin{code}
-    quicksort :: constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
-    quicksort arr =
-      if length arr <= 1 then pack ()
-      else   let  pack pivotIdx       = partition arr
-                  pack (l, r)         = split arr pivotIdx
-                  (pack (), pack ())  = (quicksort l, quicksort r)
-                  pack' _             = join l r
-             in pack ()
-  \end{code}
+\noindent
+\begin{minipage}[t]{0.5\linewidth}
+\begin{code}
+quicksort :: constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
+quicksort arr =
+  if length arr <= 1 then pack ()
+  else   let  pack pivotIdx       = partition arr
+              pack (l, r)         = split arr pivotIdx
+              (pack (), pack ())  =
+                (quicksort l, quicksort r)
+              pack' _             = join l r
+         in pack ()
+\end{code}
 \end{minipage}
-
+\begin{minipage}[t]{0.5\linewidth}
+\begin{code}
+partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
+partition arr =
+  let   pack pivot = read arr (length arr - 1)
+        go :: (Int .<= constraint (RW n)) -> [Int] -> Int .<= constraint (RW n)
+        go i [] = i
+        go (pack i) (j : js) =
+          let a_j    = read arr j
+              new_i  = if a_j <= pivot then pack (i + 1)
+                      else   let pack _ = swap arr i j
+                             in (pack i)
+          in go new_i js
+  in  go (pack 0) [0..length arr-1]
+\end{code}
+\end{minipage}
+%
 Since the recursive calls operate on two separate array slices, they can be
 executed non-deterministically (or indeed, concurrently), as the type system
 guarantees that no data races can occur. The |partition| function is responsible
 for picking a pivot element and reorgainising the array elements such that each
 element preceding the pivot will be less than or equal to it, and the elements
-after will be greater than the pivot.
-
-\begin{minipage}{0.5\linewidth}
-\begin{code}
-partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
-partition arr
-  =   let   pack pivot = read arr (length arr-1)
-      in foldl (\(pack i) j ->
-              let  pack a_j = read arr j
-              in   if a_j <= pivot then pack (i + 1)
-                   else  let pack _ = swap arr i j
-                         in pack i
-            ) (pack 0) [0..length arr-1]
-\end{code}
-\end{minipage}
-
-\rae{I'm having a hard time with that |foldl|. Firstly, I have a hard time
-believing that type inference will sort that out, with the pattern-match on |pack|.
-Secondly, can't we just write this out using explicit recursion? That
-seems so much easier to understand than |foldl| over a list of numbers.}
-\rae{Have we actually tried this in the implementation? Does it work? If not,
-have we tried this without linear constraints but with ordinary linear types?}
+after will be greater than the pivot. Once finished, it returns the index of the
+pivot element.
+%
 
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
@@ -2424,31 +2423,7 @@ is bidirectional, as described by \citet{practical-type-inference} and
 have presented here, formally. None of this would change in adapting \textsc{edwl}.
 Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
-make linear constraints easier to use. Then |quicksort| could
-just be written as
-
-\begin{minipage}{0.5\linewidth}
-> quicksort :: constraint (RW n) =>. PArray a n -> () .<= constraint (RW n)
-> quicksort arr =
->   if length arr <= 1 then ()
->   else let   (l, r)  = split arr (partition arr)
->              ()      = quicksort l
->              ()      = quicksort r
->        in join l r
-\end{minipage}
-\begin{minipage}{0.5\linewidth}
-> partition :: constraint (RW n) =>. PArray a n -> Int .<= constraint (RW n)
-> partition arr
->   = let pivot = read arr (length arr - 1) in
->     foldl (\i j ->
->             if read arr j <= pivot then i + 1
->             else let _ = swap arr i j in i
->           ) 0 [0..len-1]
-\end{minipage}
-\rae{Type errors are here, around the return value}
-\rae{Get rid of |foldl| here, too.}
-
-\csongor{Should this example be included at all? do we need to say anything more?}
+make linear constraints easier to use.
 
 % One challenge if existential packing and unpacking are inferred is that
 % the order in which a program is executed might become ambiguous.
