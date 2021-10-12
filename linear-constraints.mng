@@ -1097,7 +1097,7 @@ swap arr i j   | i == j   = arr
                | i > j    = swap arr j i
                | i < j    =  let   (l, r)   = split arr (i + 1)
                                    pack ()  = lendMut l i (replace r (j - (i + 1)))
-                                   pack _   = join l r
+                                   pack' _  = join l r
                              in pack ()
 \end{code}
 \rae{I don't see how this works.
@@ -1120,7 +1120,7 @@ quicksort algorithm.
                        pack (l, r)    = split arr pivotIdx
                        pack ()        = quicksort l
                        pack ()        = quicksort r
-                       pack _         = join l r
+                       pack' _        = join l r
                   in pack ()
   \end{code}
 \end{minipage}
