@@ -68,6 +68,7 @@ import GHC.Base
 \let\Bbbk\undefined    % see https://github.com/kosmikus/lhs2tex/issues/82
 %include polycode.fmt
 %if style == poly
+%format a_i = "\Varid a \ensuremath{_i}"
 %format a_j = "\Varid a \ensuremath{_j}"
 %format ->. = "⊸"
 %format => = "\FatArrow "
@@ -877,6 +878,7 @@ effects in terms of a monad or another higher-order effect-tracking
 device: because the |constraint(RW n)| constraint is linear, passing it suffices
 to ensure proper sequencing of effects concerning location |n|.
 
+
 % This is ensured by the combination of the language and library
 % behaviour. For example, here is how to write two values (|a| and |b|) to the same reference |x|:
 
@@ -955,14 +957,7 @@ write:
 %
 > write  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
 %
-But we'd rather not assume such a mechanism. Besides, the |write|
-function can be written in terms of another, more primitive and
-precise, function which which swaps a reference with an element of the
-array.
-%
-> replace  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint ((RW n, RW p))
-
-\rae{We need to say more here. What does |replace| do? I'm pretty lost here.}
+But we'd rather not assume such a mechanism, and instead the borrowing primitives described below.
 
 % JP: I propose to cut down the following, since it appears unused in the rest of the paper.
 % (The "quicksort" example is a lot more convincing as an example)
@@ -1001,16 +996,16 @@ type system guarantees that the borrowed reference can not be shared, let alone 
 % not possible to leak it out by packing it into |r|, so it's not necessary to
 % wrap the result in |Ur|.
 Indeed, with this \textsc{api}, |constraint(RW n)| and |constraint(RW p)| are
-never simultaneously available. \rae{Even more confused. If |RW n| and |RW p| are never simultaneously available, then how can we ever call |replace|?}
+never simultaneously available. \rae{Even more confused. If |RW n| and |RW p| are never simultaneously available, then how can we ever call |swapRef|? JP: there can be more than one array.}
 
 > lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
-
-\rae{The type of |lendMut| is different than the other scoped functions: its continuation's return value is paried with |RW p|.
+%
+\rae{The type of |lendMut| is different than the other scoped functions: its continuation's return value is paired with |RW p|.
 Other examples have an unrestricted return value. Why the difference? What changes here? This version seems more powerful.
 Should it be used with e.g. |newUArray|?}
 Because the elements of an array can be mutable structures (such as
 other arrays), reading can only be done safely if we can ensure that
-no one else has access to the array \rae{which one? the inner one or the outer one?}
+no one else has access to the array \rae{which one? the inner one or the outer one? JP: there is no "inner" array. That's a reference to an element.} 
 in the meantime. Therefore,
 gaining simple read access to an element needs to be done using a
 scoped \textsc{api} as well:
@@ -1084,12 +1079,15 @@ two arrays before deallocating them: the can be deallocated separately.
 With these building blocks, we can now implement various utility
 functions on arrays, such as swapping two elements of an array.  It is
 not so simple to implement\footnote{Indeed, Rust's implementation uses
-  an \emph{unsafe} block.}, because we need two elements of an array
+an \emph{unsafe} block.}, because we need two elements of an array
 simultaneously, but only one element can be borrowed at a time. To
-solve this problem, we split the array into two slices such that the two
-indices fall in two different slices. Then simply borrow the element
-from the first slice, and replace it with the element in the second
-slice. Finally, join the two slices back together.
+solve this problem, we split the array into two slices such that the
+two indices fall in two different slices. Then simply borrow the
+element |i| from the first slice, and |j| from the second slice (using
+|lendMut|).  We exchange them with a primitive function |exchange ::
+(RW n, RW p) =>. a p -> a n -> () .<= (RW n, RW p)| which exchanges
+two references.\jp{The existence of this is primitive is pretty
+  shaky.}  Finally, we join the two slices back together.
 
 \begin{code}
 swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
@@ -1097,13 +1095,9 @@ swap arr i j   | i == j   = arr
                | i > j    = swap arr j i
                | i < j    =  let   (l, r)   = split arr (i + 1)
                                    pack ()  = lendMut l i (replace r (j - (i + 1)))
-                                   pack' _  = join l r
+                                   pack' _   = join l r
                              in pack ()
 \end{code}
-\rae{I don't see how this works.
-% Compile-time problem: This function says it returns `()` but it actually returns `Ur (PArray a n)`.
-Run-time problem: I don't see how index |i| is written to. Maybe a description
-of |replace| would fix this problem.}
 
 \subsubsection{In-place quicksort}
 
@@ -1134,8 +1128,7 @@ quicksort algorithm.
 %% recursive calls.}
 %% JP: recursive calls work on different arrays.
 
-%% \rae{We should give at least the type of |length|.}
-%% JP: see above
+\rae{We should give at least the type of |length|.}
 
 \begin{minipage}{0.5\linewidth}
   \begin{code}
