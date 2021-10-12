@@ -1506,7 +1506,7 @@ Bindings in a |let| may be for either linear or unrestricted variables.
   the constraints needed by $[[{e1}]]$ (but not the type variables---no
   |let|-generalisation here, though it could be added). The inference algorithm of
   \cref{sec:type-inference} will not make use of this
-  possibility, but we revisit this capability in \cref{sec:let-generalisation}.
+  possibility. % but we revisit this capability in \cref{sec:let-generalisation}.
 %% \item Data types are not \textsc{gadt}s.
 %%   This serves to considerably simplify the \rref*{E-Case}
 %%   rule. It would be
@@ -1745,8 +1745,8 @@ the other branches too.
 \paragraph{Unannotated |let|}
  However, the~\rref*{G-Let} rule does not produce an implication
   constraint, as we do not model |let|-generalisation~\cite{let-should-not-be-generalised}.
-  \cref{sec:let-generalisation} discusses this design
-  choice further.
+  % \cref{sec:let-generalisation} discusses this design
+  % choice further.
 
 
 \vspace{1ex}
