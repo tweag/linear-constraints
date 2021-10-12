@@ -648,7 +648,7 @@ read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n
 %% handle. Existentially quantified types are paired with a constraint |Q|
 %% which we understand as being returned by functions.
 This type has a new symbol, |.<=|, which allows us to pack a produced constraint
-with a returned value. We will see \rae{where?} that these produced constraints
+with a returned value. We will see in \cref{sec:arrays} that these produced constraints
 will also sometimes need to come with fresh type variables. Combining these
 ideas, we
 introduce\footnote{There is a variety of ways existential types can
@@ -873,6 +873,9 @@ effects in terms of a monad or another higher-order effect-tracking
 device: because the |constraint(RW n)| constraint is linear, passing it suffices
 to ensure proper sequencing of effects concerning location |n|.
 
+Also note that |readRef| returns an unrestricted \emph{copy} of the element, and
+|writeRef| \emph{copies} an unrestricted element into the location. This means
+that while |AtomRef|s are mutable, their contents are always immutable structures.
 
 % This is ensured by the combination of the language and library
 % behaviour. For example, here is how to write two values (|a| and |b|) to the same reference |x|:
@@ -938,9 +941,7 @@ reference in the array refers to the same location |n|. Both types
 one can allocate, and manipulate arrays of arrays with this
 \textsc{api}. For example, an array of integers would have type
 |PArray (AtomRef Int) n|, and indeed, the |UArray| type from
-\cref{sec:introduction} is a synonym for an array of atomic references. \rae{Really?
-This surprises me, because we end up discarding the references. Key question: are
-the elements in the array restricted or not?}
+\cref{sec:introduction} is a synonym for an array of atomic references.
 An array of arrays of integers would have type |PArray (PArray (AtomRef Int)) n|. Thus,
 the framework handles nested mutable structures without any additional
 difficulty.
