@@ -531,7 +531,7 @@ presentation, we assume that all patterns in $\klet$ bindings are strict.
   \begin{subfigure}{.3\linewidth}%
     \noindent%
 \begin{code}
-newMArray  :: (MArray ->. Ur r) ->. Ur r
+newMArray  :: Int -> (MArray a ->. Ur r) ->. Ur r
 write :: MArray a ->. Int -> a -> MArray a
 read :: MArray a ->. Int -> (MArray a, Ur a)
 free :: MArray a ->. ()
