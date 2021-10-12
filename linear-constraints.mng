@@ -517,7 +517,7 @@ in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which
 |let  (a, b) = p in ()|
 will not actually evaluate the pair. To force evaluation, a strictness annotation can be added:
 |let  ^^ !(a, b) = p in ()|.
-Pattern matching in linear $\klet$ bindings must always be strict, so writing
+Pattern matching in linear $\klet$ bindings must always be strict in Linear Haskell, so writing
 the lazy version would be rejected by the compiler. To simplify the
 presentation, we assume that all patterns in $\klet$ bindings are strict.
 
