@@ -1094,7 +1094,7 @@ swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
 swap arr i j   | i == j   = arr
                | i > j    = swap arr j i
                | i < j    =  let   (l, r)   = split arr (i + 1)
-                                   pack ()  = lendMut l i (replace r (j - (i + 1)))
+                                   pack ()  = lendMut l i (\a_i -> lendMut r (j - (i + 1)) (\a_j -> exchange a_i a_j))
                                    pack' _   = join l r
                              in pack ()
 \end{code}
