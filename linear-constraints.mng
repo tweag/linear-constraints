@@ -662,20 +662,18 @@ a type construction |exists a1 ... an. t .<= constraint(Q)|,
 where |constraint(Q)| is a linear constraint (with the |a1 ... an| in scope) that is
 paired with the type |t|.\footnote{We freely
 omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
-empty.}
-
-Today's Haskell does not have an existential quantifier. However,
-existentially quantified types can
-be encoded as datatypes. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
-be implemented as
-\begin{code}
-data PackHandle where
-  Pack :: forall h. constraint (Open h) =>. Handle h -> PackHandle
-\end{code}
-In our implementation (\Fref{sec:implementation}), packed linear constraints
-piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
-introduced by a data constructor, which we write as |pack|.
-
+empty.} Such types are introduced with the |pack| constructor.
+% Today's Haskell does not have an existential quantifier. However,
+% existentially quantified types can
+% be encoded as datatypes. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
+% be implemented as
+% \begin{code}
+% data PackHandle where
+%   Pack :: forall h. constraint (Open h) =>. Handle h -> PackHandle
+% \end{code}
+% In our implementation (\Fref{sec:implementation}), packed linear constraints
+% piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
+% introduced by a data constructor, which we write as |pack|.
 When pattern-matching on a |pack| constructor, all existentially quantified
 type variables are brought into scope and all the packed constraints are
 assumed. We have now seen all the ingredients needed to write
