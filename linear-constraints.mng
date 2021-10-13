@@ -536,7 +536,7 @@ Strict $\klet$ pattern bindings can be desugared into case expressions:
   \begin{subfigure}{.3\linewidth}%
     \noindent%
 \begin{code}
-newMArray  :: Int -> (MArray a ->. Ur r) ->. Ur r
+new  :: Int -> (MArray a ->. Ur r) ->. Ur r
 write :: MArray a ->. Int -> a -> MArray a
 read :: MArray a ->. Int -> (MArray a, Ur a)
 free :: MArray a ->. ()
@@ -548,7 +548,7 @@ free :: MArray a ->. ()
   \begin{subfigure}{.55\linewidth}
 \begin{code}
 type constraint(RW n) = constraint((Read n, Write n))
-newUArray    :: Int -> (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
+new  :: Int -> (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
 write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 free :: constraint (RW n) =>. UArray a n -> ()
@@ -620,9 +620,9 @@ There are a few things to notice:
 The above deals with freeing an array and ensuring that it cannot be used afterwards.
 However, we still need to explain how a constraint |constraint (RW n)| can come
 into scope.
-The type of |newUArray| is:
+The type of |new| with linear constraints is:
 \begin{code}
-newUArray    :: Int -> (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ->. Ur r
+new :: Int -> (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ->. Ur r
 \end{code}
 This higher-rank function can be thought of as a computation that allocates an
 array in a \emph{scope}. The scope is given an array with read and write
@@ -859,7 +859,7 @@ references.
 
 The type |AtomRef| is the type of references to values of a type |a| at
 location |n|. Allocation of a reference can be done using the
-following function. As with |newUArray|, the return value must be unrestricted.
+following function. As with |new|, the return value must be unrestricted.
 
 > newRef :: (forall n. ^^ constraint (RW n) =>. AtomRef a n -> Ur b) ⊸ Ur b
 
@@ -1940,15 +1940,15 @@ takes care to use the most recent occurrence of $[[{q}]]$
 the list). To understand why, consider the following example:
 %format ^^ = " "
 \begin{code}
-f = newUArray 10 (\arr -> let   fr  ::  constraint (RW n) =>. ()   ^^
-                                fr  =   free arr
-                                ()  =   fr                         in Ur ())
+f = new10 (\arr -> let   fr  ::  constraint (RW n) =>. ()   ^^
+                         fr  =   free arr
+                         ()  =   fr                         in Ur ())
 \end{code}
 In this example, the programmer meant for
 |free| to use the |RW n| constraint introduced locally in the type
 of |fr|. Yet
 there are actually two |RW n| constraints: this local one and the
-one assumed when entering the scope of |newUArray|. The wrong
+one assumed when entering the scope of |new|. The wrong
 choice among the constraints will lead the algorithm to fail.
 Choosing the first $[[{q}]]$ linear assumption guarantees we get the
 most local one.
