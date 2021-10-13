@@ -1942,9 +1942,9 @@ takes care to use the most recent occurrence of $[[{q}]]$
 the list). To understand why, consider the following example:
 %format ^^ = " "
 \begin{code}
-f = new10 (\arr -> let   fr  ::  constraint (RW n) =>. ()   ^^
-                         fr  =   free arr
-                         ()  =   fr                         in Ur ())
+f = new 10 (\arr -> let   fr  ::  constraint (RW n) =>. ()   ^^
+                          fr  =   free arr
+                          ()  =   fr                         in Ur ())
 \end{code}
 In this example, the programmer meant for
 |free| to use the |RW n| constraint introduced locally in the type
