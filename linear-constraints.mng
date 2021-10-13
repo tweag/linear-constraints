@@ -2535,8 +2535,8 @@ takes as input a set of \emph{touchable} variables $\overline{\alpha}_{tch}$
 which record the type variables that can be unified at any given time, and
 produces a type substitution $\theta$ as an output (whose domain is a subset of
 the touchable variables).
-As discussed in \cref{sec:type-inference}, we do not perform\jp{describe?} type
-inference, only constraint inference. Therefore, our solver need not\jp{explicitly?} return a
+As discussed in \cref{sec:type-inference}, we do not perform type
+inference, only constraint inference. Therefore, our solver need not return a
 type assignment.
   \item The most important difference is the output of the algorithms. Both
 OutsideIn and our solver output a set of constraints, $Q_{\mathit{residual}}$ and
@@ -2545,7 +2545,7 @@ OutsideIn's \emph{residual} constraints $Q_{\mathit{residual}}$
 correspond to the part of $C_{\mathit{wanted}}$ that could not be solved from the
 assumptions. These residuals are then quantified over in the generalisation step
 of the inference algorithm. We omit these residuals, which means that our
-algorithm cannot infer qualified types (though see \cref{sec:let-generalisation}).
+algorithm cannot infer qualified types.
 Our \emph{output} constraints $[[{LCtx_o}]]$ instead correspond to the part of the
 \emph{linear} givens $[[{LCtx_i}]]$ that were not used in the solution for $[[{C_w}]]$.
 Keeping track of these unused constraints is crucial: ultimately we need to
@@ -2566,7 +2566,7 @@ consumes the same constraints.
 %%   \rref*{E-Var} rule needed subsumption; we would also need it for the
 %%   \rref*{E-Pack} rule as well. So we preferred having one shared
 %%   dedicated rule.
-\paragraph{Rust}
+\paragraph{Ownership}
 
 % The memory ownership example of \cref{sec:memory-ownership} is
 % strongly inspired by Rust.
@@ -2582,7 +2582,7 @@ Ownership and borrowing are the key features of Rust's memory management model.
 % is to provide programmers with the tools to create safe interfaces and
 % libraries.
 In \cref{sec:memory-ownership} we show how linear constraints can be used to
-implement Rust's ownership model as a library.
+implement such an ownership model as a library.
 % The language itself is agnostic about what linear
 % constraints mean.
 Although linear constraints do not have the
@@ -2594,6 +2594,10 @@ greater variety of abstractions.
 % instance, safe file handling), it is unclear that all applications
 % supported by linear constraints are reducible to the borrowing
 % mechanism.
+
+Clean is another language with built-in ownership typing. Like Haskell
+it is a lazy language. Mutation is performed by returning a new
+reference, like in Linear Haskell without linear constraints.
 
 \paragraph{Languages with capabilities}
 
@@ -2638,6 +2642,15 @@ constraints providing the general inference mechanism.
 % they assume that their instructions are properly sequenced, whereas
 % basing linear constraints on Haskell, a lazy language, we are forced
 % to make sequencing explicit in \textsc{api}s.
+
+\paragraph{Linearly typed languages}
+
+Affe~\cite{kindly-bent} is a linearly typed \textsc{ml}-style core
+language with mutable references and arrays, augmented with a notion
+of borrowing. It has dedicated syntax for the scope of borrows. In
+contrast, we represent scopes as functions. Affe is presented as a
+fully integrated solution, while linear constraints is a small layer
+on top of Linear Haskell.
 
 \paragraph{Logic programming}
 
