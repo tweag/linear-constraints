@@ -1054,11 +1054,10 @@ the borrowing freely.
 \subsubsection{Slices}
 
 It is also possible to give a safe interface to array
-\emph{slices}. A slice represents a part of an array, and allows
-splitting the ownership of the array into multiple disjoint parts to
-be shared between different consumers.  Thanks to the
-ownership system, creating a slice does not require a physical copy to
-be made.
+\emph{slices}. A slice represents a part of an array and allows
+splitting the ownership of the array into multiple parts,
+shared between different consumers.  The ownership system
+means that slicing does not require copying.
 
 Splitting consumes all capabilities of an array and returns two new
 arrays that represent the contiguous blocks of memory before and
@@ -1067,8 +1066,8 @@ starting at a given index.
 > split :: constraint (RW n) =>. PArray a n -> Int -> exists l r. Ur (PArray a l, PArray a r) .<= constraint ((RW l, RW r, UrC (Slices n l r)))
 
 In addition to the array capabilities, the output constraints also include
-|constraint (UrC (Slices n l r))|, which witnesses the fact that locations
-|l| and |r| indeed make up location |n|, so that they can be joined back
+|constraint (UrC (Slices n l r))|, witnessing the fact that locations
+|l| and |r| are components of |n|, so that they can be joined back
 together:
 
 > join :: constraint ((UrC (Slices n l r), RW r, RW l)) =>. PArray a l -> PArray a r -> Ur (PArray a n) .<= constraint (RW n)
@@ -1097,19 +1096,17 @@ two references.\jp{The existence of this is primitive is pretty
 
 \begin{code}
 swap :: forall a n. RW n =>. PArray a n -> Int -> Int -> () .<= RW n
-swap arr i j
-  | i == j   = pack ()
-  | i > j    = swap arr j i
-  | i < j    =  let   pack (Ur (l, r))  =  split arr (i + 1)
-                      pack ()           =  lendMut l i (\a_i ->
-                                             let pack () = lendMut r (j - (i + 1)) (\a_j ->
-                                               let pack () = exchange a_i a_j
-                                               in pack ())
-                                             in pack ())
-                      pack (Ur _)       =  join (at n) l r
-                in pack ()
+swap arr i j  | i == j   = pack ()
+              | i > j    = swap arr j i
+              | i < j    =  let   pack (Ur (l, r))  =  split arr (i + 1)
+                                  pack ()           =  lendMut l i (\a_i ->
+                                                         let pack () = lendMut r (j - (i + 1)) (\a_j ->
+                                                           let pack () = exchange a_i a_j in pack ()) in pack ())
+                                  pack (Ur _)       =  join (at n) l r
+                            in pack ()
 \end{code}
 \rae{I had to add some waffling around the return value here so that the constraints get fixed. It's a bit ugly.}
+\vspace{-4ex}
 
 \subsubsection{In-place quicksort}
 
@@ -1142,7 +1139,6 @@ annoying, but I think it's less annoying than splitting the array into three par
 partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
 partition arr =
   let  pack (Ur pivot) = read arr 0
-       go :: Int -> Int -> Int
        go lIndex rIndex
          |  lIndex > rIndex
          =  let pack () = swap arr 0 rIndex in rIndex
@@ -1173,11 +1169,9 @@ pivot element.
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
 
-Having laid out situations which would benefit from linear constraints, we
+We
 now present our design for a qualified type system~\cite{QualifiedTypes} that supports
-them. Our design is mindful of our goal of integration with Haskell and \textsc{ghc}
-and is thus based on the work of \citet{OutsideIn}, which undergirds \textsc{ghc}'s
-current approach to type inference.
+linear constraints. Our design, based on the work of \citet{OutsideIn}, is compatible with Haskell and \textsc{ghc}.
 
 \subsection{Multiplicities}
 \label{sec:multiplicities}
@@ -1188,7 +1182,7 @@ system of \emph{multiplicities}, which describe how
 many times a function consumes its input. As multiplicities are
 central to our constraint calculus, we will colour them in
 \multiplicityfont{blue} like constraints. For our purposes, we need only the
-simplest system of multiplicity: that composed of only $[[{1}]]$ (representing
+simplest system of multiplicity, comprising $[[{1}]]$ (representing
 linear functions) and $[[{omega}]]$ (representing
 regular Haskell functions).
 $$
@@ -1421,11 +1415,16 @@ contexts is always satisfied.
 \begin{figure}
   \maybesmall
   $$
+  \begin{array}{@@{}c@@{}}
+  [[{a}]], [[{b}]] \quad \text{Type vars} \qquad
+  [[{x}]], [[{y}]] \quad \text{Expression vars} \qquad
+  [[T]] \quad \text{Type constructors} \qquad
+  [[{K}]] \quad \text{Data constructors} \\
   \begin{array}{lcll}
-    [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
-    [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
-    [[T]] & \bnfeq & \ldots & \text{Type constructors} \\
-    [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
+    % [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
+    % [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
+    % [[T]] & \bnfeq & \ldots & \text{Type constructors} \\
+    % [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
     [[{s}]] & \bnfeq & [[{forall as. Q =o t}]] & \text{Type schemes} \\
     [[{t}]], [[{u}]] & \bnfeq & [[{a}]] \bnfor [[{exists as. t o= Q}]] \bnfor [[{t1 ->_pi t2}]]
                             \bnfor [[{T ts}]] & \text{Types} \\
@@ -1437,6 +1436,7 @@ contexts is always satisfied.
                      e2]] \bnfor [[{case_pi e of { alts }}]] &\\
                  &\bnfor & [[let_pi
                      x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
+  \end{array}
   \end{array}
   $$
   Context scaling $[[{pi.G}]]$ and addition of contexts $[[{G1+G2}]]$ is defined as follows:
@@ -1499,7 +1499,7 @@ We survey several distinctive features of our qualified type system below:
 quantified over $i$. Actually, it's worse than that, with strangeness like
 $[[pi.pii]]$ written in a subscript, but there's really many $[[pii]]$s, I
 think.}
-\paragraph{Linear functions}
+\emph{Linear functions.}
 The type of linear functions is written $[[{a ->_1 b}]]$.
   Despite our focus on linear constraints,
   we still need linearity in ordinary arguments.
@@ -1520,7 +1520,7 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   it is perfectly fine to have $[[1.q ; f :_omega a ->_1 b, x :_omega 1.q
   =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
 
-\paragraph{Variables}
+\emph{Variables.}
 As is standard, the \rref{E-Var} rule works in a context containing more
 than just the used binding for $[[{x}]]$. However, crucially,
 our rule allows only
@@ -1529,17 +1529,18 @@ used. We can see this in the rule by noticing that the context has an unrestrict
 component $[[{omega.G_2}]]$. The $[[{G1}]]$ component might be restricted or might not,
 allowing this rule to apply both for restricted and unrestricted $[[{x}]]$.
 
-\paragraph{Data constructors}
+\emph{Data constructors.}
 Data constructors $[[{K}]]$ don't have a dedicated typing
 rule. Instead they are typed using the \rref{E-Var}, where they are
 treated as if they were unrestricted variables.
 
-\paragraph{let-bindings}
+\emph{$\klet$-bindings.}
 Bindings in a |let| may be for either linear or unrestricted variables.
   We could require all bindings to be linear and to implement unrestricted
   information only using |Ur|, but it is very easy to add a multiplicity
   annotation on |let|, and so we do.
-\paragraph{Local assumptions}
+
+\emph{Local assumptions.}
 \Rref{E-Let} includes support for local
   assumptions. We thus have the ability to generalise a subset of
   the constraints needed by $[[{e1}]]$ (but not the type variables---no
@@ -1551,7 +1552,8 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 %%   rule. It would be
 %%   straightforward, yet tedious, to extend data types here to full
 %%   \textsc{gadt}s.
-\paragraph{Existentials}
+
+\emph{Existentials.}
  We include $[[{exists as. t o= Q}]]$, as
   introduced in \cref{sec:what-it-looks-like}, together with
   the $\kpack$ and $\kunpack$ constructions. See rules~\rref*{E-Pack} and
@@ -1765,7 +1767,7 @@ The rules of \Cref{fig:constraint-generation} constitute a mostly
 unsurprising translation of the rules of \Cref{fig:typing-rules},
 except for the following points of interest:
 
-\paragraph{Case expressions}
+\emph{Case expressions.}
 Note the use of $[[&]]$ in the conclusion of \rref{G-Case}.
 We require that each branch of a |case| expression use the exact
 same (linear) assumptions; this is enforced by combining the
@@ -1778,10 +1780,12 @@ the other branches too.
   Otherwise, the array's state will be unknown to the type system
   after the $\kcase$.
 %
-\paragraph{Implications} The introduction of constraints local to a
+
+\emph{Implications.} The introduction of constraints local to a
   definition (\rref{G-LetSig}) corresponds to
   emitting an implication constraint.
-\paragraph{Unannotated |let|}
+
+\emph{Unannotated |let|.}
  However, the~\rref*{G-Let} rule does not produce an implication
   constraint, as we do not model |let|-generalisation~\cite{let-should-not-be-generalised}.
   % \cref{sec:let-generalisation} discusses this design
@@ -1949,12 +1953,11 @@ $[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
 takes care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the front of
 the list). To understand why, consider the following example:
+%format ^^ = " "
 \begin{code}
-f = newUArray 10 (\arr ->
-      let   fr :: constraint (RW n) =>. ()
-            fr = free arr
-            () = fr
-      in Ur ())
+f = newUArray 10 (\arr -> let   fr  ::  constraint (RW n) =>. ()   ^^
+                                fr  =   free arr
+                                ()  =   fr                         in Ur ())
 \end{code}
 In this example, the programmer meant for
 |free| to use the |RW n| constraint introduced locally in the type
@@ -2686,28 +2689,28 @@ instead of the programmer. Linear constraints narrow the gap between linearly
 typed languages and dedicated linear-like typing disciplines such as Rust's,
 Mezzo's, or \textsc{ats}'s.
 
-We also demonstrate how an existing constraint solver can be extended to handle
-linearity. Our design of
-linear constraints fits nicely into Haskell. Indeed, linear constraints can be
-thought of as an extension of Haskell's type class mechanism. This way, the
-design also integrates well into \textsc{ghc}, as demonstrated by our prototype
-implementation, which required modest changes to the compiler. Remarkably, all we needed to do was to
-adapt the work of \citet{resource-management-for-ll-proof-search} to the OutsideIn
-framework. It is also quite serendipitous that the notion of uniform
-proof from \citet{hh-ll}, which was introduced to prove the
-completeness of a proof search strategy, ends up being crucial to the
-soundness of constraint generation.
+% We also demonstrate how an existing constraint solver can be extended to handle
+% linearity. Our design of
+% linear constraints fits nicely into Haskell. Indeed, linear constraints can be
+% thought of as an extension of Haskell's type class mechanism. This way, the
+% design also integrates well into \textsc{ghc}, as demonstrated by our prototype
+% implementation, which required modest changes to the compiler. Remarkably, all we needed to do was to
+% adapt the work of \citet{resource-management-for-ll-proof-search} to the OutsideIn
+% framework. It is also quite serendipitous that the notion of uniform
+% proof from \citet{hh-ll}, which was introduced to prove the
+% completeness of a proof search strategy, ends up being crucial to the
+% soundness of constraint generation.
 
-The memory management \textsc{api} of \cref{sec:memory-ownership} shows how
-Rust's memory ownership model can be implemented as a library using our
-framework. This would not be practical without linear constraints. Certainly,
-ownership proofs could be managed manually, but it is hard to imagine a
-circumstance where this tedious task would be worth the cost.
+% The memory management \textsc{api} of \cref{sec:memory-ownership} shows how
+% Rust's memory ownership model can be implemented as a library using our
+% framework. This would not be practical without linear constraints. Certainly,
+% ownership proofs could be managed manually, but it is hard to imagine a
+% circumstance where this tedious task would be worth the cost.
 
-This, really, is the philosophy of linear constraints: lowering
-the cost of linear types so that more theoretical applications become
-practical applications. And we achieved this at a surprisingly low price: teaching
-linear logic to \textsc{ghc}'s constraint solver.
+% This, really, is the philosophy of linear constraints: lowering
+% the cost of linear types so that more theoretical applications become
+% practical applications. And we achieved this at a surprisingly low price: teaching
+% linear logic to \textsc{ghc}'s constraint solver.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}

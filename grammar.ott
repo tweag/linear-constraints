@@ -313,6 +313,7 @@ formula :: formula_ ::=
 | qF \in UCtxF                    ::   :: q_in_UCtx
 | qF \notin UCtxF                 ::   :: q_notin_UCtx
 | qF \notin LCtxF                 ::   :: q_notin_LCtx
+| s1 = s2                         ::   :: s_eq
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Parsing rules  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
