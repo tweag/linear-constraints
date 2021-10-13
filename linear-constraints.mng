@@ -18,6 +18,7 @@ import GHC.Base
 %endif
 
 \documentclass[acmsmall,usenames,dvipsnames,acmthm=false,review,anonymous]{acmart}
+\settopmatter{printacmref=false,printfolios=true}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 
@@ -220,9 +221,9 @@ import GHC.Base
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
-\acmConference[POPL'22]{POPL}{2022}{}
-\acmYear{2022}
-\copyrightyear{2022}
+% \acmConference[POPL'22]{POPL}{2022}{}
+% \acmYear{2022}
+% \copyrightyear{2022}
 \setcopyright{none}
 
 \citestyle{acmauthoryear}
@@ -267,32 +268,32 @@ import GHC.Base
 }
 \email{rae@@richarde.dev}
 
-\keywords{GHC, Haskell, laziness, linear logic, linear types,
-  constraints, inference}
+% \keywords{GHC, Haskell, laziness, linear logic, linear types,
+%   constraints, inference}
 
-\begin{CCSXML}
-<ccs2012>
-   <concept>
-       <concept_id>10011007.10011006.10011008.10011024</concept_id>
-       <concept_desc>Software and its engineering~Language features</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
-   <concept>
-       <concept_id>10011007.10011006.10011008.10011009.10011012</concept_id>
-       <concept_desc>Software and its engineering~Functional languages</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
-   <concept>
-       <concept_id>10011007.10011006.10011039</concept_id>
-       <concept_desc>Software and its engineering~Formal language definitions</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
- </ccs2012>
-\end{CCSXML}
+% \begin{CCSXML}
+% <ccs2012>
+%    <concept>
+%        <concept_id>10011007.10011006.10011008.10011024</concept_id>
+%        <concept_desc>Software and its engineering~Language features</concept_desc>
+%        <concept_significance>500</concept_significance>
+%        </concept>
+%    <concept>
+%        <concept_id>10011007.10011006.10011008.10011009.10011012</concept_id>
+%        <concept_desc>Software and its engineering~Functional languages</concept_desc>
+%        <concept_significance>500</concept_significance>
+%        </concept>
+%    <concept>
+%        <concept_id>10011007.10011006.10011039</concept_id>
+%        <concept_desc>Software and its engineering~Formal language definitions</concept_desc>
+%        <concept_significance>500</concept_significance>
+%        </concept>
+%  </ccs2012>
+% \end{CCSXML}
 
-\ccsdesc[500]{Software and its engineering~Language features}
-\ccsdesc[300]{Software and its engineering~Functional languages}
-\ccsdesc[300]{Software and its engineering~Formal language definitions}
+% \ccsdesc[500]{Software and its engineering~Language features}
+% \ccsdesc[300]{Software and its engineering~Functional languages}
+% \ccsdesc[300]{Software and its engineering~Formal language definitions}
 
 \begin{abstract}
   A linear parameter must be consumed exactly once in the body of its
