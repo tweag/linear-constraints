@@ -224,6 +224,14 @@ import GHC.Base
 % \acmConference[POPL'22]{POPL}{2022}{}
 % \acmYear{2022}
 % \copyrightyear{2022}
+\acmJournal{PACMPL}
+\acmVolume{1}
+\acmNumber{OOPSLA}
+\acmArticle{1}
+\acmYear{2022}
+\acmMonth{1}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
 \setcopyright{none}
 
 \citestyle{acmauthoryear}
