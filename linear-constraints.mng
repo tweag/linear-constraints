@@ -804,17 +804,21 @@ overusing = (useC, useC)
 % linearly.
 
 \section{Application: memory ownership}
-\label{sec:memory-ownership}\csongor{Now this picks up from the Introduction} %
-Let us now turn to a more substantial example: manual memory
-management.  In Haskell, memory deallocation is normally the
-responsibility of a garbage collector. However, garbage collection is
+\label{sec:memory-ownership}
+Let us now turn back to the more substantial example introduced in
+\cref{sec:introduction}: manual memory management.  In functional programming
+languages like Haskell, memory deallocation is normally the responsibility of a
+garbage collector. However, garbage collection is
 not always desirable, either due to its (unpredictable) runtime costs, or because
 pointers exist between separately-managed memory spaces
 (for example when calling foreign functions~\cite{linear-inline-java}).
 In either case, one must then
 resort to explicit memory allocation and deallocation. This task is
 error prone: one can easily forget a deallocation (causing a memory
-leak) or deallocate several times (corrupting data).
+leak) or deallocate several times (corrupting data). In this section we show how
+to build a Rust-style memory management \textsc{api} as a \emph{library} using linear
+constraints. The library is a generalisation of the array library
+introduced in \cref{sec:introduction}.
 
 \subsection{Capability constraints}
 \label{sec:atomic-references}
