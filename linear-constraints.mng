@@ -1139,15 +1139,15 @@ partition arr =
   let  last = length arr - 1
        pack (Ur pivot) = read arr last
        go :: constraint (RW n) =>. Int -> Int Int .<= constraint (RW n)
-       go lIndex rIndex
-         |  lIndex > rIndex
-         =  let pack () = swap arr last lIndex in (Pack lIndex)
+       go l r
+         |  l > r
+         =  let pack () = swap arr last l in (Pack l)
          |  otherwise
-         =  let pack (Ur lVal) = read arr lIndex in
+         =  let pack (Ur lVal) = read arr l in
             if lVal > pivot
-            then  let pack () = swap arr lIndex rIndex
-                  in go lIndex (rIndex - 1)
-            else  go (lIndex + 1) rIndex
+            then  let pack () = swap arr l r
+                  in go l (r - 1)
+            else  go (l + 1) r
   in pack (go 0 (last - 1))
 \end{code}
 \end{minipage}
