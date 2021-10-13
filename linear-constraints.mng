@@ -1078,7 +1078,7 @@ two arrays before deallocating them: they can be deallocated separately.
 \begin{figure}
 \maybesmall
 \begin{code}
-swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
+swap :: constraint(RW n) =>. PArray a n -> Int -> Int -> () .<= constraint(RW n)
 swap arr i j  | i == j   = pack ()
               | i > j    = swap arr j i
               | i < j    =  let   pack (Ur (l, r))  =  split arr (i + 1)
