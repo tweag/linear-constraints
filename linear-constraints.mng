@@ -949,7 +949,7 @@ difficulty.
 
 As discussed in \cref{sec:what-it-looks-like}, the scope of |newPArray| returns
 an unrestricted value to ensure that the linear constraint is consumed within
-the scope (since linear values can not be embedded into an unrestricted value).
+the scope (since linear values cannot be embedded into an unrestricted value).
 As this is the only introduction form of |constraint (RW n)|, it can safely be
 assumed to be unique within the scope. An alternative design would be to
 require that the scope returns the linear constraint: |forall n. constraint (RW
@@ -999,7 +999,7 @@ The |lendMut arr i k| primitive lends access to the reference at index |i| in
 |arr|, to a scope function |k| (in Rust terminology, the scope
 \emph{borrows} an element of the array). Note that the scope must return the
 read-write capability, so the ownership transfer is indeed temporary, and the
-type system guarantees that the borrowed reference can not be shared, let alone deallocated.
+type system guarantees that the borrowed reference cannot be shared, let alone deallocated.
 %
 % Here, the return type of the scope, |r|,
 % is not in |Ur|: since the scope must return the |constraint(RW p)| constraint, it is
