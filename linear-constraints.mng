@@ -1485,19 +1485,17 @@ semantics to this language; instead, we will give it meaning via
 desugaring to a simpler core language in \cref{sec:desugaring}.
 
 We survey several distinctive features of our qualified type system below:
-%
+
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
 \rae{E-Case should be clearer that the second two premises are universally
 quantified over $i$. Actually, it's worse than that, with strangeness like
 $[[pi.pii]]$ written in a subscript, but there's really many $[[pii]]$s, I
 think.}
-\emph{Linear functions.}
+\paragraph{Linear functions.}
 The type of linear functions is written $[[{a ->_1 b}]]$.
   Despite our focus on linear constraints,
   we still need linearity in ordinary arguments.
-  For example, the bind combinator for |IOL| (\cref{sec:introduction})
-  requires linear arrows: |(>>=) :: IOL a ->. (a ->. IOL b) ->. IOL b|.
-
+%
   Indeed, the linearity of arrows interacts in interesting
   ways with linear constraints: If $[[f : a ->_omega b]]$ and
   $[[x : 1.q =o a]]$, then calling $[[{f x}]]$ would actually use $[[{q}]]$
@@ -1512,7 +1510,7 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   it is perfectly fine to have $[[1.q ; f :_omega a ->_1 b, x :_omega 1.q
   =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
 
-\emph{Variables.}
+\paragraph{Variables.}
 As is standard, the \rref{E-Var} rule works in a context containing more
 than just the used binding for $[[{x}]]$. However, crucially,
 our rule allows only
@@ -1521,18 +1519,18 @@ used. We can see this in the rule by noticing that the context has an unrestrict
 component $[[{omega.G_2}]]$. The $[[{G1}]]$ component might be restricted or might not,
 allowing this rule to apply both for restricted and unrestricted $[[{x}]]$.
 
-\emph{Data constructors.}
+\paragraph{Data constructors.}
 Data constructors $[[{K}]]$ don't have a dedicated typing
 rule. Instead they are typed using the \rref{E-Var}, where they are
 treated as if they were unrestricted variables.
 
-\emph{$\klet$-bindings.}
+\paragraph{Let-bindings.}
 Bindings in a |let| may be for either linear or unrestricted variables.
   We could require all bindings to be linear and to implement unrestricted
   information only using |Ur|, but it is very easy to add a multiplicity
   annotation on |let|, and so we do.
 
-\emph{Local assumptions.}
+\paragraph{Local assumptions.}
 \Rref{E-Let} includes support for local
   assumptions. We thus have the ability to generalise a subset of
   the constraints needed by $[[{e1}]]$ (but not the type variables---no
@@ -1545,7 +1543,7 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 %%   straightforward, yet tedious, to extend data types here to full
 %%   \textsc{gadt}s.
 
-\emph{Existentials.}
+\paragraph{Existentials.}
  We include $[[{exists as. t o= Q}]]$, as
   introduced in \cref{sec:what-it-looks-like}, together with
   the $\kpack$ and $\kunpack$ constructions. See rules~\rref*{E-Pack} and
