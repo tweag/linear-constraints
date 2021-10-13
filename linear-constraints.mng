@@ -349,8 +349,6 @@ the programmer to carefully thread resource tokens.
 To get a sense of the power and the pain of using linear types, consider the
 following function:
 \begin{code}
-read  ::  MArray a ->. Int -> (MArray a, Ur a)   -- defined in the library for |MArray|
-free  ::  MArray a ->. ()                        -- defined in the library for |MArray|
 read2AndDiscard :: MArray a ->. (Ur a, Ur a)
 read2AndDiscard arr0 =
   let  (arr1, x)  = read arr0 0
@@ -422,8 +420,6 @@ concepts, which have been studied independently elsewhere
 With our extension, we can write a new pure version of |read2AndDiscard| which does
 not require explicit threading of the array:
 \begin{code}
-read   :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)  -- defined in the library for |UArray|
-free   :: constraint ((Read n, Write n)) =>. UArray a n -> ()                        -- defined in the library for |UArray|
 read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
 read2AndDiscard arr =
   let   pack x   = read arr 0
