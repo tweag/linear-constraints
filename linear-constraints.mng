@@ -1677,8 +1677,7 @@ For the most part, scaling of wanted constraints is straightforward. The only
 peculiar case is when we scale the additive conjunction $[[{C1&C2}]]$ by
 $[[{omega}]]$, the result is a multiplicative conjunction. The intuition here is
 that when if we have both $[[{omega.C1}]]$ and $[[{omega.C2}]]$, then
-we can offer a choice of $[[{C1}]]$ and $[[{C2}]]$\,--\,that is $[[{C1 &
-  C2}]]$\,--\,$[[{omega}]]$ times, and vice-versa.
+a choice between $[[{C1}]]$ and $[[{C2}]]$ can be made $[[{omega}]]$ times.
 
 We define an entailment relation over wanteds in \Cref{fig:wanted:entailment}.
 Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, as
