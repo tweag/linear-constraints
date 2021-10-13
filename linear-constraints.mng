@@ -1910,7 +1910,7 @@ added to the front of the list.
 context is a subset of the input context ensures that the implication
 fully consumes its assumption and does not leak it to the ambient
 context.
-  \item The~\rref*{S-ImplMany} rules handles unresctricted implictaion.
+  \item The~\rref*{S-ImplMany} rules handles unrestricted implication.
 The conclusion uses its own linear assumption, but none of the other linear
 constraints. This is because, as per~\rref*{C-Impl}, unrestricted
 implications can only use an unrestricted context.
