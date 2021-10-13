@@ -1126,7 +1126,7 @@ partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
 partition arr =
   let  last = length arr - 1
        pack (Ur pivot) = read arr last
-       go :: constraint (RW n) =>. Int -> Int Int .<= constraint (RW n)
+       go :: constraint (RW n) =>. Int -> Int -> Int .<= constraint (RW n)
        go l r
          |  l > r
          =  let pack () = swap arr last l in (Pack l)
