@@ -963,14 +963,14 @@ While the |PArray| reference itself is managed by the garbage collector, the
 pointer it contains points to manually managed memory.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
-ownership of the reference is transferred to the array. Given a
-generic deallocation mechanism for references (so that managed values could
-be safely overwritten), we could
-write:
-%
-> write  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
-%
-Instead of assuming such a mechanism, we instead use the borrowing primitives described below.
+ownership of the reference is transferred to the array. Because the
+content of an array cell is linear, we can't erase it when we write,
+instead we get the old content back. To do so, we use the |exchange|
+primitive
+
+> exchange :: constraint ((RW n, RW p)) =>. a p -> a n -> () .<= constraint ((RW n, RW p))
+
+which exchanges two references. Together with the borrowing primitives described below.
 
 % JP: I propose to cut down the following, since it appears unused in the rest of the paper.
 % (The "quicksort" example is a lot more convincing as an example)
@@ -1081,9 +1081,7 @@ simultaneously, but only one element can be borrowed at a time. To
 solve this problem, we split the array into two slices such that the
 two indices fall in two different slices. Then simply borrow the
 element |i| from the first slice, and |j| from the second slice (using
-|lendMut|).  We exchange them with a primitive function |exchange ::
-(RW n, RW p) =>. a p -> a n -> () .<= (RW n, RW p)| which exchanges
-two references. Finally, we join the two slices back together.
+|lendMut|). Finally, we join the two slices back together.
 
 \begin{code}
 swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
