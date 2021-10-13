@@ -970,7 +970,7 @@ primitive
 
 > exchange :: constraint ((RW n, RW p)) =>. a p -> a n -> () .<= constraint ((RW n, RW p))
 
-which exchanges two references. Together with the borrowing primitives described below.
+which exchanges two references, together with the borrowing primitives described below.
 
 % JP: I propose to cut down the following, since it appears unused in the rest of the paper.
 % (The "quicksort" example is a lot more convincing as an example)
