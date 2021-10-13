@@ -1901,22 +1901,19 @@ constraints are shared between the branches (since additive conjunction is
 generated from case expressions, only one of them is actually going to be
 executed). Both branches must consume exactly the same
 resources.
-  \item Implications are handled by~\rref*{S-ImplOne} and~\rref*{S-ImplMany},
-for solving linear and unrestricted implications, respectively. In
-both cases, the assumption of the implication is split into its
-unrestricted and linear components.
-When solving a linear implication, we union the assumptions with their respective context, and
-proceed with solving the conclusion. Importantly (see
-\cref{sec:simple-constr-solv} below), the linear assumptions are
+  \item The~\rref*{S-ImplOne} rules handles linear implications. The
+    unrestricted and linear components of the assumption are unioned
+    with their respective context when solving the conclusion. Importantly (see
+\cref{sec:simple-constr-solv}), the linear assumptions are
 added to the front of the list.
- The side condition requires that the output
-context is a subset of the input context: this is to ensure that the implication
-actually consumes its assumption and does not leak it to the ambient context.
-Solving unrestricted implications allows only the conclusion of the implication
-to be solved using its own linear assumption, but none of the other linear
-constraints. This is because unrestricted implications use their own
-assumption linearly, but use everything from the ambient context $[[{omega}]]$
-times.
+ The side condition that the output
+context is a subset of the input context ensures that the implication
+fully consumes its assumption and does not leak it to the ambient
+context.
+  \item The~\rref*{S-ImplMany} rules handles unresctricted implictaion.
+The conclusion uses its own linear assumption, but none of the other linear
+constraints. This is because, as per~\rref*{C-Impl}, unrestricted
+implications can only use an unrestricted context.
 \end{itemize}
 
 \subsubsection{An atomic-constraint solver}
@@ -3313,4 +3310,4 @@ $$
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
 % LocalWords:  sequents implicational deallocate deallocating monadic
-% LocalWords:  deallocated instantiations desugars
+% LocalWords:  deallocated instantiations desugars unioned
