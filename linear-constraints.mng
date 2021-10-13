@@ -1983,10 +1983,15 @@ unrestricted and the linear context.
 Consider the following (contrived) \textsc{api}:
 \begin{code}
 class constraint (C)
-
-giveC :: (constraint (C) => Int) -> Int
-useC :: constraint (C) =>. Int
 \end{code}
+
+\vspace{-2ex}\noindent
+\begin{minipage}{0.5\linewidth}
+> giveC :: (constraint (C) => Int) -> Int
+\end{minipage}
+\begin{minipage}{0.5\linewidth}
+> useC :: constraint (C) =>. Int
+\end{minipage}
 |giveC| gives an unrestricted copy of |constraint (C)| to some continuation, while |useC|
 uses |constraint (C)| linearly. Now consider a consumer of this \textsc{api}:
 \begin{code}
