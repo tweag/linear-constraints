@@ -1132,7 +1132,7 @@ partition arr =
             then  let pack () = swap arr l r
                   in go l (r - 1)
             else  go (l + 1) r
-  in pack (go 0 (last - 1))
+  in go 0 (last - 1)
 \end{code}
 \end{minipage}
 %
