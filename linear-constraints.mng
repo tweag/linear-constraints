@@ -506,7 +506,7 @@ The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
 The |read| function in \cref{sec:introduction} consumes the array it
-operate on. Therefore, the same array can no longer be used in further
+operates on. Therefore, the same array can no longer be used in further
 operations: doing so would result in a type error.
 To resolve this, a new name for the same array is produced by each operation.
 
