@@ -611,7 +611,7 @@ There are a few things to notice:
   compile-time tag without needing any dependent types.
 \item The run-time variable representing the array can now be used multiple
   times. Instead of restricting the use of this variable,
-  the linear constraint |constraint(RW n)| now controls access to the
+  the linear constraint |constraint(RW n)| controls access to the
   array.
 \item If we have a single, linear, |constraint (RW n)|
   available, then after |free| there will not be any |constraint (RW n)|
