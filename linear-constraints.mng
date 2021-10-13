@@ -603,8 +603,6 @@ There are a few things to notice:
   the version in \Cref{fig:linear-interface} without linear
   constraints  has type |free :: MArray a ->. ()|.
   The type variable |n| is a type-level tag used to identify the array.
-  \rae{I'm trying to avoid ``location'' because I initially confused ``location'' with
-  ``index'', and our reviewers might, too.}
   Ideally, the linear constraint would refer directly to the
   array value, and have the dependent type |free :: (n :: Array a) -> constraint (RW n) =>. ()|.
   While giving a compile-time name to a function argument is common in
