@@ -1067,9 +1067,9 @@ In addition to the array capabilities, the output constraints also include
 |l| and |r| are components of |n|, so that they can be joined back
 together:
 
-> join :: constraint ((UrC (Slices n l r), RW r, RW l)) =>. PArray a l -> PArray a r -> Ur (PArray a n) .<= constraint (RW n)
+> join :: constraint ((Ur (Slices n l r), RW r, RW l)) =>. PArray a l -> PArray a r -> Ur (PArray a n) .<= constraint (RW n)
 
-Note that the constraint |constraint (UrC (Slices n l r))| is
+Note that the constraint |constraint (Ur (Slices n l r))| is
 unrestricted, which means that it is not \emph{necessary} to join the
 two arrays before deallocating them: they can be deallocated separately.
 
