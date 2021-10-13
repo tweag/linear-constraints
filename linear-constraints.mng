@@ -96,6 +96,7 @@ import GHC.Base
   %% ^^ this suppresses some space. I think lhs2TeX would otherwise use \mathop
 %format spack = "!\kpack"
 %format (at n) = "{@}" n
+%format phantom x = "\phantom{" x "}"
 %endif
 
 %let full = False
@@ -536,6 +537,7 @@ Strict $\klet$ pattern bindings can be desugared into case expressions:
   \begin{subfigure}{.3\linewidth}%
     \noindent%
 \begin{code}
+phantom ( type constraint(RW n) = constraint((Read n, Write n)) )
 new  :: Int -> (MArray a ->. Ur r) ->. Ur r
 write :: MArray a ->. Int -> a -> MArray a
 read :: MArray a ->. Int -> (MArray a, Ur a)
