@@ -120,7 +120,7 @@ newUArray elts k = freshVar $ \ (_ :: Proxy n) ->
 quicksort :: RW n => UArray Int n -> () <= RW n
 quicksort arr =
   if length arr <= 1 then Pack ()
-  else runIdentity $ do Pack pivotIdx <- return (partition arr)
+  else runIdentity $ do Pack pivotIdx <- return (mypartition arr)
                         MkSR (Ur (l, r)) <- return (split arr pivotIdx)
                         (Pack (), Pack ()) <- return (quicksort l, quicksort r)
                         Pack (Ur _) <- return (join l r)
@@ -144,19 +144,17 @@ partition arr =
   in Pack i
 
 mypartition :: RW n => UArray Int n -> Int <= RW n
-mypartition arr | length arr > 1 =
+mypartition arr =
   let last = length arr - 1
       Pack (Ur pivot) = read arr last
-      go :: Int -> Int -> Int
+      go :: RW n => Int -> Int -> Int <= RW n
       go l_index r_index
-        | l_index > r_index = let !(Pack ()) = realswap arr last l_index in l_index
+        | l_index > r_index = let !(Pack ()) = realswap arr last l_index in (Pack l_index)
         | otherwise
         = let Pack (Ur l_val) = read arr l_index in
           if l_val > pivot then let !(Pack ()) = realswap arr l_index r_index in go l_index (r_index - 1)
                            else go (l_index + 1) r_index
-  in
-  Pack $ go 0 (last - 1)
-  | otherwise = error "too short to partition"
+  in go 0 (last - 1)
 
 prop :: [Int] -> Bool
 prop nums = sort nums == newUArray nums (\v@(MkUArray vv) -> quicksort v `seq` Pack (V.toList vv))
