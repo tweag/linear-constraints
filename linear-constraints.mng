@@ -2268,9 +2268,9 @@ contexts in our solver judgements in \cref{sec:constraint-solver}. When
 the solver goes under an implication, the assumptions of the implication are
 added to set of givens. When a new given is added, we record the \emph{level} of
 the implication (how many implications deep the constraint arises from) along
-with the constraint. This is to ensure that in case there are multiple matching
+with the constraint. So that in case there are multiple matching
 givens, the constraint solver selects the innermost one
-(in \cref{sec:constraint-solver} we use an ordered list of linear assumptions
+(in \cref{sec:constraint-solver} we use an ordered list
 for this purpose).
 
 As constraint solving proceeds, the compiler pipeline constructs a
@@ -2331,8 +2331,7 @@ never be required for solving an unrestricted constraint. This is ensured by
 
 They key is to represent unification problems as \emph{unrestricted} equality
 constraints, so a given linear equality constraint cannot be used during type
-inference.  Then, the only way a given linear equality constraint can be used is
-to solve a wanted linear equality. This way, linear equalities require no
+inference.  This way, linear equalities require no
 special treatment, and are harmless.
 
 % \section{Extensions}
@@ -2533,12 +2532,11 @@ parts respectively.
 inference, requiring additional bookkeeping in the solver judgment. The solver
 takes as input a set of \emph{touchable} variables $\overline{\alpha}_{tch}$
 which record the type variables that can be unified at any given time, and
-produces a type substitution $\theta$ as an output (whose domain is a subset of
-the touchable variables).
+produces a type substitution $\theta$ as an output.
 As discussed in \cref{sec:type-inference}, we do not perform type
 inference, only constraint inference. Therefore, our solver need not return a
 type assignment.
-  \item The most important difference is the output of the algorithms. Both
+  \item Both
 OutsideIn and our solver output a set of constraints, $Q_{\mathit{residual}}$ and
 $[[{LCtx_o}]]$ respectively. However, the meaning of these contexts is different.
 OutsideIn's \emph{residual} constraints $Q_{\mathit{residual}}$
@@ -2548,8 +2546,6 @@ of the inference algorithm. We omit these residuals, which means that our
 algorithm cannot infer qualified types.
 Our \emph{output} constraints $[[{LCtx_o}]]$ instead correspond to the part of the
 \emph{linear} givens $[[{LCtx_i}]]$ that were not used in the solution for $[[{C_w}]]$.
-Keeping track of these unused constraints is crucial: ultimately we need to
-make sure that every linear constraint is used.
 
 \item Finally, while OutsideIn has a single kind of conjunction, our constraint
 language requires two: $[[{Q1*Q2}]]$ and $[[{Q1&Q2}]]$. This shows up when
