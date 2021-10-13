@@ -340,7 +340,7 @@ dependently typed programmers can now use linear types with Idris 2.
 All of these systems are vastly different in ergonomics and
 scope. Rust uses dedicated syntax and code generation
 to support management of resources, while Linear Haskell is a
-type system change without any core-language or other back-end support. Linear Haskell
+type system change without any other support from the compiler. Linear Haskell
 is designed to be general purpose, but
 using linear arguments to emulate Rust's ownership model is a painful exercise, requiring
 % the compiler doesn't know how to help, requiring
@@ -439,9 +439,6 @@ suggests how we can get rid of
 the |pack|, too). Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
-\rae{This is a very nice example. And, the way it's phrased around making it
-clear that the array is the same array makes one not worry as much about the
-pack.}
 
 Our contributions are as follows:
 \begin{itemize}
