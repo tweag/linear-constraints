@@ -1099,8 +1099,10 @@ swap arr i j  | i == j   = pack ()
 \subsubsection{In-place quicksort}
 
 As an example of using the machinery defined above, we implement an in-place, pure
-quicksort algorithm.
-
+quicksort algorithm, given in \Cref{fig:quicksort}.
+%
+\begin{figure}
+\maybesmall
 \noindent
 \begin{minipage}[t]{0.5\linewidth}
 \begin{code}
@@ -1114,7 +1116,7 @@ sort arr = let len = length arr in
          in pack ()
 \end{code}
 \end{minipage}
-\begin{minipage}[t]{0.5\linewidth}
+\begin{minipage}[t]{0.4\linewidth}
 \begin{code}
 partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
 partition arr =
@@ -1133,14 +1135,17 @@ partition arr =
   in go 0 (last - 1)
 \end{code}
 \end{minipage}
+\caption{In-place quicksort}
+\label{fig:quicksort}
+\end{figure}
 %
-Since the recursive calls operate on two separate array slices, they can be
-executed non-deterministically (or, indeed, in parallel), as the type system
-guarantees that no data races can occur. The |partition| function is responsible
-for picking a pivot element and reorganising the array elements such that each
-element preceding the pivot will be less than or equal to it, and the elements
-after will be greater than the pivot. Once finished, it returns the index of the
-pivot element.
+The |partition| function is responsible for picking a pivot element and
+reorganising the array elements such that each element preceding the pivot will
+be less than or equal to it, and the elements after will be greater than the
+pivot. Once finished, it returns the index of the pivot element. |sort| then
+splits the array at the pivot element and recursively operates on the two
+slices. These recursive calls can be executed non-deterministically (or, indeed,
+in parallel), as the type system guarantees that no data races can occur.
 %
 
 \section{A qualified type system for linear constraints}
