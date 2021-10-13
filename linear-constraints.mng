@@ -2324,7 +2324,7 @@ When given a linear |constraint(Ord a)|, should we keep it as |constraint(Ord a)
 needs to make a guess, which \textsc{ghc} never does.
 
 To address both of these issues at once, we make the following rule: the
-superclasses of a linear constraint are \emph{never} expanded.
+superclasses of a linear constraint are ignored.
 
 \subsubsection{Equality constraints}
 \label{sec:equality-constraints}
