@@ -895,11 +895,11 @@ n)| represents responsibility (and obligation) to deallocate |n|:
 
 > freeRef :: constraint (RW n) =>. AtomRef a n -> ()
 
-Instead of deallocating the reference, one could transfer ownership
-of the memory location to the garbage collector. This operation is
-sometimes called ``freezing'':
+% Instead of deallocating the reference, one could transfer ownership
+% of the memory location to the garbage collector. This operation is
+% sometimes called ``freezing'':
 
-> freezeRef :: constraint (RW n) =>. AtomRef a n -> Ur a
+% > freezeRef :: constraint (RW n) =>. AtomRef a n -> Ur a
 
 \subsection{Arrays}
 \label{sec:arrays}
