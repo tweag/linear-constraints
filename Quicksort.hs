@@ -121,25 +121,27 @@ quicksort :: RW n => UArray Int n -> () <= RW n
 quicksort arr =
   if length arr <= 1 then Pack ()
   else runIdentity $ do Pack pivotIdx <- return (partition arr)
-                        MkSR (Ur (l, r)) <- if pivotIdx < length arr `div` 2
-                                            then return (split arr (pivotIdx + 1))
-                                            else return (split arr pivotIdx)
+                        MkSR (Ur (l, r)) <- return (split arr pivotIdx)
                         (Pack (), Pack ()) <- return (quicksort l, quicksort r)
                         Pack (Ur _) <- return (join l r)
                         return (Pack ())
 
-partition :: RW n => UArray Int n -> Int <= RW n
+partition :: forall n. RW n => UArray Int n -> Int <= RW n
 partition arr =
-  let   Pack (Ur pivot) = read arr (length arr - 1)
+  let   last = length arr - 1
+        Pack (Ur pivot) = read arr last
         go :: (Int <= RW n) -> [Int] -> Int <= RW n
         go i [] = i
         go (Pack i) (j : js) =
           let   Pack (Ur a_j)    = read arr j
-                i'     = if a_j <= pivot then Pack (i + 1)
-                        else   runIdentity $ do Pack () <- return (realswap arr i j)
-                                                return (Pack i)
+                i'     = if a_j <= pivot
+                        then   runIdentity $ do Pack () <- return (realswap arr i j)
+                                                return (Pack (i + 1))
+                        else Pack i
           in go i' js
-  in  go (Pack 0) [0..length arr-1]
+        !(Pack i) = go (Pack 0) [0..last-1]
+        !(Pack !()) = realswap arr i last
+  in Pack i
 
 mypartition :: RW n => UArray Int n -> Int <= RW n
 mypartition arr | length arr > 1 =
