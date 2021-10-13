@@ -1104,14 +1104,14 @@ two references.\jp{The existence of this is primitive is pretty
   on |a|?}  Finally, we join the two slices back together.
 
 \begin{code}
-swap :: forall a n. RW n =>. PArray a n -> Int -> Int -> () .<= RW n
+swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
 swap arr i j  | i == j   = pack ()
               | i > j    = swap arr j i
               | i < j    =  let   pack (Ur (l, r))  =  split arr (i + 1)
                                   pack ()           =  lendMut l i (\a_i ->
                                                          let pack () = lendMut r (j - (i + 1)) (\a_j ->
                                                            let pack () = exchange a_i a_j in pack ()) in pack ())
-                                  pack (Ur _)       =  join (at n) l r
+                                  pack (Ur _)       =  join l r
                             in pack ()
 \end{code}
 \rae{I had to add some waffling around the return value here so that the constraints get fixed. It's a bit ugly.}
@@ -1125,7 +1125,7 @@ quicksort algorithm.
 \noindent
 \begin{minipage}[t]{0.5\linewidth}
 \begin{code}
-sort :: forall n. constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
+sort :: constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
 sort arr = let len = length arr in
   if len <= 1 then pack ()
   else   let  pack pivotIdx       = partition arr
@@ -1133,13 +1133,10 @@ sort arr = let len = length arr in
                         | otherwise           = pivotIdx
               pack (Ur (l, r))    = split arr splitIdx
               (pack (), pack ())  = (sort l, sort r)
-              pack (Ur _)         = join (at n) l r
+              pack (Ur _)         = join l r
          in pack ()
 \end{code}
 \end{minipage}
-\rae{Why tuple up the two |quicksort|s? Is that necessary? I removed it.}
-\rae{GHC won't be able to infer the |n| argument to |join|. Should we use scoped type variables and say |join @n|?
-This problem also exists in |swap|. I've fixed both.}
 \rae{We need to be careful about whether the pivot ends up in the left sub-list or the right one. Otherwise,
 when the pivot is the smallest element (resp. largest element), the recursion doesn't terminate. This is
 annoying, but I think it's less annoying than splitting the array into three parts (prefix, pivot, suffix).}

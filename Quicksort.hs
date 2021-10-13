@@ -12,6 +12,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FunctionalDependencies #-}
 module Quicksort where
 
 import Prelude hiding ( length, read, Read )
@@ -32,7 +33,7 @@ newtype UArray a n = MkUArray (V.Vector a)
 class Read n
 class Write n
 type RW n = (Read n, Write n)
-class Slices n l r
+class Slices n l r | l r -> n
 
 newtype Ur a = Ur a
   deriving Show
@@ -96,7 +97,7 @@ swap arr i j
                                                                             runIdentity $ do Pack () <- return (exchange pi ai pj aj)
                                                                                              return (Pack ())
                                                                return (Pack ())
-                                 Pack (Ur _) <- return (join @n l r)
+                                 Pack (Ur _) <- return (join l r)
                                  return (Pack ())
 
 realswap :: Show a => RW n => UArray a n -> Int -> Int -> () <= RW n
@@ -116,7 +117,7 @@ newUArray elts k = freshVar $ \ (_ :: Proxy n) ->
 -- >>> quicksort []
 -- No instance for (Read n0) arising from a use of ‘it’
 
-quicksort :: forall n. RW n => UArray Int n -> () <= RW n
+quicksort :: RW n => UArray Int n -> () <= RW n
 quicksort arr =
   if length arr <= 1 then Pack ()
   else runIdentity $ do Pack pivotIdx <- return (partition arr)
@@ -124,7 +125,7 @@ quicksort arr =
                                             then return (split arr (pivotIdx + 1))
                                             else return (split arr pivotIdx)
                         (Pack (), Pack ()) <- return (quicksort l, quicksort r)
-                        Pack (Ur _) <- return (join @n l r)
+                        Pack (Ur _) <- return (join l r)
                         return (Pack ())
 
 partition :: RW n => UArray Int n -> Int <= RW n
