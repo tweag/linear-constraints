@@ -145,16 +145,17 @@ partition arr =
 
 mypartition :: RW n => UArray Int n -> Int <= RW n
 mypartition arr | length arr > 1 =
-  let Pack (Ur pivot) = read arr 0
+  let last = length arr - 1
+      Pack (Ur pivot) = read arr last
       go :: Int -> Int -> Int
       go l_index r_index
-        | l_index > r_index = let !(Pack ()) = realswap arr 0 r_index in r_index
+        | l_index > r_index = let !(Pack ()) = realswap arr last l_index in l_index
         | otherwise
         = let Pack (Ur l_val) = read arr l_index in
           if l_val > pivot then let !(Pack ()) = realswap arr l_index r_index in go l_index (r_index - 1)
                            else go (l_index + 1) r_index
   in
-  Pack $ go 1 (length arr - 1)
+  Pack $ go 0 (last - 1)
   | otherwise = error "too short to partition"
 
 prop :: [Int] -> Bool
