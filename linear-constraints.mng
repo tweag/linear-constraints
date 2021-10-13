@@ -525,7 +525,7 @@ will not actually evaluate the pair. To force evaluation, a strictness annotatio
 Pattern matching in linear $\klet$ bindings must always be strict in Linear Haskell, so writing
 the lazy version would be rejected by the compiler. To simplify the
 presentation, we assume that all patterns in $\klet$ bindings are strict.
-Strict $\klet$ pattern bindings can be desugared into case expressions:
+Strict $\klet$ pattern bindings can be desugared into $\kcase$ expressions:
 |case p of (a, b) -> ()|.
 
 \section{Working With Linear Constraints}
@@ -1760,7 +1760,7 @@ except for the following points of interest:
 
 \emph{Case expressions.}
 Note the use of $[[&]]$ in the conclusion of \rref{G-Case}.
-We require that each branch of a |case| expression use the exact
+We require that each branch of a $\kcase$ expression use the exact
 same (linear) assumptions; this is enforced by combining the
 emitted constraints with $[[&]]$, not $[[*]]$.
 %
@@ -1880,7 +1880,7 @@ conjunction first, then passing the output constraints to the other side.
 The unrestricted context is shared between both sides.
   \item The~\rref*{S-Add} rule handles additive conjunction. The linear
 constraints are shared between the branches (since additive conjunction is
-generated from case expressions, only one of them is actually going to be
+generated from $\kcase$ expressions, only one of them is actually going to be
 executed). Both branches must consume exactly the same
 resources.
   \item The~\rref*{S-ImplOne} rules handles linear implications. The
@@ -2777,8 +2777,8 @@ The complete definition of the desugaring function from
 \Cref{fig:full:desugaring}.
 
 For the sake of concision, we allow ourselves to write nested patterns
-in case expressions of the core language. Desugaring nested patterns
-into atomic case expression is routine.
+in $\kcase$ expressions of the core language. Desugaring nested patterns
+into atomic $\kcase$ expression is routine.
 
 In the complete description, we use a device which was omitted in the
 main body of the article. Namely, we'll need a way to turn every
