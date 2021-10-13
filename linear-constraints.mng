@@ -1095,13 +1095,7 @@ two indices fall in two different slices. Then simply borrow the
 element |i| from the first slice, and |j| from the second slice (using
 |lendMut|).  We exchange them with a primitive function |exchange ::
 (RW n, RW p) =>. a p -> a n -> () .<= (RW n, RW p)| which exchanges
-two references.\jp{The existence of this is primitive is pretty
-  shaky.} \rae{I agree with J-P here. Also: if |write| is implemented
-  in terms of |exchange|, it implies that |write|ing is quite laborious,
-  requiring first writing the value into a temporary cell so that the
-  cell can be exchanged with the target index. I'm far from convinced}
-  \rae{Separately from the above, wouldn't we need some class constraint
-  on |a|?}  Finally, we join the two slices back together.
+two references. Finally, we join the two slices back together.
 
 \begin{code}
 swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
