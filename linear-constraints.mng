@@ -823,9 +823,7 @@ introduced in \cref{sec:introduction}.
 \subsection{Capability constraints}
 \label{sec:atomic-references}
 
-With linear constraints, it is possible to provide a \emph{pure} interface for
-manual memory management, which
-enforces correct deallocation of memory.  Our approach, in the style of Rust, is
+Our approach, in the style of Rust, is
 to represent \emph{ownership} of a memory location, and more specifically,
 whether the reference is mutable or read-only.
 We use the linear constraints |constraint(Read n)| and |constraint(Write n)|,
