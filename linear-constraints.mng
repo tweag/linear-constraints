@@ -1073,16 +1073,8 @@ Note that the constraint |constraint (Ur (Slices n l r))| is
 unrestricted, which means that it is not \emph{necessary} to join the
 two arrays before deallocating them: they can be deallocated separately.
 
-With these building blocks, we can now implement various utility
-functions on arrays, such as swapping two elements of an array.  It is
-not so simple to implement\footnote{Indeed, Rust's implementation uses
-an \emph{unsafe} block.}, because we need two elements of an array
-simultaneously, but only one element can be borrowed at a time. To
-solve this problem, we split the array into two slices such that the
-two indices fall in two different slices. Then simply borrow the
-element |i| from the first slice, and |j| from the second slice (using
-|lendMut|). Finally, we join the two slices back together.
-
+\begin{figure}
+\maybesmall
 \begin{code}
 swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
 swap arr i j  | i == j   = pack ()
@@ -1094,7 +1086,21 @@ swap arr i j  | i == j   = pack ()
                                   pack (Ur _)       =  join l r
                             in pack ()
 \end{code}
-\vspace{-4ex}
+\caption{Swapping two elements of an array}
+\label{fig:swap}
+\end{figure}
+
+
+With these building blocks, we can now implement various utility functions on
+arrays, such as swapping two elements of an array, which is shown in
+\Cref{fig:swap}.  It is
+not so simple to implement\footnote{Indeed, Rust's implementation uses
+an \emph{unsafe} block.}, because we need two elements of an array
+simultaneously, but only one element can be borrowed at a time. To
+solve this problem, we split the array into two slices such that the
+two indices fall in two different slices. Then simply borrow the
+element |i| from the first slice, and |j| from the second slice (using
+|lendMut|). Finally, we join the two slices back together.
 
 \subsubsection{In-place quicksort}
 
