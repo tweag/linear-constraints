@@ -355,3 +355,7 @@ TSWLatexianTemp*
 /linear-constraints.tex
 
 # End of https://www.toptal.com/developers/gitignore/api/latex,direnv,emacs
+#
+
+*.hi
+*.o

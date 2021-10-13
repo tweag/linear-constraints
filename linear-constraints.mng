@@ -94,6 +94,7 @@ import GHC.Base
 %format ! = "!"
   %% ^^ this suppresses some space. I think lhs2TeX would otherwise use \mathop
 %format spack = "!\kpack"
+%format (at n) = "{@}" n
 %endif
 
 %let full = False
@@ -961,7 +962,8 @@ pointer it contains points to manually managed memory.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is transferred to the array. Given a
-generic deallocation mechanism for references, we could
+generic deallocation mechanism for references (so that managed values could
+be safely overwritten), we could
 write:
 %
 > write  :: constraint ((RW n, RW p)) =>. PArray a n -> Int -> a p -> () .<= constraint (RW n)
@@ -1002,14 +1004,14 @@ type system guarantees that the borrowed reference can not be shared, let alone 
 % not possible to leak it out by packing it into |r|, so it's not necessary to
 % wrap the result in |Ur|.
 Indeed, with this \textsc{api}, |constraint(RW n)| and |constraint(RW p)| are
-never simultaneously available. \rae{Even more confused. If |RW n| and |RW p| are never simultaneously available, then how can we ever call |swapRef|? JP: there can be more than one array.}
+never simultaneously available.
 
 > lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 %
 Because the elements of an array can be mutable structures (such as
 other arrays), reading can only be done safely if we can ensure that
 no one else has access to the array while the element is accessed. Otherwise,
-the array, including the element being read could be mutated.
+the array -- including the element being read -- could be mutated.
 Therefore,
 gaining simple read access to an element needs to be done using a
 scoped \textsc{api} as well:
@@ -1051,7 +1053,7 @@ the borrowing freely.
 
 \subsubsection{Slices}
 
-Finally, it is also possible to give a safe interface to array
+It is also possible to give a safe interface to array
 \emph{slices}. A slice represents a part of an array, and allows
 splitting the ownership of the array into multiple disjoint parts to
 be shared between different consumers.  Thanks to the
@@ -1069,10 +1071,10 @@ In addition to the array capabilities, the output constraints also include
 |l| and |r| indeed make up location |n|, so that they can be joined back
 together:
 
-> join :: constraint ((RW r, RW l, UrC (Slices n l r))) =>. PArray a l -> PArray a r -> Ur (PArray a n) .<= constraint (RW n)
+> join :: constraint ((UrC (Slices n l r), RW r, RW l)) =>. PArray a l -> PArray a r -> Ur (PArray a n) .<= constraint (RW n)
 
 Note that the constraint |constraint (UrC (Slices n l r))| is
-unrestricted, which means that it is not \emph{necessary} to join the
+unrestricted (|UrC| stands for ``unrestricted constraint''), which means that it is not \emph{necessary} to join the
 two arrays before deallocating them: they can be deallocated separately.
 
 With these building blocks, we can now implement various utility
@@ -1086,17 +1088,28 @@ element |i| from the first slice, and |j| from the second slice (using
 |lendMut|).  We exchange them with a primitive function |exchange ::
 (RW n, RW p) =>. a p -> a n -> () .<= (RW n, RW p)| which exchanges
 two references.\jp{The existence of this is primitive is pretty
-  shaky.}  Finally, we join the two slices back together.
+  shaky.} \rae{I agree with J-P here. Also: if |write| is implemented
+  in terms of |exchange|, it implies that |write|ing is quite laborious,
+  requiring first writing the value into a temporary cell so that the
+  cell can be exchanged with the target index. I'm far from convinced}
+  \rae{Separately from the above, wouldn't we need some class constraint
+  on |a|?}  Finally, we join the two slices back together.
 
 \begin{code}
-swap :: RW n =>. PArray a n -> Int -> Int -> () .<= RW n
-swap arr i j   | i == j   = arr
-               | i > j    = swap arr j i
-               | i < j    =  let   (l, r)   = split arr (i + 1)
-                                   pack ()  = lendMut l i (\a_i -> lendMut r (j - (i + 1)) (\a_j -> exchange a_i a_j))
-                                   pack' _   = join l r
-                             in pack ()
+swap :: forall a n. RW n =>. PArray a n -> Int -> Int -> () .<= RW n
+swap arr i j
+  | i == j   = pack ()
+  | i > j    = swap arr j i
+  | i < j    =  let   pack (Ur (l, r))  =  split arr (i + 1)
+                      pack ()           =  lendMut l i (\a_i ->
+                                             let pack () = lendMut r (j - (i + 1)) (\a_j ->
+                                               let pack () = exchange a_i a_j
+                                               in pack ())
+                                             in pack ())
+                      pack (Ur _)       =  join (at n) l r
+                in pack ()
 \end{code}
+\rae{I had to add some waffling around the return value here so that the constraints get fixed. It's a bit ugly.}
 
 \subsubsection{In-place quicksort}
 
@@ -1106,33 +1119,47 @@ quicksort algorithm.
 \noindent
 \begin{minipage}[t]{0.5\linewidth}
 \begin{code}
-quicksort :: constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
-quicksort arr =
-  if length arr <= 1 then pack ()
+sort :: forall n. constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
+sort arr = let len = length arr in
+  if len <= 1 then pack ()
   else   let  pack pivotIdx       = partition arr
-              pack (l, r)         = split arr pivotIdx
-              (pack (), pack ())  =
-                (quicksort l, quicksort r)
-              pack' _             = join l r
+              splitIdx  | pivotIdx * 2 < len  = pivotIdx + 1
+                        | otherwise           = pivotIdx
+              pack (Ur (l, r))    = split arr splitIdx
+              (pack (), pack ())  = (sort l, sort r)
+              pack (Ur _)         = join (at n) l r
          in pack ()
 \end{code}
 \end{minipage}
+\rae{Why tuple up the two |quicksort|s? Is that necessary? I removed it.}
+\rae{GHC won't be able to infer the |n| argument to |join|. Should we use scoped type variables and say |join @n|?
+This problem also exists in |swap|. I've fixed both.}
+\rae{We need to be careful about whether the pivot ends up in the left sub-list or the right one. Otherwise,
+when the pivot is the smallest element (resp. largest element), the recursion doesn't terminate. This is
+annoying, but I think it's less annoying than splitting the array into three parts (prefix, pivot, suffix).}
 \begin{minipage}[t]{0.5\linewidth}
 \begin{code}
 partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
 partition arr =
-  let   pack pivot = read arr (length arr - 1)
-        go :: (Int .<= constraint (RW n)) -> [Int] -> Int .<= constraint (RW n)
-        go i [] = i
-        go (pack i) (j : js) =
-          let   a_j    = read arr j
-                i'     = if a_j <= pivot then pack (i + 1)
-                        else   let pack _ = swap arr i j
-                               in (pack i)
-          in go i' js
-  in  go (pack 0) [0..length arr-1]
+  let  pack (Ur pivot) = read arr 0
+       go :: Int -> Int -> Int
+       go lIndex rIndex
+         |  lIndex > rIndex
+         =  let pack () = swap arr 0 rIndex in rIndex
+         |  otherwise
+         =  let pack (Ur lVal) = read arr lIndex in
+            if lVal > pivot
+            then  let pack () = swap arr lIndex rIndex
+                  in go lIndex (rIndex - 1)
+            else  go (lIndex + 1) rIndex
+  in pack (go 1 (length arr - 1))
 \end{code}
 \end{minipage}
+\rae{In the result of |swap| don't we need to match on the |()| in order to consume it? I would
+just edit this myself, but I want a double-check.}
+\rae{Also, the current code for |go| looks too much like an unrolled fold. We can do better.}
+\rae{Actually, I couldn't make any sense of the old code. When I tried it (see Quicksort.hs),
+it didn't work. I've rewritten it.}
 %
 Since the recursive calls operate on two separate array slices, they can be
 executed non-deterministically (or indeed, concurrently), as the type system
