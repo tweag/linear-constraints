@@ -307,7 +307,7 @@ import GHC.Base
   A linear parameter must be consumed exactly once in the body of its
   function. When declaring resources such as file handles and manually
   managed memory as linear arguments, a linear type system can verify
-  these resources are neither duplicated nor forgotten.
+  that these resources are used safely.
   However, writing code with explicit linear arguments requires bureaucracy.
   %
   This paper presents \emph{linear constraints}, a front-end feature for
