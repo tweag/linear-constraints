@@ -1137,7 +1137,7 @@ partition arr =
 \end{minipage}
 %
 Since the recursive calls operate on two separate array slices, they can be
-executed non-deterministically (or indeed, concurrently), as the type system
+executed non-deterministically (or indeed in parallel), as the type system
 guarantees that no data races can occur. The |partition| function is responsible
 for picking a pivot element and reorganising the array elements such that each
 element preceding the pivot will be less than or equal to it, and the elements
