@@ -1120,9 +1120,7 @@ sort :: constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
 sort arr = let len = length arr in
   if len <= 1 then pack ()
   else   let  pack pivotIdx       = partition arr
-              splitIdx  | pivotIdx * 2 < len  = pivotIdx + 1
-                        | otherwise           = pivotIdx
-              pack (Ur (l, r))    = split arr splitIdx
+              pack (Ur (l, r))    = split arr pivotIdx
               (pack (), pack ())  = (sort l, sort r)
               pack (Ur _)         = join l r
          in pack ()
@@ -1138,24 +1136,21 @@ same pivot.}
 \begin{code}
 partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
 partition arr =
-  let  pack (Ur pivot) = read arr 0
+  let  last = length arr - 1
+       pack (Ur pivot) = read arr last
+       go :: constraint (RW n) =>. Int -> Int Int .<= constraint (RW n)
        go lIndex rIndex
          |  lIndex > rIndex
-         =  let pack () = swap arr 0 rIndex in rIndex
+         =  let pack () = swap arr last lIndex in (Pack lIndex)
          |  otherwise
          =  let pack (Ur lVal) = read arr lIndex in
             if lVal > pivot
             then  let pack () = swap arr lIndex rIndex
                   in go lIndex (rIndex - 1)
             else  go (lIndex + 1) rIndex
-  in pack (go 1 (length arr - 1))
+  in pack (go 0 (last - 1))
 \end{code}
 \end{minipage}
-\rae{In the result of |swap| don't we need to match on the |()| in order to consume it? I would
-just edit this myself, but I want a double-check.}
-\rae{Also, the current code for |go| looks too much like an unrolled fold. We can do better.}
-\rae{Actually, I couldn't make any sense of the old code. When I tried it (see Quicksort.hs),
-it didn't work. I've rewritten it.}
 %
 Since the recursive calls operate on two separate array slices, they can be
 executed non-deterministically (or indeed, concurrently), as the type system
