@@ -1139,7 +1139,7 @@ partition arr =
 Since the recursive calls operate on two separate array slices, they can be
 executed non-deterministically (or indeed, concurrently), as the type system
 guarantees that no data races can occur. The |partition| function is responsible
-for picking a pivot element and reorgainising the array elements such that each
+for picking a pivot element and reorganising the array elements such that each
 element preceding the pivot will be less than or equal to it, and the elements
 after will be greater than the pivot. Once finished, it returns the index of the
 pivot element.
@@ -3290,3 +3290,4 @@ $$
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
 % LocalWords:  sequents implicational deallocate deallocating monadic
 % LocalWords:  deallocated instantiations desugars unioned
+% LocalWords:  deterministically
