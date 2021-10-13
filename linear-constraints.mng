@@ -1896,10 +1896,10 @@ presents the rules of the constraint solver.
   \item The~\rref*{S-Mult} rule proceeds by solving one side of a
 conjunction first, then passing the output constraints to the other side.
 The unrestricted context is shared between both sides.
-  \item The~\rref*{S-Add} rule handles additive conjunction. Here, the linear
-constraints are also shared between the branches (since additive conjunction is
+  \item The~\rref*{S-Add} rule handles additive conjunction. The linear
+constraints are shared between the branches (since additive conjunction is
 generated from case expressions, only one of them is actually going to be
-executed). Note that both branches must consume exactly the same
+executed). Both branches must consume exactly the same
 resources.
   \item Implications are handled by~\rref*{S-ImplOne} and~\rref*{S-ImplMany},
 for solving linear and unrestricted implications, respectively. In
