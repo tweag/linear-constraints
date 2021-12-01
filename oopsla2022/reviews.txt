@@ -1,0 +1,249 @@
+OOPSLA 2022 Paper #142 Reviews and Comments
+===========================================================================
+Paper #142 Linear Constraints
+
+
+Review #142A
+===========================================================================
+
+Overall merit
+-------------
+C. Weak Reject
+
+Reviewer expertise
+------------------
+Y. Knowledgeable
+
+Paper summary
+-------------
+This paper presents a linear extension to a Haskell-style language with qualified (constrained) types. Unlike other linear type systems, most linearity annotations aren't explicit, but represented as Haskell-style type class constraints, and as such, their use can be mostly inferred. The operational semantics and its soundness are given by elaboration into Linear Haskell. By exploiting the evidence translation underlying this elaboration, type inference also infers the threading of linear resources. The paper focusses on the constraint mechanism for this type system and presents a solver algorithm for it.
+
+Assessment
+----------
+Pros:
+
++ minimal extension to type class / qualified types mechanism
++ relatively expressive
++ very accessible paper
+
+Cons:
+
+- contrary to claims, operational semantics appears to be ambiguous
+- typing algorithm is incomplete
+- some aspects of the type system remain unclear
+- expressiveness unclear
+- examples only exercise specific uses of an apparently much more general system
+
+The idea presented in this paper is attractive: by rethinking linearity for state-like resources as constraints within a system of qualified types, some of the boilerplate needed in a plain linear type system, such as explicitly threading state through operations, can be avoided. Basically, the identity of the state can be encoded as a phantom type variable with linear constraints on it. Type inference and the evidence translation then take care of threading the linear parameters implicitly. To that end, the type system has to be extended with existential output types, which can carry linear output constraints e.g. for a function. These can/must then be consumed by the caller. The evidence semantics determines the sequencing of the state based on the sequencing of the constraints.
+
+Unfortunately, there are relevant aspects to the system that the idealized calculus abstracts away from and which hence remain unclear, because they are not properly explained either. For example, the language introduces a type `Ur a` that allows unrestricted output from a linear function. This seems essential to the type system. But even after finishing the paper, I did not understand the semantics of this type constructor, which does not appear in the calculus, nor in Linear Haskell, but is only assumed in the evidence translation; see my comments to the authors.
+
+Similarly, I remain uncertain about the semantics of linear constraints in the general case. The formal development argues that linear constraints can be seen as abstract. But that only seems plausible for particular forms of constraints (constraints on resource-identifying phantom types). At the same time, the actual language supports linear contexts of more general form, on arbitrary type terms. What do they mean in this generality, how are they resolved, and is the abstract formalization actually sufficient to handle them?
+
+The motivating examples are limited to examples of linear resources like state or stateful entities as well, where they constrain phantom type variables denoting locations.
+
+There are a few technical shortcomings as well. For one, contrary to what is claimed in the paper, the (declarative) typing rules do not imply a deterministic semantics. The intention is to infer the threading of linear resources based on the flow of linear constraints, and rely on the evidence translation to map that to physical data flow. However, the declarative type system allows both multiple occurrences of a linear constraint and arbitrary reordering of constraints. That implies that context splits are not unique (if identities were assigned to atomic constraints), and hence evidence passing translation and operational semantics aren't either. (That said, the typing _algorithm_ orders constraints and always picks the left-most constraint, but that isn't reflected in the semantics and would require some modifications.)
+
+Another problem is that the typing algorithm turns out to be incomplete. The paper admits as much at the end of Section 6, but does not otherwise mention it. For a type system whose main selling point is inference, this is a rather relevant limitation that I would expect to be communicated more upfront.
+
+Also, is that the reuse of the existing type class mechanism for linear constraints actually isn't as seamless as initially advertised, as it turns out to be incompatible with some of its basic features, such as super-class constraints -- the described solution is to "ignore them", whatever that means.
+
+It also wasn't particularly clear to me what the expressiveness of this system is. The paper claims it's "more general" than Mezzo or ATS, but provides no evidence for that. More interestingly, what is its expressiveness compared to a proper linear type system, or Linear Haskell for that matter? This system does not feature linear tensors or equivalent constructs (I think), can linear constraints replace all those? Or are they just a convenience mechanism on the side that does not replace the real thing? The paper gives the impression as if it was the former, but I find that hard to believe.
+
+Most of these are probably technicalities or issues of presentation that could be fixed. But in its current form, I found the paper lacking, even though the idea looks promising.
+
+Comments for author
+-------------------
+L76: Even after finishing the paper, I did not understand the precise function of the Ur type. For example, what would happen if the type of read2AndDiscard did not wrap its results into Ur? When does Ur have to be used? Only in (the result of?) functions with linear constraints? On all its results? What would it mean to use e.g. `Ur Int`? The evidence translation given in Sec. 7.2 uses it to map types with omega multiplicity, but the Ur type is not part of Linear Haskell AFAICT. So that does not explain what it means either, e.g., in contexts that do not have a multiplicity. Furthermore, the evidence translation would seem to suggest that every type not wrapped in Ur would in fact be interpreted as linear somehow, but that seems backwards-incompatible with plain Haskell? I'm confused.
+
+L210: This obviously is a nit, but why the odd syntax for linear constraints in existentials? Wouldn't it have been natural to write it "exists a1 ... aN. Q =o t", symmetrically to universals?
+
+L296: "because the RW n constraint is linear, passing it suffices to ensure proper sequencing of effects" - Hm, is this actually true? In general, linear constraints impose some order in the typing derivation, but not necessarily a unique one. Nor does that necessarily imply anything about evaluation order. At a minimum, this depends on the formulation of your system, namely that the typing rules indeed impose a strong left-to-right discipline (which is in contrast to HM-typing, so perhaps worth mentioning), and that the evidence translation propagates this sequencing over to the operational semantics. So this deserves a more nuanced argument.
+
+But in fact, even given these properties, I believe the claim is incorrect for the _declarative_ system, see above.
+
+L335: You say that `exchange` is a primitive, but given its type, it has to work for any type constructor `a`. I'm puzzled how such a generic primitive is implementable.
+
+L450: Why is it fine to leave the nature of atomic constraints unspecified? What would happen with an instantiated linear constraint like, say, `C Int`? Can this not occur? (Your Eq a =o Ord a example in Sec. 8.2 seems to suggest that it can.) In general, it is not clear to me what linear constraints mean when involving anything but phantom types. Perhaps I'm missing something.
+
+L480: Definition 5.1 said that `q` denotes atomic constraints, but here you seem to be using it to denote a set of constraints. That's a bit confusing.
+
+L845: "The wrong choice among the constraints will lead the algorithm to fail." - Why? I don't see where it would fail.
+
+L861: If the typing algorithm you have is incomplete, that means that in practical terms, the declarative type system is not usable as a "ground truth" for programmers to reason about. Also, the lack of a complete typing algorithm is a central limitation of the system that the paper should be more upfront about.
+
+L870: I'm aware that the term "desugaring" is often abused this way, but still: a desugaring is a purely syntactic transformation. If knowledge of the typing derivation is required, than it is more adequate to call it elaboration, and the respective feature is more than just syntactic sugar.
+
+L1017: What does it mean that superclasses of a linear constraint are ignored? Does it produce an error if such constraints are given anyway? Or does type checking simply fail if one tries to use a sub-class constraint in a context where a super-class constraint is needed? And it isn't this a serious shortcoming? Even for your motivating example, it would be natural wanting to define Read a => Write a.
+
+L1026: "They key" -> "The key"
+
+L1079: Add a citation for Rust.
+
+L1083: Add a citation for Clean.
+
+
+
+Review #142B
+===========================================================================
+
+Overall merit
+-------------
+A. Accept
+
+Reviewer expertise
+------------------
+Z. Outsider
+
+Paper summary
+-------------
+This paper presents a new system for tracking linearity (linear arguments) in functional programs,
+called linearity constraints, as an alternative to previous approaches such as borrow checking in
+Rust and explicit threading of resource tokens in Linear Haskell. The main goal and innovation of
+this work is in leveraging a type-class constraint system to create a more convenient way for the
+programmer to manage linear arguments: by letting the type-checker do more of the linearity checking than has been previously seen in linear typed languages.
+
+Assessment
+----------
+Strengths:
+  - Overall, I really liked the contributions of this paper, and enjoyed reading it.
+  - I though the research problem was well presented and motivated by the authors, and their
+  solution clearly eases the burden of programming with linear types.
+  - They seem to cover all the bases with the minimal and larger examples, formalism,
+  discussion of base and compound types, multiplicities, constraint inference/solving, and
+  the related work.
+  - The presentation seems to be quite polished, and also accessible to a general PL audience.
+
+Weaknesses:
+  - I think there are a few details that would be nice to see addressed (see my comments below).
+
+Comments for author
+-------------------
+- I appreciated the discussion of the implementation. I think it could have benefited from a quick
+mention of the type-checking performance (timing the modified type-checker) and how the
+performance compares to Linear Haskell. For example, it would be interesting to see how the
+performance of the authors' implementation of the quicksort algorithm using Linear Constraints
+compares to an equivalent implementation in Linear Haskell.
+- I'm curious about the ergonomics of failure in Linear Constraints. Clearly, the system works very
+well when the programs are correct. I would appreciate a short discussion of type-checking errors and how they help steer the programmer back on track. Specifically when linear constraint type errors occur, are the error messages able to effectively isolate the root cause and assist the programmer with hints to fix it?
+- Perhaps you could include the error messages produced by the offending programs on lines #229, #240, and #258 for example.
+
+
+
+Review #142C
+===========================================================================
+
+Overall merit
+-------------
+B. Weak Accept
+
+Reviewer expertise
+------------------
+X. Expert
+
+Paper summary
+-------------
+The paper presents a linear capability/constraint system for safe destructive resource usage in a functional programming language.
+
+Assessment
+----------
+### Pros
+
+- The proposal seems to have good a balance between expressivity and usability.
+
+- Sections 2-4 are reasonably well-written, albeit they only describe the proposed system informally.
+
+- Integration into Haskell.
+
+### Cons
+
+- The formal description of the system (given in Sections 5-7) is sketchy and has much room for improvement.
+
+- The high-level idea of linear capability/constraint as well as its relation to linear types is well known (see below for details).
+
+### Longer discussion
+
+The paper observes that many practical benefits of linear types, such as safe imperative usage of arrays, can be obtained by allowing values (e.g., arrays) to be non-linear and thus allowing multiple references to them, but requiring "capabilities" (or "constraints") that represent the rights to operate on the values to be treated linearly.  This is actually a well-known idea.  First, please see the following papers which were probably the first to propose the idea:
+
+* Karl Crary, David Walker, Greg Morrisett. Typed Memory Management in a Calculus of Capabilities. POPL 1999.
+* Frederick Smith, David Walker, Greg Morrisett. Alias Types. ESOP 2000.
+* David Walker, Greg Morrisett. Alias Types for Recursive Data Structures. TIC 2000.
+
+To make automatic type/capability inference possible, the present paper uses a simpler version that lacks some features like polymorphic capabilities and recursive capabilities that were present in these seminal works.  Note that there were also some early works on inference (with extension to fractional capabilities):
+
+* Tachio Terauchi, Alex Aiken. Witnessing Side-Effects. ICFP 2005.
+* Hirotoshi Yasuoka, Tachio Terauchi. Polymorphic Fractional Capabilities. SAS 2009.
+
+Other related works that should be mentioned are the following papers which point out and exploit the fact that linear capabilities can be lifted (back) to the type level by appropriate existential packing, as done in the present submission as well (the use of existential types for a similar purpose was also already present in the TIC 2000 paper above):
+
+* Chris Hawblitzel. Linear Types for Aliased Resources. MSR Tech Report, 2005.
+* Matthew Fluet, Greg Morrisett, Amal Ahmed. Linear Regions Are All You Need. ESOP 2006.
+
+and the following papers which show that linear capabilities can be used for enforcing high-level resource usage protocols like File I/O (unfortunately, the type system in the PLDI 2002 paper is unsound):
+
+* Robert DeLine, Manuel Fahndrich. Enforcing High-Level Protocols in Low-Level Software. PLDI 2001.
+* Manuel Fahndrich, Robert DeLine. Adoption and Focus: Practical Linear Types for Imperative Programming. PLDI 2002.
+
+Therefore, the high-level idea of linear capabilities/constraints as well as their relation to linear types is well known.
+
+Presentation wise, Sections 2-4 are well written and nicely describe the proposed system, albeit only informally.  I wish that the same level of care was paid to the formal presentation given in Sections 5-7.  In particular, I wish that there was more explanation on the relation $\mathcal{Q} \Vdash \mathcal{Q}'$ and the typing rules in Section 5.
+
+That being said, the paper's design appears to strike a good balance between expressivity and usability.  I also find the integration into Haskell to be a big plus.  While the basic idea was known for many years as mentioned above, as far as I am aware, this paper is the first to integrate the idea into a real programming language.
+
+## Minor comments:
+
+- [l.50] Don't monads retain referential transparency?
+
+- [l.299] "Also note that $\mathit{readRef}$ returns an unrestricted copy of the element..." - Is this really safe?  Wouldn't it allow unsafe duplication of the linear capability that is packed with the return value of $\mathit{readRef}$?"
+
+- [l.335] Should $\mathit{exchange}$ be prefixed by another argument of the type $\mathit{PArray}\:a\:n$?  In its current form, $a$ and $n$ are unbound.
+
+- [l.442] "First-order functions, ... as explained in Section 2." - I cannot find this explanation in Section 2.
+
+- Please give an intuition for the relation $\mathcal{Q} \Vdash \mathcal{Q}'$.  According to the E-Sub rule, it seems that that the relation should roughly read "capabilities represented by $\mathcal{Q}$ can be used as capabilities represented by $\mathcal{Q'}$"?  Regardless, since each simple constraint $\mathcal{Q}$ is some pair $(U,L)$ of a set of atomic constraints $U$ and a multiset of atomic constraints $L$, it would be good if you could describe the relation $\Vdash$ in terms of the contents of the (multi)sets.
+
+- [l.586] "use $q$ many times" -> "use $x$ $\omega\cdot q$ many times"?
+
+- Please provide more explanation of the typing rules.  In particular, I am curious about how the typing rules avoid unsafe duplication of existentially packed linear capabilities (please see also the above comment about $\mathit{readRef}$).
+
+- [l.1026] "They key" -> "The key".
+
+
+
+Review #142D
+===========================================================================
+
+Overall merit
+-------------
+C. Weak Reject
+
+Reviewer expertise
+------------------
+Y. Knowledgeable
+
+Paper summary
+-------------
+The paper presents linear constraints, a front end qualified type system implemented on top of Linear Haskell that allows programming with Mezzo-style capabilities. First, a background on linear Haskell is presented and then the capability system is overviewed by some small examples and a memory ownership application. Then, the declarative system is presented, that is automated by automated constraint inference and whose soundness is ensured by desugaring to Linear Haskell. Finally, the implementation to GHC is described and how the novel linear constraints interact with existing features, e.g., superclasses.
+
+Assessment
+----------
+Pros: 
+- The paper is very well written with various examples introducing the concepts. 
+- The theory of the new features is well established (by desugaring to Linear Haskell). 
+- The system is implemented on a real compiler. 
+
+Cons: 
+- The system is not well motivated. 
+- The advantages of the linear constraints are not clear (is the system more expressive or simpler?)
+
+Comments for author
+-------------------
+The paper is very well written and it clearly presents that Mezzo-style linear programming can be implemented by reduction to Linear Haskell. But, the motivation and the advantages for such a design are not clarified. 
+
+Simplicity: The authors claim that linear constraints decrease the bureaucracy of working with linear types, but this claim is not well justified. For example, comparing the introductory examples of `read2AndDiscard`, indeed in the linear versions, the `arr` argument is not threaded, but this requires pack annotations and a clearly more complex type signature. Thus the complexity is just moved to the types, instead of programs! The paper does not justify why this is better. For example, are the generated type errors easier to understand? 
+
+Compiler Integration: In Section 4 the applications are motivated by non deterministic execution [line 417] and explicit memory allocation instead of garbage collection [line 264]. But this motivation is also not well justified since in Rust the compiler is actually using the static reasoning to avoid a garbage collector, but in this proposed design it is not clarified if the compiler is making use of the capabilities to avoid a garbage collector or performed non deterministic execution. 
+
+Expressiveness: Finally, the paper is not discussing if linear constraints increase the expressiveness of the existing system. Are there any applications that can be expressed not and cannot be expressed with Linear Haskell? 
+
+In short, given that all the theoretic part of this work exists with a goal to implement the known concept of capabilities using GHC-style type classes, a clearer motivation for this goal is required.
