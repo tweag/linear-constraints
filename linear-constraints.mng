@@ -1233,7 +1233,7 @@ constraints.
 
 Let us now turn to constraints themselves. We call constraints such as
 |constraint(Read n)| or |constraint(Write n)| \emph{atomic
-  constraints}. The exact nature of atomic constraints is left
+  constraints}. The exact nature\jp{exact nature -> operational meaning} of atomic constraints is left
 unspecified: the set of atomic constraints is a parameter of our
 qualified type system.
 
