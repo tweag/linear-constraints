@@ -550,7 +550,7 @@ free :: MArray a ->. ()
   \begin{subfigure}{.55\linewidth}
 \begin{code}
 type constraint(RW n) = constraint((Read n, Write n))
-new  :: Int -> (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ⊸ Ur r
+new  :: constraint (Unique) =>. Int -> exists n. UArray a n .<= constraint (RW n)
 write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 free :: constraint (RW n) =>. UArray a n -> ()
@@ -624,15 +624,20 @@ However, we still need to explain how a constraint |constraint (RW n)| can come
 into scope.
 The type of |new| with linear constraints is:
 \begin{code}
-new :: Int -> (forall n. ^^ constraint (RW n) =>. UArray a n -> Ur r) ->. Ur r
+new  :: constraint (Unique) =>. Int -> exists n. UArray a n .<= constraint (RW n)
 \end{code}
-This higher-rank function can be thought of as a computation that allocates an
-array in a \emph{scope}. The scope is given an array with read and write
-capability. The scope must return an unrestricted value to ensure that
-the linear constraint cannot be embedded into the return value. The construction here
-ensures that, within the scope, we can be sure both that there is one
-unique owner of the array at all times, and that the array is freed at the
-end, given that the only way to remove the |constraint(RW n)| constraint is to use |free|.
+\csongor{we need a relevant explanation here}
+
+\begin{code}
+unique :: (Unique =>. Ur r) ->. Ur r
+\end{code}
+%% This higher-rank function can be thought of as a computation that allocates an
+%% array in a \emph{scope}. The scope is given an array with read and write
+%% capability. The scope must return an unrestricted value to ensure that
+%% the linear constraint cannot be embedded into the return value. The construction here
+%% ensures that, within the scope, we can be sure both that there is one
+%% unique owner of the array at all times, and that the array is freed at the
+%% end, given that the only way to remove the |constraint(RW n)| constraint is to use |free|.
 
 We must also ensure that |read| can both promise to operate only on a readable array
 and that the array remains readable afterwards. That is, |read| must both consume
@@ -863,9 +868,9 @@ references.
 
 The type |AtomRef| is the type of references to values of a type |a| at
 location |n|. Allocation of a reference can be done using the
-following function. As with |new|, the return value must be unrestricted.
+following function. % As with |new|, the return value must be unrestricted.
 
-> newRef :: (forall n. ^^ constraint (RW n) =>. AtomRef a n -> Ur b) ⊸ Ur b
+> newRef :: constraint (Unique) =>. exists n. AtomRef a n .<= constraint (RW n)
 
 To read a reference, a simple |constraint(Read)| constraint is demanded, and
 immediately returned. Writing is handled similarly.
@@ -937,7 +942,7 @@ references, including arrays of (mutable) arrays.
 % linear constraints, this is all managed automatically by the compiler.
 
 > data PArray (a :: Location -> Type) (n :: Location)
-> newPArray    :: Int -> (forall n. ^^ constraint (RW n) =>. PArray a n -> Ur b) ⊸ Ur b
+> newPArray :: constraint (Unique) =>. Int -> exists n. PArray a n .<= constraint (RW n)
 
 For this purpose we introduce the type |PArray a n|, where the kind of
 |a| is |Location -> Type|: this way we can easily enforce that each
@@ -951,14 +956,14 @@ An array of arrays of integers would have type |PArray (PArray (AtomRef Int)) n|
 the framework handles nested mutable structures without any additional
 difficulty.
 
-As discussed in \cref{sec:what-it-looks-like}, the scope of |newPArray| returns
-an unrestricted value to ensure that the linear constraint is consumed within
-the scope (since linear values cannot be embedded into an unrestricted value).
-As this is the only introduction form of |constraint (RW n)|, it can safely be
-assumed to be unique within the scope. An alternative design would be to
-require that the scope returns the linear constraint: |forall n. constraint (RW
-n) =>. PArray a n -> b .<= constraint (RW n)|. This version is less flexible,
-because it doesn't allow the scope to deallocate or freeze the array.
+%% As discussed in \cref{sec:what-it-looks-like}, the scope of |newPArray| returns
+%% an unrestricted value to ensure that the linear constraint is consumed within
+%% the scope (since linear values cannot be embedded into an unrestricted value).
+%% As this is the only introduction form of |constraint (RW n)|, it can safely be
+%% assumed to be unique within the scope. An alternative design would be to
+%% require that the scope returns the linear constraint: |forall n. constraint (RW
+%% n) =>. PArray a n -> b .<= constraint (RW n)|. This version is less flexible,
+%% because it doesn't allow the scope to deallocate or freeze the array.
 
 The actual runtime value of a |PArray| is a pointer to a contiguous block of
 memory together with the size of the memory block. This means that the length of the
@@ -1941,9 +1946,12 @@ takes care to use the most recent occurrence of $[[{q}]]$
 the list). To understand why, consider the following example:
 %format ^^ = " "
 \begin{code}
-f = new 10 (\arr -> let   fr  ::  constraint (RW n) =>. ()   ^^
-                          fr  =   free arr
-                          ()  =   fr                         in Ur ())
+f =   unique $
+        let    arr = new 10
+               fr   ::  constraint (RW n) =>. ()   ^^
+               fr   =   free arr
+               ()   =   fr                         in Ur ()
+
 \end{code}
 In this example, the programmer meant for
 |free| to use the |RW n| constraint introduced locally in the type
