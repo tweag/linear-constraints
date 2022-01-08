@@ -5,7 +5,6 @@ pkgs.mkShell
       haskellPackages.lhs2tex
       biber
       ott
-      inotify-tools
       pdftk
       (texlive.combine {
         inherit (texlive)
@@ -34,7 +33,7 @@ pkgs.mkShell
           ;
       })
 
-      ];
+      ] ++ pkgs.lib.optionals (!pkgs.stdenv.isDarwin) [inotify-tools];
 
     FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories =
     # Fonts for Xetex
