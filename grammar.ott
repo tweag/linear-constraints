@@ -40,6 +40,7 @@ parsable :: 'Parsable_' ::=  {{ com Toplevel productions allowed in Tex filterin
 | as  :: :: as
 | binding  :: :: binding
 | G  :: :: g
+| Dup :: :: Dup
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Constraints  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
