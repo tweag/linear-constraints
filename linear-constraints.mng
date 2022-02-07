@@ -1338,20 +1338,27 @@ our system
     \begin{array}{l}
       [[Q ||- Q]] \\
       \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
-      \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists } [[{Q'}]] \text{ and } [[{Q''}]]
-      \text{ such that } [[{Q}]]=[[{Q' * Q''}]] \text{, } [[Q' ||- Q1]] \text{ and } [[Q'' ||- Q2]] \\
-      \text{if } [[Q ||- Empty]] \text{ then there exists } [[{Q'}]] \text{ such that } [[{Q}]]=[[{omega.Q'}]] \\
+      \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists }
+      [[{Q'}]], [[{Qdup}]], \text{ and } [[{Q''}]]
+        \text{ such that } [[Qdup \in Dup]][[{Q}]]=[[{Q' * Qdup * Q''}]] \text{, } [[Q' * Qdup ||- Q1]]
+        \text{ and } [[Qdup * Q'' ||- Q2]] \\
+      \text{if } [[Q ||- Empty]] \text{ then there exist } [[{Q'}]]
+        and [[{Qdup}]] \text{ such that } [[{Q}]]=[[{omega.Q' * Qdup}]] \\
       \text{if } [[Q1 ||- Q1']] \text{ and } [[Q2 ||- Q2']] \text{ then } [[Q1 * Q2 ||- Q1' * Q2']] \\
       \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
       \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[{Q'}]] \text{ such
       that } [[{Q}]] = [[{pi. Q'}]] \text{ and } [[Q' ||- rho . q]] \\
       \text{if } [[Q1 ||- Q2]] \text{ then } [[omega.Q1 ||- Q2]] \\
       \text{if } [[Q1 ||- Q2]] \text{ then for all } [[{Q'}]], [[omega.Q' * Q1 ||- Q2]]
+      \text{if } [[q \in Dup]], then [[1.q ||- 1.q * 1.q]]\\
+      \text{if } [[q \in Dup]], then [[1.q ||- Empty]]
     \end{array}
   $$
 \caption{Requirements for the entailment relation $[[Q1 ||- Q2]]$}
 \label{fig:entailment-relation}
 \end{figure}
+\unsure{TODO: format Qdup, format Qdup in Dup, break lines, define
+  Qdup in Dup}
 
 \begin{definition}[Entailment relation]
   \label{def:entailment-relation}
@@ -1690,24 +1697,31 @@ in assumptions is the subject of work by \citet{quantified-constraints}.}.
   \maybesmall
   \centering
   \drules[C]{$[[Q |- C]]$} {Wanted-constraint entailment}
-  {Dom,Tensor,With,Impl}
+  {Dom,Id,Tensor,With,Impl}
   \caption{Wanted-constraint entailment}
   \label{fig:wanted:entailment}
 \end{figure}
+\unsure{The wanted-constraint entailment figure used to take only one
+  line of rules, but I added one, and now it takes a lot of vertical
+  space. Also, it looks pretty unbalanced. Revisit either to gain
+  vertical space if need, or otherwise, to make it more pleasant to
+  the eye.}
 
 Before we move on to constraint generation proper, let us highlight a few
 technical, yet essential, lemmas about the wanted-constraint
 entailment relation.
 
 \begin{lemma}[Inversion]
-  \label{lem:inversion}
+  \label{lem:inversion}\unsure{revisit the wording of the first
+    sentence when the terminology around the
+    dupable set has been fixed}
   The inference rules of $[[Q |- C]]$ can be read bottom-up as well
   as top-down, as is required of $[[Q1 ||- Q2]]$ in
   \Cref{fig:entailment-relation}. That is:
   \begin{itemize}
-  \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$ and $[[{Q2}]]$
-    such that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
-    $[[{Q}]] = [[{Q1 * Q2}]]$.
+  \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$, $[[{Qdup}]]$ and $[[{Q2}]]$
+    such that $[[Qdup \in Dup]]$, $[[Q1 * Qdup |- C1]]$, $[[Qdup * Q2 |- C2]]$, and
+    $[[{Q}]] = [[{Q1 * Qdup * Q2}]]$.
   \item If $[[Q |- C1 & C2]]$, then $[[Q |- C1]]$ and $[[Q |- C2]]$.
   \item If $[[Q |- pi.(Q2 => C)]]$, then there exists $[[{Q1}]]$ such
     that $[[Q1 * Q2 |- C]]$ and  $[[{Q}]] = [[{pi.Q1}]]$
@@ -1802,6 +1816,10 @@ type system.
 \subsection{Constraint solving}
 \label{sec:constraint-solver}
 
+\unsure{This section will need some slight modification in order to be
+able to solve constraints with the dupable set. This is especially
+true of the atomic constraint solver, I think. Which we can restrict
+to sources of uniqueness.}
 In this section,
 we build a \emph{constraint solver} that proves
 that $[[Q_g |- C]]$ holds, as required by \cref{lem:generation-soundness}.
@@ -2243,6 +2261,7 @@ types, such as $λ^q$, or indeed, \textsc{ghc} Core.
 
 \section{Integrating into \textsc{ghc}}
 
+\unsure{Should we explain how we would implement the sources of uniqueness?}
 One of the guiding principles behind our design was ease of integration with
 modern Haskell. In this section we describe some of the particulars of adding
 linear constraints to \textsc{ghc}.

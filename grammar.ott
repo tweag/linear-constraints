@@ -11,7 +11,7 @@ metavar K  ::= {{ com Data constructors }}
 metavar T  ::= {{ com Type constructors }}
 metavar q  ::= {{ com Atomic constraints }}
 indexvar i, j ::=  {{ com Index variables }}
-indexvar g, w, r, o, ext ::=  {{ com Annotation variables }}
+indexvar g, w, r, o, ext, dup ::=  {{ com Annotation variables }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Grammar  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -309,6 +309,8 @@ formula :: formula_ ::=
 | x \notin G                      ::   :: NotInCtx
 | binding \in G                   ::   :: binding_in
 | G1 = G2                         ::   :: ctx_equal
+| QF \in Dup                      ::   :: Q_in_Dup
+| qF \in Dup                      ::   :: q_in_Dup
 | LCtxF1 \subseteq LCtxF2         ::   :: subset
 | qF \in UCtxF                    ::   :: q_in_UCtx
 | qF \notin UCtxF                 ::   :: q_notin_UCtx
