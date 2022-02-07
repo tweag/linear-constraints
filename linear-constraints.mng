@@ -3048,6 +3048,7 @@ been given}
   \item $[[Qdup' ||- Qdup]]$
   % \item $[[{Q}]] = [[{Q1' * Qdup' * Q2'}]]$
   \end{itemize}
+\end{lemma}
 \begin{proof}
   By the inversion-of-tensor rule from~\ref{fig:entailment-relation},
   we get that ther exits $[[{Q'}]]$, $[[{Qdup'}]]$, and $[[{Q2'}]]$,
