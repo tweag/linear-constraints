@@ -808,6 +808,84 @@ overusing = (useC, useC)
 % not be able to consume the |constraint (Open h)| constraint
 % linearly.
 
+\subsection{Source of uniqueness}
+
+A linear function makes a promise about how it's going to use its argument, but
+does not get any guarantees about how the result it returns is going to be used.
+The caller may use the linear function's result unrestrictedly.  This poses a
+challenge for implementing libraries that rely on having a unique pointer to
+some resource, such as safe mutable arrays, because the obvious definition of a
+constructor can immediately be misused, violating the assumption of uniqueness.
+%
+\begin{code}
+new :: Int -> MArray a
+
+bad = let arr = new 5 in (arr, arr)
+\end{code}
+%
+A way to guarantee that no such duplication can occur is to allocate the array
+and pass it to a linear continuation function  that returns an unrestricted
+value (sometimes called the ``scope'' of the array).
+%
+\begin{code}
+new :: Int -> (MArray a ->. Ur r) ->. Ur r
+\end{code}
+%
+This way, there will be a unique reference to the array inside of the
+scope, and the array is guaranteed to be freed or frozen, since the
+function cannot return it, as it returns an unrestricted value.
+
+This technique is not only cumbersome, but also inflexible. An existing array
+can only be used in the scope of a new array if they are both freed or frozen
+inside the inner scope, since neither array can be returned from it. In
+practice, this means that array allocations happen in one place, and helper
+functions cannot allocate short-lived auxiliary arrays with this interface.
+
+A potential workaround is to have an additional way of allocating an array, if
+another array already exists.
+\begin{code}
+newBeside :: MArray b ->. Int -> (MArray a, MArray b)
+\end{code}
+This function uses another array as a ``source of uniqueness'', which it
+returns, along with a newly allocated array. The intuition is that the existence
+of the other array is a proof that the |newBeside| function is called in a
+linear continuation passed on to the |new| function above. In this continuation,
+the |MArray b| value is guaranteed to be used linearly, so the result of
+|newBeside| is also guaranteed to be used linearly.
+%
+What if there's another library that defines a unique value in a similar way?
+Such a value should also be usable as a source of uniqueness, but the current
+framework would require creating a new version of |newBeside| that allocates
+beside that value.
+
+To avoid this combinatorial explosion of allocation functions, we propose a
+unified source of uniqueness in the form of a linear constraint, called
+|Unique|. The only way to bring a witness of |Unique| into existence is to apply
+the same continuation technique to delimit a linear scope.
+%
+\begin{code}
+unique :: (Unique =>. Ur r) ->. Ur r
+\end{code}
+%
+Having |Unique| in the context of a function thus guarantees that the function
+will be used linearly, because |Unique| is guaranteed to be used linearly in the
+continuation. Array allocation can be done in a direct style now.
+%
+\begin{code}
+new :: Unique =>. Int -> MArray a
+\end{code}
+%
+The result of |new 5| must be used linearly, otherwise it
+couldn't use the |Unique| linear constraint.
+
+Notice that |new| does not return |Unique|, it simply consumes it. So how could
+a single |Unique| be used to allocate two fresh arrays? |Unique| is a special
+linear constraint that may freely be duplicated. This means that when allocating
+two arrays, the source of uniqueness is simply duplicated. The intuition is that
+if a proof of uniqueness exists, this proof can be used several times, but
+crucially, not |omega| times. This means that |Unique| is still only consumable
+by functions whose result is used linearly, but multiple functions can use a
+single source of uniqueness by duplicating it first.
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
 Let us now turn back to the more substantial example introduced in
