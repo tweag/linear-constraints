@@ -3128,8 +3128,8 @@ been given}
   \end{itemize}
 \end{lemma}
 \begin{proof}
-  By the inversion-of-tensor rule from~\ref{fig:entailment-relation},
-  we get that ther exits $[[{Q'}]]$, $[[{Qdup'}]]$, and $[[{Q2'}]]$,
+  By the inversion-of-tensor rule from~\cref{fig:entailment-relation},
+  we get that ther exists $[[{Q'}]]$, $[[{Qdup'}]]$, and $[[{Q2'}]]$,
   such that
   \begin{itemize}
   \item $[[{Q}]] = [[{Q' * Qdup' * Q2'}]]$
@@ -3145,17 +3145,29 @@ been given}
   \end{itemize}
   Observe the following
   \begin{itemize}
-  \item $[[Q'' \in Dup]]$ (because of the requirements
-    of~\ref{fig:entailment-relation})
-    \begin{itemize}
-    \item therefore $[[Qdup'' * Q'' * Qdup' \in Dup]]$; let's
-      write $[[{Qdup'''}]] = [[{Qdup'' * Q'' * Qdup'}]]$
-    \end{itemize}
+  \item $[[Qdup'' * Q'' \in Dup]]$ (because of the requirements
+    of~\cref{fig:entailment-relation}). Let's write
+    $[[{Qdup'''}]] = [[{Qdup'' * Q''}]]$.
   \item $[[{Q}]] = [[{Q1' * Qdup''' * Q2'}]]$
-  \item Due to~\cref{lem:dup-weakening}, we have
+  \item We have
     \begin{itemize}
-    \item $[[Q1' * Qdup''' ||- Q1]]$
+    \item $[[Q1' * Qdup''' ||- Q1]]$. Because
+      \begin{itemize}
+      \item $[[{Q1' * Qdup'''}]] = [[{Q' * Qdup'}]]$
+      \item therefore $[[Q1' * Qdup''' ||- Q1 * Qdup]]$
+      \item by~\cref{lem:dup-weakening}, and by transitivity of the
+        entailment relation (per~\cref{fig:entailment-relation}), we
+        can drop $[[{Qdup}]]$ from the conclusion.
+      \end{itemize}
+    \item $[[Qdup''' ||- Qdup']]$ (by definition of $[[{Qdup'''}]]$)
     \item $[[Qdup''' * Q2' ||- Q2]]$
+      \begin{itemize}
+      \item By tensoring together, per~\cref{fig:entailment-relation},
+        $[[Qdup''' ||- Qdup']]$ and $[[Q2' ||- Q2']]$, we get
+        $[[Qdup''' * Q2' ||- Qdup' * Q2']]$
+      \item then we get the desired result by transitivity of the
+        entailment relation.
+      \end{itemize}
     \end{itemize}
   \end{itemize}
 
@@ -3180,7 +3192,20 @@ been given}
       required.
     \end{itemize}
 
-  \item Suppose $[[Q |- pi.(Q2 => C)]]$, then there are two cases\unsure{todo}
+  \item Suppose $[[Q |- pi.(Q2 => C)]]$, then there are two cases
+    \begin{itemize}
+    \item either it is the conclusion of a \rref*{C-Impl} rule,
+      and the result is immediate.
+    \item or it is the result of a \rref*{C-Dom} rule, then, there
+      exists $[[{Q'}]]$, such that $[[Q ||- Q']]$ and
+      $[[Q' |- pi.(Q2 => C)]]$.
+
+      By induction, there exists $[[{Q1'}]]$ such that $[[Q1' * Q2 |-
+      C]]$ and $[[{Q'}]] = [[{pi.Q1'}]]$,
+      by~\cref{fig:entailment-relation}, there exists $[[{Q1}]]$ such
+      that $[[{Q}]] = [[{pi.Q1}]]$ and $[[Q1 ||- Q1']]$. Hence $[[Q1 *
+      Q2 ||- Q1' * Q2]]$, which lets us conclude with \rref*{C-Dom}.
+    \end{itemize}
   \end{itemize}
 
   For $[[Q |- C1 * C2]]$ we have the following cases:
@@ -3192,18 +3217,25 @@ been given}
   \item or it is the result of a \rref*{C-Dom} rule, in which case
     there is $[[{Q'}]]$ such that $[[Q ||- Q']]$ and $[[Q' |- C1 * C2]]$.
 
-    By induction, we have that there exist $[[{Q1}]]$, $[[{Qdup}]]$, and
-    $[[{Q2}]]$, such that $[[Qdup \in Dup]]$, $[[Q1 * Qdup |- C1]]$,
-    $[[Qdup * Q2 |- C2]]$, and $[[{Q'}]] = [[{Q1 * Qdup * Q2}]]$.
+    By induction, there exist $[[{Q1'}]]$, $[[{Qdup'}]]$, and
+    $[[{Q2'}]]$, such that $[[Qdup' \in Dup]]$, $[[Q1' * Qdup' |- C1]]$,
+    $[[Qdup' * Q2' |- C2]]$, and $[[{Q'}]] = [[{Q1' * Qdup' * Q2'}]]$.
 
     Then~\cref{lem:transitive-tensor-decomposition}, gives us
-    $[[{Q1'}]]$, $[[{Qdup'}]]$, and $[[{Q2'}]]$ such that
+    $[[{Q1}]]$, $[[{Qdup}]]$, and $[[{Q2}]]$ such that
     \begin{itemize}
-    \item $[[{Q}]] = [[{Q1'* Qdup' * Q2'}]]$
-    \item $[[Q1' * Qdup' ||- Q1]]$
-    \item $[[Qdup' * Q2' ||- Q2]]$
+    \item $[[{Q}]] = [[{Q1* Qdup * Q2}]]$
+    \item $[[Qdup \in Dup]]$
+    \item $[[Q1 * Qdup ||- Q1']]$
+    \item $[[Qdup * Q2 ||- Q2']]$
+    \item $[[Qdup ||- Qdup']]$
     \end{itemize}
-    Posing $[[{Qdup''}]] = [[{Qdup' * Qdup}]]$\unsure{to finish}
+    By~\ref{lem:dup-contraction}, we can further deduce that
+    \begin{itemize}
+    \item $[[Q1 * Qdup ||- Q1' * Qdup']]$
+    \item $[[Qdup * Q2 ||- Qdup' * Q2']]$
+    \end{itemize}
+    Which concludes the proof, by the \rref*{C-Dom} rule
   \end{itemize}
 \end{proof}
 
