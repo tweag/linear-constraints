@@ -1,0 +1,153 @@
+-*- org -*-
+
+We thank the reviewers for their time and enthusiasm for the direction
+of our research. We are pleased that the reviewers generally agree
+that this paper is accessible and novel:
+
+Review A: “very accessible paper” Review B: “The presentation seems to
+be quite polished, and also accessible to a general PL audience.”
+Review C: “as far as I am aware, this paper is the first to integrate
+the idea into a real programming language.” Review D: “The paper is
+very well written with various examples introducing the concepts”
+
+In response to these helpful reviews, we will make the following changes, to be elaborated below:
+
+    - We will explain the relationship -- up front, in our contribution
+      bullets -- between our declarative system and our algorithmic one,
+      including the coherence requirement for evidence which ensures
+      that the semantics is deterministic.
+    
+    - We will clarify that linear constraints are a conservative extension of Linear Haskell.
+    
+    - We will provide a more thorough explanation of Linear Haskell,
+      and hope that this will clear several misunderstandings (for
+      instance how Ur works, see below).
+    - We will better trace the origin of the ideas which led to the
+      present work, as well as acknowledge prior art, as suggested by
+      review C.
+
+We now address the different points for discussion highlighted in the reviews:
+Relationship between the declarative system and our incomplete algorithm (Review A)
+
+The declarative system indeed accepts more programs than our algorithm
+does. The algorithm is deliberately incomplete: this is what is needed
+to make the algorithm compatible with the existing implementation of
+the constraint solver in GHC [Vytiniotis et al. 2011]. The
+incompleteness of the type inference algorithm has been a feature of
+Haskell formalisations for some time. [Vytiniotis et al. 2011],
+Section 6, has an in-depth discussion of this design.
+
+It is true, as well, that one term could have several type
+derivations, where each yields a different desugaring. Even though the
+inference algorithm is deterministic, given f :: A =o Int and g :: A
+=o Bool, the algorithm will choose different instantiations for f and
+g in (f, g) and (g, f). If the instantiations were materially
+different, this would be quite bad. So we don’t want to rely on the
+algorithm’s determinism alone. Instead we require that linear
+constraint be coherent (quite like type classes already do in
+Haskell): that is, we impose that every permutation of the evidence of
+various instances of the same constraints A are equivalent. This
+constraint ought to have been described in the paper, and used to. We
+will restore it.  Ur and linear logic connectives (Review A)
+
+The data type Ur is a container for an unrestricted value; it is useful for storing an unrestricted value in an otherwise linear context. Datatypes in Linear Haskell store their fields linearly by default; this treatment includes the built-in datatypes, such as lists and tuples. Accordingly, in a function f :: (Int, Bool) -o Double, the Int and the Bool must be used exactly once. By contrast, Ur stores its argument without restriction: g :: Ur Int -o Double can use the Int any number of times.
+
+It may be helpful to think about the Church-encodings of these types, which may be easier to understand than the behavior of the always-complex case expression:
+
+    - The type (a, b) is isomorphic to a function of type (a -o b -o
+      r) -o r.
+    - The type Ur a is isomorphic to a function of type (a -> r) -o
+      r. In the encoding of Ur a, note that the value of type a has no
+      restriction on it. This is exactly what is meant by the fact
+      that its field is stored in an unrestricted manner.
+
+It might be helpful also to know that Ur is the same connective as !
+in linear logic. In the Linear Haskell paper it is called
+Unrestricted. Likewise (a, b) is the same connective as a ⊗ b.
+Relationship to Linear Haskell (Reviews A and D)
+
+The current paper proposes a conservative extension to the design of
+Linear Haskell. All constructs available in Linear Haskell
+(e.g. tensors) remain available here. Our extension can be seen as a
+desugaring to Linear Haskell. One can convert every program written
+with Linear Constraints into a Linear Haskell by passing capabilities
+explicitly. In this sense, linear constraints have the same
+expressivity as Linear Haskell.-Linear constraints make programs
+shorter, though (this parallels the status of typeclasses, which let
+the compiler implicitly infer non-linear evidence-passing). We will
+clarify this point in the paper.  Unspecified constraint domain
+(Review A)
+
+We used the phrase “unspecified nature” to mean that the constraint
+domain was a parameter of the system. Any concrete domain that
+verifies the laws from Figure 4 (L501) will be a valid
+instantiation. Presumably such a domain will contain ground
+constraints. We intend to remove the word “unspecified”, which was
+evidently ambiguous. To be clear, our system fully supports ground
+constraints like C Int.  Integration with existing class system
+(Review A)
+
+Our paper describes linear constraints, an extension to the existing
+system of qualified types. Haskell’s type class constraints are one
+form of constraint, but type class constraints are essentially
+orthogonal to linear constraints. Our choice of syntax means that
+users might try to use a class constraint linearly -- and so we must
+offer some semantics of this combination of features -- but we do not
+expect useful programs to use linearity with class constraints. We
+will clarify this in our revisions.  Further evaluation (Review B)
+
+We can further details from our implementation, including the sorts
+Complexity in types (Review D)
+
+While it is true that our examples do move some complexity into types,
+we can then simplify further, via the work in [Eisenberg et
+al. 2021]. In other words, we have reduced challenges around linear
+types into a now-solved problem around existential types. We have
+chosen not to include this second step in our examples so as to keep
+the focus of our paper on linear constraints, not the complexities of
+inferring packs and unpacks of existential types.  Smaller comments
+from Review A
+
+L210: We struggled with this syntax. We don’t wish to reuse =o because
+=o denotes a function (operationally) or an implication
+(logically). In a return type, we want neither; instead, we want a
+pair (operationally) or a conjunction (logically). So we need some new
+syntax. We considered a backwards arrow like o= but were worried about
+misleading connotations of it. The symbol we eventually chose is that
+which denotes the non-commutative tensor in non-commutative logic. A
+concrete suggestion for improvement is welcome.
+
+L335: indeed exchange can’t have an unqualified type like this. In
+practice it is a method of a type class, and is only implemented when
+a is AtomRef or PArray. We skipped these details because we believe
+they are more distracting than enlightening.
+
+L845: If the use of free in the right-hand side of the definition of
+fr used the RW n constraint from the outer context, the local RW n
+constraint would go unused and the call of fr on the line below would
+have no RW n left in scope.
+
+L861: In retrospect, we regret our choice of words around “ground
+truth” to describe the declarative system. The declarative system
+serves to show how programmers would not have to worry about the
+intricate details of, say, context splitting in order to understand
+their programs, but the algorithm is really what informs the final
+semantics of their programs. (TODO: double-check this statement! In
+particular, “regret”.)
+
+L1017: As we will expand in our revisions, ignoring a superclass
+constraint means that, if we have C in scope as a linear constraint
+and C normally implies other constraints via the superclass relation,
+those implications do not hold linearly. For example:
+
+f :: Ord a =o a -> Bool
+f x = x == x
+
+This would fail to type-check, because a linear Ord a constraint does not imply Eq a.
+Smaller comment from Review C
+
+[l.299]: The capability returned with readRef is not
+unrestricted. That is, the Ur contains the a, but not the
+capability. Note also that a linear constraint is used only when the
+constrained function is used in a linear context, so we can be sure
+that our threading of capabilities does not allow duplication.
