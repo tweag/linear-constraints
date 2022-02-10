@@ -6,6 +6,7 @@ pkgs.mkShell
       biber
       ott
       pdftk
+      entr
       (texlive.combine {
         inherit (texlive)
           # basic toolbox
@@ -33,7 +34,7 @@ pkgs.mkShell
           ;
       })
 
-      ] ++ pkgs.lib.optionals (!pkgs.stdenv.isDarwin) [entr];
+      ];
 
     FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories =
     # Fonts for Xetex
