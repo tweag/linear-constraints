@@ -92,6 +92,8 @@ import GHC.Base
 %format a_n
 %format an = a_n
 %format ^^ = "\,"
+%format e1
+%format e2
 %
 %format ! = "!"
   %% ^^ this suppresses some space. I think lhs2TeX would otherwise use \mathop
@@ -369,10 +371,7 @@ Notice that the |read| function consumes the array and returns a
 fresh array, to be used in future operations. Operationally, the array remains
 the same, but each operation assigns a new name to it, thus facilitating tracking
 references statically. Finally, |free| consumes the array without returning a
-new one, statically guaranteeing that it can no longer be used.%
-\footnote{We assume that all pattern bindings in $\klet$-expressions are
-\emph{strict}. This ensures that the array actually gets freed. We discuss this
-point in \cref{sec:linear-types}.}
+new one, statically guaranteeing that it can no longer be used.
 The values |x| and |y| read from the array are returned; their
 types include elements wrapped by the |Ur|
 (pronounced ``unrestricted'') type, allowing them to be used
@@ -518,16 +517,16 @@ capabilities (i.e., having read or write access) be linear constraints. Once
 these capabilities are consumed, the array can no longer be read from or written
 to without triggering a compile time error.
 
-In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
-in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which means that
-|let  (a, b) = p in ()|
-will not actually evaluate the pair. To force evaluation, a strictness annotation can be added:
-|let  ^^ !(a, b) = p in ()|.
-Pattern matching in linear $\klet$ bindings must always be strict in Linear Haskell, so writing
-the lazy version would be rejected by the compiler. To simplify the
-presentation, we assume that all patterns in $\klet$ bindings are strict.
-Strict $\klet$ pattern bindings can be desugared into $\kcase$ expressions:
-|case p of (a, b) -> ()|.
+% In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
+% in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which means that
+% |let  (a, b) = p in ()|
+% will not actually evaluate the pair. To force evaluation, a strictness annotation can be added:
+% |let  ^^ !(a, b) = p in ()|.
+% Pattern matching in linear $\klet$ bindings must always be strict in Linear Haskell, so writing
+% the lazy version would be rejected by the compiler. To simplify the
+% presentation, we assume that all patterns in $\klet$ bindings are strict.
+% Strict $\klet$ pattern bindings can be desugared into $\kcase$ expressions:
+% |case p of (a, b) -> ()|.
 
 \section{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
@@ -690,7 +689,8 @@ In order to simplify extracting out the payload of an existential, however, we
 introduce a new syntax |let x := f args|: this notation means that the result
 of |f args| is un|pack|ed, putting its payload in |x|. The |:=| notation also
 denotes a \emph{strict} binding, necessary for binding the type variables and
-assuming the constraints carried with |f args|.
+assuming the constraints carried with |f args|; it can be understood as
+syntactic sugar for a |case| expression.
 We have now seen all the ingredients needed to write
 the |read2AndDiscard| example as in \cref{sec:introduction}.
 
@@ -815,8 +815,8 @@ overusing = (useC, useC)
 
 \subsection{Source of uniqueness}
 
-A linear function makes a promise about how it's going to use its argument, but
-does not get any guarantees about how the result it returns is going to be used.
+A linear function makes a promise about how it is going to use its argument, but
+linearity imposes no restrictions how a function -- or its result -- is going to be used.
 The caller may use the linear function's result unrestrictedly.  This poses a
 challenge for implementing libraries that rely on having a unique pointer to
 some resource, such as safe mutable arrays, because the obvious definition of a
@@ -846,6 +846,7 @@ inside the inner scope, since neither array can be returned from it. In
 practice, this means that array allocations happen in one place, and helper
 functions cannot allocate short-lived auxiliary arrays with this interface.
 
+\rae{This next bit should be cut, I think.}
 A potential workaround is to have an additional way of allocating an array, if
 another array already exists.
 \begin{code}
@@ -882,15 +883,19 @@ new :: Unique =>. Int -> MArray a
 %
 The result of |new 5| must be used linearly, otherwise it
 couldn't use the |Unique| linear constraint.
+\rae{I'm lost here. How does this eliminate |bad|, above? Ah. We need
+a linear |let|, too. Maybe we already have a linear |let|. But I don't
+think our reader knows this.}
 
-Notice that |new| does not return |Unique|, it simply consumes it. So how could
+Notice that |new| does not return |Unique|; it simply consumes it. So how could
 a single |Unique| be used to allocate two fresh arrays? |Unique| is a special
 linear constraint that may freely be duplicated. This means that when allocating
-two arrays, the source of uniqueness is simply duplicated. The intuition is that
-if a proof of uniqueness exists, this proof can be used several times, but
-crucially, not |omega| times. This means that |Unique| is still only consumable
+two arrays, the source of uniqueness is simply duplicated.
+If a proof of uniqueness exists, this proof can be used several times, but --
+crucially -- not |omega| times. This means that |Unique| is still only consumable
 by functions whose result is used linearly, but multiple functions can use a
 single source of uniqueness by duplicating it first.
+
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
 Let us now turn back to the more substantial example introduced in
@@ -1169,13 +1174,13 @@ two arrays before deallocating them: they can be deallocated separately.
 \maybesmall
 \begin{code}
 swap :: constraint(RW n) =>. PArray a n -> Int -> Int -> () .<= constraint(RW n)
-swap arr i j  | i == j   = pack ()
-              | i > j    = swap arr j i
-              | i < j    =  let   pack (Ur (l, r))  =  split arr (i + 1)
-                                  pack ()           =  lendMut l i (\a_i ->
-                                                         let pack () = lendMut r (j - (i + 1)) (\a_j ->
-                                                           let pack () = exchange a_i a_j in pack ()) in pack ())
-                                  pack (Ur _)       =  join l r
+swap arr i j  | i == j   =  pack ()
+              | i > j    =  swap arr j i
+              | i < j    =  let   Ur (l, r)  :=  split arr (i + 1)
+                                  ()         :=  lendMut l i (\a_i ->
+                                                         let () := lendMut r (j - (i + 1)) (\a_j ->
+                                                           let () := exchange a_i a_j in pack ()) in pack ())
+                                  Ur _       :=  join l r
                             in pack ()
 \end{code}
 \caption{Swapping two elements of an array}
@@ -1207,10 +1212,10 @@ quicksort algorithm, given in \Cref{fig:quicksort}.
 sort :: constraint (RW n) =>. UArray Int n -> () .<= constraint (RW n)
 sort arr = let len = length arr in
   if len <= 1 then pack ()
-  else   let  pack pivotIdx       = partition arr
-              pack (Ur (l, r))    = split arr pivotIdx
-              (pack (), pack ())  = (sort l, sort r)
-              pack (Ur _)         = join l r
+  else   let  pivotIdx           :=  partition arr
+              Ur (l, r)          :=  split arr pivotIdx
+              (pack (), pack ()) =   (sort l, sort r)
+              Ur _               :=  join l r
          in pack ()
 \end{code}
 \end{minipage}
@@ -1218,16 +1223,16 @@ sort arr = let len = length arr in
 \begin{code}
 partition :: constraint (RW n) =>. UArray Int n -> Int .<= constraint (RW n)
 partition arr =
-  let  last = length arr - 1
-       pack (Ur pivot) = read arr last
+  let  last     =   length arr - 1
+       Ur pivot :=  read arr last
        go :: constraint (RW n) =>. Int -> Int -> Int .<= constraint (RW n)
        go l r
          |  l > r
-         =  let pack () = swap arr last l in (pack l)
+         =  let () := swap arr last l in (pack l)
          |  otherwise
-         =  let pack (Ur lVal) = read arr l in
+         =  let Ur lVal := read arr l in
             if lVal > pivot
-            then  let pack () = swap arr l r
+            then  let () := swap arr l r
                   in go l (r - 1)
             else  go (l + 1) r
   in go 0 (last - 1)
@@ -1244,6 +1249,11 @@ pivot. Once finished, it returns the index of the pivot element; |sort| then
 splits the array at the pivot element and recursively operates on the two
 slices. These recursive calls can be executed non-deterministically (or, indeed,
 in parallel), as the type system guarantees that no data races can occur.
+\rae{I'm not sure I believe this last claim about parallel execution. Well,
+I do think these can be executed in parallel, but I'm not convinced that Haskell
+supports doing this in a lazy pattern match. If we want to do this, I think we
+should probably develop some kind of |par| construct that makes the parallelism
+explicit.}
 %
 
 \section{A qualified type system for linear constraints}
@@ -1508,7 +1518,7 @@ contexts is always satisfied.
   [[{x}]], [[{y}]] \quad \text{Expression vars} \qquad
   [[T]] \quad \text{Type constructors} \qquad
   [[{K}]] \quad \text{Data constructors} \\
-  \begin{array}{lcll}
+  \begin{array}[b]{lcll}
     % [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
     % [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
     % [[T]] & \bnfeq & \ldots & \text{Type constructors} \\
@@ -1524,7 +1534,8 @@ contexts is always satisfied.
                      e2]] \bnfor [[{case_pi e of { alts }}]] &\\
                  &\bnfor & [[let_pi
                      x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
-  \end{array}
+  \end{array} \\[1ex]
+  \text{\emph{Notation}: |let x := e1 in e2| stands for $[[case_1 e1 of { pack x -> e2 }]]$}
   \end{array}
   $$
   Context scaling $[[{pi.G}]]$ and addition of contexts $[[{G1+G2}]]$ is defined as follows:

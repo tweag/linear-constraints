@@ -175,7 +175,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | K                      ::   :: DataCon
 | \ x . e                ::   :: Lam
 | e1 e2                  ::   :: App
-| pack e                 ::   :: Pack
+| pack                   ::   :: Pack
 | unpack x = e1 in e2    ::   :: Unpack
 | LET x = e1 in e2       ::   :: Let
 | LET x : s = e1 in e2   ::   :: LetSig
