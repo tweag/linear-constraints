@@ -86,6 +86,7 @@ import GHC.Base
 %format pack' = "\kpack!"
 %format constraint (c) = "\constraintfont{" c "}"
 %format multiplicity (p) = "\multiplicityfont{" p "}"
+%format := = "\mathrel{{:}{=}}"
 %
 %format a1
 %format a_n
@@ -423,17 +424,17 @@ not require explicit threading of the array:
 \begin{code}
 read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
 read2AndDiscard arr =
-  let   pack x   = read arr 0
-        pack y   = read arr 1
-        ()       = free arr
+  let   x   :=  read arr 0
+        y   :=  read arr 1
+        ()  :=  free arr
   in (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
 read and write access to the array,
-and explicit |pack| annotations are used to indicate the binders that require
+and |:=| is used to indicate the binders that require
 special treatment (\Fref{sec:implicit-existentials}
 suggests how we can get rid of
-the |pack|, too). Crucially, the resource representing the ownership of the
+this special treatment, too). Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
 
@@ -665,9 +666,10 @@ introduce\footnote{There is a variety of ways existential types can
   be worked into a language. The existentials we use here might best be understood
   as a generalisation of those presented by \citet[Chapter
   24]{tapl}.
-  However, a recent publication by \citet{existentials} works out an
-  approach that will make linear constraints easier to use, as we
-  discuss in \Fref{sec:implicit-existentials}.}
+  However, \citet{existentials} work out an
+  approach that make linear constraints even easier to use, as we
+  discuss in \Fref{sec:implicit-existentials}. In order to separate
+  concerns, we do not build the bulk of our work on \citet{existentials}.}
 a type construction |exists a1 ... an. t .<= constraint(Q)|,
 where |constraint(Q)| is a linear constraint (with the |a1 ... an| in scope) that is
 paired with the type |t|.\footnote{We freely
@@ -684,9 +686,12 @@ empty.} Such types are introduced with the |pack| constructor.
 % In our implementation (\Fref{sec:implementation}), packed linear constraints
 % piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
 % introduced by a data constructor, which we write as |pack|.
-When pattern-matching on a |pack| constructor, all existentially quantified
-type variables are brought into scope and all the packed constraints are
-assumed. We have now seen all the ingredients needed to write
+In order to simplify extracting out the payload of an existential, however, we
+introduce a new syntax |let x := f args|: this notation means that the result
+of |f args| is un|pack|ed, putting its payload in |x|. The |:=| notation also
+denotes a \emph{strict} binding, necessary for binding the type variables and
+assuming the constraints carried with |f args|.
+We have now seen all the ingredients needed to write
 the |read2AndDiscard| example as in \cref{sec:introduction}.
 
 \subsection{Minimal Examples}
