@@ -55,4 +55,4 @@ nix::
 	nix-shell --pure --run make
 
 continous-nix:: nix
-	nix-shell --run "while inotifywait -e modify linear-constraints.mng $(OTT_FILES) shell.nix; do make nix; done"
+	nix-shell --pure --run "ls linear-constraints.mng $(OTT_FILES) | entr make"
