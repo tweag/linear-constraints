@@ -1157,18 +1157,14 @@ Splitting consumes all capabilities of an array and returns two new
 arrays that represent the contiguous blocks of memory before and
 starting at a given index.
 
-> split :: constraint (RW n) =>. PArray a n -> Int -> exists l r. Ur (PArray a l, PArray a r) .<= constraint ((RW l, RW r, Ur (Slices n l r)))
+> split :: constraint (RW n) =>. PArray a n -> Int -> exists l r. Ur (PArray a l, PArray a r) .<= constraint ((RW l, RW r, Slices n l r))
 
 In addition to the array capabilities, the output constraints also include
-|constraint (Ur (Slices n l r))|, witnessing the fact that locations
+|constraint (Slices n l r)|, witnessing the fact that locations
 |l| and |r| are components of |n|, so that they can be joined back
 together:
 
-> join :: constraint ((Ur (Slices n l r), RW r, RW l)) =>. PArray a l -> PArray a r -> Ur (PArray a n) .<= constraint (RW n)
-
-Note that the constraint |constraint (Ur (Slices n l r))| is
-unrestricted, which means that it is not \emph{necessary} to join the
-two arrays before deallocating them: they can be deallocated separately.
+> join :: constraint ((Slices n l r, RW r, RW l)) =>. PArray a l -> PArray a r -> Ur (PArray a n) .<= constraint (RW n)
 
 \begin{figure}
 \maybesmall
