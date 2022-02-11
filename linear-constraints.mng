@@ -740,7 +740,9 @@ introduce\footnote{There is a variety of ways existential types can
   However, \citet{existentials} work out an
   approach that make linear constraints even easier to use, as we
   discuss in \Fref{sec:implicit-existentials}. In order to separate
-  concerns, we do not build the bulk of our work on \citet{existentials}.}
+  concerns, we do not build the bulk of our work on \citet{existentials}.
+  The idea of using existentials to return linear capabilities can be attributed to \citet{DBLP:conf/esop/FluetMA06}.
+  }
 a type construction |exists a1 ... an. t .<= constraint(Q)|,
 where |constraint(Q)| is a linear constraint (with the |a1 ... an| in scope) that is
 paired with the type |t|.\footnote{We freely
