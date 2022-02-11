@@ -2721,6 +2721,8 @@ reference, like in Linear Haskell without linear constraints.
 
 \paragraph{Languages with capabilities}
 
+The idea of using capabilities to enforce high-level resource usage protocols is not new~\citep{DBLP:conf/pldi/DeLineF01},
+and as such has been applied in practical programming languages before.
 Both Mezzo~\cite{mezzo-permissions} and
 \textsc{ats}~\cite{AtsLinearViews} served as inspiration for the
 design of linear constraints. Of the two, Mezzo is more specialised,
