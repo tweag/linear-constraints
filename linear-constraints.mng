@@ -442,20 +442,24 @@ Our contributions are as follows:
 \item A system of qualified types that allows a constraint assumption
   to be given a multiplicity. Linear assumptions are used precisely
   once in the body of a definition
-  (\Fref{sec:qualified-type-system}). This system supports examples that have motivated the design of
-  several resource-aware systems, such as ownership à la Rust (\Fref{sec:memory-ownership}), or
-  capabilities in the style of Mezzo~\cite{mezzo-permissions}
-  or \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system
-  points towards a possible unification of these lines of research.
+  (\Fref{sec:qualified-type-system}). This system supports examples
+  that have motivated the design of several resource-aware systems,
+  such as ownership à la Rust (\Fref{sec:memory-ownership}), or
+  capabilities in the style of Mezzo~\cite{mezzo-permissions} or
+  \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system points
+  towards a possible unification of these lines of research.
+
 \item An inference algorithm that respects the multiplicity of
   assumptions. We prove that this algorithm is sound with respect to
   our type system~(\Fref{sec:type-inference}).
-\item A core language (directly adapted
-  from Linear Haskell~\cite{LinearHaskell}) that supports linear functions.
-Expressions in our qualified
-  type system desugar into this core language, and
- we
-  prove that the output of our desugaring is well-typed~(\Fref{sec:desugaring}).
+\item A core language  that supports linear functions, which is
+  essentially a simplification of the core language of
+  Haskell~\cite{LinearHaskell}.
+  Expressions in our qualified type system desugar into this core
+  language, and we prove that the output of our desugaring is
+  well-typed~(\Fref{sec:desugaring}). This translation makes the present
+  paper a conservative extension of Linear Haskell--- with the exception of
+  the Unique constraint\cref{sec:Unique-constraint}. 
 \end{itemize}
 %
 Our design is intended to work well with other features of Haskell and its
@@ -494,8 +498,23 @@ Our definition is based on the type of the value concerned:
 \end{itemize}
 \end{definition}
 %
-Note that a linear arrow specifies \emph{how the function uses its argument}. It does not
-restrict \emph{the arguments to which the function can be applied}.
+\subsection{Multiplicities} 
+\label{sec:multiplicities}
+The usual arrow type |a -> b| can be recovered using |Ur| (written
+``!'' by \citet{girard-linear-logic}), as |Ur a ⊸ b|, but Linear
+Haskell provides a first-class treatment of |a -> b|, thus ensuring
+backwards compatibility with Haskell. In practice, the type-checker
+records the \emph{multiplicity} of every introduced variable: \(1\) for linear
+arguments and \(ω\) for unrestricted ones. This way, one can give a unified treatment
+of both arrow types~\citep{linearity-and-pi-calculus}.
+$$
+\begin{array}{lcll}
+  [[{pi}]], [[{rho}]] & \bnfeq & [[{1}]] \bnfor [[{omega}]] & \text{Multiplicities}
+\end{array}
+$$
+
+We stress that a multiplicity of \(1\) restricts \emph{how the variable can be used}. It does not
+restrict \emph{which values can be substituted for it}.
 In particular, a linear function cannot assume that it is given the
 unique pointer to its argument.  For example, if |f :: a ⊸ b|, then
 the following is fine:
@@ -506,16 +525,66 @@ g x = (f x, f x)
 The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
+Pattern matching on a value of |Ur a| yields a payload of multiplicity
+\(ω\), even when the scrutinee has multiplicity 1.  Given a
+type-system parameterized on a multiplicity set, the desired
+(sub)structural rules can be obtained by endowing the appropriate
+semiring structure to multiplicities~\citep{abel_unified_2020}. In
+this paper, we use the same multiplicity structure as Linear Haskell:\footnote{Even though linear Haskell additionally supports multiplicity
+polymorphism, we do not support multiplicity polymorphism on
+constraint arguments.  Linear Haskell takes advantage of multiplicity
+polymorphism to avoid duplication of higher-order functions. The
+prototypical example is |map :: (a poly_arrow b) -> [a] poly_arrow
+[b]|, where |poly_arrow| is the notation for a function arrow of
+multiplicity |multiplicity(m)|.  First-order functions, on the other
+hand, do not need multiplicity polymorphism, because linear functions
+can be $\eta$-expanded into unrestricted function as explained in
+\cref{sec:linear-types}. Higher-order functions whose arguments are
+themselves constrained functions are rare, so we do not yet see the
+need to extend multiplicity polymorphism to apply to constraints.
+Futhermore, it is not clear how to extend the constraint solver of
+\cref{sec:constraint-solver} to support multiplicity-polymorphic
+constraints.}
+\smallskip
+\begin{minipage}[c]{0.4\linewidth}
+$$
+\left\{
+  \begin{array}{lcl}
+    [[{pi + rho}]] & = & [[{omega}]]
+  \end{array}
+\right.
+$$
+\end{minipage}
+\begin{minipage}[c]{0.4\linewidth}
+$$
+\left\{
+  \begin{array}{lcl}
+    [[{1 . pi}]] & = & [[{pi}]] \\
+    [[{omega . pi}]] & = & [[{omega}]]
+  \end{array}
+\right.
+$$
+\end{minipage}
+\smallskip
+(Here and in the rest of the paper we adopt the convention that
+equations defining a function by pattern matching are marked with a
+$\left\{\right.$ to their left.)
+
+\subsection{Shortcomings of Linear Haskell and Outlook}
 The |read| function in \cref{sec:introduction} consumes the array it
-operates on. Therefore, the same array can no longer be used in further
-operations: doing so would result in a type error.
-To resolve this, a new name for the same array is produced by each operation.
+operates on. Therefore, the same array can no longer be used in
+further operations: doing so would result in a type error.  To resolve
+this, a new name for the same array is produced by each operation.
 
 From the perspective of the programmer, this is unwanted boilerplate.
-The approach with linear constraints is to let the array behave non-linearly, and let its
-capabilities (i.e., having read or write access) be linear constraints. Once
-these capabilities are consumed, the array can no longer be read from or written
-to without triggering a compile time error.
+Minimizing such boilerplate is the main aim of this paper.  Our
+approach is to let the array behave non-linearly, and let its
+capabilities (i.e., having read or write access) be \emph{linear
+constraints}. Once these capabilities are consumed, the array can no
+longer be read from or written to without triggering a compile time
+error.
+
+\jp{perhaps explain the problem of ``source of uniqueness'' already here too?}
 
 % In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
 % in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which means that
@@ -814,7 +883,7 @@ overusing = (useC, useC)
 % linearly.
 
 \subsection{Source of uniqueness}
-
+\label{sec:Unique-constraint}
 A linear function makes a promise about how it is going to use its argument, but
 linearity imposes no restrictions how a function -- or its result -- is going to be used.
 The caller may use the linear function's result unrestrictedly.  This poses a
@@ -1259,68 +1328,6 @@ We
 now present our design for a qualified type system~\cite{QualifiedTypes} that supports
 linear constraints. Our design, based on the work of \citet{OutsideIn}, is compatible with Haskell and \textsc{ghc}.
 
-\subsection{Multiplicities}
-\label{sec:multiplicities}
-
-Like in Linear Haskell % ~\cite{LinearHaskell}  \nw{I don't think we need to cite this again at this stage}
-we make use of a
-system of \emph{multiplicities}, which describe how
-many times a function consumes its input. As multiplicities are
-central to our constraint calculus, we will colour them in
-\multiplicityfont{blue} like constraints. For our purposes, we need only the
-simplest system of multiplicity, comprising $[[{1}]]$ (representing
-linear functions) and $[[{omega}]]$ (representing
-regular Haskell functions).
-$$
-\begin{array}{lcll}
-  [[{pi}]], [[{rho}]] & \bnfeq & [[{1}]] \bnfor [[{omega}]] & \text{Multiplicities}
-\end{array}
-$$
-The idea of multiplicity goes back at least
-to \citet{linearity-and-pi-calculus}. The power of multiplicities is that they can encode the
-structural rules of linear logic with only the semiring
-operations: addition and multiplication. Here and in the rest of the paper we adopt the convention that equations defining a function by pattern matching are marked with a $\left\{\right.$ to their left.
-
-\smallskip
-\begin{minipage}[c]{0.4\linewidth}
-$$
-\left\{
-  \begin{array}{lcl}
-    [[{pi + rho}]] & = & [[{omega}]]
-  \end{array}
-\right.
-$$
-\end{minipage}
-\begin{minipage}[c]{0.4\linewidth}
-$$
-\left\{
-  \begin{array}{lcl}
-    [[{1 . pi}]] & = & [[{pi}]] \\
-    [[{omega . pi}]] & = & [[{omega}]]
-  \end{array}
-\right.
-$$
-\end{minipage}
-\smallskip
-
-Even though linear Haskell additionally supports
-multiplicity polymorphism,
-we do not support multiplicity polymorphism on constraint
-arguments.
-Multiplicity polymorphism of regular function arguments is used to avoid
-duplicating the definition of higher-order functions. The prototypical example
-is |map :: (a poly_arrow b) -> [a] poly_arrow [b]|,
-where |poly_arrow| is the notation for a function arrow of multiplicity |multiplicity(m)|.
- First-order functions, on the other hand, do not need multiplicity
-polymorphism, because
-linear functions can be $\eta$-expanded into unrestricted function as
-explained in \cref{sec:linear-types}. Higher-order functions
-whose arguments are themselves constrained functions are rare,
-so we do not yet see the need to extend multiplicity polymorphism
-to apply to constraints.
-Futhermore, it is not clear how to extend the constraint solver of
-\cref{sec:constraint-solver} to support multiplicity-polymorphic
-constraints.
 
 \subsection{Simple Constraints and Entailment}
 \label{sec:constraint-domain}

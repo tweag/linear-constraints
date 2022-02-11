@@ -10,18 +10,21 @@ Review C: “as far as I am aware, this paper is the first to integrate
 the idea into a real programming language.” Review D: “The paper is
 very well written with various examples introducing the concepts”
 
-In response to these helpful reviews, we will make the following changes, to be elaborated below:
+In response to these helpful reviews, we will make the following
+changes, to be elaborated below:
 
-    - We will explain the relationship -- up front, in our contribution
-      bullets -- between our declarative system and our algorithmic one,
-      including the coherence requirement for evidence which ensures
-      that the semantics is deterministic.
+    - We will explain the relationship -- up front, in our
+      contribution bullets -- between our declarative system and our
+      algorithmic one, including the coherence requirement for
+      evidence which ensures that the semantics is deterministic.
     
-    - We will clarify that linear constraints are a conservative extension of Linear Haskell.
+    - We will clarify that linear constraints are a conservative
+      extension of Linear Haskell.
     
     - We will provide a more thorough explanation of Linear Haskell,
       and hope that this will clear several misunderstandings (for
       instance how Ur works, see below).
+      
     - We will better trace the origin of the ideas which led to the
       present work, as well as acknowledge prior art, as suggested by
       review C.
@@ -50,9 +53,18 @@ various instances of the same constraints A are equivalent. This
 constraint ought to have been described in the paper, and used to. We
 will restore it.  Ur and linear logic connectives (Review A)
 
-The data type Ur is a container for an unrestricted value; it is useful for storing an unrestricted value in an otherwise linear context. Datatypes in Linear Haskell store their fields linearly by default; this treatment includes the built-in datatypes, such as lists and tuples. Accordingly, in a function f :: (Int, Bool) -o Double, the Int and the Bool must be used exactly once. By contrast, Ur stores its argument without restriction: g :: Ur Int -o Double can use the Int any number of times.
+The data type Ur is a container for an unrestricted value; it is
+useful for storing an unrestricted value in an otherwise linear
+context. Datatypes in Linear Haskell store their fields linearly by
+default; this treatment includes the built-in datatypes, such as lists
+and tuples. Accordingly, in a function f :: (Int, Bool) -o Double, the
+Int and the Bool must be used exactly once. By contrast, Ur stores its
+argument without restriction: g :: Ur Int -o Double can use the Int
+any number of times.
 
-It may be helpful to think about the Church-encodings of these types, which may be easier to understand than the behavior of the always-complex case expression:
+It may be helpful to think about the Church-encodings of these types,
+which may be easier to understand than the behavior of the
+always-complex case expression:
 
     - The type (a, b) is isomorphic to a function of type (a -o b -o
       r) -o r.
