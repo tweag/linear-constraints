@@ -407,10 +407,13 @@ we wish, as language designers, to avoid. %%  When
 How can we get the compiler to see that the array is used safely
 without explicit threading?
 
-Rust introduces the \emph{borrow checker} for this very purpose.
-Our approach is, in some ways, more lightweight: we show in this paper
-how a natural generalisation of Haskell's type class
-constraints does the trick. We call our new constraints \emph{linear constraints}.
+%% Rust introduces the \emph{borrow checker} for this very purpose. % seems out of place when referring to 1999 ideas.
+Following well-known ideas~\citep{DBLP:conf/popl/CraryWM99,DBLP:conf/esop/SmithWM00,DBLP:conf/tic/WalkerM00}, our approach is to let arrays be unrestricted, but
+associate linear capabilities (such as read, write) to them.
+In fact, we show in this paper that such linear capabilities
+are the natural extension of Haskell's type class
+constraints to the setting of linear types.
+We call these new constraints \emph{linear constraints}.
 Like class constraints,
 linear constraints are propagated implicitly by the compiler.
 Like linear arguments, they can safely be used to track resources such as arrays
