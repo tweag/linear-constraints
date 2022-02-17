@@ -1441,16 +1441,16 @@ our system
       \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
       \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists }
       [[{Q'}]], [[{Qdup}]], \text{ and } [[{Q''}]]
-        \text{ such that } [[Qdup \in Dup]][[{Q}]]=[[{Q' * Qdup * Q''}]] \text{, } [[Q' * Qdup ||- Q1]]
+        \text{ such that } [[Qdup \in Dup]], [[{Q}]]=[[{Q' * Qdup * Q''}]] \text{, } [[Q' * Qdup ||- Q1]]
         \text{ and } [[Qdup * Q'' ||- Q2]] \\
       \text{if } [[Q ||- Empty]] \text{ then there exist } [[{Q'}]]
-        and [[{Qdup}]] \text{ such that } [[{Q}]]=[[{omega.Q' * Qdup}]] \\
+        and [[{Qdup}]] \text{ such that } [[Qdup \in Dup]], [[{Q}]]=[[{omega.Q' * Qdup}]] \\
       \text{if } [[Q1 ||- Q1']] \text{ and } [[Q2 ||- Q2']] \text{ then } [[Q1 * Q2 ||- Q1' * Q2']] \\
       \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
       \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[{Q'}]] \text{ such
       that } [[{Q}]] = [[{pi. Q'}]] \text{ and } [[Q' ||- rho . q]] \\
       \text{if } [[Q1 ||- Q2]] \text{ then } [[omega.Q1 ||- Q2]] \\
-      \text{if } [[Q1 ||- Q2]] \text{ then for all } [[{Q'}]], [[omega.Q' * Q1 ||- Q2]]
+      \text{if } [[Q1 ||- Q2]] \text{ then for all } [[{Q'}]], [[omega.Q' * Q1 ||- Q2]]\\
       \text{if } [[q \in Dup]], then [[1.q ||- 1.q * 1.q]]\\
       \text{if } [[q \in Dup]], then [[1.q ||- Empty]]\\
       \text{if } [[Q \in Dup]] and [[Q' ||- Q]], then [[Q' \in Dup]]
