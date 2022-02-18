@@ -291,6 +291,7 @@ terminals :: 'terminals_' ::=
 | emptyset    ::   :: emptyset {{ tex \emptyset }}
 | \subseteq   ::   :: subset   {{ tex \subseteq }}
 | Hole        ::   :: Hole     {{ tex \_ }}
+| Dup         ::   :: Dup      {{ tex \constraintfont{\mathcal{D} } }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
