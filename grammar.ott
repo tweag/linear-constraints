@@ -308,15 +308,15 @@ formula :: formula_ ::=
 | < formula >                     ::   :: Repeat
   {{ tex \overline{[[formula]]} }}
 | e : t                           ::   :: DataconTy
-| x \notin G                      ::   :: NotInCtx
-| binding \in G                   ::   :: binding_in
+| x \notin G                      ::   :: NotInCtx    {{ tex [[x]] \notin [[G]] }}
+| binding \in G                   ::   :: binding_in  {{ tex [[binding]] \notin [[G]] }}
 | G1 = G2                         ::   :: ctx_equal
-| QF \in Dup                      ::   :: Q_in_Dup
-| qF \in Dup                      ::   :: q_in_Dup
+| QF \in Dup                      ::   :: Q_in_Dup {{ tex [[QF]] \in [[Dup]] }}
+| qF \in Dup                      ::   :: q_in_Dup {{ tex [[qF]] \in [[Dup]] }}
 | LCtxF1 \subseteq LCtxF2         ::   :: subset
-| qF \in UCtxF                    ::   :: q_in_UCtx
-| qF \notin UCtxF                 ::   :: q_notin_UCtx
-| qF \notin LCtxF                 ::   :: q_notin_LCtx
+| qF \in UCtxF                    ::   :: q_in_UCtx {{ tex [[qF]] \in [[UCtxF]] }}
+| qF \notin UCtxF                 ::   :: q_notin_UCtx  {{ tex [[qF]] \notin [[UCtxF]] }}
+| qF \notin LCtxF                 ::   :: q_notin_LCtx  {{ tex [[qF]] \notin [[LCtxF]] }}
 | s1 = s2                         ::   :: s_eq
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
