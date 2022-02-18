@@ -3351,19 +3351,28 @@ been given}
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \end{itemize}
-    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$ and $[[{Q_2}]]$ such that
+    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$,
+    $[[{Qdup}]]$ and $[[{Q_2}]]$ such that\info{Here I used,
+      implicitly (and without proof), the easy fact that if there
+      exists $[[{Q'}]]$ such that $[[{Q}]]=[[{pi.Q'}]]$, then
+      $[[{Q}]]=[[{pi.Q}]]$ (because $[[{pi.pi}]] = [[{pi}]]$) and $[[Q
+      ||- Q']]$ (identity for $[[{pi}]]=[[{1}]]$ and dereliction for $[[{pi}]]=[[{omega}]]$).}
     \begin{itemize}
-    \item $[[Q_1 |- C1]]$
-    \item $[[Q_2 |- C2]]$
-    \item $[[{Q_g}]] = [[{pi.Q_1 * Q_2}]]$
+    \item $[[Q_1 * Qdup |- C1]]$
+    \item $[[Qdup * Q_2 |- C2]]$
+    \item $[[{Q_g}]] = [[{pi.Q_1 * Qdup * Q_2}]]$
+    \item $[[Qdup \in Dup]]$
+    \item $[[{pi.Qdup}]] = [[{Qdup}]]$
     \end{itemize}
     By induction hypothesis we have
     \begin{itemize}
-    \item $[[Q_1 ; G1 |- e1 : t1]]$
-    \item $[[Q_2; G2, x:_pi  t1 |- e1 : t1]]$
+    \item $[[Q_1 * Qdup; G1 |- e1 : t1]]$
+    \item $[[Qdup * Q_2; G2, x:_pi  t1 |- e1 : t1]]$
     \end{itemize}
     From which follows that $[[Q_g; pi.G1+G2 |- let_pi x = e1 in e2 :
-    t]]$.
+    t]]$.\unsure{TODO: there may be a little bit of rephrasing
+      to do to support this, but I need that $[[Q \in Dup]]$ means
+      that $[[{Q}]]$ can have arbitrary $[[{omega.q}]]$}
   \item[\rref*{G-LetSig}] We have
     \begin{itemize}
     \item $[[pi.G1+G2 |-> let_pi x : forall as. Q =o t1 = e1 in e2 : t ~>
@@ -3372,17 +3381,20 @@ been given}
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such
+    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$,
+    $[[Qdup]]$, $[[{Q2}]]$ such
     that
     \begin{itemize}
-    \item $[[Q2 |- C2]]$
-    \item $[[Q1*Q |- C]]$
-    \item $[[{Q_g}]] = [[{pi.Q1*Q2}]]$
+    \item $[[Qdup * Q2 |- C2]]$
+    \item $[[Q1*Qdup*Q |- C]]$
+    \item $[[{Q_g}]] = [[{pi.Q_1 * Qdup * Q_2}]]$
+    \item $[[Qdup \in Dup]]$
+    \item $[[{pi.Qdup}]] = [[{Qdup}]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q1*Q;G1 |- e1 : t1]]$
-    \item $[[Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
+    \item $[[Q1*Qdup*Q;G1 |- e1 : t1]]$
+    \item $[[Qdup*Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
     \end{itemize}
     Hence $[[Q_g; pi.G1+G2 |- let_pi x : forall as. Q =o t1 = e1 in e2 : t]]$
   \item[\rref*{G-App}] \info{Most of the linearity problems are in the App
@@ -3394,16 +3406,19 @@ been given}
     \item $[[G1 |-> e1 : t2 ->_pi t ~> C1]]$
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
-    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$, $[[{Q2}]]$ such that
+    By \cref{lem:inversion,lem:wanted:demote}, there exist
+    $[[{Q1}]]$, $[[{Qdup}]]$, $[[{Q2}]]$ such that
     \begin{itemize}
-    \item $[[Q1 |- C1]]$
-    \item $[[Q2 |- C2]]$
-    \item $[[{Q_g}]] = [[{Q1 * pi.Q2}]]$
+    \item $[[Q1*Qdup |- C1]]$
+    \item $[[Qdup*Q2 |- C2]]$
+    \item $[[{Q_g}]] = [[{Q1 * Qdup * pi.Q2}]]$
+    \item $[[Qdup \in Dup]]$
+    \item $[[{pi.Qdup}]] = [[{Qdup}]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
-    \item $[[Q2; G2 |- e2 : t2]]$
+    \item $[[Q1*Qdup; G1 |- e1 : t2 ->_pi t]]$
+    \item $[[Qdup* Q2; G2 |- e2 : t2]]$
     \end{itemize}
     Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
   \item[\rref*{G-Pack}] We have
@@ -3412,19 +3427,20 @@ been given}
     \item $[[Q_g |- C * Q[us/as] ]]$
     \item $[[G |-> e : t[us/as] ~> C]]$
     \end{itemize}
-    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
+    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Qdup}]]$, $[[{Q_2}]]$
     such that
     \begin{itemize}
-    \item $[[Q_1 |- C]]$
-    \item $[[Q_2 |- Q[us/as] ]]$
-    \item $[[{Q_g}]] = [[{Q_1*Q_2}]]$
+    \item $[[Q_1 * Qdup |- C]]$
+    \item $[[Qdup * Q_2 |- Q[us/as] ]]$
+    \item $[[{Q_g}]] = [[{Q_1*Qdup*Q_2}]]$
+    \item $[[Qdup \in Dup]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q_1 ; G |- e : t[us/as] ]]$
+    \item $[[Q_1 * Qdup; G |- e : t[us/as] ]]$
     \end{itemize}
-    So we have $[[Q_1 * Q[us/as] ; G |- pack e : exists as. t o=
-    Q]]$. By rule~\rref*{E-Sub}, we conclude
+    So we have $[[Q_1 * Qdup * Q[us/as] ; G |- pack e : exists as. t o=
+    Q]]$. By~\cref{lem:dup-contraction} rule~\rref*{E-Sub}, we conclude
     $[[Q_g ; omega.G |- pack e : exists as. t o= Q]]$.
   \item[\rref*{G-Unpack}] We have
     \begin{itemize}
@@ -3433,17 +3449,18 @@ been given}
     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
+    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Qdup}]]$, $[[{Q_2}]]$
     such that
     \begin{itemize}
-    \item $[[Q_1 |- C1]]$
-    \item $[[Q_2 * Q' |- C2]]$
-    \item $[[{Q_g}]] = [[{Q1 * Q2}]]$
+    \item $[[Q_1 * Qdup |- C1]]$
+    \item $[[Qdup * Q_2 * Q' |- C2]]$
+    \item $[[{Q_g}]] = [[{Q1 * Qdup * Q2}]]$
+    \item $[[Qdup \in Dup]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
-    \item $[[Q_2*Q ; G2 |- e2 : t]]$
+    \item $[[Q_1*Qdup; G1 |- e1 : exists as. t1 o= Q']]$
+    \item $[[Qdup*Q_2*Q ; G2 |- e2 : t]]$
     \end{itemize}
     Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
   \item[\rref*{G-Case}] We have
@@ -3454,16 +3471,18 @@ been given}
     \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
     \end{itemize}
     By repeated uses of \cref{lem:inversion} as well as \cref{lem:wanted:demote}, there exist
-    $[[{Q}]]$, $[[{Q'}]]$ such that
+    $[[{Q}]]$, $[[{Qdup}]]$, $[[{Q'}]]$ such that
     \begin{itemize}
-    \item $[[Q |- C]]$
-    \item For each $i$, $[[Q' |- Ci]]$
-    \item $[[{Q_g}]] = [[{pi.Q * Q'}]]$
+    \item $[[Q * Qdup |- C]]$
+    \item For each $i$, $[[Qdup * Q' |- Ci]]$
+    \item $[[{Q_g}]] = [[{pi.Q * Qdup * Q'}]]$
+    \item $[[Qdup \in Dup]]$
+    \item $[[{pi.Qdup}]] = [[{Qdup}]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q; G |- e : T ss]]$
-    \item For each $i$, $[[Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
+    \item $[[Q*Qdup; G |- e : T ss]]$
+    \item For each $i$, $[[Qdup*Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
     \end{itemize}
     Therefore $[[Q_g ; pi.G + D |- case_pi e of {alts} : t]]$.
   \end{description}
