@@ -455,7 +455,22 @@ Our contributions are as follows:
 
 \item An inference algorithm that respects the multiplicity of
   assumptions. We prove that this algorithm is sound with respect to
-  our type system~(\Fref{sec:type-inference}).
+  our type system~(\Fref{sec:type-inference}). It consists of
+  \begin{itemize}
+  \item A constraint generation
+    algorithm~(\cref{sec:constraint-generation}). The language of
+    generated constraint is enriched because of multiplicities. In
+    particular it is different to ask that two constraints hold
+    jointly, or that both hold individually. We need both kind of
+    conjunctions.
+  \item A solver~(\cref{sec:constraint-solver}) for the generated
+    constraints, which restrict proof-search algorithms for linear
+    logic in order to be \emph{guess
+      free}~\cite[Section~6.4]{OutsideIn}. A guess-free algorithm
+    ensures that constraint inference is predictable and insensitive
+    to small changes in the source program; and necessarily
+    incomplete.
+  \end{itemize}
 \item A core language  that supports linear functions, which is
   essentially a simplification of the core language of
   Haskell~\cite{LinearHaskell}.
