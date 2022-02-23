@@ -9,7 +9,6 @@ metavar x,y,z,f ::= {{ com Term variables }}
 metavar a,b  ::= {{ com Type variables }}
 metavar K  ::= {{ com Data constructors }}
 metavar T  ::= {{ com Type constructors }}
-metavar q  ::= {{ com Atomic constraints }}
 indexvar i, j ::=  {{ com Index variables }}
 indexvar g, w, r, o, ext ::=  {{ com Annotation variables }}
 
@@ -54,14 +53,20 @@ UCtx {{ tex \ottnt{U} }} :: 'SetCt_' ::= {{ com Set of atomic constraints }}
 UCtxF :: 'SetCt_' ::= {{ com Formatted set of atomic constraints }}
 | UCtx            ::   :: Formatted   {{ tex \constraintfont{[[UCtx]]} }}
 
-LCtx {{ tex \ottnt{L} }} :: 'MultisetCt_' ::= {{ com Multiset of atomic constraints }}
+LCtx {{ tex \ottnt{L} }}, DCtx {{ tex \ottnt{D} }} :: 'MultisetCt_' ::= {{ com Multiset of atomic constraints }}
 | emptyset        ::   :: Empty
 | LCtx1 \u LCtx2  ::   :: Union   {{ tex [[LCtx1]] \uplus [[LCtx2]] }}
+| LCtx \n Dup     ::   :: RestrictToDup    {{ tex [[LCtx]] \cap [[Dup]] }}
+| LCtx \m Dup     ::   :: RestrictToNonDup {{ tex [[LCtx]] \setminus [[Dup]] }}
 | q               ::   :: One
 | LCtx1 , LCtx2   ::   :: Append
+| ( LCtx )        :: S :: Paren
 
-LCtxF :: 'MultisetCt_' ::= {{ com Formatted multiset of atomic constraints }}
+LCtxF, DCtxF :: 'MultisetCt_' ::= {{ com Formatted multiset of atomic constraints }}
 | LCtx            ::   :: Formatted   {{ tex \constraintfont{[[LCtx]]} }}
+
+q  :: ACt_ ::= {{ com Atomic constraints }}
+| Linearly           ::   :: Linearly  {{ tex \mathcal{L} }}
 
 Q, Qdup {{ tex Q_{\mathcal{D} }  }} :: 'Ct_' ::=  {{ com Constraints }}
 | ( UCtx , LCtx )    ::   :: Sets

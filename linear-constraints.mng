@@ -1955,17 +1955,15 @@ type system.
 \subsection{Constraint solving}
 \label{sec:constraint-solver}
 
-\unsure{This section will need some slight modification in order to be
-able to solve constraints with the dupable set. This is especially
-true of the atomic constraint solver, I think. Which we can restrict
-to sources of uniqueness.}
+\unsure{The English text in this section needs to be adapted to the
+  new constraint solver with dupable constraints.}
 In this section,
 we build a \emph{constraint solver} that proves
 that $[[Q_g |- C]]$ holds, as required by \cref{lem:generation-soundness}.
 The constraint solver is represented by the following judgement:
 %
 $$
-[[ UCtx ; LCtx_i |-s C ~> LCtx_o]]
+[[ UCtx ; DCtx; LCtx_i |-s C ~> LCtx_o]]
 $$
 %
 The judgement
@@ -1986,10 +1984,10 @@ If the constraint solver finds a solution, then the output linear constraints
 must be a subset of the input linear constraints, and the solution must indeed
 be entailed from the given assumptions.
 \begin{lemma}[Constraint solver soundness]
-\label{lem:solver-soundness} If $[[UCtx; LCtx_i |-s C ~> LCtx_o]]$, then:
+\label{lem:solver-soundness} If $[[UCtx; DCtx; LCtx_i |-s C ~> LCtx_o]]$, then:
 \begin{enumerate}
 \item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
-\item $[[(UCtx, LCtx_i) |- C * (emptyset, LCtx_o)]]$
+\item $[[(UCtx, DCtx \u LCtx_i) |- C * (emptyset, LCtx_o)]]$
 \end{enumerate}
 \end{lemma}
 
@@ -2001,7 +1999,7 @@ constraints.  The atomic-constraint solver is represented by the following
 judgement:
 %
 $$
-[[ UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]
+[[ UCtx ; DCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]
 $$
 
 It has a similar structure to the main solver, but only deals with atomic
@@ -2012,10 +2010,10 @@ atomic-constraint solver, we will give an instantiation in
 We require the following property of the atomic-constraint solver:
 
 \begin{property}[Atomic-constraint solver soundness]
-\label{prop:atomic-solver-soundness} If $[[UCtx; LCtx_i |-simp pi.q ~> LCtx_o]]$, then:
+\label{prop:atomic-solver-soundness} If $[[UCtx; DCtx; LCtx_i |-simp pi.q ~> LCtx_o]]$, then:
 \begin{enumerate}
 \item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
-\item $[[(UCtx, LCtx_i) ||- pi.q * (emptyset, LCtx_o)]]$
+\item $[[(UCtx, DCtx \u LCtx_i) ||- pi.q * (emptyset, LCtx_o)]]$
 \end{enumerate}
 \end{property}
 
@@ -2029,7 +2027,7 @@ presents the rules of the constraint solver.
 \begin{figure}
   \maybesmall
   \centering
-  \drules[S]{$[[UCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Atom, Mult, ImplOne, Add, ImplMany}
+  \drules[S]{$[[UCtx ; DCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Atom, Mult, ImplOne, Add, ImplMany}
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
@@ -2074,13 +2072,14 @@ is already assumed---while respecting linearity.
   \maybesmall
   \centering
   \begin{subfigure}{\linewidth}
-    \drules[Q]{$[[Q1 ||- Q2]]$}{Entailment relation}{Hyp,Prod,Empty}
+    \drules[Q]{$[[Q1 ||- Q2]]$}{Entailment relation}{Hyp,Prod,Empty,
+      WeakD, ContractD}
     \caption{Entailment relation}
     \label{fig:simpl-entailment}
   \end{subfigure}
   \begin{subfigure}{\linewidth}
-    \drules[Atom]{$[[UCtx ; LCtx |-simp pi.q ~>
-      LCtx_o]]$}{Atomic-constraint solver}{Many,OneL,OneU}
+    \drules[Atom]{$[[UCtx ; DCtx ; LCtx |-simp pi.q ~>
+      LCtx_o]]$}{Atomic-constraint solver}{Many,OneL,OneD, OneU}
     \caption{Atomic-constraint solver}
     \label{fig:simpl-solver}
   \end{subfigure}
@@ -2221,8 +2220,8 @@ comparison between an implicit core language D and an explicit one DC.}.
 
 Using \cref{lem:generation-soundness} together with
 \cref{lem:solver-soundness} we know that if
-$[[G |-> e : t ~> C]]$ and $[[UCtx ; LCtx |-s C ~> emptyset ]]$, then
-$[[(UCtx, LCtx) ; G |- e : t]]$.
+$[[G |-> e : t ~> C]]$ and $[[UCtx ; DCtx ; LCtx |-s C ~> emptyset ]]$, then
+$[[(UCtx, DCtx \u LCtx) ; G |- e : t]]$.
 %
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
 core calculus.
@@ -3521,76 +3520,88 @@ $$
 \end{proof}
 
 \begin{proof}[Proof of \cref{lem:solver-soundness}]
-  By induction on $[[UCtx; LCtx_i |-s C ~> LCtx_o]]$
+  By induction on $[[UCtx; DCtx; LCtx_i |-s C ~> LCtx_o]]$
   \begin{description}
   \item[\rref*{S-Atom}] We have
   \begin{itemize}
-          \item $[[UCtx ; LCtx_i |-s pi.q ~> LCtx_o]]$
-          \item $[[UCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-s pi.q ~> LCtx_o]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]$
   \end{itemize}
   By \cref{prop:atomic-solver-soundness} we have
   \begin{enumerate}
   \item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
-  \item $[[(UCtx, LCtx_i) ||- pi.q * (emptyset, LCtx_o)]]$
+  \item $[[(UCtx, DCtx \u LCtx_i) ||- pi.q * (emptyset, LCtx_o)]]$
   \end{enumerate}
   Then by \rref*{C-Dom} we have $[[(UCtx, LCtx_i) |- pi.q * (emptyset, LCtx_o)]]$.
   \item[\rref*{S-Add}] We have
   \begin{itemize}
-          \item $[[UCtx ; LCtx_i |-s C1 & C2 ~> LCtx_o]]$
-          \item $[[UCtx ; LCtx_i |-s C1 ~> LCtx_o]]$
-          \item $[[UCtx ; LCtx_i |-s C2 ~> LCtx_o]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-s C1 & C2 ~> LCtx_o]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-s C1 ~> LCtx_o]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-s C2 ~> LCtx_o]]$
   \end{itemize}
   By induction hypothesis we have
   \begin{itemize}
           \item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
-          \item $[[(UCtx, LCtx_i) |- C1 * (emptyset, LCtx_o)]]$
-          \item $[[(UCtx, LCtx_i) |- C2 * (emptyset, LCtx_o)]]$
+          \item $[[(UCtx, DCtx \u LCtx_i) |- C1 * (emptyset, LCtx_o)]]$
+          \item $[[(UCtx, DCtx \u LCtx_i) |- C2 * (emptyset, LCtx_o)]]$
   \end{itemize}
-  Then by \rref*{C-With} we have $[[(UCtx, LCtx_i) |- C1 & C2 * (emptyset, LCtx_o)]]$.
+  Then by \rref*{C-With} we have $[[(UCtx, DCtx \u LCtx_i) |- C1 & C2 * (emptyset, LCtx_o)]]$.
   \item[\rref*{S-Mult}] We have
   \begin{itemize}
-          \item $[[UCtx ; LCtx_i |-s C1 * C2 ~> LCtx_o]]$
-          \item $[[UCtx ; LCtx_i |-s C1 ~> LCtx_o']]$
-          \item $[[UCtx ; LCtx_o' |-s C2 ~> LCtx_o]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-s C1 * C2 ~> LCtx_o]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-s C1 ~> LCtx_o']]$
+          \item $[[UCtx ; DCtx ; LCtx_o' |-s C2 ~> LCtx_o]]$
   \end{itemize}
   By induction hypothesis we have
   \begin{itemize}
           \item $[[{LCtx_o}]]\subseteq [[{LCtx_o'}]]$
           \item $[[{LCtx_o'}]]\subseteq [[{LCtx_i}]]$
-          \item $[[(UCtx, LCtx_i) |- C1 * (emptyset, LCtx_o')]]$
-          \item $[[(UCtx, LCtx_o') |- C2 * (emptyset, LCtx_o)]]$
+          \item $[[(UCtx, DCtx \u LCtx_i) |- C1 * (emptyset, LCtx_o')]]$
+          \item $[[(UCtx, DCtx \u LCtx_o') |- C2 * (emptyset, LCtx_o)]]$
   \end{itemize}
-  Then by transitivity of $\subseteq$ we have $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$, and
-  by \rref*{C-Tensor} we have
-  $[[(UCtx, LCtx_i) * (UCtx , LCtx_o') |- C1 * C2 * (emptyset, LCtx_o') * (emptyset, LCtx_o)]]$
-   by \cref{lem:inversion} we have $[[(UCtx, LCtx_i) |- C1 * C2 * (emptyset, LCtx_o)]]$.
+  Then
+  \begin{itemize}
+  \item by transitivity of $\subseteq$ we have
+    $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$, and by \rref*{C-Tensor} we
+    have
+    $[[(UCtx, DCtx \u LCtx_i) * (UCtx , DCtx \u LCtx_o') |- C1 * C2 *
+    (emptyset, LCtx_o') * (emptyset, LCtx_o)]]$
+  \item by~\ref{lem:dup-contraction} and the definition of tensor on
+    unrestricted constraints, we have
+    $[[(UCtx, DCtx \u LCtx_i) * (emptyset , LCtx_o') |- C1 * C2 *
+    (emptyset, LCtx_o') * (emptyset, LCtx_o)]]$
+  \item by~\cref{lem:inversion} we have
+    $[[(UCtx, LCtx_i) |- C1 * C2 * (emptyset, LCtx_o)]]$.
+  \end{itemize}
   \item[\rref*{S-ImplOne}] We have
   \begin{itemize}
-          \item $[[UCtx ; LCtx_i |-s 1.((UCtx0, LCtx0) => C) ~> LCtx_o]]$
-          \item $[[UCtx \u UCtx0 ; LCtx_i \u LCtx0 |-s C ~> LCtx_o]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-s 1.((UCtx0, LCtx0) => C) ~> LCtx_o]]$
+          \item $[[UCtx \u UCtx0 ; DCtx \u (LCtx0 \n Dup) ; LCtx_i \u
+            (LCtx0 \m Dup) |-s C ~> LCtx_o]]$
           \item $[[LCtx_o \subseteq LCtx_i]]$
   \end{itemize}
   By induction hypothesis we have
   \begin{itemize}
-          \item $[[(UCtx \u UCtx0, LCtx_i \u LCtx0) |- C * (emptyset, LCtx_o)]]$
+          \item $[[(UCtx \u UCtx0, DCtx \u LCtx_i \u LCtx0) |- C * (emptyset, LCtx_o)]]$
           \item $[[LCtx_o \subseteq LCtx_i \u LCtx0]]$
   \end{itemize}
   Then we know that
   $[[{(emptyset, LCtx_i)}]] = [[{(emptyset, LCtx_o) * (emptyset, LCtx_i')}]]$ for
   some $[[{LCtx_i'}]]$.
-  Then by \cref{lem:inversion} we know that $[[(UCtx \u UCtx0, LCtx_i' \u LCtx0) |- C]]$ and by
+  Then by \cref{lem:inversion} we know that $[[(UCtx \u UCtx0, DCtx \u
+  LCtx_i' \u LCtx0) |- C]]$ and by
   \rref*{C-Impl} we have $[[(UCtx, LCtx_i') |- 1.((UCtx0, LCtx0) => C)]]$.
   Finally, by \rref*{C-Tensor} we conclude that $[[(UCtx, LCtx_i) |- 1.((UCtx0, LCtx0) => C) * (emptyset, LCtx_o)]]$
   \item[\rref*{S-ImplMany}] We have
   \begin{itemize}
-          \item $[[UCtx ; LCtx_i |-s omega.((UCtx0, LCtx0) => C) ~> LCtx_i]]$
-          \item $[[UCtx \u UCtx0 ; LCtx0 |-s C ~> emptyset]]$
+          \item $[[UCtx ; DCtx ; LCtx_i |-s omega.((UCtx0, LCtx0) => C) ~> LCtx_i]]$
+          \item $[[UCtx \u UCtx0 ; LCtx0 \n Dup ; LCtx0 \m Dup |-s C ~> emptyset]]$
   \end{itemize}
   By induction hypothesis we have
   \begin{itemize}
-          \item $[[(UCtx \u UCtx0, LCtx0) |- C * (emptyset, emptyset)]]$
+          \item $[[(UCtx \u UCtx0, LCtx0) |- C]]$
   \end{itemize}
-  Then by \cref{lem:inversion} we have $[[(UCtx \u UCtx0, LCtx0) |- C]]$ and by
+  Then by
   \rref*{C-Impl} $[[(UCtx, emptyset) |- omega.((UCtx0, LCtx0) => C)]]$ and finally by
   \rref{C-Tensor} we have $[[(UCtx, LCtx_i) |- omega.((UCtx0, LCtx0) => C) * (emptyset, LCtx_i)]]$.
   $[[LCtx_i \subseteq LCtx_i]]$ holds trivially.
