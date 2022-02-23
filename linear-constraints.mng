@@ -464,7 +464,7 @@ Our contributions are as follows:
     jointly, or that both hold individually. We need both kind of
     conjunctions.
   \item A solver~(\cref{sec:constraint-solver}) for the generated
-    constraints, which restrict proof-search algorithms for linear
+    constraints, which restricts proof-search algorithms for linear
     logic in order to be \emph{guess
       free}~\cite[Section~6.4]{OutsideIn}. A guess-free algorithm
     ensures that constraint inference is predictable and insensitive
