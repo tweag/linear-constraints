@@ -463,7 +463,7 @@ Our contributions are as follows:
   language, and we prove that the output of our desugaring is
   well-typed~(\Fref{sec:desugaring}). This translation makes the present
   paper a conservative extension of Linear Haskell--- with the exception of
-  the Unique constraint\cref{sec:Unique-constraint}. 
+  the |Unique| constraint~\cref{sec:Unique-constraint}.
 \end{itemize}
 %
 Our design is intended to work well with other features of Haskell and its
