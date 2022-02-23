@@ -1951,8 +1951,6 @@ type system.
 \subsection{Constraint solving}
 \label{sec:constraint-solver}
 
-\unsure{The English text in this section needs to be adapted to the
-  new constraint solver with dupable constraints.}
 In this section,
 we build a \emph{constraint solver} that proves
 that $[[Q_g |- C]]$ holds, as required by \cref{lem:generation-soundness}.
@@ -1963,10 +1961,11 @@ $$
 $$
 %
 The judgement
-takes in two contexts: $[[{UCtx}]]$, which holds all the unrestricted
-atomic constraint assumptions and $[[{LCtx_i}]]$, which holds all the linear
-atomic constraint assumptions.
-The linear contexts $[[{LCtx_i}]]$ and $[[{LCtx_o}]]$ have been described
+takes in three contexts: $[[{UCtx}]]$, which holds all the unrestricted
+atomic constraint assumptions, $[[{DCtx}]]$ which holds the linear atomic
+assumptions which are members of $[[{DCtx}]]$ and $[[{LCtx_i}]]$, which holds the linear
+atomic constraint assumptions which aren't members of $[[{DCtx}]]$.
+The linear contexts $[[{DCtx}]]$, $[[{LCtx_i}]]$, and $[[{LCtx_o}]]$ have been described
 as multisets (\cref{sec:constraint-domain}), but we treat them
 as ordered lists in the more concrete setting here; we will see soon
 why this treatment is necessary.
@@ -1974,7 +1973,10 @@ why this treatment is necessary.
 Linearity requires treating constraints as consumable resources. This
 is what $[[{LCtx_o}]]$ is for: it contains the hypotheses of
 $[[{LCtx_i}]]$ which are not consumed when proving $[[{C}]]$. As
-suggested by the notation, it is an output of the algorithm.
+suggested by the notation, it is an output of the
+algorithm. Constraints from $[[{DCtx}]]$ are never outputted in
+$[[{LCtx_i}]]$: if constraints from $[[{DCtx}]]$ remain unused, we
+weaken them instead.
 
 If the constraint solver finds a solution, then the output linear constraints
 must be a subset of the input linear constraints, and the solution must indeed
@@ -2031,7 +2033,7 @@ presents the rules of the constraint solver.
 \begin{itemize}
   \item The~\rref*{S-Mult} rule proceeds by solving one side of a
 conjunction first, then passing the output constraints to the other side.
-The unrestricted context is shared between both sides.
+Both the unrestricted context and the contractible context are shared between both sides.
   \item The~\rref*{S-Add} rule handles additive conjunction. The linear
 constraints are shared between the branches (since additive conjunction is
 generated from $\kcase$ expressions, only one of them is actually going to be
@@ -2039,17 +2041,23 @@ executed). Both branches must consume exactly the same
 resources.
   \item The~\rref*{S-ImplOne} rules handles linear implications. The
     unrestricted and linear components of the assumption are unioned
-    with their respective context when solving the conclusion. Importantly (see
+    with their respective context when solving the conclusion. Note
+    how the linear constraints, in particular, are classified
+    according to whether they are members of $[[{Dup}]]$ or not. Importantly (see
 \cref{sec:simple-constr-solv}), the linear assumptions are
-added to the front of the list.
+added to the front of the lists.
  The side condition that the output
 context is a subset of the input context ensures that the implication
 fully consumes its assumption and does not leak it to the ambient
 context.
-  \item The~\rref*{S-ImplMany} rules handles unrestricted implication.
-The conclusion uses its own linear assumption, but none of the other linear
-constraints. This is because, as per~\rref*{C-Impl}, unrestricted
-implications can only use an unrestricted context.
+\item The~\rref*{S-ImplMany} rules handles unrestricted implication.
+  The conclusion uses its own linear assumption, but none of the other
+  linear constraints.  This is because, as per~\rref*{C-Impl},
+  unrestricted implications can only use an unrestricted context. In
+  particular, crucially, the constraints from $[[{DCtx}]]$, despite
+  being subject to contraction and weakening, are not (and cannot) be
+  used to prove an unrestricted implication, as first discussed
+  in~\cref{sec:constraint-domain}.
 \end{itemize}
 
 \subsubsection{An atomic-constraint solver}
@@ -2062,7 +2070,10 @@ domain which supports our examples.
 For the sake of our examples, we need very little: linear
 constraints can remain abstract. It is thus sufficient for the entailment relation
 (\Cref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
-is already assumed---while respecting linearity.
+is already assumed---while respecting linearity. That is, with the
+exception of a distinguished constraint $[[{Linearly}]]$, which is
+subject to contraction and weakening, and we use to model the |Unique|
+constraint from~\ref{sec:Unique-constraint}.
 
 \begin{figure}
   \maybesmall
@@ -2115,7 +2126,7 @@ most local one.
 
 Another interesting feature of the solver (\Cref{fig:simpl-solver}) is that
 no rule solves a linear constraint if it appears both in the
-unrestricted and the linear context.
+unrestricted and a linear context.
 Consider the following (contrived) \textsc{api}:
 \begin{code}
 class constraint (C)
