@@ -227,7 +227,7 @@ UCtx ; DCtx ; LCtx1 , q , LCtx2 |-simp 1.q ~> LCtx1 , LCtx2
 
 Linearly \notin UCtx
 -------------------------------- :: OneD
-UCtx ; DCtx, Linearly ; LCtx |-simp 1.q ~> LCtx1 , LCtx2
+UCtx ; DCtx, Linearly ; LCtx |-simp 1.q ~> LCtx
 
 q \in UCtx
 q \notin DCtx
