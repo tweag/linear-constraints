@@ -84,6 +84,7 @@ import GHC.Base
 %format forall = "\forall"
 %format pack = "\kpack"
 %format pack' = "\kpack!"
+%format Unique = "\constraintfont{" Linearly "}"
 %format constraint (c) = "\constraintfont{" c "}"
 %format multiplicity (p) = "\multiplicityfont{" p "}"
 %format := = "\mathrel{{:}{=}}"
