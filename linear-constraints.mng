@@ -1439,12 +1439,11 @@ our system
     \begin{array}{l}
       [[Q ||- Q]] \\
       \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
-      \text{if } [[Q ||- Q1 * Q2]] \text{ then there exists }
+      \text{if } [[Q ||- Q1 * Q2]] \text{ then there exist }
       [[{Q'}]], [[{Qdup}]], \text{ and } [[{Q''}]]
         \text{ such that } [[Qdup \in Dup]], [[{Q}]]=[[{Q' * Qdup * Q''}]] \text{, } [[Q' * Qdup ||- Q1]]
         \text{ and } [[Qdup * Q'' ||- Q2]] \\
-      \text{if } [[Q ||- Empty]] \text{ then there exist } [[{Q'}]]
-        \text{ and } [[{Qdup}]] \text{ such that } [[Qdup \in Dup]], [[{Q}]]=[[{omega.Q' * Qdup}]] \\
+      \text{if } [[Q ||- Empty]] \text{ then } [[Q \in Dup]]\\
       \text{if } [[Q1 ||- Q1']] \text{ and } [[Q2 ||- Q2']] \text{ then } [[Q1 * Q2 ||- Q1' * Q2']] \\
       \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
       \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[{Q'}]] \text{ such
@@ -1459,18 +1458,39 @@ our system
 \caption{Requirements for the entailment relation $[[Q1 ||- Q2]]$}
 \label{fig:entailment-relation}
 \end{figure}
-\unsure{TODO: format Qdup, format Qdup in Dup, break lines, define
-  Qdup in Dup}
+\unsure{TODO: break lines}
 
 \begin{definition}[Entailment relation]
   \label{def:entailment-relation}
-  The qualified type system is parameterised by a relation $[[Q1 ||-
-    Q2]]$ between two simple constraints. The entailment relation must
-    obey the laws listed in \Fref{fig:entailment-relation}.
+  The qualified type system is parameterised by a relation
+  $[[Q1 ||- Q2]]$ between two simple constraints, as well as by a
+  distinguished set $[[{Dup}]]$ of atomic constraints.
+
+  We write, abusing notation, $[[Q \in Dup]]$ for a simple constraint
+  $[[{Q}]]=[[{(UCtx, LCtx)}]]$ if for all $[[{q}]]\in[[{LCtx}]]$ we
+  have $[[q \in Dup]]$ ($[[{UCtx}]]$ on the other hand can be
+  arbitrary).
+
+  The entailment relation must obey the laws listed in
+  \Fref{fig:entailment-relation}.
 \end{definition}
 %
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
 %
+The set $[[{Dup}]]$ is a set of constraints which obey contraction and
+weakening (see~\cref{fig:entailment-relation}). We use $[[{Dup}]]$ to
+model the |constraint(Unique)| constraint. Crucially, it is \emph{not
+  the case} that $[[1.q ||- omega.q]]$ for $[[q\in Dup]]$; such an
+entailment is, in fact, prohibited (\cref{lem:q:scaling-inversion}) by
+the rules of~\ref{fig:entailment-relation}. While it may seem
+counter-intuitive, there is nothing in linear logic mandating that a
+formula that can be contracted and weakened be (equivalent to) an
+unrestricted formula. This observation has been exploited, for
+instance, to introduce so-call
+subexponentials~\cite{subexponentials}. For our use case, it lets the
+typechecker dispatch |constraint(Unique)| constraints (using
+contraction), but prevents the result of function to be used
+unrestrictedly.
 
 An important feature of simple constraints is that, while scaling
 syntactically happens at the level of atomic constraints, these properties
@@ -3105,8 +3125,6 @@ $$
 \subsection{Lemmas on constraint inference}
 \label{sec:appendix:constraint-inference}
 
-\unsure{Check the proofs after a proper definition of $[[{Dup}]]$, has
-been given}
 \begin{lemma}[$[[{Dup}]]$ weakening]
   \label{lem:dup-weakening}
   The two following, equivalent, properties hold
@@ -3126,7 +3144,7 @@ been given}
   \end{itemize}
   Let $[[Qdup \in Dup]]$, then for each $[[{1.q}]] \in [[{Qdup}]]$,
   $[[1.q ||- Empty]]$ (per~\cref{fig:entailment-relation}), tensoring
-  each of these entailments together, we get $[[Qdup ||- Empty]]$.
+  each of these entailments together and with the $[[{omega.q}]] \in [[{Qdup}]]$, we get $[[Qdup ||- Empty]]$.
 \end{proof}
 
 \begin{lemma}[$[[{Dup}]]$ contraction]
@@ -3370,9 +3388,7 @@ been given}
     \item $[[Qdup * Q_2; G2, x:_pi  t1 |- e1 : t1]]$
     \end{itemize}
     From which follows that $[[Q_g; pi.G1+G2 |- let_pi x = e1 in e2 :
-    t]]$.\unsure{TODO: there may be a little bit of rephrasing
-      to do to support this, but I need that $[[Q \in Dup]]$ means
-      that $[[{Q}]]$ can have arbitrary $[[{omega.q}]]$}
+    t]]$.
   \item[\rref*{G-LetSig}] We have
     \begin{itemize}
     \item $[[pi.G1+G2 |-> let_pi x : forall as. Q =o t1 = e1 in e2 : t ~>
@@ -3595,4 +3611,4 @@ been given}
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
 % LocalWords:  sequents implicational deallocate deallocating monadic
 % LocalWords:  deallocated instantiations desugars unioned
-% LocalWords:  deterministically
+% LocalWords:  deterministically unrestrictedly subexponentials
