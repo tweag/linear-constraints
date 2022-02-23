@@ -220,18 +220,18 @@ q \in UCtx
 -------------------------------- :: Many
 UCtx ; DCtx ; LCtx |-simp omega.q ~> LCtx
 
+LCtx = LCtx1 , q , LCtx2
 q \notin LCtx2
 q \notin UCtx
 -------------------------------- :: OneL
-UCtx ; DCtx ; LCtx1 , q , LCtx2 |-simp 1.q ~> LCtx1 , LCtx2
+UCtx ; DCtx ; LCtx |-simp 1.q ~> LCtx1 , LCtx2
 
 Linearly \notin UCtx
 -------------------------------- :: OneD
 UCtx ; DCtx, Linearly ; LCtx |-simp 1.q ~> LCtx
 
 q \in UCtx
-q \notin DCtx
-q \notin LCtx
+q \notin DCtx \u LCtx
 -------------------------------- :: OneU
 UCtx ; DCtx ; LCtx |-simp 1.q ~> LCtx
 

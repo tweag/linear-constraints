@@ -183,7 +183,7 @@ import GHC.Base
       }%
   }
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
-  \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{atom}}}
+  \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{a}}}
   \newcommand{\scale}{\constraintfont{\cdot}}
   %% Constraint notations
   \newcommand{\constraintop}[1]{\mathop{\constraintfont{#1}}}
