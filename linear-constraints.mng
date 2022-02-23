@@ -1840,11 +1840,6 @@ in assumptions is the subject of work by \citet{quantified-constraints}.}.
   \caption{Wanted-constraint entailment}
   \label{fig:wanted:entailment}
 \end{figure}
-\unsure{The wanted-constraint entailment figure used to take only one
-  line of rules, but I added one, and now it takes a lot of vertical
-  space. Also, it looks pretty unbalanced. Revisit either to gain
-  vertical space if need, or otherwise, to make it more pleasant to
-  the eye.}
 
 Before we move on to constraint generation proper, let us highlight a few
 technical, yet essential, lemmas about the wanted-constraint
