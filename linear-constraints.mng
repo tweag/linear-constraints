@@ -2096,20 +2096,19 @@ $[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
 takes care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the front of
 the list). To understand why, consider the following example:
-%format ^^ = " "
 \begin{code}
 f =   unique $
-        let    arr = new 10
+        let    pack! arr = new 10
                fr   ::  constraint (RW n) =>. ()   ^^
                fr   =   free arr
                ()   =   fr                         in Ur ()
 
 \end{code}
 In this example, the programmer meant for
-|free| to use the |RW n| constraint introduced locally in the type
+|free| to use the |constraint(RW n)| constraint introduced locally in the type
 of |fr|. Yet
-there are actually two |RW n| constraints: this local one and the
-one assumed when entering the scope of |new|. The wrong
+there are actually two |constraint(RW n)| constraints: this local one and the
+one assumed when entering the scope of |arr|. The wrong
 choice among the constraints will lead the algorithm to fail.
 Choosing the first $[[{q}]]$ linear assumption guarantees we get the
 most local one.
