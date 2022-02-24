@@ -82,13 +82,12 @@ import GHC.Base
 %format . = "."
 %format exists = "\exists"
 %format forall = "\forall"
-%format pack = "\kpack"
+%format pack x = "\packbox" x
 %format pack' = "\kpack!"
 %format Unique = "\constraintfont{" Linearly "}"
 %format unique = linearly
 %format constraint (c) = "\constraintfont{" c "}"
 %format multiplicity (p) = "\multiplicityfont{" p "}"
-%format := = "\mathrel{{:}{=}}"
 %
 %format a1
 %format a_n
@@ -206,8 +205,7 @@ import GHC.Base
   \newcommand{\klet}{\keyword{let}}
   \newcommand{\kcase}{\keyword{case}}
   \newcommand{\kwith}{\keyword{with}}
-  \newcommand{\kpack}{\keyword{pack}}
-  \newcommand{\kunpack}{\keyword{unpack}}
+  \newcommand{\packbox}{\square}
   \newcommand{\kin}{\keyword{in}}
   \newcommand{\kof}{\keyword{of}}
 
@@ -327,7 +325,8 @@ import GHC.Base
   together with an inference algorithm which extends
   \textsc{ghc}'s existing constraint solver algorithm. Soundness of
   linear constraints is ensured by the fact that they desugar into
-  Linear Haskell.
+  Linear Haskell. \rae{This needs an update to reflect any new title
+  and our new |Unique|.}
 \end{abstract}
 
 \maketitle
@@ -339,7 +338,7 @@ import GHC.Base
 \label{sec:introduction}
 
 Linear type systems have seen a renaissance in recent years in
-various mainstream programming communities. Rust's ownership system guarantees
+various programming communities. Rust's ownership system guarantees
 memory safety for systems programmers, Haskell's \textsc{ghc}~9.0 includes
 support for linear types, and even
 dependently typed programmers can now use linear types with Idris 2.
@@ -353,7 +352,10 @@ using linear arguments to emulate Rust's ownership model is a painful exercise, 
 the programmer to carefully thread resource tokens.
 
 To get a sense of the power and the pain of using linear types, consider the
-following function:
+following function:\footnote{Linear |let|-bindings are strict. If you like,
+you can treat \emph{all} |let|-bindings as strict in our examples, as we
+do not make essential use of laziness in this work.} \rae{Is that footnote
+true?}
 \begin{code}
 read2AndDiscard :: MArray a ->. (Ur a, Ur a)
 read2AndDiscard arr0 =
@@ -411,7 +413,7 @@ without explicit threading?
 
 %% Rust introduces the \emph{borrow checker} for this very purpose. % seems out of place when referring to 1999 ideas.
 Following well-known ideas~\citep{DBLP:conf/popl/CraryWM99,DBLP:conf/esop/SmithWM00,DBLP:conf/tic/WalkerM00}, our approach is to let arrays be unrestricted, but
-associate linear capabilities (such as read, write) to them.
+associate linear capabilities (such as |constraint(Read)|, |constraint(Write)|) to them.
 In fact, we show in this paper that such linear capabilities
 are the natural extension of Haskell's type class
 constraints to the setting of linear types.
@@ -428,17 +430,17 @@ not require explicit threading of the array:
 \begin{code}
 read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
 read2AndDiscard arr =
-  let   x   :=  read arr 0
-        y   :=  read arr 1
-        ()  :=  free arr
+  let   pack x   =  read arr 0
+        pack y   =  read arr 1
+        pack ()  =  free arr
   in (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
 read and write access to the array,
-and |:=| is used to indicate the binders that require
-special treatment (\Fref{sec:implicit-existentials}
-suggests how we can get rid of
-this special treatment, too). Crucially, the resource representing the ownership of the
+and pattern-matching against $\packbox$ is necessary in order to access the linear constraint
+packed in the result of |read| and |free| (\Fref{sec:implicit-existentials}
+suggests how we can get rid of $\packbox$, too).
+Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
 
@@ -454,32 +456,36 @@ Our contributions are as follows:
   \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system points
   towards a possible unification of these lines of research.
 
+\item Applications of this qualified type system to allow
+  \begin{itemize}
+  \item uncluttered encodings of resource-aware algorithms (\Fref{sec:resources}); and
+  \item a mechanism to require certain functions to be used only in linear contexts,
+    avoiding a need for continuation-passing style in today's Linear Haskell (\Fref{sec:unique})
+  \end{itemize}
+
 \item An inference algorithm that respects the multiplicity of
   assumptions. We prove that this algorithm is sound with respect to
   our type system~(\Fref{sec:type-inference}). It consists of
   \begin{itemize}
-  \item A constraint generation
+  \item a constraint generation
     algorithm~(\cref{sec:constraint-generation}). The language of
-    generated constraint is enriched because of multiplicities. In
-    particular it is different to ask that two constraints hold
-    jointly, or that both hold individually. We need both kind of
-    conjunctions.
+    generated constraints tracks multiplicities.
   \item A solver~(\cref{sec:constraint-solver}) for the generated
     constraints, which restricts proof-search algorithms for linear
     logic in order to be \emph{guess
       free}~\cite[Section~6.4]{OutsideIn}. A guess-free algorithm
     ensures that constraint inference is predictable and insensitive
-    to small changes in the source program; and necessarily
+    to small changes in the source program; it is necessarily
     incomplete.
   \end{itemize}
 \item A core language  that supports linear functions, which is
-  essentially a simplification of the core language of
+  essentially a fragment of the core language of
   Haskell~\cite{LinearHaskell}.
   Expressions in our qualified type system desugar into this core
   language, and we prove that the output of our desugaring is
   well-typed~(\Fref{sec:desugaring}). This translation makes the present
-  paper a conservative extension of Linear Haskell--- with the exception of
-  the Unique constraint (\cref{sec:Unique-constraint}). \rae{This is alarming.
+  paper a conservative extension of Linear Haskell -- with the exception of
+  the novel |Unique| constraint (\cref{sec:Unique-constraint}). \rae{This is alarming.
   How is this not a conservative extension? Do we need new support in Core?}
 \end{itemize}
 %
@@ -521,8 +527,7 @@ Our definition is based on the type of the value concerned:
 %
 \subsection{Multiplicities}
 \label{sec:multiplicities}
-The usual arrow type |a -> b| can be recovered using |Ur| (pronounced ``unrestricted'' and
-originally written
+The usual arrow type |a -> b| can be recovered using |Ur| (originally written
 ``!'' by \citet{girard-linear-logic}), as |Ur a ⊸ b|, but Linear
 Haskell provides a first-class treatment of |a -> b|, thus ensuring
 backwards compatibility with Haskell. In practice, the type-checker
@@ -770,7 +775,7 @@ a type construction |exists a1 ... an. t .<= constraint(Q)|,
 where |constraint(Q)| is a linear constraint (with the |a1 ... an| in scope) that is
 paired with the type |t|.\footnote{We freely
 omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
-empty.} Such types are introduced with the |pack| constructor.
+empty.} Such types are introduced with the $\packbox$ constructor.
 % Today's Haskell does not have an existential quantifier. However,
 % existentially quantified types can
 % be encoded as datatypes. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
@@ -781,10 +786,10 @@ empty.} Such types are introduced with the |pack| constructor.
 % \end{code}
 % In our implementation (\Fref{sec:implementation}), packed linear constraints
 % piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
-% introduced by a data constructor, which we write as |pack|.
+% introduced by a data constructor, which we write as $\packbox$.
 In order to simplify extracting out the payload of an existential, however, we
 introduce a new syntax |let x := f args|: this notation means that the result
-of |f args| is un|pack|ed, putting its payload in |x|. The |:=| notation also
+of |f args| is unpacked, putting its payload in |x|. The |:=| notation also
 denotes a \emph{strict} binding, necessary for binding the type variables and
 assuming the constraints carried with |f args|; it can be understood as
 syntactic sugar for a |case| expression.
@@ -1704,9 +1709,9 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 \paragraph{Existentials.}
  We include $[[{exists as. t o= Q}]]$, as
   introduced in \cref{sec:what-it-looks-like}, together with
-  the $\kpack$ and $\kunpack$ constructions. See rules~\rref*{E-Pack} and
+  the $\packbox$ constructor. See rules~\rref*{E-Pack} and
   \rref*{E-Unpack}.
-\info{No substitution on $[[{Q1}]]$ in the $\kunpack$ rule, because there is
+\info{No substitution on $[[{Q1}]]$ in the E-Unpack rule, because there is
   only existential quantification.}
 
 
@@ -1898,9 +1903,9 @@ typing derivation, and is
 thus indeed syntax directed.
 \info{See Fig.13, p39 of OutsideIn~\cite{OutsideIn}}
 
-\info{Not caring about inferences simplifies $\kpack$ quite a bit, we
+\info{Not caring about inferences simplifies $\packbox$ quite a bit, we
   are using the pseudo-inferred type to generate constraint. In a real
-  system, we would need $\kpack$ to know its type (\emph{e.g.} using
+  system, we would need $\packbox$ to know its type (\emph{e.g.} using
   bidirectional type checking).}
 \begin{figure}
   \maybesmall
@@ -2213,7 +2218,7 @@ highlights the differences from the qualified system:
 \begin{itemize}
   \item Type schemes $[[{s}]]$ do not support qualified types.
   \item Existentially quantified types ($[[{exists as. t o= Q}]]$) are now represented as an (existentially quantified, linear) pair of values ($[[{exists as. t2 o- t1}]]$).
-Accordingly, $\kpack$ and $\kunpack$ operate on pairs.
+Accordingly, $\packbox$ operates on pairs.
 \end{itemize}
 %
 The differences between our core calculus and $λ^q$ are as follows:
@@ -2391,7 +2396,7 @@ here with these details, but they add clutter with little insight.}, and~\rref*{
 Variables are stored with qualified types in the environment, so they get
 translated to functions that take the evidence as argument. Accordingly, the evidence
 is inserted by passing $[[{z}]]$ as an argument.
-Handling $\kunpack$ requires splitting the context into two: $[[{e1}]]$ is desugared as a pair, and the evidence
+Handling \rref*{E-Unpack} requires splitting the context into two: $[[{e1}]]$ is desugared as a pair, and the evidence
 it contains is passed to $[[{e2}]]$. Finally, subsumption summons the function corresponding to the entailment relation $[[Q ||- Q1]]$
 and applies it to $[[{z}]]$ : $[[{Ev(Q)}]]$ then proceeds to desugar $[[{e}]]$ with the resulting evidence for $[[{Q1}]]$.
 Crucially, since $[[{Ds(z;Hole)}]]$ is defined on \emph{derivations}, we can access the premises used in the rule.
