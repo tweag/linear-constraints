@@ -566,33 +566,28 @@ themselves constrained functions are rare, so we do not yet see the
 need to extend multiplicity polymorphism to apply to constraints.
 Futhermore, it is not clear how to extend the constraint solver of
 \cref{sec:constraint-solver} to support multiplicity-polymorphic
-constraints.}
-\smallskip
-\begin{minipage}[c]{0.4\linewidth}
+constraints.}${}^,$\footnote{Here and in the rest of the paper we adopt the convention that
+equations defining a function by pattern matching are marked with a
+$\left\{\right.$ to their left.}
+
 $$
+\begin{array}{c@@{\qquad\qquad}c}
 \left\{
   \begin{array}{lcl}
     [[{pi + rho}]] & = & [[{omega}]]
   \end{array}
 \right.
-$$
-\end{minipage}
-\begin{minipage}[c]{0.4\linewidth}
-$$
+&
 \left\{
   \begin{array}{lcl}
     [[{1 . pi}]] & = & [[{pi}]] \\
     [[{omega . pi}]] & = & [[{omega}]]
   \end{array}
 \right.
+\end{array}
 $$
-\end{minipage}
-\smallskip
-(Here and in the rest of the paper we adopt the convention that
-equations defining a function by pattern matching are marked with a
-$\left\{\right.$ to their left.)
 
-\subsection{Shortcomings of Linear Haskell and Outlook}
+\subsection{Shortcomings of Linear Haskell, Solved by our Contributions}
 The |read| function in \cref{sec:introduction} consumes the array it
 operates on. Therefore, the same array can no longer be used in
 further operations: doing so would result in a type error.  To resolve
@@ -606,7 +601,16 @@ constraints}. Once these capabilities are consumed, the array can no
 longer be read from or written to without triggering a compile time
 error.
 
-\jp{perhaps explain the problem of ``source of uniqueness'' already here too?}
+A further drawback of today's Linear Haskell is that
+the programmer cannot restrict how a linear function is used.
+For example, suppose we wanted to use linear types to create
+a pure interface to arrays that support in-place mutation;
+the interface is safe only if we guarantee that arrays cannot
+be duplicated. Because the result of a hypothetical |newArray|
+function can be stored in an unrestricted variable (of multiplicity
+$[[{omega}]]$), the linearity system cannot prevent its duplication.
+Instead, \citet[Fig.~2]{LinearHaskell} use a continuation-passing
+style in order to enforce non-duplication.
 
 % In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
 % in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which means that
