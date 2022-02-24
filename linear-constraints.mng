@@ -479,7 +479,8 @@ Our contributions are as follows:
   language, and we prove that the output of our desugaring is
   well-typed~(\Fref{sec:desugaring}). This translation makes the present
   paper a conservative extension of Linear Haskell--- with the exception of
-  the |Unique| constraint~\cref{sec:Unique-constraint}.
+  the Unique constraint (\cref{sec:Unique-constraint}). \rae{This is alarming.
+  How is this not a conservative extension? Do we need new support in Core?}
 \end{itemize}
 %
 Our design is intended to work well with other features of Haskell and its
@@ -518,9 +519,10 @@ Our definition is based on the type of the value concerned:
 \end{itemize}
 \end{definition}
 %
-\subsection{Multiplicities} 
+\subsection{Multiplicities}
 \label{sec:multiplicities}
-The usual arrow type |a -> b| can be recovered using |Ur| (written
+The usual arrow type |a -> b| can be recovered using |Ur| (pronounced ``unrestricted'' and
+originally written
 ``!'' by \citet{girard-linear-logic}), as |Ur a ⊸ b|, but Linear
 Haskell provides a first-class treatment of |a -> b|, thus ensuring
 backwards compatibility with Haskell. In practice, the type-checker
