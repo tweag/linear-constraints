@@ -1467,7 +1467,7 @@ our system
       \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
       \text{if } [[Q ||- Q1 * Q2]] \text{ then there exist }
       [[{Q'}]], [[{Qdup}]], \text{ and } [[{Q''}]]
-        \text{ such that } [[Qdup \in Dup]], [[{Q}]]=[[{Q' * Qdup * Q''}]] \text{, } [[Q' * Qdup ||- Q1]]
+        \text{ such that } [[Qdup \in Dup]], [[{Q}]]=[[{Q' * Qdup * Q''}]] \text{, } [[Q' * Qdup ||- Q1]] \\
         \text{ and } [[Qdup * Q'' ||- Q2]] \\
       \text{if } [[Q ||- Empty]] \text{ then } [[Q \in Dup]]\\
       \text{if } [[Q1 ||- Q1']] \text{ and } [[Q2 ||- Q2']] \text{ then } [[Q1 * Q2 ||- Q1' * Q2']] \\
