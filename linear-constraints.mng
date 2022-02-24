@@ -460,7 +460,7 @@ Our contributions are as follows:
   \begin{itemize}
   \item uncluttered encodings of resource-aware algorithms (\Fref{sec:resources}); and
   \item a mechanism to require certain functions to be used only in linear contexts,
-    avoiding a need for continuation-passing style in today's Linear Haskell (\Fref{sec:unique})
+    avoiding a need for continuation-passing style in today's Linear Haskell (\Fref{sec:Unique-constraint})
   \end{itemize}
 
 \item An inference algorithm that respects the multiplicity of
@@ -554,7 +554,7 @@ In particular, |g| can pass |x| to |f|.
 
 Pattern matching on a value of |Ur a| yields a payload of multiplicity
 \(ω\), even when the scrutinee has multiplicity 1.  Given a
-type-system parameterized on a multiplicity set, the desired
+type-system parameterised on a multiplicity set, the desired
 (sub)structural rules can be obtained by endowing the appropriate
 semiring structure to multiplicities~\citep{abel_unified_2020}. In
 this paper, we use the same multiplicity structure as Linear Haskell:\footnote{Even though linear Haskell additionally supports multiplicity
@@ -703,12 +703,12 @@ There are a few things to notice:
   the version in \Cref{fig:linear-interface} without linear
   constraints  has type |free :: MArray a ->. ()|.
   The type variable |n| is a type-level tag used to identify the array.
-  Ideally, the linear constraint would refer directly to the
-  array value, and have the dependent type |free :: (n :: Array a) -> constraint (RW n) =>. ()|.
-  While giving a compile-time name to a function argument is common in
-  dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris, our
-  approach, on the other hand, shows how we can still link a run-time value and a
-  compile-time tag without needing any dependent types.
+  % Ideally, the linear constraint would refer directly to the
+  % array value, and have the dependent type |free :: (n :: Array a) -> constraint (RW n) =>. ()|.
+  % While giving a compile-time name to a function argument is common in
+  % dependently typed languages such as \textsc{ats}~\cite{ats-lang} or Idris, our
+  % approach, on the other hand, shows how we can still link a run-time value and a
+  % compile-time tag without needing any dependent types.
 \item The run-time variable representing the array can now be used multiple
   times. Instead of restricting the use of this variable,
   the linear constraint |constraint(RW n)| controls access to the
@@ -722,22 +722,42 @@ There are a few things to notice:
 The above deals with freeing an array and ensuring that it cannot be used afterwards.
 However, we still need to explain how a constraint |constraint (RW n)| can come
 into scope.
-The type of |new| with linear constraints is:
+The type of |new| with linear constraints is as follows:
 \begin{code}
 new  :: constraint (Unique) =>. Int -> exists n. UArray a n .<= constraint (RW n)
 \end{code}
-\csongor{we need a relevant explanation here}
 
-\begin{code}
-unique :: (Unique =>. Ur r) ->. Ur r
-\end{code}
-%% This higher-rank function can be thought of as a computation that allocates an
-%% array in a \emph{scope}. The scope is given an array with read and write
-%% capability. The scope must return an unrestricted value to ensure that
-%% the linear constraint cannot be embedded into the return value. The construction here
-%% ensures that, within the scope, we can be sure both that there is one
-%% unique owner of the array at all times, and that the array is freed at the
-%% end, given that the only way to remove the |constraint(RW n)| constraint is to use |free|.
+This type, too, illustrates several new topics:
+\begin{itemize}
+\item The |constraint(Unique)| constraint is an ordinary linear constraint, though
+it takes no type parameter. It serves to require all usages of |new| to occur
+in linear contexts, meaning that any variable that stores the result of |new| must
+have multiplicity 1. |constraint(Unique)| is explained more fully in \Fref{sec:Unique-constraint}.
+
+\item Because |UArray| is now parameterised by a type-level tag |n|, |new| must
+return a |UArray| with a fresh such |n|. This is achieved through returning an
+existentially-quantified type\footnote{There is a variety of ways existential types can
+  be worked into a language. The existentials we use here might best be understood
+  as a generalisation of those presented by \citet[Chapter
+  24]{tapl}.
+  However, \citet{existentials} work out an
+  approach that make linear constraints even easier to use, as we
+  discuss in \Fref{sec:implicit-existentials}. In order to separate
+  concerns, we do not build the bulk of our work on \citet{existentials}.
+  We additionally freely
+omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
+empty.
+  The idea of using existentials to return linear capabilities can be attributed to \citet{DBLP:conf/esop/FluetMA06}.
+} packing the type variable |n|. Such types are introduced with the $\packbox$ constructor,
+which some readers might recognize as $\keyword{pack}$.
+
+\item Not only do we need a fresh type variable |n|, but we also need to introduce
+the linear constraint |constraint(RW n)| for use in subsequent calls to |read| and |free|.
+Our existentials also allow packing a constraint, through the |.<=| operator.
+\end{itemize}
+
+With all these features working together, we see that |new| returns a non-duplicable
+|UArray| tagged with |n|, accessible only when the |constraint(RW n)| constraint is available.
 
 We must also ensure that |read| can both promise to operate only on a readable array
 and that the array remains readable afterwards. That is, |read| must both consume
@@ -757,25 +777,14 @@ read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n
 %% quantifier to generate the type-level name of the file
 %% handle. Existentially quantified types are paired with a constraint |Q|
 %% which we understand as being returned by functions.
-This type has a new symbol, |.<=|, which allows us to pack a produced constraint
-with a returned value. We will see in \cref{sec:arrays} that these produced constraints
-will also sometimes need to come with fresh type variables. Combining these
-ideas, we
-introduce\footnote{There is a variety of ways existential types can
-  be worked into a language. The existentials we use here might best be understood
-  as a generalisation of those presented by \citet[Chapter
-  24]{tapl}.
-  However, \citet{existentials} work out an
-  approach that make linear constraints even easier to use, as we
-  discuss in \Fref{sec:implicit-existentials}. In order to separate
-  concerns, we do not build the bulk of our work on \citet{existentials}.
-  The idea of using existentials to return linear capabilities can be attributed to \citet{DBLP:conf/esop/FluetMA06}.
-  }
-a type construction |exists a1 ... an. t .<= constraint(Q)|,
-where |constraint(Q)| is a linear constraint (with the |a1 ... an| in scope) that is
-paired with the type |t|.\footnote{We freely
-omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
-empty.} Such types are introduced with the $\packbox$ constructor.
+% This type has a new symbol, |.<=|, which allows us to pack a produced constraint
+% with a returned value. We will see in \cref{sec:arrays} that these produced constraints
+% will also sometimes need to come with fresh type variables. Combining these
+% ideas, we
+% introduce
+% a type construction |exists a1 ... an. t .<= constraint(Q)|,
+% where |constraint(Q)| is a linear constraint (with the |a1 ... an| in scope) that is
+% paired with the type |t|.\footnote{} Such types are introduced with the $\packbox$ constructor.
 % Today's Haskell does not have an existential quantifier. However,
 % existentially quantified types can
 % be encoded as datatypes. For instance, |exists h. Ur (Handle h) .<= constraint (Open h)| can
@@ -787,12 +796,12 @@ empty.} Such types are introduced with the $\packbox$ constructor.
 % In our implementation (\Fref{sec:implementation}), packed linear constraints
 % piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
 % introduced by a data constructor, which we write as $\packbox$.
-In order to simplify extracting out the payload of an existential, however, we
-introduce a new syntax |let x := f args|: this notation means that the result
-of |f args| is unpacked, putting its payload in |x|. The |:=| notation also
-denotes a \emph{strict} binding, necessary for binding the type variables and
-assuming the constraints carried with |f args|; it can be understood as
-syntactic sugar for a |case| expression.
+% In order to simplify extracting out the payload of an existential, however, we
+% introduce a new syntax |let x := f args|: this notation means that the result
+% of |f args| is unpacked, putting its payload in |x|. The |:=| notation also
+% denotes a \emph{strict} binding, necessary for binding the type variables and
+% assuming the constraints carried with |f args|; it can be understood as
+% syntactic sugar for a |case| expression.
 We have now seen all the ingredients needed to write
 the |read2AndDiscard| example as in \cref{sec:introduction}.
 
@@ -915,14 +924,14 @@ overusing = (useC, useC)
 % not be able to consume the |constraint (Open h)| constraint
 % linearly.
 
-\subsection{Source of uniqueness}
+\subsection{Restricting to a linear context with |constraint(Unique)|}
 \label{sec:Unique-constraint}
 A linear function makes a promise about how it is going to use its argument, but
 linearity imposes no restrictions how a function -- or its result -- is going to be used.
 The caller may use the linear function's result unrestrictedly.  This poses a
 challenge for implementing libraries that rely on having a unique pointer to
 some resource, such as safe mutable arrays, because the obvious definition of a
-constructor can immediately be misused, violating the assumption of uniqueness.
+constructor function can immediately be misused, violating the assumption of uniqueness.
 %
 \begin{code}
 new :: Int -> MArray a
@@ -930,73 +939,62 @@ new :: Int -> MArray a
 bad = let arr = new 5 in (arr, arr)
 \end{code}
 %
-A way to guarantee that no such duplication can occur is to allocate the array
-and pass it to a linear continuation function  that returns an unrestricted
-value (sometimes called the ``scope'' of the array).
-%
+However, with linear constraints, we can overcome this problem by putting the
+special |constraint(Unique)| constraint on |new|:
 \begin{code}
-new :: Int -> (MArray a ->. Ur r) ->. Ur r
+new :: constraint(Unique) =>. Int -> MArray a
 \end{code}
-%
-This way, there will be a unique reference to the array inside of the
-scope, and the array is guaranteed to be freed or frozen, since the
-function cannot return it, as it returns an unrestricted value.
+Suppose we have assumed the |constraint(Unique)| constraint linearly; that is,
+we must use the |constraint(Unique)| assumption precisely once. Now, our definition
+for |bad| is rejected: either we infer |arr| to have multiplicity $[[{omega}]]$,
+in which case its definition uses |constraint(Unique)| $[[{omega}]]$ times; or
+we infer |arr| to have multiplicity $[[{1}]]$, in which case its use (twice) violates
+the linearity restriction.
 
-This technique is not only cumbersome, but also inflexible. An existing array
-can only be used in the scope of a new array if they are both freed or frozen
-inside the inner scope, since neither array can be returned from it. In
-practice, this means that array allocations happen in one place, and helper
-functions cannot allocate short-lived auxiliary arrays with this interface.
+This is promising so far, but several problems remain:
 
-\rae{This next bit should be cut, I think.}
-A potential workaround is to have an additional way of allocating an array, if
-another array already exists.
-\begin{code}
-newBeside :: MArray b ->. Int -> (MArray a, MArray b)
-\end{code}
-This function uses another array as a ``source of uniqueness'', which it
-returns, along with a newly allocated array. The intuition is that the existence
-of the other array is a proof that the |newBeside| function is called in a
-linear continuation passed on to the |new| function above. In this continuation,
-the |MArray b| value is guaranteed to be used linearly, so the result of
-|newBeside| is also guaranteed to be used linearly.
-%
-What if there's another library that defines a unique value in a similar way?
-Such a value should also be usable as a source of uniqueness, but the current
-framework would require creating a new version of |newBeside| that allocates
-beside that value.
+\begin{description}
+\item[Duplicating |constraint(Unique)|] What if we want to create multiple
+arrays, each of which is non-duplicable? If |constraint(Unique)| is assumed
+linearly, then |let arr1 = new 5; arr2 = new 6| will fail, as it uses our
+|constraint(Unique)| assumption twice. We thus stipulate that |constraint(Unique)|
+must itself be duplicable: from one assumption of |constraint(Unique)|, we
+must be able to satisfy any arbitrary fixed number of demands on that constraint.
+By ``arbitrary fixed number'', we mean to say that we can duplicate |constraint(Unique)|
+a finite number of times, but we may not use an assumption of |constraint(Unique)| with
+multiplicity 1 to satisfy |constraint(Unique)| at multiplicity $[[{omega}]]$.
 
-To avoid this combinatorial explosion of allocation functions, we propose a
-unified source of uniqueness in the form of a linear constraint, called
-|Unique|. The only way to bring a witness of |Unique| into existence is to apply
-the same continuation technique to delimit a linear scope.
-%
+\item[Discarding |constraint(Unique)|] Similarly to allowing duplication, we
+must allow discarding, in case a function allocates no arrays at all. Accordingly,
+we allow a linear assumption of |constraint(Unique)| to be accepted even if the
+constraint is never used.\footnote{An alternative presentation would be to assign
+a new multiplicity to |constraint(Unique)|, neither $[[{1}]]$ nor $[[{omega}]]$.
+However, because this multiplicity would be used only for this one constraint, we
+deemed it simpler just to have custom handling for |constraint(Unique)| instead
+of an entire new multiplicity.}
+
+\item[Initial assumption of |constraint(Unique)|] For this approach to work,
+we must have an assumption of |constraint(Unique)| of multiplicity 1. We can
+achieve this via the following primitive:
 \begin{code}
 unique :: (Unique =>. Ur r) ->. Ur r
 \end{code}
-%
-Having |Unique| in the context of a function thus guarantees that the function
-will be used linearly, because |Unique| is guaranteed to be used linearly in the
-continuation. Array allocation can be done in a direct style now.
-%
-\begin{code}
-new :: Unique =>. Int -> MArray a
-\end{code}
-%
-The result of |new 5| must be used linearly, otherwise it
-couldn't use the |Unique| linear constraint.
-\rae{I'm lost here. How does this eliminate |bad|, above? Ah. We need
-a linear |let|, too. Maybe we already have a linear |let|. But I don't
-think our reader knows this.}
+The argument to |unique| will be a continuation that assumes |constraint(Unique)|
+with multiplicity 1. Because |unique| returns an unrestricted value, no restricted
+values from the continuation can escape the scope of the |constraint(Unique)|
+assumption. Thus, the continuation has exactly the condition we need: a
+linear assumption of |constraint(Unique)|.
+\end{description}
 
-Notice that |new| does not return |Unique|; it simply consumes it. So how could
-a single |Unique| be used to allocate two fresh arrays? |Unique| is a special
-linear constraint that may freely be duplicated. This means that when allocating
-two arrays, the source of uniqueness is simply duplicated.
-If a proof of uniqueness exists, this proof can be used several times, but --
-crucially -- not |omega| times. This means that |Unique| is still only consumable
-by functions whose result is used linearly, but multiple functions can use a
-single source of uniqueness by duplicating it first.
+The pattern of using continuation-passing style in |unique| mirrors the use
+of that technique by \citet[Fig.~2]{LinearHaskell}. The difference here is that
+|unique| is the one place where continuation-passing style must be used: once
+we have our linear |constraint(Unique)| assumption, we can use it to produce
+new values that must be unique.
+
+With just these simple ingredients -- a duplicable, discardable constraint
+that can be assumed linearly -- we can write \textsc{api}s that require
+uniqueness without using continuation-passing style.
 
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
