@@ -456,11 +456,11 @@ Our contributions are as follows:
   \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system points
   towards a possible unification of these lines of research.
 
-\item Applications of this qualified type system to allow
+\item Applications of this qualified type system to allow writing
   \begin{itemize}
-  \item uncluttered encodings of resource-aware algorithms (\Fref{sec:resources}); and
-  \item a mechanism to require certain functions to be used only in linear contexts,
-    avoiding a need for continuation-passing style in today's Linear Haskell (\Fref{sec:Unique-constraint})
+  \item resource-aware algorithms without explicit threading (\Fref{sec:resources}); and
+  \item functions that can be used only in linear contexts, meaning that
+  their results are not shared (\Fref{sec:Unique-constraint})
   \end{itemize}
 
 \item An inference algorithm that respects the multiplicity of
@@ -470,7 +470,7 @@ Our contributions are as follows:
   \item a constraint generation
     algorithm~(\cref{sec:constraint-generation}). The language of
     generated constraints tracks multiplicities.
-  \item A solver~(\cref{sec:constraint-solver}) for the generated
+  \item a solver~(\cref{sec:constraint-solver}) for the generated
     constraints, which restricts proof-search algorithms for linear
     logic in order to be \emph{guess
       free}~\cite[Section~6.4]{OutsideIn}. A guess-free algorithm
@@ -478,18 +478,11 @@ Our contributions are as follows:
     to small changes in the source program; it is necessarily
     incomplete.
   \end{itemize}
-\item A core language  that supports linear functions, which is
-  essentially a fragment of the core language of
-  Haskell~\cite{LinearHaskell}.
-  Expressions in our qualified type system desugar into this core
-  language, and we prove that the output of our desugaring is
-  well-typed~(\Fref{sec:desugaring}). This translation makes the present
-  paper a conservative extension of Linear Haskell -- with the exception of
-  the novel |Unique| constraint (\cref{sec:Unique-constraint}). \rae{This is alarming.
-  How is this not a conservative extension? Do we need new support in Core?}
 \end{itemize}
 %
-Our design is intended to work well with other features of Haskell and its
+Our language is given semantics by a desugaring into a core language based
+on that of \citet{LinearHaskell}.
+The design we present is intended to work well with other features of Haskell and its
 implementation within \textsc{ghc} and we have a prototype implementation.
 
 \section{Background: Linear Haskell}
@@ -1130,8 +1123,9 @@ references, including arrays of (mutable) arrays.
 % linear constraints, this is all managed automatically by the compiler.
 
 > data PArray (a :: Location -> Type) (n :: Location)
-> newPArray :: constraint (Unique) =>. Int -> exists n. PArray a n .<= constraint (RW n)
+> newPArray :: constraint (Unique) =>. Int ->exists n. PArray a n .<= constraint (RW n)
 
+\rae{I added the |forall n. a n| argument there. Please double-check.}
 For this purpose we introduce the type |PArray a n|, where the kind of
 |a| is |Location -> Type|: this way we can easily enforce that each
 reference in the array refers to the same location |n|. Both types
@@ -1142,9 +1136,7 @@ one can allocate, and manipulate arrays of arrays with this
 \cref{sec:introduction} is a synonym for an array of atomic references.
 An array of arrays of integers would have type |PArray (PArray (AtomRef Int)) n|. Thus,
 the framework handles nested mutable structures without any additional
-difficulty.
-
-%% As discussed in \cref{sec:what-it-looks-like}, the scope of |newPArray| returns
+difficulty. %% As discussed in \cref{sec:what-it-looks-like}, the scope of |newPArray| returns
 %% an unrestricted value to ensure that the linear constraint is consumed within
 %% the scope (since linear values cannot be embedded into an unrestricted value).
 %% As this is the only introduction form of |constraint (RW n)|, it can safely be
@@ -1161,9 +1153,9 @@ pointer it contains points to manually managed memory.
 
 When writing a reference (be it an array or an |AtomRef|) in an array,
 ownership of the reference is transferred to the array. Because the
-content of an array cell is linear, we can't erase it when we write,
-instead we get the old content back. To do so, we use the |exchange|
-primitive
+content of an array cell is linear, we cannot erase it when we write;
+instead, we get the old content back. To do so, we use the |exchange|
+primitive: \rae{I'm lost. I don't see how |exchange| relates to the text in this paragraph.}
 
 > exchange :: constraint ((RW n, RW p)) =>. a p -> a n -> () .<= constraint ((RW n, RW p))
 
@@ -1193,9 +1185,9 @@ which exchanges two references, together with the borrowing primitives described
 \subsubsection{Borrowing}
 
 The |lendMut arr i k| primitive lends access to the reference at index |i| in
-|arr|, to a scope function |k| (in Rust terminology, the scope
-\emph{borrows} an element of the array). Note that the scope must return the
-read-write capability, so the ownership transfer is indeed temporary, and the
+|arr|, to a continuation function |k| (in Rust terminology, the function
+\emph{borrows} an element of the array). Note that the continuation must return the
+read-write capability, so that the ownership transfer is indeed temporary. The
 type system guarantees that the borrowed reference cannot be shared or deallocated.
 %
 % Here, the return type of the scope, |r|,
@@ -1208,7 +1200,7 @@ never simultaneously available.
 > lendMut  :: constraint (RW n) =>. PArray a n -> Int -> (forall p. ^^ constraint (RW p) =>. a p -> r .<= constraint (RW p)) ⊸ r .<= constraint (RW n)
 %
 Because the elements of an array can be mutable structures (such as
-other arrays), reading can only be done safely if we can ensure that
+other arrays), reading can be done safely only if we can ensure that
 no one else has access to the array while the element is accessed. Otherwise,
 the array -- including the element being read -- could be mutated.
 Therefore,
@@ -1272,11 +1264,11 @@ together:
 swap :: constraint(RW n) =>. PArray a n -> Int -> Int -> () .<= constraint(RW n)
 swap arr i j  | i == j   =  pack ()
               | i > j    =  swap arr j i
-              | i < j    =  let   Ur (l, r)  :=  split arr (i + 1)
-                                  ()         :=  lendMut l i (\a_i ->
+              | i < j    =  let   pack (Ur (l, r))  =  split arr (i + 1)
+                                  pack ()           =  lendMut l i (\a_i ->
                                                          let () := lendMut r (j - (i + 1)) (\a_j ->
                                                            let () := exchange a_i a_j in pack ()) in pack ())
-                                  Ur _       :=  join l r
+                                  pack (Ur _)       =  join l r
                             in pack ()
 \end{code}
 \caption{Swapping two elements of an array}
@@ -1343,13 +1335,15 @@ reorganising the array elements such that each element preceding the pivot will
 be less than or equal to it, and the elements after will be greater than the
 pivot. Once finished, it returns the index of the pivot element; |sort| then
 splits the array at the pivot element and recursively operates on the two
-slices. These recursive calls can be executed non-deterministically (or, indeed,
-in parallel), as the type system guarantees that no data races can occur.
-\rae{I'm not sure I believe this last claim about parallel execution. Well,
-I do think these can be executed in parallel, but I'm not convinced that Haskell
-supports doing this in a lazy pattern match. If we want to do this, I think we
-should probably develop some kind of |par| construct that makes the parallelism
-explicit.}
+slices.
+
+%  These recursive calls can be executed non-deterministically (or, indeed,
+% in parallel), as the type system guarantees that no data races can occur.
+% \rae{I'm not sure I believe this last claim about parallel execution. Well,
+% I do think these can be executed in parallel, but I'm not convinced that Haskell
+% supports doing this in a lazy pattern match. If we want to do this, I think we
+% should probably develop some kind of |par| construct that makes the parallelism
+% explicit.}
 %
 
 \section{A qualified type system for linear constraints}
