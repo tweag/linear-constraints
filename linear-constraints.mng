@@ -2448,7 +2448,7 @@ generated constraints and re-emit a scaled version of them, which is a fairly lo
 change.
 
 The constraint solver maintains a set of given constraints (the \emph{inert set}
-in \textsc{ghc} jargon), which corresponds to the $[[{UCtx}]]$ and $[[{LCtx}]]$
+in \textsc{ghc} jargon), which corresponds to the $[[{UCtx}]]$, $[[{DCtx}]]$, and $[[{LCtx}]]$
 contexts in our solver judgements in \cref{sec:constraint-solver}. When
 the solver goes under an implication, the assumptions of the implication are
 added to set of givens. When a new given is added, we record the \emph{level} of
