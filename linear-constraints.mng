@@ -603,7 +603,7 @@ error.
 A further drawback of today's Linear Haskell is that
 the programmer cannot restrict how a linear function is used.
 For example, suppose we wanted to use linear types to create
-a pure interface to arrays that support in-place mutation;
+a pure interface to arrays that supports in-place mutation;
 the interface is safe only if we guarantee that arrays cannot
 be duplicated. Because the result of a hypothetical |newArray|
 function can be stored in an unrestricted variable (of multiplicity
