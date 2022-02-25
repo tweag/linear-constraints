@@ -345,17 +345,18 @@ dependently typed programmers can now use linear types with Idris 2.
 All of these systems are vastly different in ergonomics and
 scope. Rust uses dedicated syntax and code generation
 to support management of resources, while Linear Haskell is a
-type system change without any other support from the compiler. Linear Haskell
+type system change without any other impact on the compiler. Linear Haskell
 is designed to be general purpose, but
-using linear arguments to emulate Rust's ownership model is a painful exercise, requiring
+using its linear arguments to emulate Rust's ownership model is a tedious exercise. It
+requires
 % the compiler doesn't know how to help, requiring
 the programmer to carefully thread resource tokens.
 
-To get a sense of the power and the pain of using linear types, consider the
+To get a sense of the power and the tedium of using linear types, consider the
 following function:\footnote{Linear |let|-bindings are strict. If you like,
 you can treat \emph{all} |let|-bindings as strict in our examples, as we
 do not make essential use of laziness in this work.} \rae{Is that footnote
-true?}
+true?}\jp{Also, it is written with a by-the-way tone which is both not fitting and disconcerting. Probably a big red flag to reviewers. As I see it these bindings MUST be strict to make any sense. I suggest to either use strictness annotations and delete this remark, or promote it to the body of the text and state that all lets are strict in this paper.}
 \begin{code}
 read2AndDiscard :: MArray a ->. (Ur a, Ur a)
 read2AndDiscard arr0 =
@@ -378,7 +379,8 @@ references statically. Finally, |free| consumes the array without returning a
 new one, statically guaranteeing that it can no longer be used.
 The values |x| and |y| read from the array are returned; their
 types include elements wrapped by the |Ur|
-(pronounced ``unrestricted'') type, allowing them to be used
+(pronounced ``unrestricted'',  and corresponding to the
+``!'' operator of \citet{girard-linear-logic}) type, allowing them to be used
 arbitrarily many times. This works because |read2AndDiscard| takes a restricted-use array
 containing unrestricted elements.
 %
@@ -415,7 +417,7 @@ without explicit threading?
 Following well-known ideas~\citep{DBLP:conf/popl/CraryWM99,DBLP:conf/esop/SmithWM00,DBLP:conf/tic/WalkerM00}, our approach is to let arrays be unrestricted, but
 associate linear capabilities (such as |constraint(Read)|, |constraint(Write)|) to them.
 In fact, we show in this paper that such linear capabilities
-are the natural extension of Haskell's type class
+are the natural analogue of Haskell's type class
 constraints to the setting of linear types.
 We call these new constraints \emph{linear constraints}.
 Like class constraints,
@@ -437,9 +439,9 @@ read2AndDiscard arr =
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
 read and write access to the array,
-and pattern-matching against $\packbox$ is necessary in order to access the linear constraint
-packed in the result of |read| and |free| (\Fref{sec:implicit-existentials}
-suggests how we can get rid of $\packbox$, too).
+and pattern-matching against $\packbox$ (read ``box'') is necessary in order to access the linear constraint
+packed in the result of |read| and |free|. (\Fref{sec:implicit-existentials}
+suggests how we can get rid of $\packbox$, too.)
 Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
@@ -447,11 +449,11 @@ longer needs to be threaded manually.
 Our contributions are as follows:
 \begin{itemize}
 \item A system of qualified types that allows a constraint assumption
-  to be given a multiplicity. Linear assumptions are used precisely
+  to be given a multiplicity (linear or unrestricted). Linear assumptions are used precisely
   once in the body of a definition
   (\Fref{sec:qualified-type-system}). This system supports examples
   that have motivated the design of several resource-aware systems,
-  such as ownership à la Rust (\Fref{sec:memory-ownership}), or
+  such as ownership \textit{à la} Rust (\Fref{sec:memory-ownership}), or
   capabilities in the style of Mezzo~\cite{mezzo-permissions} or
   \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system points
   towards a possible unification of these lines of research.
@@ -480,16 +482,16 @@ Our contributions are as follows:
   \end{itemize}
 \end{itemize}
 %
-Our language is given semantics by a desugaring into a core language based
+Our language is given semantics by desugaring into a core language based
 on that of \citet{LinearHaskell}.
-The design we present is intended to work well with other features of Haskell and its
-implementation within \textsc{ghc} and we have a prototype implementation.
+Our design is intended to work well with other features of Haskell and 
+\textsc{ghc} extensions. Indeed, we have a prototype implementation.\jp{forward ref?}
 
 \section{Background: Linear Haskell}
 \label{sec:linear-types}
 
 This section, mostly cribbed from \citet[Section 2.1]{LinearHaskell},
-describes our baseline approach, as released in GHC~9.0.
+describes our baseline approach, as released in \textsc{ghc}~9.0.
 %
 Linear Haskell adds a new type of functions,
 dubbed \emph{linear functions}, and written |a ⊸ b|.\footnote{The linear function
@@ -499,10 +501,10 @@ dubbed \emph{linear functions}, and written |a ⊸ b|.\footnote{The linear funct
   literature amount to adding such a linear function type, but details
   can vary wildly. See~\citet[Section 6]{LinearHaskell} for an analysis
   of alternative approaches.} A linear function consumes its
-  argument exactly once. More precisely, Linear Haskell lays it out thusly:
+  argument exactly once. Linear Haskell defines it precisely: % "thusly" is very rare; let's not summon our inner Shakespeare just yet.
 
 \begin{quote}
-\emph{Meaning of the linear arrow}:
+% \emph{Meaning of the linear arrow}: %JP: redundant
 |f :: a ⊸ b| guarantees that if |(f u)| is consumed exactly once,
 then the argument |u| is consumed exactly once.
 \end{quote}
@@ -520,8 +522,7 @@ Our definition is based on the type of the value concerned:
 %
 \subsection{Multiplicities}
 \label{sec:multiplicities}
-The usual arrow type |a -> b| can be recovered using |Ur| (originally written
-``!'' by \citet{girard-linear-logic}), as |Ur a ⊸ b|, but Linear
+The usual arrow type |a -> b| can be recovered using |Ur|, as |Ur a ⊸ b|, but Linear
 Haskell provides a first-class treatment of |a -> b|, thus ensuring
 backwards compatibility with Haskell. In practice, the type-checker
 records the \emph{multiplicity} of every introduced variable: \(1\) for linear
@@ -567,7 +568,7 @@ Futhermore, it is not clear how to extend the constraint solver of
 constraints.}${}^,$\footnote{Here and in the rest of the paper we adopt the convention that
 equations defining a function by pattern matching are marked with a
 $\left\{\right.$ to their left.}
-
+%
 $$
 \begin{array}{c@@{\qquad\qquad}c}
 \left\{
@@ -607,7 +608,7 @@ the interface is safe only if we guarantee that arrays cannot
 be duplicated. Because the result of a hypothetical |newArray|
 function can be stored in an unrestricted variable (of multiplicity
 $[[{omega}]]$), the linearity system cannot prevent its duplication.
-Instead, \citet[Fig.~2]{LinearHaskell} use a continuation-passing
+Instead, \citet[Fig.~2]{LinearHaskell} use continuation-passing
 style in order to enforce non-duplication.
 
 % In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
@@ -720,7 +721,7 @@ The type of |new| with linear constraints is as follows:
 new  :: constraint (Unique) =>. Int -> exists n. UArray a n .<= constraint (RW n)
 \end{code}
 
-This type, too, illustrates several new topics:
+This type, too, illustrates several new aspects:
 \begin{itemize}
 \item The |constraint(Unique)| constraint is an ordinary linear constraint, though
 it takes no type parameter. It serves to require all usages of |new| to occur
@@ -729,8 +730,8 @@ have multiplicity 1. |constraint(Unique)| is explained more fully in \Fref{sec:U
 
 \item Because |UArray| is now parameterised by a type-level tag |n|, |new| must
 return a |UArray| with a fresh such |n|. This is achieved through returning an
-existentially-quantified type\footnote{There is a variety of ways existential types can
-  be worked into a language. The existentials we use here might best be understood
+existentially-quantified type\footnote{There is a variety of ways that existential types can
+  be worked into a language. The existentials that we use here might best be understood
   as a generalisation of those presented by \citet[Chapter
   24]{tapl}.
   However, \citet{existentials} work out an
@@ -741,12 +742,12 @@ existentially-quantified type\footnote{There is a variety of ways existential ty
 omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
 empty.
   The idea of using existentials to return linear capabilities can be attributed to \citet{DBLP:conf/esop/FluetMA06}.
-} packing the type variable |n|. Such types are introduced with the $\packbox$ constructor,
-which some readers might recognize as $\keyword{pack}$.
+} packing the type variable |n|. Such types are introduced with the $\packbox$ constructor.
+% , which some readers might recognize as $\keyword{pack}$. % redundant with "packing". If there is a specific concept that this refers to, a typeface isn't enough to identify it (explicit reference is needed)
 
 \item Not only do we need a fresh type variable |n|, but we also need to introduce
 the linear constraint |constraint(RW n)| for use in subsequent calls to |read| and |free|.
-Our existentials also allow packing a constraint, through the |.<=| operator.
+Our existentials also allow packing a constraint, thanks to the |.<=| operator.
 \end{itemize}
 
 With all these features working together, we see that |new| returns a non-duplicable
@@ -801,8 +802,8 @@ the |read2AndDiscard| example as in \cref{sec:introduction}.
 \subsection{Minimal Examples}
 \label{sec:examples}
 
-To get a sense of how the features we introduce should behave, we now
-look at some simple examples. Using constraints to represent
+To get a sense of how the features that we introduce should behave, we now
+look at some simple examples.\jp{This seems either way too late or redundant. How can anyone understand the previous section without already undertanding this? I suggest either to 1. move this into the Linear Haskell section (using regular arguments). or 2. delete.} Using constraints to represent
 limited resources allows the typechecker to reject certain classes
 of ill-behaved programs. Accordingly, the following examples show the
 different reasons a program might be rejected.
