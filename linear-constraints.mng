@@ -942,9 +942,9 @@ new :: constraint(Unique) =>. Int -> MArray a
 \end{code}
 Suppose we have assumed the |constraint(Unique)| constraint linearly; that is,
 we must use the |constraint(Unique)| assumption precisely once. Now, our definition
-for |bad| is rejected: either we infer |arr| to have multiplicity $[[{omega}]]$,
+for |bad| is rejected: either we infer |arr| to have multiplicity~$[[{omega}]]$,
 in which case its definition uses |constraint(Unique)| $[[{omega}]]$ times; or
-we infer |arr| to have multiplicity $[[{1}]]$, in which case its use (twice) violates
+we infer |arr| to have multiplicity~$[[{1}]]$, in which case its use (twice) violates
 the linearity restriction.
 
 This is promising so far, but several problems remain:
