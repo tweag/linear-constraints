@@ -1056,8 +1056,8 @@ The function |newRef| creates a new atomic reference, initialised with
 general case below would add complication and obscure our main goal of demonstrating
 linear constraints.
 
-To read a reference, a simple |constraint(Read)| constraint is demanded, and
-immediately returned. Writing is handled similarly.
+To read a reference, a |constraint(Read)| constraint is demanded, and
+then returned back. Writing is similar.
 
 > readRef :: constraint (Read n) =>. AtomRef a n -> Ur a .<= constraint (Read n)
 > writeRef :: constraint (RW n) =>. AtomRef a n -> a -> () .<= constraint (RW n)
