@@ -182,6 +182,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | e1 e2                  ::   :: App
 | pack                   ::   :: Pack
 | unpack x = e1 in e2    ::   :: Unpack
+   {{ tex \klet\ \packbox [[x]] = [[e1]] \ [[in]] \ [[e2]] }}
 | LET x = e1 in e2       ::   :: Let
 | LET x : s = e1 in e2   ::   :: LetSig
 | CASE e of { alts }     ::   :: Case
@@ -202,6 +203,7 @@ e :: 'Expr_' ::= {{ com Expressions }}
 | ( e1 , e2 )            :: M :: Prod
 | ()                     ::   :: UnitCon
 | unpack ( pat1 , pat2 ) = e1 in e2    ::   :: UnpackProd
+    {{ tex \klet\ \packbox ( [[pat1]] , [[pat2]] ) = [[e1]] \ \kin \ [[e2]] }}
 
 CASE :: 'CaseHead_' ::= {{ com Case head }}
 | case_ piF   ::  :: Case {{ tex \kcase_[[piF]] }}
@@ -297,6 +299,7 @@ terminals :: 'terminals_' ::=
 | \subseteq   ::   :: subset   {{ tex \subseteq }}
 | Hole        ::   :: Hole     {{ tex \_ }}
 | Dup         ::   :: Dup      {{ tex \constraintfont{\mathcal{D} } }}
+| pack        ::   :: Pack     {{ tex \packbox }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Formulae  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
