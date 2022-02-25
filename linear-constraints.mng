@@ -923,7 +923,7 @@ overusing = (useC, useC)
 A linear function makes a promise about how it is going to use its argument, but
 linearity imposes no restrictions how a function -- or its result -- is going to be used.
 The caller may use the linear function's result unrestrictedly.  This poses a
-challenge for implementing libraries that rely on having a unique pointer to
+challenge for providing a type-safe interface for libraries that rely on having a unique pointer to
 some resource, such as safe mutable arrays, because the obvious definition of a
 constructor function can immediately be misused, violating the assumption of uniqueness.
 %
@@ -958,14 +958,15 @@ By ``arbitrary fixed number'', we mean to say that we can duplicate |constraint(
 a finite number of times, but we may not use an assumption of |constraint(Unique)| with
 multiplicity 1 to satisfy |constraint(Unique)| at multiplicity $[[{omega}]]$.
 
-\item[Discarding |constraint(Unique)|] Similarly to allowing duplication, we
-must allow discarding, in case a function allocates no arrays at all. Accordingly,
-we allow a linear assumption of |constraint(Unique)| to be accepted even if the
-constraint is never used.\footnote{An alternative presentation would be to assign
-a new multiplicity to |constraint(Unique)|, neither $[[{1}]]$ nor $[[{omega}]]$.
-However, because this multiplicity would be used only for this one constraint, we
-deemed it simpler just to have custom handling for |constraint(Unique)| instead
-of an entire new multiplicity.}
+\item[Discarding |constraint(Unique)|] Similarly to allowing
+  duplication, we must allow discarding, in case a function allocates
+  no arrays at all. Accordingly, we allow a linear assumption of
+  |constraint(Unique)| to be accepted even if the constraint is never
+  used.\footnote{An alternative presentation would be to assign a new
+    multiplicity (say $\upsilon$) to |constraint(Unique)|, between
+    $[[{1}]]$ and $[[{omega}]]$.  However, it would require tracking
+    multiplicities down to individual occurences ($[[{1}]]$,
+    $\upsilon$,  $[[{omega}]]$ isn't a closed multiplicity set).}
 
 \item[Initial assumption of |constraint(Unique)|] For this approach to work,
 we must have an assumption of |constraint(Unique)| of multiplicity 1. We can
@@ -982,7 +983,7 @@ linear assumption of |constraint(Unique)|.
 
 The pattern of using continuation-passing style in |unique| mirrors the use
 of that technique by \citet[Fig.~2]{LinearHaskell}. The difference here is that
-|unique| is the one place where continuation-passing style must be used: once
+|unique| is the only place where continuation-passing style must be used: once
 we have our linear |constraint(Unique)| assumption, we can use it to produce
 new values that must be unique.
 
