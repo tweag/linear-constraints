@@ -326,8 +326,7 @@ import GHC.Base
   together with an inference algorithm which extends
   \textsc{ghc}'s existing constraint solver algorithm. Soundness of
   linear constraints is ensured by the fact that they desugar into
-  Linear Haskell. \rae{This needs an update to reflect any new title
-  and our new |Unique|.}
+  Linear Haskell.
 \end{abstract}
 
 \maketitle
