@@ -976,15 +976,15 @@ assumption. Thus, the continuation has exactly the condition we need: a
 linear assumption of |constraint(Unique)|.
 \end{description}
 
-The pattern of using continuation-passing style in |unique| mirrors the use
-of that technique by \citet[Fig.~2]{LinearHaskell}. The difference here is that
-|unique| is the only place where continuation-passing style must be used: once
+The pattern of using a continuation in |unique| mirrors the use
+of that technique by \citet[Fig.~2]{LinearHaskell}. But
+|unique| is, now, the only place where we need a continuation: once
 we have our linear |constraint(Unique)| assumption, we can use it to produce
 new values that must be unique.
 
 With just these simple ingredients -- a duplicable, discardable constraint
 that can be assumed linearly -- we can write \textsc{api}s that require
-uniqueness without using continuation-passing style.
+uniqueness without heavy use of continuations.
 
 \section{Application: memory ownership}
 \label{sec:memory-ownership}
