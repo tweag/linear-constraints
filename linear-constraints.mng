@@ -733,11 +733,11 @@ have multiplicity 1. |constraint(Unique)| is explained more fully in \Fref{sec:U
 \item Because |UArray| is now parameterised by a type-level tag |n|, |new| must
 return a |UArray| with a fresh such |n|. This is achieved through returning an
 existentially-quantified type\footnote{There is a variety of ways that existential types can
-  be worked into a language. The existentials that we use here might best be understood
+  be worked into a language. The existentials that we use here may be understood
   as a generalisation of those presented by \citet[Chapter
   24]{tapl}.
   However, \citet{existentials} work out an
-  approach that make linear constraints even easier to use, as we
+  approach that makes linear constraints even easier to use, as we
   discuss in \Fref{sec:implicit-existentials}. In order to separate
   concerns, we do not build the bulk of our work on \citet{existentials}.
   We additionally freely
