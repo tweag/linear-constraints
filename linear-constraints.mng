@@ -1487,19 +1487,19 @@ our system.
 %
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
 %
-The set $[[{Dup}]]$ is a set of constraints which obey contraction and
-weakening (see~\cref{fig:entailment-relation}). We use $[[{Dup}]]$ to
+The set $[[{Dup}]]$ is a set of constraints which can be duplicated and
+discarded (see~\cref{fig:entailment-relation}). We use $[[{Dup}]]$ to
 model the |constraint(Unique)| constraint. Crucially, it is \emph{not
   the case} that $[[1.q ||- omega.q]]$ for $[[q\in Dup]]$; such an
 entailment is, in fact, prohibited (\cref{lem:q:scaling-inversion}) by
 the rules of~\cref{fig:entailment-relation}. While it may seem
 counter-intuitive, there is nothing in linear logic mandating that a
-formula that can be contracted and weakened be (equivalent to) an
+formula that can be duplicated and discarded be (equivalent to) an
 unrestricted formula. This observation has been exploited, for
 instance, to introduce so-called
 subexponentials~\cite{subexponentials}. For our use case, it lets the
 typechecker dispatch |constraint(Unique)| constraints (using
-contraction), but prevents the result of constrained functions to be used
+duplication), but prevents the result of constrained functions to be used
 unrestrictedly.
 
 An important feature of simple constraints is that, while scaling
@@ -2033,7 +2033,7 @@ presents the rules of the constraint solver.
 \begin{itemize}
   \item The~\rref*{S-Mult} rule proceeds by solving one side of a
 conjunction first, then passing the output constraints to the other side.
-Both the unrestricted context and the contractible context are shared between both sides.
+Both the unrestricted context and the duplicable context are shared between both sides.
   \item The~\rref*{S-Add} rule handles additive conjunction. The linear
 constraints are shared between the branches (since additive conjunction is
 generated from $\kcase$ expressions, only one of them is actually going to be
@@ -2055,7 +2055,7 @@ context.
   linear constraints.  This is because, as per~\rref*{C-Impl},
   unrestricted implications can only use an unrestricted context. In
   particular, crucially, the constraints from $[[{DCtx}]]$, despite
-  being subject to contraction and weakening, are not (and cannot) be
+  being duplicable and discardable, are not (and cannot) be
   used to prove an unrestricted implication, as first discussed
   in~\cref{sec:constraint-domain}.
 \end{itemize}
@@ -2071,8 +2071,8 @@ For the sake of our examples, we need very little: linear
 constraints can remain abstract. It is thus sufficient for the entailment relation
 (\Cref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
 is already assumed---while respecting linearity. That is, with the
-exception of a distinguished constraint $[[{Linearly}]]$, which is
-subject to contraction and weakening, and we use to model the |Unique|
+exception of a distinguished constraint $[[{Linearly}]]$, which can be
+duplicated and discarded, and we use to model the |Unique|
 constraint from~\ref{sec:Unique-constraint}. The set $[[{Dup}]]$ is
 defined to only contain $[[{Linearly}]]$, therefore the $[[{DCtx}]]$
 context is a sequence of 0 or more $[[{Linearly}]]$.
@@ -2082,7 +2082,7 @@ context is a sequence of 0 or more $[[{Linearly}]]$.
   \centering
   \begin{subfigure}{\linewidth}
     \drules[Q]{$[[Q1 ||- Q2]]$}{Entailment relation}{Hyp,Prod,Empty,
-      WeakD, ContractD}
+      DiscardD, DupD}
     \caption{Entailment relation}
     \label{fig:simpl-entailment}
   \end{subfigure}
@@ -2463,7 +2463,7 @@ wrappers at the toplevel of definitions, and at each branch of a match
 (even if it doesn't introduce an implication, as we may need to adjust
 the number of `Linearly` in some branches (presumably by
 weakening)). And we do the appropriate amount of
-contractions/weakenings in these wrappers.}
+duplications/discards in these wrappers.}
 
 \subsubsection{Superclasses}
 
@@ -3159,7 +3159,7 @@ $$
 \subsection{Lemmas on constraint inference}
 \label{sec:appendix:constraint-inference}
 
-\begin{lemma}[$[[{Dup}]]$ weakening]
+\begin{lemma}[$[[{Dup}]]$ discarding]
   \label{lem:dup-weakening}
   The two following, equivalent, properties hold
   \begin{itemize}
@@ -3181,7 +3181,7 @@ $$
   each of these entailments together and with the $[[{omega.q}]] \in [[{Qdup}]]$, we get $[[Qdup ||- Empty]]$.
 \end{proof}
 
-\begin{lemma}[$[[{Dup}]]$ contraction]
+\begin{lemma}[$[[{Dup}]]$ duplication]
   \label{lem:dup-contraction}
   The two following, equivalent, properties hold
   \begin{itemize}
