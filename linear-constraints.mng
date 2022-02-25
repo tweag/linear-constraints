@@ -281,8 +281,8 @@ import GHC.Base
 }
 \email{rae@@richarde.dev}
 
-\keywords{GHC, Haskell, laziness, linear logic, linear types,
-  constraints, inference}
+\keywords{GHC, Haskell, linear logic, linear types,
+  constraints, qualified types, inference}
 
 \begin{CCSXML}
 <ccs2012>
