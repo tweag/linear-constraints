@@ -1586,7 +1586,6 @@ contexts is always satisfied.
                  &\bnfor & [[let_pi
                      x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
   \end{array} \\[1ex]
-  \text{\emph{Notation}: |let x := e1 in e2| stands for $[[case_1 e1 of { pack x -> e2 }]]$}
   \end{array}
   $$
   Context scaling $[[{pi.G}]]$ and addition of contexts $[[{G1+G2}]]$ is defined as follows:
