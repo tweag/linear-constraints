@@ -484,7 +484,7 @@ Our contributions are as follows:
 Our language is given semantics by desugaring into a core language based
 on that of \citet{LinearHaskell}.
 Our design is intended to work well with other features of Haskell and
-\textsc{ghc} extensions. Indeed, we have a prototype implementation.\jp{forward ref?}
+\textsc{ghc} extensions. Indeed, we have a prototype implementation (\cref{sec:implementation}).
 
 \section{Background: Linear Haskell}
 \label{sec:linear-types}
