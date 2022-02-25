@@ -2113,7 +2113,7 @@ takes care to use the most recent occurrence of $[[{q}]]$
 the list). To understand why, consider the following example:
 \begin{code}
 f =   unique $
-        let    pack! arr = new 10
+        let    pack (Ur arr) = new 10
                fr   ::  constraint (RW n) =>. ()   ^^
                fr   =   free arr
                ()   =   fr                         in Ur ()
