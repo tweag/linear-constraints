@@ -500,7 +500,7 @@ dubbed \emph{linear functions}, and written |a ⊸ b|.\footnote{The linear funct
   literature amount to adding such a linear function type, but details
   can vary wildly. See~\citet[Section 6]{LinearHaskell} for an analysis
   of alternative approaches.} A linear function consumes its
-  argument exactly once. Linear Haskell defines it precisely: % "thusly" is very rare; let's not summon our inner Shakespeare just yet.
+  argument exactly once. Linear Haskell defines it as follows: % "thusly" is very rare; let's not summon our inner Shakespeare just yet.
 
 \begin{quote}
 % \emph{Meaning of the linear arrow}: %JP: redundant
