@@ -1340,15 +1340,6 @@ pivot. Once finished, it returns the index of the pivot element; |sort| then
 splits the array at the pivot element and recursively operates on the two
 slices.
 
-%  These recursive calls can be executed non-deterministically (or, indeed,
-% in parallel), as the type system guarantees that no data races can occur.
-% \rae{I'm not sure I believe this last claim about parallel execution. Well,
-% I do think these can be executed in parallel, but I'm not convinced that Haskell
-% supports doing this in a lazy pattern match. If we want to do this, I think we
-% should probably develop some kind of |par| construct that makes the parallelism
-% explicit.}
-%
-
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
 
