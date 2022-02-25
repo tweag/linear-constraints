@@ -242,7 +242,8 @@ import GHC.Base
 
 \begin{document}
 
-\title{Linear Constraints}
+\title{Linearly Qualified Types}
+\subtitle{Generic inference for capabilities and uniqueness}
 
 \author{Arnaud Spiwack}
 \affiliation{
