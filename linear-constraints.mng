@@ -484,7 +484,7 @@ Our contributions are as follows:
 %
 Our language is given semantics by desugaring into a core language based
 on that of \citet{LinearHaskell}.
-Our design is intended to work well with other features of Haskell and 
+Our design is intended to work well with other features of Haskell and
 \textsc{ghc} extensions. Indeed, we have a prototype implementation.\jp{forward ref?}
 
 \section{Background: Linear Haskell}
@@ -594,22 +594,22 @@ this, a new name for the same array is produced by each operation.
 
 From the perspective of the programmer, this is unwanted boilerplate.
 Minimizing such boilerplate is the main aim of this paper.  Our
-approach is to let the array behave non-linearly, and let its
-capabilities (i.e., having read or write access) be \emph{linear
+approach is to let the array be non-linear, and let its
+capabilities (\emph{i.e.} having read or write access) be \emph{linear
 constraints}. Once these capabilities are consumed, the array can no
 longer be read from or written to without triggering a compile time
 error.
 
 A further drawback of today's Linear Haskell is that
 the programmer cannot restrict how a linear function is used.
-For example, suppose we wanted to use linear types to create
+For example, suppose we want to use linear types to create
 a pure interface to arrays that supports in-place mutation;
 the interface is safe only if we guarantee that arrays cannot
-be duplicated. Because the result of a hypothetical |newArray|
+be aliased. Because the result of a hypothetical |newArray|
 function can be stored in an unrestricted variable (of multiplicity
-$[[{omega}]]$), the linearity system cannot prevent its duplication.
-Instead, \citet[Fig.~2]{LinearHaskell} use continuation-passing
-style in order to enforce non-duplication.
+$[[{omega}]]$), the linearity system cannot prevent its aliasing.
+Instead, \citet[Fig.~2]{LinearHaskell} use a continuation-passing
+style to enforce non-aliasing.
 
 % In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
 % in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which means that
