@@ -1352,7 +1352,7 @@ linear constraints. Our design, based on the work of \citet{OutsideIn}, is compa
 \subsection{Simple Constraints and Entailment}
 \label{sec:constraint-domain}
 
-Let us now turn to constraints themselves. We call constraints such as
+We call constraints such as
 |constraint(Read n)| or |constraint(Write n)| \emph{atomic
   constraints}. The set of atomic constraints is a parameter of our
 qualified type system.
@@ -1445,30 +1445,29 @@ using the operations defined just above.
 The semantics of simple constraints (and, indeed, of atomic
 constraints) is given by an \emph{entailment relation}. Just like the
 set of atomic constraints, the entailment relation is a parameter of
-our system
+our system.
 
 \begin{figure}
   \maybesmall
-  $$
-    \begin{array}{l}
-      [[Q ||- Q]] \\
-      \text{if } [[Q1 ||- Q2]] \text{ and } [[Q * Q2 ||- Q3]] \text{ then } [[Q * Q1 ||- Q3]] \\
-      \text{if } [[Q ||- Q1 * Q2]] \text{ then there exist }
-      [[{Q'}]], [[{Qdup}]], \text{ and } [[{Q''}]]
-        \text{ such that } [[Qdup \in Dup]], [[{Q}]]=[[{Q' * Qdup * Q''}]] \text{, } [[Q' * Qdup ||- Q1]] \\
-        \text{ and } [[Qdup * Q'' ||- Q2]] \\
-      \text{if } [[Q ||- Empty]] \text{ then } [[Q \in Dup]]\\
-      \text{if } [[Q1 ||- Q1']] \text{ and } [[Q2 ||- Q2']] \text{ then } [[Q1 * Q2 ||- Q1' * Q2']] \\
-      \text{if } [[Q ||- rho. q]] \text{ then } [[pi . Q ||- (pi.rho). q]] \\
-      \text{if } [[Q ||- (pi.rho) . q]] \text{ then there exists } [[{Q'}]] \text{ such
-      that } [[{Q}]] = [[{pi. Q'}]] \text{ and } [[Q' ||- rho . q]] \\
-      \text{if } [[Q1 ||- Q2]] \text{ then } [[omega.Q1 ||- Q2]] \\
-      \text{if } [[Q1 ||- Q2]] \text{ then for all } [[{Q'}]], [[omega.Q' * Q1 ||- Q2]]\\
-      \text{if } [[q \in Dup]]\text{, then }[[1.q ||- 1.q * 1.q]]\\
-      \text{if } [[q \in Dup]]\text{, then }[[1.q ||- Empty]]\\
-      \text{if } [[Q \in Dup]]\text{ and }[[Q' ||- Q]]\text{, then }[[Q' \in Dup]]
-    \end{array}
-  $$
+  \begin{enumerate}
+  \item $[[Q ||- Q]]$.
+  \item If $[[Q1 ||- Q2]]$  and $[[Q * Q2 ||- Q3]]$, then $[[Q * Q1 ||- Q3]]$.
+  \item If $[[Q ||- Q1 * Q2]]$, then there exist $[[{Q'}]]$, $[[{Qdup}]]$, and $[[{Q''}]]$
+        such that:
+        $$
+         [[Qdup \in Dup]], \quad [[{Q}]]=[[{Q' * Qdup * Q''}]], \quad [[Q' * Qdup ||- Q1]]\text{, and } \quad
+        [[Qdup * Q'' ||- Q2]].
+        $$
+  \item If $[[Q ||- Empty]]$, then $[[Q \in Dup]]$.
+  \item If $[[Q1 ||- Q1']]$ and $[[Q2 ||- Q2']]$, then $[[Q1 * Q2 ||- Q1' * Q2']]$.
+  \item If $[[Q ||- rho. q]]$, then $[[pi . Q ||- (pi.rho). q]]$.
+  \item If $[[Q ||- (pi.rho) . q]]$, then there exists $[[{Q'}]]$ such that $[[{Q}]] = [[{pi. Q'}]]$ and $[[Q' ||- rho . q]]$.
+  \item If $[[Q1 ||- Q2]]$, then $[[omega.Q1 ||- Q2]]$.
+  \item If $[[Q1 ||- Q2]]$, then for all $[[{Q'}]]$, it is the case that $[[omega.Q' * Q1 ||- Q2]]$.
+  \item If $[[q \in Dup]]$, then $[[1.q ||- 1.q * 1.q]]$.
+  \item If $[[q \in Dup]]$, then $[[1.q ||- Empty]]$.
+  \item If $[[Q \in Dup]]$ and $[[Q' ||- Q]]$, then $[[Q' \in Dup]]$.
+  \end{enumerate}
 \caption{Requirements for the entailment relation $[[Q1 ||- Q2]]$}
 \label{fig:entailment-relation}
 \end{figure}
@@ -1477,12 +1476,11 @@ our system
   \label{def:entailment-relation}
   The qualified type system is parameterised by a relation
   $[[Q1 ||- Q2]]$ between two simple constraints, as well as by a
-  distinguished set $[[{Dup}]]$ of atomic constraints.
+  distinguished set $[[{Dup}]]$ of duplicable atomic constraints.
 
   We write, abusing notation, $[[Q \in Dup]]$ for a simple constraint
   $[[{Q}]]=[[{(UCtx, LCtx)}]]$ if for all $[[{q}]]\in[[{LCtx}]]$ we
-  have $[[q \in Dup]]$ ($[[{UCtx}]]$ on the other hand can be
-  arbitrary).
+  have $[[q \in Dup]]$.
 
   The entailment relation must obey the laws listed in
   \Fref{fig:entailment-relation}.
@@ -1495,14 +1493,14 @@ weakening (see~\cref{fig:entailment-relation}). We use $[[{Dup}]]$ to
 model the |constraint(Unique)| constraint. Crucially, it is \emph{not
   the case} that $[[1.q ||- omega.q]]$ for $[[q\in Dup]]$; such an
 entailment is, in fact, prohibited (\cref{lem:q:scaling-inversion}) by
-the rules of~\ref{fig:entailment-relation}. While it may seem
+the rules of~\cref{fig:entailment-relation}. While it may seem
 counter-intuitive, there is nothing in linear logic mandating that a
 formula that can be contracted and weakened be (equivalent to) an
 unrestricted formula. This observation has been exploited, for
-instance, to introduce so-call
+instance, to introduce so-called
 subexponentials~\cite{subexponentials}. For our use case, it lets the
 typechecker dispatch |constraint(Unique)| constraints (using
-contraction), but prevents the result of function to be used
+contraction), but prevents the result of constrained functions to be used
 unrestrictedly.
 
 An important feature of simple constraints is that, while scaling
@@ -1620,7 +1618,7 @@ desugaring in \cref{sec:desugaring}; the main difference is
 that $[[{G}]]$ is addressed explicitly, whereas $[[{Q}]]$
 is used implicitly in \rref{E-Var}.
 
-Because constraint are used implicitly, if there are several instances
+Because constraints are used implicitly, if there are several instances
 of the same $[[{1.q}]]$, it is non-deterministic which one is used in
 which instance of \rref*{E-Var}. As a consequence, we must require
 that any two instances of $[[{1.q}]]$ in a constraint $[[{Q}]]$ have
