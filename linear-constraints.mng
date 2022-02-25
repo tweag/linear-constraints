@@ -2620,11 +2620,11 @@ special treatment, and are harmless.
 % to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
 % careful treatment of $[[{Top}]]$.
 
-\subsection{Inferring $\ottkw{pack}$ and $\kunpack$}
+\subsection{Inferring $\packbox$ and $\kunpack$}
 \label{sec:implicit-existentials}
 Recent work~\cite{existentials} describes an algorithm (call it \textsc{edwl}, after the
 authors' names) that
-can infer the location of $\ottkw{pack}$s and $\kunpack$s\footnote{Actually,
+can infer the location of $\packbox$s and $\kunpack$s\footnote{Actually,
 \citet{existentials} use an $\ottkw{open}$ construct instead of $\kunpack$
 to access the contents of an existential package, but that distinction does
 not affect our usage of existentials with linear constraints.}
@@ -2641,7 +2641,7 @@ is bidirectional, as described by \citet{practical-type-inference} and
 \citet{visible-type-application}) and produces constraints much like we
 have presented here, formally. None of this would change in adapting \textsc{edwl}.
 Indeed, it would seem that the two extensions are orthogonal in implementation,
-though avoiding the need for explicit $\ottkw{pack}$ and $\kunpack$ would
+though avoiding the need for explicit $\packbox$ and $\kunpack$ would
 make linear constraints easier to use.
 
 % One challenge if existential packing and unpacking are inferred is that
