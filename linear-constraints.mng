@@ -961,11 +961,7 @@ multiplicity 1 to satisfy |constraint(Unique)| at multiplicity $[[{omega}]]$.
   duplication, we must allow discarding, in case a function allocates
   no arrays at all. Accordingly, we allow a linear assumption of
   |constraint(Unique)| to be accepted even if the constraint is never
-  used.\footnote{An alternative presentation would be to assign a new
-    multiplicity (say $\upsilon$) to |constraint(Unique)|, between
-    $[[{1}]]$ and $[[{omega}]]$.  However, it would require tracking
-    multiplicities down to individual occurences ($[[{1}]]$,
-    $\upsilon$,  $[[{omega}]]$ isn't a closed multiplicity set).}
+  used.
 
 \item[Initial assumption of |constraint(Unique)|] For this approach to work,
 we must have an assumption of |constraint(Unique)| of multiplicity 1. We can
