@@ -2624,11 +2624,12 @@ special treatment, and are harmless.
 \label{sec:implicit-existentials}
 Recent work~\cite{existentials} describes an algorithm (call it \textsc{edwl}, after the
 authors' names) that
-can infer the location of $\packbox$s and $\kunpack$s\footnote{Actually,
-\citet{existentials} use an $\ottkw{open}$ construct instead of $\kunpack$
+can infer the location of the pack and unpack annotations ($\packbox$ and $\kunpack$)
+in a program.%
+\footnote{Actually, \citet{existentials} use an $\ottkw{open}$ construct instead of $\kunpack$
 to access the contents of an existential package, but that distinction does
 not affect our usage of existentials with linear constraints.}
-in a user's program. In Section~9.2 of that paper,
+In Section~9.2 of that paper,
 the authors extend their system to include class constraints,
 much as we allow our existential packages to carry linear constraints.
 
