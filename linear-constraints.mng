@@ -624,7 +624,7 @@ style to enforce non-aliasing.
 
 \section{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
-
+\jp{Why is this here? This current presentation is stuttering. IMO. It should go back somewhere in sec. 4.}
 \begin{figure}%
   \maybesmall
   \centering
@@ -803,7 +803,7 @@ the |read2AndDiscard| example as in \cref{sec:introduction}.
 \label{sec:examples}
 
 To get a sense of how the features that we introduce should behave, we now
-look at some simple examples.\jp{This seems either way too late or redundant. How can anyone understand the previous section without already undertanding this? I suggest either to 1. move this into the Linear Haskell section (using regular arguments). or 2. delete.} Using constraints to represent
+look at some simple examples.\jp{This seems either way too late or redundant. How can anyone understand the previous section without already understanding this? I suggest either to 1. move this into the Linear Haskell section (using regular arguments). or 2. delete.} Using constraints to represent
 limited resources allows the typechecker to reject certain classes
 of ill-behaved programs. Accordingly, the following examples show the
 different reasons a program might be rejected.
@@ -1004,20 +1004,21 @@ In either case, one must then
 resort to explicit memory allocation and deallocation. This task is
 error prone: one can easily forget a deallocation (causing a memory
 leak) or deallocate several times (corrupting data). In this section we show how
-to build a Rust-style memory management \textsc{api} as a \emph{library} using linear
+to build a % Rust-style % tone down Rust fetishism. It's already mentioned just below.
+memory management \textsc{api} as a \emph{library} using linear
 constraints. The library is a generalisation of the array library
 introduced in \cref{sec:introduction}.
 
 \subsection{Capability constraints}
 \label{sec:atomic-references}
 
-Our approach, in the style of Rust, is
+Our approach, inspired by Rust, is
 to represent \emph{ownership} of a memory location, and more specifically,
 whether the reference is mutable or read-only.
 We use the linear constraints |constraint(Read n)| and |constraint(Write n)|,
 guarding read access and write access to a reference respectively.
 Because of linearity, these constraints
-must be consumed, so the \textsc{api} can guarantee that the memory
+must be consumed, so the \textsc{api} can guarantee that memory
 is deallocated correctly.
 %
 In |constraint(Read n)|, |n| is a type variable (of a special kind |Location|)
