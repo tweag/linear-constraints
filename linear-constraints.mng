@@ -545,11 +545,11 @@ g x = (f x, f x)
 The type of |g| makes no guarantees about how it uses |x|.
 In particular, |g| can pass |x| to |f|.
 
-Pattern matching on a value of |Ur a| yields a payload of multiplicity
-\(ω\), even when the scrutinee has multiplicity 1.  Given a
-type-system parameterised on a multiplicity set, the desired
-(sub)structural rules can be obtained by endowing the appropriate
-semiring structure to multiplicities~\citep{abel_unified_2020}. In
+Pattern matching on a value of type |Ur a| yields a payload of multiplicity
+$[[{omega}]]$, even when the scrutinee has multiplicity $[[{1}]]$. In general, given a
+a multiplicity set, the desired
+(sub)structural rules can be obtained by endowing multiplicities with the appropriate
+semiring structure~\citep{abel_unified_2020}. In
 this paper, we use the same multiplicity structure as Linear Haskell:\footnote{Even though linear Haskell additionally supports multiplicity
 polymorphism, we do not support multiplicity polymorphism on
 constraint arguments.  Linear Haskell takes advantage of multiplicity
