@@ -2077,7 +2077,9 @@ constraints can remain abstract. It is thus sufficient for the entailment relati
 is already assumed---while respecting linearity. That is, with the
 exception of a distinguished constraint $[[{Linearly}]]$, which is
 subject to contraction and weakening, and we use to model the |Unique|
-constraint from~\ref{sec:Unique-constraint}.
+constraint from~\ref{sec:Unique-constraint}. The set $[[{Dup}]]$ is
+defined to only contain $[[{Linearly}]]$, therefore the $[[{DCtx}]]$
+context is a sequence of 0 or more $[[{Linearly}]]$.
 
 \begin{figure}
   \maybesmall
