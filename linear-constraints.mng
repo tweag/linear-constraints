@@ -585,7 +585,7 @@ $$
 \end{array}
 $$
 
-\subsection{Shortcomings of Linear Haskell, Solved by our Contributions}
+\subsection{Shortcomings of Linear Haskell that we address}
 The |read| function in \cref{sec:introduction} consumes the array it
 operates on. Therefore, the same array can no longer be used in
 further operations: doing so would result in a type error.  To resolve
