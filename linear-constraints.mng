@@ -2425,7 +2425,6 @@ types, such as $λ^q$, or indeed, \textsc{ghc} Core.
 
 \section{Integrating into \textsc{ghc}}
 
-\unsure{Should we explain how we would implement the sources of uniqueness?}
 One of the guiding principles behind our design was ease of integration with
 modern Haskell. In this section we describe some of the particulars of adding
 linear constraints to \textsc{ghc}.
@@ -2472,6 +2471,17 @@ generation occurs.
 Since constraints play an important role in \textsc{ghc}'s type system, we must
 pay close attention to the interaction of linearity with other language features
 related to constraints. Of these, we point out two that require some extra care.
+\info{There isn't room to properly explain how we can implement
+|Unique| constraints. We don't already speak of
+desugaring in the implementation section, so I'd need to give a bit of
+context about wrappers or something.
+
+The right approach is to count the number of `Linearly` used. We need
+wrappers at the toplevel of definitions, and at each branch of a match
+(even if it doesn't introduce an implication, as we may need to adjust
+the number of `Linearly` in some branches (presumably by
+weakening)). And we do the appropriate amount of
+contractions/weakenings in these wrappers.}
 
 \subsubsection{Superclasses}
 
