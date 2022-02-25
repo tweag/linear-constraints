@@ -355,10 +355,7 @@ requires
 the programmer to carefully thread resource tokens.
 
 To get a sense of the power and the tedium of using linear types, consider the
-following function:\footnote{Linear |let|-bindings are strict. If you like,
-you can treat \emph{all} |let|-bindings as strict in our examples, as we
-do not make essential use of laziness in this work.} \rae{Is that footnote
-true?}\jp{Also, it is written with a by-the-way tone which is both not fitting and disconcerting. Probably a big red flag to reviewers. As I see it these bindings MUST be strict to make any sense. I suggest to either use strictness annotations and delete this remark, or promote it to the body of the text and state that all lets are strict in this paper.}
+following function:
 \begin{code}
 read2AndDiscard :: MArray a ->. (Ur a, Ur a)
 read2AndDiscard arr0 =
