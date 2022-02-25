@@ -439,7 +439,7 @@ read2AndDiscard arr =
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
 read and write access to the array,
-and pattern-matching against $\packbox$ (read ``box'') is necessary in order to access the linear constraint
+and pattern-matching against $\packbox$ (read ``pack'') is necessary in order to access the linear constraint
 packed in the result of |read| and |free|. (\Fref{sec:implicit-existentials}
 suggests how we can get rid of $\packbox$, too.)
 Crucially, the resource representing the ownership of the
