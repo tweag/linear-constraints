@@ -2633,7 +2633,7 @@ In Section~9.2 of that paper,
 the authors extend their system to include class constraints,
 much as we allow our existential packages to carry linear constraints.
 
-Accordingly, \textsc{edwl} would work well for us here.
+Accordingly, \textsc{edwl} would work well for us here and remove the need for these annotations.
 The \textsc{edwl} algorithm is only a small change on the way some types are treated during
 bidirectional type-checking. Though the presentation of linear constraints is not
 written using a bidirectional algorithm, our implementation in \textsc{ghc}
