@@ -1629,6 +1629,19 @@ desugaring in \cref{sec:desugaring}; the main difference is
 that $[[{G}]]$ is addressed explicitly, whereas $[[{Q}]]$
 is used implicitly in \rref{E-Var}.
 
+Because constraint are used implicitly, if there are several instances
+of the same $[[{1.q}]]$, it is non-deterministic which one is used in
+which instance of \rref*{E-Var}. As a consequence we must require that
+any two instances of $[[{1.q}]]$ in a constraint $[[{Q}]]$ have the
+same computational content (see \cref{sec:desugaring}). How do we
+reconcile this non-determinism with the use linear constraints, in
+\cref{sec:arrays} to thread mutation with an array? We most certainly
+don't want type inference to non-deterministically reorder a |readRef|
+and a |writeRef|. The answer is that the \textsc{api} is arranged so
+that only a single instance of |RW n| is ever provided. This ensures
+that there is a single possible threading of the reads and writes. In
+contrast there will often be several instances of |Unique| in scope.
+
 The type system of \Cref{fig:typing-rules} is purely
 declarative: note, for example, that \rref{E-App} does not describe
 how to break the typing assumptions into constraints
@@ -1706,7 +1719,6 @@ Bindings in a |let| may be for either linear or unrestricted variables.
   \rref*{E-Unpack}.
 \info{No substitution on $[[{Q1}]]$ in the E-Unpack rule, because there is
   only existential quantification.}
-
 
 \section{Constraint inference}
 \label{sec:type-inference}
