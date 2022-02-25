@@ -1479,7 +1479,6 @@ our system
 \caption{Requirements for the entailment relation $[[Q1 ||- Q2]]$}
 \label{fig:entailment-relation}
 \end{figure}
-\unsure{TODO: break lines}
 
 \begin{definition}[Entailment relation]
   \label{def:entailment-relation}
