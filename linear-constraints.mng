@@ -205,7 +205,8 @@ import GHC.Base
   \newcommand{\klet}{\keyword{let}}
   \newcommand{\kcase}{\keyword{case}}
   \newcommand{\kwith}{\keyword{with}}
-  \newcommand{\packbox}{\square}
+  % \newcommand{\packbox}{\square}
+  \newcommand{\packbox}{\raisebox{-0.08ex}{\scalebox{0.88}{$\square$}}}
   \newcommand{\kin}{\keyword{in}}
   \newcommand{\kof}{\keyword{of}}
   %% Pseudo-keywords for use in text
