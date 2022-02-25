@@ -208,6 +208,8 @@ import GHC.Base
   \newcommand{\packbox}{\square}
   \newcommand{\kin}{\keyword{in}}
   \newcommand{\kof}{\keyword{of}}
+  %% Pseudo-keywords for use in text
+  \newcommand{\kunpack}{\klet\packbox}
 
   % defining grammars
   \newcommand{\bnfeq}{\mathrel{\Coloneqq}}
@@ -1864,10 +1866,9 @@ technical, yet essential, lemmas about the wanted-constraint
 entailment relation.
 
 \begin{lemma}[Inversion]
-  \label{lem:inversion}\unsure{revisit the wording of the first
-    sentence when the terminology around the
-    dupable set has been fixed}
-  The inference rules of $[[Q |- C]]$ can be read bottom-up as well
+  \label{lem:inversion}
+  The inference rules of $[[Q |- C]]$ can be read bottom-up (up to the
+  set $[[{Dup}]]$) as well
   as top-down, as is required of $[[Q1 ||- Q2]]$ in
   \Cref{fig:entailment-relation}. That is:
   \begin{itemize}
@@ -2351,7 +2352,7 @@ $$
 %format * = "[[*]]"
 %format Ds(z)(j) = "\dsterm{\ottmv{" z "}}{" j "}"
 %format Ev(x) = "\dsevidence{" x "}"
-%format unpack = "\ottkw{unpack}"
+%format unpack(x) = "\klet\ \packbox " x
 %format u = "[[{u}]]"
 %format OneOf (a) (b) = a"\mathop{:_{1}}"b
 %format Sub t as bs = t "[" as "/" bs "]"
@@ -2393,7 +2394,7 @@ $$
 \end{figure}
 
 The cases correspond to the~\rref*{E-Var},~\rref*{E-Unpack}\footnote{The attentive
-reader may note that the case for $\ottkw{unpack}$ extracts out $[[{Q1}]]$ and $[[{Q2}]]$
+reader may note that the case for $\kunpack$ extracts out $[[{Q1}]]$ and $[[{Q2}]]$
 from the provided simple constraint. Given that simple constraints $[[{Q}]]$ have no
 internal ordering and allow duplicates (in the non-linear component), this splitting
 is not well defined. To fix this, an implementation would have to \emph{name} individual
@@ -2619,12 +2620,12 @@ special treatment, and are harmless.
 % to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
 % careful treatment of $[[{Top}]]$.
 
-\subsection{Inferring $\ottkw{pack}$ and $\ottkw{unpack}$}
+\subsection{Inferring $\ottkw{pack}$ and $\kunpack$}
 \label{sec:implicit-existentials}
 Recent work~\cite{existentials} describes an algorithm (call it \textsc{edwl}, after the
 authors' names) that
-can infer the location of $\ottkw{pack}$s and $\ottkw{unpack}$s\footnote{Actually,
-\citet{existentials} use an $\ottkw{open}$ construct instead of $\ottkw{unpack}$
+can infer the location of $\ottkw{pack}$s and $\kunpack$s\footnote{Actually,
+\citet{existentials} use an $\ottkw{open}$ construct instead of $\kunpack$
 to access the contents of an existential package, but that distinction does
 not affect our usage of existentials with linear constraints.}
 in a user's program. In Section~9.2 of that paper,
@@ -2640,7 +2641,7 @@ is bidirectional, as described by \citet{practical-type-inference} and
 \citet{visible-type-application}) and produces constraints much like we
 have presented here, formally. None of this would change in adapting \textsc{edwl}.
 Indeed, it would seem that the two extensions are orthogonal in implementation,
-though avoiding the need for explicit $\ottkw{pack}$ and $\ottkw{unpack}$ would
+though avoiding the need for explicit $\ottkw{pack}$ and $\kunpack$ would
 make linear constraints easier to use.
 
 % One challenge if existential packing and unpacking are inferred is that
@@ -3032,7 +3033,7 @@ $[[{urify(e)}]]$ when it can be easily inferred from the context.
 %format ts = "[[{ts}]]"
 %format u = "[[{u}]]"
 %format ui = "[[{ui}]]"
-%format unpack = "\ottkw{unpack}"
+%format unpack(x) = "\klet\ \packbox " x
 %format urified(x) = "\underline{" x "}"
 %format us = "[[{us}]]"
 %format xi = "[[{xi}]]"
