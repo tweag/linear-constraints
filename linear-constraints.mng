@@ -1037,7 +1037,7 @@ read access to the reference.
 % Rust disallows mutable aliasing for the same reason: ensuring that writes cannot be observed through other references is what allows treating mutable structures as ``pure''.
 % jp: commented this tangent because it obscures the logical connection. It could perhaps go in a parenthesis
 Therefore, writing also requires the read capability. Thus we
-systematically use the |constraint(RW n)|, pairing both the read and write
+systematically use |constraint(RW n)|, pairing both the read and write
 capabilities.
 
 With these components in place, we can provide an \textsc{api} for mutable
