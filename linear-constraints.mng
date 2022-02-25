@@ -460,7 +460,7 @@ Our contributions are as follows:
 
 \item Applications of this qualified type system to allow writing
   \begin{itemize}
-  \item resource-aware algorithms without explicit threading (\Fref{sec:resources}); and
+  \item resource-aware algorithms without explicit threading (\Fref{sec:memory-ownership}); and
   \item functions that can be used only in linear contexts, meaning that
   their results are not shared (\Fref{sec:Unique-constraint})
   \end{itemize}
