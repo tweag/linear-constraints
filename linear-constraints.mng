@@ -722,7 +722,7 @@ new  :: constraint (Unique) =>. Int -> exists n. UArray a n .<= constraint (RW n
 
 This type, too, illustrates several new aspects:
 \begin{itemize}
-\item The |constraint(Unique)| constraint is an ordinary linear constraint, though
+\item The |constraint(Unique)| constraint is a linear constraint, though
 it takes no type parameter. It restricts the result of |new|
 to be used linearly, meaning that any variable that stores the result of |new| must
 have multiplicity $[[{1}]]$. |constraint(Unique)| is explained more fully in \Fref{sec:Unique-constraint}.
