@@ -1,0 +1,214 @@
+> Paper summary
+> -------------
+> 
+> This paper presents an extension of Linear Haskell with linear
+> constraints, i.e. constraints that must be consumed exactly once by
+> the program. Compared to the regular linear function space, linear
+> constraints have the benefit of giving more automation, which the
+> paper demonstrates with several examples and counterexamples. The
+> paper presents a type system, a constraint inference algorithm, and a
+> desugaring to a linearly typed lambda calculus without constraints
+> using evidence passing. Finally, the authors have a prototype
+> implementation of linear constraints in GHC, demonstrating the
+> practicality of the approach.
+> 
+> Comments for author
+> -------------------
+> 
+> This is an excellent paper and should definitely be accepted. It
+> beautifully merges two lines of research: the mostly theoretical work
+> on linear type systems and linear logic on the one hand, and the more
+> practical work on Rust's ownership and borrowing mechanisms on the
+> other. It is beautifully written and contains everything you'd expect
+> from an ICFP paper: clear examples, formal typing rules, and a
+> practical implementation. In short, I can find very little to fault in
+> the paper, just a few minor suggestions which I have listed below.
+> 
+> Detailed remarks
+> ----------------------------
+> 
+> - p4, footnote 2, typo: "can be eta-expanded into unrestricted
+>   function" => should be "functions"
+> 
+> - p13, rule E-Unpack: Instead of requiring that a is fresh, it would
+>   probably be better (or at least, more general) to substitute fresh
+>   variables for a in the type of x.
+> 
+> - p15, section 6.1: It was not immediately clear from the explanation
+>   here what the difference is between `π·(Q=◦C)` and
+>   `(π·Q)=◦C`. Perhaps it would help to clarify what you mean by "a
+>   total of π times".
+> 
+> - p17: The use of D here is ambiguous: "D which holds the linear
+>   atomic assumptions which are members of D". Shouldn't the second one
+>   be in calligraphic font?
+> 
+> - p20: In the example of `bad`, I do not understand why this is
+>   rejected while the previous example of `fr` is accepted. Wouldn't the
+>   same strategy of always picking the most locally bound o ccurrence of
+>   the constraint lead to the correct typing derivation here as well?
+> 
+> - p22, fig 12b: When reading the desugaring for unboxing, it is hard
+>   to understand because the desugaring for boxing is omitted. I had to
+>   look at the appendix to figure out in which order the elements of
+>   the tuple are stored during boxing before the rule here made sense.
+> 
+> - p22, section 8.1: In the implementation of GHC, is the level of the
+>   implication also used to make sure that the constraints do not
+>   escape their scope?
+> 
+> - p23: Is the Core typechecker a necessary component to ensure
+>   soundness or is it just an extra sanity check?
+> 
+> - p25, typo: "restrictionss" => "restrictions"
+> 
+> - p25: The last sentence of the related work is so long and confusing
+>   that I am not sure whether it is actually grammatically correct (or
+>   at least, I failed to parse it).
+> 
+> 
+> 
+> Review #15B
+> ===========================================================================
+> 
+> Overall merit
+> -------------
+> 5. Accept (will argue to accept)
+> 
+> Paper summary
+> -------------
+> 
+> A linear type system can be used in a functional programming language
+> to ensure that resources (such as file handles or memory) are used
+> exactly once. However, programming in a functional language with a
+> "standard" linear type system forces programmers to write less clear
+> code in many cases. This paper addresses the tension between the extra
+> guarantees given by the linear type system and the clarity of the
+> code. More precisely, the paper describes how to use linear
+> constraints in a type system in order to simplify the task of
+> programming with linear types.
+> 
+> A key idea is the specification of "qualified types" that introduce
+> constraints with a given multiplicity (linear or unrestricted).
+> 
+> One of the main contributions of the paper in my view is an inference
+> algorithm that takes into account multiplicity of assumptions. As in
+> standard inference algorithms, there is a constraint generation
+> sub-algorithm and a solver for the generated constraints. The paper
+> includes soundness and completeness statements for the inference
+> algorithm (proofs are not included). In addition, the authors show how
+> to desugar the proposed extensions into a core language based on
+> Linear Haskell. The paper also describes a prototype implementation.
+> 
+> The contributions of the paper are interesting both from a theoretical
+> point of view and a practical point of view. The use of qualified
+> types with linear constraints helps to program resource-aware systems
+> in a user-friendly way (the paper shows examples such as ownership a
+> la Rust, capabilities in the style of Mezzo or ATS). This suggests
+> that the notion of linear constraints is indeed quite general and
+> could provide a suitable abstract framework for the study of
+> resource-aware programming techniques. In addition, the paper shows
+> that the proposed techniques can be smoothly integrated in functional
+> languages (in particular in Linear Haskell).
+> 
+> The paper is well written and the contributions are important so I
+> suggest acceptance.
+> 
+> Comments for author
+> -------------------
+> 
+> This paper makes an important step towards making linear type systems
+> easier to use in standard programming languages: there is a lot of
+> previous work in the area of linear type systems, but few of the
+> previous results were actually incorporated in standard
+> languages. Despite this fact, it would be nice to see a more detailed
+> comparison with previous work, in particular, I missed a more detailed
+> comparison with previous work on resource lambda-calculi. The notion
+> of multiplicity considered in this paper is quite restricted in
+> comparison with previous work (see for example the work by Boudol,
+> Curries and Lavatelli: A semantics for lambda calculi with resources,
+> MSCS 1999). It would be interesting to see if the results presented
+> here extend to more general notions of linear types.
+> 
+> 
+> 
+> Review #15C
+> ===========================================================================
+> 
+> Overall merit
+> -------------
+> 4. Weak accept (will not argue to accept)
+> 
+> Paper summary
+> -------------
+> 
+> This paper is about linear types and how to make them available in
+> Haskell. In particular, the work introduces a type system based on the
+> concept of a linear constraint. The goal is to allow the programmer to
+> write Haskell code as similar as possible to "traditional" code, at
+> the same time inferring linearity constraints automatically, this way
+> checking whether the underlying function uses its argument in a linear
+> way. This way, the programmer should is not forced to write code
+> (essentially boilerplate) such as that necessary in traditional linear
+> type systems, which require linearity constraints to hold in a very
+> strict and "syntactic" way. Linear constraints which have nothing to
+> do with linear algebra, are nothing more than implicit parameters,
+> themselves treated in a linear way, which serve to keep track of the
+> linearity information and which are automatically inferred during an
+> inference phase. All this results in a qualified type system which has
+> been implemented on top of GHC and which can be desugared into the
+> core calculus behind Linear Haskell, thus allowing to give an
+> operational semantics to linear constraints.
+> 
+> Comments for author
+> -------------------
+> *Pros*
+> 
+> Linear types are well known to be useful in many application
+> fields. On the other hand, it is desirable that their use does not
+> require the programmer to write code in a significantly different way
+> than the usual one. A merit of this paper is certainly that of taking
+> a step forward in this direction, allowing to delegate the
+> "bureaucracy" to the compiler rather than to the programmer.
+> 
+> *Cons*
+> 
+> Some important aspects, such as multiplicity polymorphism, are not
+> supported. The inference system for linear constraints is not
+> complete. In certain situations, bureaucracy is not entirely avoided
+> (e.g. the $\mathit{swap}$ function in Figure 2). The fact that the
+> language can be desugared towards a core calculus (good thing, by the
+> way) means that the classic metatheoretical issues cannot be addressed
+> (e.g. it is unclear whether type preservation can be demonstrated
+> internally in the language).
+> 
+> *Overall Evaluation*
+> 
+> All in all, I appreciate this work: it is evident that in many cases
+> linear constraints allow the programmer to write simpler code than
+> that required in traditional linear type systems. That said, the work
+> is not that deep on the theoretical side, focusing above all on the
+> implementation and relationship with (Linear) Haskell.
+> 
+> *Minor Points*
+> 
+> L25: "is a type system change without any other impact on the
+>      compiler", the sentence is not so clear to me, please reformulate and
+>      try to be more specific.
+> 
+> L63: "with \emph{same} array throughout" -> "with the \emph{same}
+>      array throughout?"
+> 
+> L163: "given a a multiplicity" -> "given a multiplicity"
+> 
+> L240: the text in the footnote sounds ambiguous to me, please try to
+>       be more specific as to which flavour of existential type you adopt in
+>       the paper.
+> 
+> L297: "no restrictions how a function" -> "no restrictions on how a
+>       function"
+> 
+> L650: would it be possible to endow you language with an operational
+>       semantics (or an equational theory)? Even if the translation to the
+>       core calculus is proved correct, reasoning about programs by looking
+>       at their translations into the core calculus is burdensome.
