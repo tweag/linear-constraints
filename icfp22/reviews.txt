@@ -29,44 +29,63 @@
 > 
 > - p4, footnote 2, typo: "can be eta-expanded into unrestricted
 >   function" => should be "functions"
-> 
+
+Fixed
+
 > - p13, rule E-Unpack: Instead of requiring that a is fresh, it would
 >   probably be better (or at least, more general) to substitute fresh
 >   variables for a in the type of x.
-> 
+
+Arnaud?
+
 > - p15, section 6.1: It was not immediately clear from the explanation
 >   here what the difference is between `π·(Q=◦C)` and
 >   `(π·Q)=◦C`. Perhaps it would help to clarify what you mean by "a
 >   total of π times".
-> 
+
+TODO: Fix OTT syntax. Arnaud?
+
 > - p17: The use of D here is ambiguous: "D which holds the linear
 >   atomic assumptions which are members of D". Shouldn't the second one
 >   be in calligraphic font?
-> 
+
+Arnaud?
+ 
 > - p20: In the example of `bad`, I do not understand why this is
 >   rejected while the previous example of `fr` is accepted. Wouldn't the
 >   same strategy of always picking the most locally bound o ccurrence of
 >   the constraint lead to the correct typing derivation here as well?
-> 
+
+Csongor?
+
 > - p22, fig 12b: When reading the desugaring for unboxing, it is hard
 >   to understand because the desugaring for boxing is omitted. I had to
 >   look at the appendix to figure out in which order the elements of
 >   the tuple are stored during boxing before the rule here made sense.
-> 
+
+Richard?
+
 > - p22, section 8.1: In the implementation of GHC, is the level of the
 >   implication also used to make sure that the constraints do not
 >   escape their scope?
-> 
+
+Richard?
+
 > - p23: Is the Core typechecker a necessary component to ensure
 >   soundness or is it just an extra sanity check?
-> 
+
+Richard?
+ 
 > - p25, typo: "restrictionss" => "restrictions"
-> 
+
+Fixed
+
 > - p25: The last sentence of the related work is so long and confusing
 >   that I am not sure whether it is actually grammatically correct (or
 >   at least, I failed to parse it).
-> 
-> 
+
+Nicolas?
+ 
 > 
 > Review #15B
 > ===========================================================================
@@ -195,20 +214,32 @@
 > L25: "is a type system change without any other impact on the
 >      compiler", the sentence is not so clear to me, please reformulate and
 >      try to be more specific.
-> 
+
+Richard?
+ 
 > L63: "with \emph{same} array throughout" -> "with the \emph{same}
 >      array throughout?"
-> 
+
+Fixed
+
 > L163: "given a a multiplicity" -> "given a multiplicity"
-> 
+
+Fixed
+ 
 > L240: the text in the footnote sounds ambiguous to me, please try to
 >       be more specific as to which flavour of existential type you adopt in
 >       the paper.
-> 
+
+Richard?
+
 > L297: "no restrictions how a function" -> "no restrictions on how a
 >       function"
-> 
+
+Fixed
+ 
 > L650: would it be possible to endow you language with an operational
 >       semantics (or an equational theory)? Even if the translation to the
 >       core calculus is proved correct, reasoning about programs by looking
 >       at their translations into the core calculus is burdensome.
+
+???

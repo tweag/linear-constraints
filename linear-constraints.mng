@@ -400,7 +400,7 @@ read2AndDiscard arr =
 This non-linear version does not guarantee that there is a unique reference to
 the array, so freeing the array is a potentially unsafe operation.
 However, it is simpler because there is less bureaucracy to manage: we are
-clearly interacting with \emph{same} array throughout, and this version makes
+clearly interacting with the \emph{same} array throughout, and this version makes
 that apparent.
 We see here a clear tension between extra safety and clarity of code---one
 we wish, as language designers, to avoid. %%  When
@@ -547,7 +547,7 @@ In particular, |g| can pass |x| to |f|.
 
 Pattern matching on a value of type |Ur a| yields a payload of multiplicity
 $[[{omega}]]$, even when the scrutinee has multiplicity $[[{1}]]$. In general, given a
-a multiplicity set, the desired
+multiplicity set, the desired
 (sub)structural rules can be obtained by endowing multiplicities with the appropriate
 semiring structure~\citep{abel_unified_2020}. In
 this paper, we use the same multiplicity structure as Linear Haskell:\footnote{Even though linear Haskell additionally supports multiplicity
@@ -558,7 +558,7 @@ prototypical example is |map :: (a poly_arrow b) -> [a] poly_arrow
 [b]|, where |poly_arrow| is the notation for a function arrow of
 multiplicity |multiplicity(m)|.  First-order functions, on the other
 hand, do not need multiplicity polymorphism, because linear functions
-can be $\eta$-expanded into unrestricted function as explained in
+can be $\eta$-expanded into unrestricted functions as explained in
 \cref{sec:linear-types}. Higher-order functions whose arguments are
 themselves constrained functions are rare, so we do not yet see the
 need to extend multiplicity polymorphism to apply to constraints.
@@ -920,7 +920,7 @@ overusing = (useC, useC)
 \subsection{Restricting to a linear context with |constraint(Unique)|}
 \label{sec:Unique-constraint}
 A linear function makes a promise about how it is going to use its argument, but
-linearity imposes no restrictions how a function -- or its result -- is going to be used.
+linearity imposes no restrictions on how a function -- or its result -- is going to be used.
 The caller may use the linear function's result unrestrictedly.  This poses a
 challenge for providing a type-safe interface for libraries that rely on having a unique pointer to
 some resource, such as safe mutable arrays, because the obvious definition of a
@@ -1803,9 +1803,10 @@ one of $[[{C1}]]$ or $[[{C2}]]$ will be eventually used. ``With'' constraints
 arise from the branches in a $\kcase$-expression.
 
 The last form of wanted constraint $[[{C}]]$ is an implication $[[{pi.(Q=>C)}]]$.
-Proving $[[{pi.(Q=>C)}]]$ allows us to assume $[[{Q}]]$ linearly while proving $[[{C}]]$,
-a total of $[[{pi}]]$
+Proving $[[{pi.(Q=>C)}]]$ amounts to proving $[[{(Q=>C)}]]$ a total of $[[{pi}]]$
 times.
+To prove $[[{(Q=>C)}]]$, one assumes $[[{Q}]]$ linearly while proving $[[{C}]]$.
+
 These implications arise when we unpack an existential
 package that contains a linear constraint and also when checking a |let|-binding.
 We can define scaling over wanted constraints by recursion as follows, where we
@@ -2828,7 +2829,7 @@ on top of Linear Haskell.
 
 There are a lot of commonalities between \textsc{ghc}'s constraint and logic
 programs. Traditional type classes can be seen as Horn clause programs, much
-like Prolog programs. \textsc{ghc} puts further restrictionss in order to
+like Prolog programs. \textsc{ghc} puts further restrictions in order to
 avoid backtracking for speed and predictability.
 
 The recent addition of quantified
