@@ -246,4 +246,11 @@ Fixed
 >       core calculus is proved correct, reasoning about programs by looking
 >       at their translations into the core calculus is burdensome.
 
-???
+WON'T FIX (TODO: notify the shepherd)
+
+We are not aware of an operational semantics given directly on terms
+of a qualified type system. This would probably be a perilous
+exercise, as the constraints don't appear in terms, yet their
+resolution is usually indispensable for the semantics to make
+sense. The classical article “A theory of qualified types” (Mark
+Jones, 1994) already gave a semantics by evidence-passing translation.
