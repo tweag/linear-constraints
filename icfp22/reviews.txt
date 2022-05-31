@@ -36,7 +36,11 @@ Fixed
 >   probably be better (or at least, more general) to substitute fresh
 >   variables for a in the type of x.
 
-Arnaud?
+Won't Fix (TODO: communicate to the shepherd)
+
+Because ∃a.𝜏 is considered up to α-equivalence, substituting for fresh
+variable or requiring that the variable are fresh is equivalent. The
+substitution would just make the rule noisier.
 
 > - p15, section 6.1: It was not immediately clear from the explanation
 >   here what the difference is between `π·(Q=◦C)` and
