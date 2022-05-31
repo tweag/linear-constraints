@@ -67,7 +67,7 @@ Csongor?
 >   look at the appendix to figure out in which order the elements of
 >   the tuple are stored during boxing before the rule here made sense.
 
-Richard?
+Fixed
 
 > - p22, section 8.1: In the implementation of GHC, is the level of the
 >   implication also used to make sure that the constraints do not

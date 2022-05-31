@@ -2344,6 +2344,7 @@ $$
 %format t1 = "[[{t1}]]"
 %format as = "[[{as}]]"
 %format ts = "[[{ts}]]"
+%format us = "[[{us}]]"
 %format let_1 = "[[let_1]]"
 %format z1 = "[[{z1}]]"
 %format z2 = "[[{z2}]]"
@@ -2356,6 +2357,9 @@ $$
   \begin{minipage}{0.5\linewidth}
 \begin{code}
 Ds(z)(Q;G |- x : Sub u ts as) = x z
+Ds(z)(Q * Sub Q1 us as;G |- pack e : exists as. t .<= Q1) =
+  case_1 z of { (z', z'') ->
+    pack (z'', Ds(z')( Q ; G |- e : Sub t us as))}
 Ds(z)(Q1 * Q2;G1 + G2 |- unpack x = e1 in e2 : t)  =
   case_1 z of { (z1, z2) ->
     unpack (z',x) = Ds(z1)(Q1;G1 |- e1 : exists as. t1 .<= Q) in
