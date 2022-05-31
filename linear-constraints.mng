@@ -1804,10 +1804,11 @@ The intuition, here, is that in $[[{C1 & C2}]]$, only
 one of $[[{C1}]]$ or $[[{C2}]]$ will be eventually used. ``With'' constraints
 arise from the branches in a $\kcase$-expression.
 
-The last form of wanted constraint $[[{C}]]$ is an implication $[[{pi.(Q=>C)}]]$.
-Proving $[[{pi.(Q=>C)}]]$ amounts to proving $[[{(Q=>C)}]]$ a total of $[[{pi}]]$
-times.
-To prove $[[{(Q=>C)}]]$, one assumes $[[{Q}]]$ linearly while proving $[[{C}]]$.
+The last form of wanted constraint $[[{C}]]$ is an implication
+$[[{pi.(Q=>C)}]]$. The more interesting case is $[[{omega.(Q=>C)}]]$:
+to prove $[[{omega.(Q=>C)}]]$, you need to prove $[[{C}]]$ under the
+\emph{linear} assumption $[[{Q}]]$, but without using any other linear
+assumptions.
 
 These implications arise when we unpack an existential
 package that contains a linear constraint and also when checking a |let|-binding.

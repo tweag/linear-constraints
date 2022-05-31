@@ -47,7 +47,7 @@ substitution would just make the rule noisier.
 >   `(π·Q)=◦C`. Perhaps it would help to clarify what you mean by "a
 >   total of π times".
 
-TODO: Fix OTT syntax. Arnaud?
+Fixed
 
 > - p17: The use of D here is ambiguous: "D which holds the linear
 >   atomic assumptions which are members of D". Shouldn't the second one
