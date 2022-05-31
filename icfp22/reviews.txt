@@ -220,6 +220,9 @@ Nicolas?
 >      try to be more specific.
 
 Richard?
+
+[Arnaud: I could address this, but I don't understand how it is
+unclear, nor how to make the point more precise]
  
 > L63: "with \emph{same} array throughout" -> "with the \emph{same}
 >      array throughout?"
