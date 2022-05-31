@@ -2414,7 +2414,7 @@ linear constraints to \textsc{ghc}.
 \subsection{Implementation}
 \label{sec:implementation}
 
-We have written a prototype implementation of linear constraints on top of \textsc{ghc} 9.1, a version that already
+We have written a prototype implementation~\cite{prototype} of linear constraints on top of \textsc{ghc} 9.1, a version that already
 ships with the @LinearTypes@ extension. Function arrows (|->|) and context arrows
 (|=>|) share the same internal representation in the typechecker, differentiated
 only by a boolean flag. Thus, the @LinearTypes@ implementation effort has already
