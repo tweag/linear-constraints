@@ -12,7 +12,8 @@ pkgs.mkShell
           # basic toolbox
           scheme-small
           cleveref
-          latexmk biblatex
+          latexmk
+          biblatex biblatex-software
           stmaryrd
           unicode-math lm lm-math
           logreq xstring
@@ -31,6 +32,7 @@ pkgs.mkShell
           libertine environ hyperxmp
           ifmtarg comment ncctools
           inconsolata newtx txfonts
+          xpatch xurl
           ;
       })
 
