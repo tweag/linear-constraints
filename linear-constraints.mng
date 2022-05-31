@@ -1963,8 +1963,8 @@ $$
 The judgement
 takes in three contexts: $[[{UCtx}]]$, which holds all the unrestricted
 atomic constraint assumptions, $[[{DCtx}]]$ which holds the linear atomic
-assumptions which are members of $[[{DCtx}]]$ and $[[{LCtx_i}]]$, which holds the linear
-atomic constraint assumptions which aren't members of $[[{DCtx}]]$.
+assumptions which are members of $[[{Dup}]]$ and $[[{LCtx_i}]]$, which holds the linear
+atomic constraint assumptions which aren't members of $[[{Dup}]]$.
 The linear contexts $[[{DCtx}]]$, $[[{LCtx_i}]]$, and $[[{LCtx_o}]]$ have been described
 as multisets (\cref{sec:constraint-domain}), but we treat them
 as ordered lists in the more concrete setting here; we will see soon
