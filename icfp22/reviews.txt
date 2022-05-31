@@ -88,7 +88,7 @@ Fixed
 >   that I am not sure whether it is actually grammatically correct (or
 >   at least, I failed to parse it).
 
-Nicolas?
+Fixed (I'm positive that it wasn't grammatical)
  
 > 
 > Review #15B

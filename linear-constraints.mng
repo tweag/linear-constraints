@@ -2846,14 +2846,15 @@ Prolog does.
 
 Completeness of uniform proofs is equivalent to
 \cref{lem:inversion}, which, in turn, is used in the proof of the
-soundness lemma~\ref{lem:generation-soundness}. This seems to indicate
-that goal-oriented search is baked into the definition of OutsideIn. An
-immediate consequence of this observation, however, is that
-the fragment of linear logic described by~\citet{hh-ll} (and
-for which~\citet{resource-management-for-ll-proof-search} provides a
-refined search strategy) contains the Hereditary Harrop fragment of
-intuitionistic logic guarantees that quantified constraints do not
-break our proofs.
+soundness lemma~\ref{lem:generation-soundness}. Therefore our linear
+constraints are compatible with quantified constraints: we simply need
+to adapt~\cref{lem:inversion}.
+
+It is interesting that goal-oriented search is baked into the
+definition of OutsideIn. It's not only used as the constraint solving
+strategy, but it seems to required for the soundness of the constraint
+generation algorithm. Or, if they are not required, uniform proofs are
+at least an effective strategy to prove soundness.
 
 % \paragraph{Resource usage analysis}
 
