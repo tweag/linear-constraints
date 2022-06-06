@@ -27,6 +27,10 @@ submission-nix:
 
 clean:
 	rm -f *.aux *.bbl *.ptb *.pdf *.toc *.out *.run.xml
+	rm -f *.log *.bcf *.fdb_latexmk *.fls *.blg
+	rm -f linear-constraints.pdf
+	rm -f linear-constraints.lhs
+	rm -f linear-constraints.tex
 
 %.lhs: %.mng $(OTT_FILES)
 	ott $(OTT_OPTS) -tex_filter $< $@ $(OTT_FILES)
@@ -56,3 +60,6 @@ nix::
 
 continous-nix:: nix
 	nix-shell --pure --run "ls linear-constraints.mng $(OTT_FILES) | entr make"
+
+.SECONDARY:
+# the line above prevents deletion of temporary files, which can be helpful for debugging build problems

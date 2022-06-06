@@ -350,7 +350,9 @@ dependently typed programmers can now use linear types with Idris 2.
 All of these systems are vastly different in ergonomics and
 scope. Rust uses dedicated syntax and code generation
 to support management of resources, while Linear Haskell is a
-type system change without any other impact on the compiler. Linear Haskell
+type system change without any other impact on the compiler, such as in the
+code generator or runtime system.\rae{But actually we'd \emph{like} to have
+an impact on the runtime system to allow update-in-place.} Linear Haskell
 is designed to be general purpose, but
 using its linear arguments to emulate Rust's ownership model is a tedious exercise. It
 requires
@@ -738,7 +740,8 @@ existentially-quantified type\footnote{There is a variety of ways that existenti
   However, \citet{existentials} work out an
   approach that makes linear constraints even easier to use, as we
   discuss in \Fref{sec:implicit-existentials}. In order to separate
-  concerns, we do not build the bulk of our work on \citet{existentials}.
+  concerns, we do not build our formalism on \citet{existentials},
+  instead modeling our existentials on the more widely known formulation described by \citet{tapl}.
   We additionally freely
 omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
 empty.
@@ -2447,8 +2450,9 @@ As constraint solving proceeds, the compiler pipeline constructs a
 term in a typed language known as \textsc{ghc} Core~\cite{system-fc}.
 In Core, type class constraints are turned into explicit evidence (see
 \cref{sec:desugaring}). Thanks to being fully annotated, Core has
-decidable typechecking which is useful in debugging modifications to
-the compiler. Thus, the Core typechecker verifies that the desugaring
+decidable typechecking, which is used to find and fix bugs in
+the compiler (the Haskell type checker finds mistakes in user
+programs). Thus, the Core typechecker verifies that the desugaring
 procedure produced a linearity-respecting program before code
 generation occurs.
 

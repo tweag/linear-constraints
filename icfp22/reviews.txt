@@ -75,10 +75,13 @@ Fixed
 
 Richard?
 
+Well, yes, but this is completely orthogonal to our paper and the discussion in the paragraph. I think stating this would add confusion not resolve it.
+
 > - p23: Is the Core typechecker a necessary component to ensure
 >   soundness or is it just an extra sanity check?
 
 Richard?
+Fixed.
  
 > - p25, typo: "restrictionss" => "restrictions"
 
@@ -223,6 +226,8 @@ Richard?
 
 [Arnaud: I could address this, but I don't understand how it is
 unclear, nor how to make the point more precise]
+
+Richard: Fixed
  
 > L63: "with \emph{same} array throughout" -> "with the \emph{same}
 >      array throughout?"
@@ -237,7 +242,7 @@ Fixed
 >       be more specific as to which flavour of existential type you adopt in
 >       the paper.
 
-Richard?
+Richard? Fixed.
 
 > L297: "no restrictions how a function" -> "no restrictions on how a
 >       function"
