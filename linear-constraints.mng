@@ -21,7 +21,7 @@ import GHC.Base
 \settopmatter{printacmref=false,printfolios=true}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
-\usepackage[backend=biber,datamodel=acmdatamodel, style=acmauthoryear]{biblatex}
+\usepackage[backend=biber,datamodel=acmdatamodel, style=acmauthoryear,uniquename=false]{biblatex}
 \addbibresource{bibliography.bib}
 
 \usepackage{amsmath}
