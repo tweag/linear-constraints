@@ -36,11 +36,11 @@ Fixed
 >   probably be better (or at least, more general) to substitute fresh
 >   variables for a in the type of x.
 
-Won't Fix (TODO: communicate to the shepherd)
+Won't fix
 
 Because ∃a.𝜏 is considered up to α-equivalence, substituting for fresh
-variable or requiring that the variable are fresh is equivalent. The
-substitution would just make the rule noisier.
+variable or requiring that the variable are fresh is equivalent. Using
+a substitution would only make the rule noisier.
 
 > - p15, section 6.1: It was not immediately clear from the explanation
 >   here what the difference is between `π·(Q=◦C)` and
@@ -73,15 +73,17 @@ Fixed
 >   implication also used to make sure that the constraints do not
 >   escape their scope?
 
-Richard?
+Won't fix
 
-Well, yes, but this is completely orthogonal to our paper and the discussion in the paragraph. I think stating this would add confusion not resolve it.
+GHC uses the level of the implication to avoid constraint escaping,
+indeed. But, as this is orthogonal to our paper and the discussion in
+the paragraph. We believe that stating this would add confusion not
+resolve it.
 
 > - p23: Is the Core typechecker a necessary component to ensure
 >   soundness or is it just an extra sanity check?
 
-Richard?
-Fixed.
+Fixed
  
 > - p25, typo: "restrictionss" => "restrictions"
 
@@ -91,7 +93,7 @@ Fixed
 >   that I am not sure whether it is actually grammatically correct (or
 >   at least, I failed to parse it).
 
-Fixed (I'm positive that it wasn't grammatical)
+Fixed
  
 > 
 > Review #15B
@@ -222,12 +224,7 @@ Fixed (I'm positive that it wasn't grammatical)
 >      compiler", the sentence is not so clear to me, please reformulate and
 >      try to be more specific.
 
-Richard?
-
-[Arnaud: I could address this, but I don't understand how it is
-unclear, nor how to make the point more precise]
-
-Richard: Fixed
+Fixed
  
 > L63: "with \emph{same} array throughout" -> "with the \emph{same}
 >      array throughout?"
@@ -242,7 +239,7 @@ Fixed
 >       be more specific as to which flavour of existential type you adopt in
 >       the paper.
 
-Richard? Fixed.
+Fixed
 
 > L297: "no restrictions how a function" -> "no restrictions on how a
 >       function"
