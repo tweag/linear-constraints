@@ -2854,7 +2854,7 @@ Prolog does.
 
 Completeness of uniform proofs is equivalent to
 \cref{lem:inversion}, which, in turn, is used in the proof of the
-soundness lemma~\ref{lem:generation-soundness}. Therefore our linear
+soundness \cref{lem:generation-soundness}. Therefore our linear
 constraints are compatible with quantified constraints: we simply need
 to adapt~\cref{lem:inversion}.
 
