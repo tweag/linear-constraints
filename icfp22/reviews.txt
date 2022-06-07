@@ -53,7 +53,7 @@ Fixed
 >   atomic assumptions which are members of D". Shouldn't the second one
 >   be in calligraphic font?
 
-Fixed (this was a bad one!)
+Fixed
  
 > - p20: In the example of `bad`, I do not understand why this is
 >   rejected while the previous example of `fr` is accepted. Wouldn't the
