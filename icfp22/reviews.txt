@@ -157,6 +157,21 @@ Fixed
 > Curries and Lavatelli: A semantics for lambda calculi with resources,
 > MSCS 1999). It would be interesting to see if the results presented
 > here extend to more general notions of linear types.
+
+Won't fix
+
+The only outstanding issue is the feedback from Reviewer B about
+related work. We have considered the comparison they suggest, but
+decided it was not suitable for our paper. Ours is a paper about
+user-facing syntax and type inference, desugaring to an existing
+linearly typed language. Given that the referenced work focuses only
+on a resource-tracking model – and that our paper does not change the
+underlying linearity in Haskell’s internal language – we deem the
+comparison out of scope. In other words, the suggested paper discusses
+a variant of a lambda calculus with linear types, but the present
+paper is about inference of qualified linear types and practical
+consequences in the GHC implementation.
+
 > 
 > 
 > 
