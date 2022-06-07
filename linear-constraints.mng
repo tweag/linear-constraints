@@ -1638,7 +1638,8 @@ how to break the typing assumptions into constraints
 $[[{Q1}]]$/$[[{Q2}]]$ and contexts $[[{G1}]]$/$[[{G2}]]$. We will see
 how to infer constraints in \cref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
-definition that programmers can reason about typing. We do not
+definition that programmers can reason about typing. As is standard in
+the qualified-type literature (since the original paper~\cite{QualifiedTypes}), we do not
 directly give a dynamic
 semantics to this language; instead, we will give it meaning via
 desugaring to a simpler core language in \cref{sec:desugaring}.
