@@ -2124,8 +2124,8 @@ f =   unique $
 In this example, the programmer meant for
 |free| to use the |constraint(RW n)| constraint introduced locally in the type
 of |fr|. Yet
-there are actually two |constraint(RW n)| constraints: this local one and the
-one assumed when entering the scope of |arr|. The wrong
+there are actually two linear |constraint(RW n)| constraints: this local one and the
+one assumed when unpacking |arr|. The wrong
 choice among the constraints will lead the algorithm to fail.
 Choosing the first $[[{q}]]$ linear assumption guarantees we get the
 most local one.
@@ -2146,16 +2146,29 @@ class constraint (C)
 > useC :: constraint (C) =>. Int
 \end{minipage}
 |giveC| gives an unrestricted copy of |constraint (C)| to some continuation, while |useC|
-uses |constraint (C)| linearly. Now consider a consumer of this \textsc{api}:
-\begin{code}
-bad :: constraint (C) =>. (Int, Int)
-bad = (giveC useC, useC)
-\end{code}
-It is possible to give a type derivation to |bad| in the qualified type system
-of \cref{sec:qualified-type-system}. In this case, the constraint assignment
-is actually unambiguous:
-the first |useC| must use the unrestricted |constraint (C)|, while the
-second must use the linear |constraint (C)|. This assignment, however, would require
+uses |constraint (C)| linearly. Now consider two potential consumers of this \textsc{api}:
+
+\noindent
+\begin{minipage}{0.5\linewidth}
+> ambiguous1 :: constraint (C) =>. Int
+> ambiguous1 = giveC useC
+\end{minipage}
+\begin{minipage}{0.5\linewidth}
+> ambiguous2 :: constraint (C) =>. (Int, Int)
+> ambiguous2 = (giveC useC, useC)
+\end{minipage}
+Looking at |ambiguous1|, the invocation of |useC| has both a linear |constraint (C)| in scope, and
+a more local unrestricted |constraint (C)|. The strategy to pick the more local constraint
+fails here, because it would leave the linear |constraint (C)| unconsumed. A
+tempting refinement might be to always consume the most local \emph{linear}
+constraint. That would handle handles |ambiguous1| correctly, but fail on |ambiguous2|. In
+the case of the latter, if the invocation of |giveC useC| consumes the linear
+|constraint (C)|, then the second |useC| invocation will fail. It is possible to
+give a type derivation to |ambiguous2| in the qualified type system
+of \cref{sec:qualified-type-system} by making the first |useC| consume the
+unrestricted |constraint (C)| and the second |useC| consume the linear
+|constraint (C)|.
+This assignment, however, would require
 the constraint solver to guess when solving the constraint from the first |useC|.
 Accordingly, in order to both avoid backtracking and to keep type inference
 independent of the order terms appear in the program text, |bad| is
