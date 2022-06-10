@@ -60,7 +60,7 @@ Fixed
 >   same strategy of always picking the most locally bound o ccurrence of
 >   the constraint lead to the correct typing derivation here as well?
 
-Csongor?
+Fixed (by adding an example where the "most local" strategy fails)
 
 > - p22, fig 12b: When reading the desugaring for unboxing, it is hard
 >   to understand because the desugaring for boxing is omitted. I had to
