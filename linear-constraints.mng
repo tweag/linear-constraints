@@ -964,7 +964,7 @@ This is promising so far, but several problems remain:
 
 \begin{description}
 \item[Duplicating |constraint(Unique)|] What if we want to create multiple
-arrays, each of which is non-duplicable? If |constraint(Unique)| is assumed
+arrays, each of which having a unique pointer? If |constraint(Unique)| is assumed
 linearly, then |let arr1 = new 5; arr2 = new 6| will fail, as it uses our
 |constraint(Unique)| assumption twice. We thus stipulate that |constraint(Unique)|
 must itself be duplicable: from one assumption of |constraint(Unique)|, we
@@ -1149,10 +1149,10 @@ For this purpose we introduce the type |PArray a n|, where the kind of
 reference in the array refers to the same location |n|. Both types
 |AtomRef a| and |PArray a| have kind |Location -> Type|, and therefore
 one can allocate, and manipulate arrays of arrays with this
-\textsc{api}. For example, an array of integers would have type
+\textsc{api}. For example, an array of integers has type
 |PArray (AtomRef Int) n|, and indeed, the |UArray| type from
 \cref{sec:introduction} is a synonym for an array of atomic references.
-An array of arrays of integers would have type |PArray (PArray (AtomRef Int)) n|. Thus,
+An array of arrays of integers would has type |PArray (PArray (AtomRef Int)) n|. Thus,
 the framework handles nested mutable structures without any additional
 difficulty. %% As discussed in \cref{sec:what-it-looks-like}, the scope of |newPArray| returns
 %% an unrestricted value to ensure that the linear constraint is consumed within
@@ -2778,7 +2778,7 @@ consumes the same constraints.
 % The memory ownership example of \cref{sec:memory-ownership} is
 % strongly inspired by Rust.
 %
-Ownership and borrowing are the key features of Rust's memory management model.
+Ownership and borrowing are the key features of Rust's safe memory management model.
 % As a consequence, it has a much more convenient syntax
 % than Linear Haskell with linear constraints can propose.
 % Rust's
