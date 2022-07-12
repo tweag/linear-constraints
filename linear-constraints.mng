@@ -336,7 +336,9 @@ import GHC.Base
 
 \maketitle
 
-\renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, Spiwack, Wu}
+% The full names fit on a line. As per the author instructions, we
+% don't need to shorten the authors' names.
+% \renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, Spiwack, Wu}
 \newcommand{\maybesmall}{\small}
 
 \begin{acks}
