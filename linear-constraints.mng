@@ -339,6 +339,15 @@ import GHC.Base
 \renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, Spiwack, Wu}
 \newcommand{\maybesmall}{\small}
 
+\begin{acks}
+  Jean-Philippe Bernardy is supported by grant
+  \grantnum{clasp}{2014-39} from the \grantsponsor{clasp}{Swedish
+    Research Council}{https://www.vr.se}, which funds the Centre for
+  Linguistic Theory and Studies in Probability (CLASP) in the
+  Department of Philosophy, Linguistics, and Theory of Science at the
+  University of Gothenburg.
+\end{acks}
+
 \section{Introduction}
 \label{sec:introduction}
 
