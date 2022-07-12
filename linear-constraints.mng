@@ -17,7 +17,7 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,usenames,dvipsnames,natbib=false,acmthm=false,review]{acmart}
+\documentclass[acmsmall,usenames,dvipsnames,natbib=false,acmthm=false,screen]{acmart}
 \settopmatter{printacmref=false,printfolios=true}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
