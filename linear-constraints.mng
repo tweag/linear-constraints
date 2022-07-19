@@ -251,6 +251,7 @@ import GHC.Base
 \subtitle{Generic inference for capabilities and uniqueness}
 
 \author{Arnaud Spiwack}
+\orcid{0000-0002-5985-2086}
 \affiliation{
   \institution{Tweag}
   \city{Paris}
@@ -258,6 +259,7 @@ import GHC.Base
 }
 \email{arnaud.spiwack@@tweag.io}
 \author{Csongor Kiss}
+\orcid{0000-0002-0195-2420}
 \affiliation{
   \institution{Imperial College London}
   \city{London}
@@ -265,6 +267,7 @@ import GHC.Base
 }
 \email{csongor.kiss14@@imperial.ac.uk}
 \author{Jean-Philippe Bernardy}
+\orcid{0000-0002-8469-5617}
 \affiliation{
   \institution{University of Gothenburg}
   \city{Gothenburg}
@@ -272,6 +275,7 @@ import GHC.Base
 }
 \email{jean-philippe.bernardy@@gu.se}
 \author{Nicolas Wu}
+\orcid{0000-0002-4161-985X}
 \affiliation{
   \institution{Imperial College London}
   \city{London}
@@ -279,6 +283,7 @@ import GHC.Base
 }
 \email{n.wu@@imperial.ac.uk}
 \author{Richard A.~Eisenberg}
+\orcid{0000-0002-7669-9781}
 \affiliation{
   \institution{Tweag}
   \city{Paris}
