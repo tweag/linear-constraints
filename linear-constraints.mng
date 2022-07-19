@@ -229,18 +229,17 @@ import GHC.Base
 
 %%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
 
-% \acmConference[POPL'22]{POPL}{2022}{}
-% \acmYear{2022}
-% \copyrightyear{2022}
-\acmJournal{PACMPL}
-\acmVolume{1}
-\acmNumber{OOPSLA}
-\acmArticle{1}
+\setcopyright{rightsretained}
+\acmPrice{}
+\acmDOI{10.1145/3547626}
 \acmYear{2022}
-\acmMonth{1}
-\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
-\startPage{1}
-\setcopyright{none}
+\copyrightyear{2022}
+\acmSubmissionID{icfp22main-p15-p}
+\acmJournal{PACMPL}
+\acmVolume{6}
+\acmNumber{ICFP}
+\acmArticle{95}
+\acmMonth{8}
 
 % Commented out because of biblatex
 % \citestyle{acmauthoryear}
