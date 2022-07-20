@@ -394,7 +394,11 @@ This function reads the first two elements of an array and returns them after
 deallocating the array.
 Linearity enables the array library to ensure that there is only one reference
 to the array, and therefore it can be mutated in-place without violating
-referential transparency. After the array has been freed, it is no longer
+referential transparency. Let us stress that this uniqueness property
+is an invariant of the array library, not an intrinsic property of
+linear functions.
+
+After the array has been freed, it is no longer
 possible to read or write to it.
 %
 Notice that the |read| function consumes the array and returns a
@@ -956,6 +960,7 @@ constructor function can immediately be misused, violating the assumption of uni
 new :: Int -> MArray a
 
 bad = let arr = new 5 in (arr, arr)
+badToo = Ur (new 5)
 \end{code}
 %
 However, with linear constraints, we can overcome this problem by putting the
@@ -968,7 +973,8 @@ we must use the |constraint(Unique)| assumption precisely once. Now, our definit
 for |bad| is rejected: either we infer |arr| to have multiplicity~$[[{omega}]]$,
 in which case its definition uses |constraint(Unique)| $[[{omega}]]$ times; or
 we infer |arr| to have multiplicity~$[[{1}]]$, in which case its use (twice) violates
-the linearity restriction.
+the linearity restriction. Likewise, the use of |Ur| in |badToo| requires using
+the |constraint(Unique)| assumption $[[{omega}]]$ times.
 
 This is promising so far, but several problems remain:
 
