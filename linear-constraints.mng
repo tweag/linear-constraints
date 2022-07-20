@@ -352,7 +352,10 @@ import GHC.Base
   Linguistic Theory and Studies in Probability (CLASP) in the
   Department of Philosophy, Linguistics, and Theory of Science at the
   University of Gothenburg.
-  Nicolas Wu is supported by EPSRC Grant EP/S028129/1.
+%
+  Nicolas Wu is supported by
+  \grantsponsor{EPSRC}{EPSRC}{https://www.ukri.org/councils/epsrc/}
+  Grant \grantnum{EPSRC}{EP/S028129/1}.
 
 
 \end{acks}
