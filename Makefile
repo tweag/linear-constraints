@@ -59,7 +59,7 @@ nix::
 	nix-shell --pure --run make
 
 continous-nix:: nix
-	nix-shell --pure --run "ls linear-constraints.mng $(OTT_FILES) | entr make"
+	nix-shell --pure --run "ls linear-constraints.mng bibliography.bib $(OTT_FILES) | entr make"
 
 .SECONDARY:
 # the line above prevents deletion of temporary files, which can be helpful for debugging build problems
