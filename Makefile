@@ -31,6 +31,7 @@ clean:
 	rm -f linear-constraints.pdf
 	rm -f linear-constraints.lhs
 	rm -f linear-constraints.tex
+	rm -f linear-constraints.tar.gz
 
 %.lhs: %.mng $(OTT_FILES)
 	ott $(OTT_OPTS) -tex_filter $< $@ $(OTT_FILES)
@@ -49,7 +50,7 @@ linear-constraints-submission.pdf: linear-constraints.pdf
 linear-constraints-supplementary.pdf: linear-constraints.pdf
 	pdftk $< cat 28-end output $@
 
-linear-constraints.tar.gz: linear-constraints.tex linear-constraints.bbl newunicodedefs.tex ott.tex ottalt.sty listproc.sty acmart.cls
+linear-constraints.tar.gz: linear-constraints.tex linear-constraints.bbl newunicodedefs.tex ott.tex ottalt.sty listproc.sty acmart.cls acmauthoryear.bbx acmauthoryear.cbx acmdatamodel.dbx
 	tar -cvzf $@ $^
 
 %.pdf %.bbl : %.tex bibliography.bib $(OTT_TEX)
