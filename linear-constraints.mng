@@ -246,8 +246,8 @@ import GHC.Base
 
 \begin{document}
 
-\title{Linearly Qualified Types}
-\subtitle{Generic inference for capabilities and uniqueness}
+\title[Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness]{Linearly Qualified Types}
+\subtitle{Generic Inference for Capabilities and Uniqueness}
 
 \author{Arnaud Spiwack}
 \orcid{0000-0002-5985-2086}
@@ -345,21 +345,6 @@ import GHC.Base
 % \renewcommand{\shortauthors}{Bernardy, Eisenberg, Kiss, Spiwack, Wu}
 \newcommand{\maybesmall}{\small}
 
-\begin{acks}
-  Jean-Philippe Bernardy is supported by grant
-  \grantnum{clasp}{2014-39} from the \grantsponsor{clasp}{Swedish
-    Research Council}{https://www.vr.se}, which funds the Centre for
-  Linguistic Theory and Studies in Probability (CLASP) in the
-  Department of Philosophy, Linguistics, and Theory of Science at the
-  University of Gothenburg.
-%
-  Nicolas Wu is supported by
-  \grantsponsor{EPSRC}{EPSRC}{https://www.ukri.org/councils/epsrc/}
-  Grant \grantnum{EPSRC}{EP/S028129/1}.
-
-
-\end{acks}
-
 \section{Introduction}
 \label{sec:introduction}
 
@@ -380,7 +365,7 @@ requires
 % the compiler doesn't know how to help, requiring
 the programmer to carefully thread resource tokens.
 
-To get a sense of the power and the tedium of using linear types, consider the
+To get a sense of the power and the tedium of programming with linear types, consider the
 following function:
 \begin{code}
 read2AndDiscard :: MArray a ->. (Ur a, Ur a)
@@ -614,7 +599,7 @@ $$
 \end{array}
 $$
 
-\subsection{Shortcomings of Linear Haskell that we address}
+\subsection{Shortcomings of Linear Haskell that we Address}
 The |read| function in \cref{sec:introduction} consumes the array it
 operates on. Therefore, the same array can no longer be used in
 further operations: doing so would result in a type error.  To resolve
@@ -947,7 +932,7 @@ overusing = (useC, useC)
 % not be able to consume the |constraint (Open h)| constraint
 % linearly.
 
-\subsection{Restricting to a linear context with |constraint(Unique)|}
+\subsection{Restricting to a Linear Context with |constraint(Unique)|}
 \label{sec:Unique-constraint}
 A linear function makes a promise about how it is going to use its argument, but
 linearity imposes no restrictions on how a function -- or its result -- is going to be used.
@@ -1036,7 +1021,7 @@ memory management \textsc{api} as a \emph{library} using linear
 constraints. The library is a generalisation of the array library
 introduced in \cref{sec:introduction}.
 
-\subsection{Capability constraints}
+\subsection{Capability Constraints}
 \label{sec:atomic-references}
 
 Our approach, inspired by Rust, is
@@ -1317,7 +1302,7 @@ two indices fall in two different slices. Then simply borrow the
 element |i| from the first slice, and |j| from the second slice (using
 |lendMut|). Finally, we join the two slices back together.
 
-\subsubsection{In-place quicksort}
+\subsubsection{In-place Quicksort}
 
 As an example of using the machinery defined above, we implement an in-place, pure
 quicksort algorithm, given in \Cref{fig:quicksort}.
@@ -1564,7 +1549,7 @@ Proofs of these lemmas (and others) appear in the extended version of
 the paper~\cite{extended-version};
 they can be proved by straightforward use of the properties in \Cref{fig:entailment-relation}.
 
-\subsection{Typing rules}
+\subsection{Typing Rules}
 \label{sec:typing-rules}
 
 With this material in place, we can now present our type system. The
@@ -1797,7 +1782,7 @@ We can make this simplification for two reasons:
 %% that type inference is solved elsewhere, greatly simplifying the presentation.
 
 
-\subsection{Wanted constraints}
+\subsection{Wanted Constraints}
 \label{sec:wanteds}
 
 The constraints $[[{C}]]$ generated in our system have a richer
@@ -1905,7 +1890,7 @@ entailment relation.
   If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[{Q}]] = [[{pi.Q'}]]$ for some $[[{Q'}]]$.
 \end{lemma}
 
-\subsection{Constraint generation}
+\subsection{Constraint Generation}
 \label{sec:constraint-generation}
 \label{sec:constraint-generation-soundness}
 
@@ -1980,7 +1965,7 @@ type system.
   $[[Q_g; G |- e : t]]$.
 \end{lemma}
 
-\subsection{Constraint solving}
+\subsection{Constraint Solving}
 \label{sec:constraint-solver}
 
 In this section,
@@ -2047,7 +2032,7 @@ We require the following property of the atomic-constraint solver:
 \end{enumerate}
 \end{property}
 
-\subsubsection{Constraint solver algorithm}
+\subsubsection{Constraint Solver Algorithm}
 
 Building on this atomic-constraint solver, we use a linear proof
 search algorithm based on the recipe given
@@ -2092,7 +2077,7 @@ context.
   in~\cref{sec:constraint-domain}.
 \end{itemize}
 
-\subsubsection{An atomic-constraint solver}
+\subsubsection{An Atomic-Constraint Solver}
 \label{sec:simple-constr-solv}
 
 So far, the atomic-constraint domain has been
@@ -2215,7 +2200,7 @@ calculus~\cite{LinearHaskell}. We
 define the core language's type system here; its operational semantics
 is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 
-\subsection{The core calculus}
+\subsection{The core Calculus}
 \label{sec:core-calculus}
 \label{sec:ds:inferred-constraints}
 
@@ -2279,7 +2264,7 @@ $[[(UCtx, DCtx \u LCtx) ; G |- e : t]]$.
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
 core calculus.
 
-\subsection{From qualified to core}
+\subsection{From Qualified to Core}
 \label{sec:ds:from-qualified-core}
 
 \subsubsection{Evidence}
@@ -2303,7 +2288,7 @@ Let us now define a family of functions $[[{Ds(Hole)}]]$ to translate
 the type schemes, types, contexts, and typing derivations of the qualified system into the
 types, type schemes, contexts, and terms of the core calculus.
 
-\subsubsection{Translating types}
+\subsubsection{Translating Types}
 Type schemes $[[{s}]]$ are translated by turning the implicit argument $[[{Q}]]$
 into an explicit one of type $[[{Ev(Q)}]]$. Translating types $[[{t}]]$
 and contexts $[[{G}]]$ proceeds as
@@ -2339,7 +2324,7 @@ $$
 $$
 \end{minipage}
 
-\subsubsection{Translating terms}
+\subsubsection{Translating Terms}
 Given a derivation $[[Q;G |- e : t]]$, we can build an expression
 $[[Ds(z;Q;G |- e : t)]]$, such that
 $[[Ds(G), z:_1 Ev(Q) |- Ds(z;Q;G |- e : t) : Ds(t)]]$ (for some fresh variable
@@ -2498,7 +2483,7 @@ programs). Thus, the Core typechecker verifies that the desugaring
 procedure produced a linearity-respecting program before code
 generation occurs.
 
-\subsection{Interaction with other features}
+\subsection{Interaction with Other Features}
 
 Since constraints play an important role in \textsc{ghc}'s type system, we must
 pay close attention to the interaction of linearity with other language features
@@ -2541,7 +2526,7 @@ needs to make a guess, which \textsc{ghc} never does.
 To address both of these issues at once, we make the following rule: the
 superclasses of a linear constraint are ignored.
 
-\subsubsection{Equality constraints}
+\subsubsection{Equality Constraints}
 \label{sec:equality-constraints}
 
 In \cref{sec:type-inference} we argued that \emph{type} inference and
@@ -2748,7 +2733,7 @@ The solver judgement in OutsideIn takes the following form:
 %
 \[\mathcal{Q}\ ;\ Q_{\mathit{given}}\ ;\ \overline{\alpha}_{\mathit{tch}} \overset{\mathit{solv}}{\mapsto} C_{\mathit{wanted}} \leadsto Q_{\mathit{residual}}\  ; \ \theta\]
 %
-The main differences from our solver judgement in \cref{sec:constraint-solver} are:
+The main differences between OutsideIn's solver judgement and our solver judgements in \cref{sec:constraint-solver} are:
 \begin{itemize}
   \item OutsideIn's judgement includes top-level axioms schemes separately
 ($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
@@ -2948,6 +2933,21 @@ Mezzo's, or \textsc{ats}'s.
 % the cost of linear types so that more theoretical applications become
 % practical applications. And we achieved this at a surprisingly low price: teaching
 % linear logic to \textsc{ghc}'s constraint solver.
+
+\begin{acks}
+  Jean-Philippe Bernardy is supported by grant
+  \grantnum{clasp}{2014-39} from the \grantsponsor{clasp}{Swedish
+    Research Council}{https://www.vr.se}, which funds the Centre for
+  Linguistic Theory and Studies in Probability (CLASP) in the
+  Department of Philosophy, Linguistics, and Theory of Science at the
+  University of Gothenburg.
+%
+  Nicolas Wu is supported by
+  \grantsponsor{EPSRC}{EPSRC}{https://www.ukri.org/councils/epsrc/}
+  Grant \grantnum{EPSRC}{EP/S028129/1}.
+
+
+\end{acks}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
