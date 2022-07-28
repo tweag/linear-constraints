@@ -599,7 +599,7 @@ $$
 \end{array}
 $$
 
-\subsection{Shortcomings of Linear Haskell that we Address}
+\subsection{Shortcomings of Linear Haskell that We Address}
 The |read| function in \cref{sec:introduction} consumes the array it
 operates on. Therefore, the same array can no longer be used in
 further operations: doing so would result in a type error.  To resolve
@@ -1302,7 +1302,7 @@ two indices fall in two different slices. Then simply borrow the
 element |i| from the first slice, and |j| from the second slice (using
 |lendMut|). Finally, we join the two slices back together.
 
-\subsubsection{In-place Quicksort}
+\subsubsection{In-Place Quicksort}
 
 As an example of using the machinery defined above, we implement an in-place, pure
 quicksort algorithm, given in \Cref{fig:quicksort}.
@@ -2200,7 +2200,7 @@ calculus~\cite{LinearHaskell}. We
 define the core language's type system here; its operational semantics
 is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
 
-\subsection{The core Calculus}
+\subsection{The Core Calculus}
 \label{sec:core-calculus}
 \label{sec:ds:inferred-constraints}
 
@@ -2647,7 +2647,7 @@ special treatment, and are harmless.
 % to~\citet[Section 4]{resource-management-for-ll-proof-search} for a
 % careful treatment of $[[{Top}]]$.
 
-\subsection{Inferring packing and unpacking}
+\subsection{Inferring Packing and Unpacking}
 \label{sec:implicit-existentials}
 Recent work~\cite{existentials} describes an algorithm (call it \textsc{edwl}, after the
 authors' names) that
