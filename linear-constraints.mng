@@ -2948,8 +2948,6 @@ Mezzo's, or \textsc{ats}'s.
 
 \end{acks}
 
-\bibliographystyle{ACM-Reference-Format}
-\bibliography{bibliography}
 % For natbib:
 % \bibliographystyle{ACM-Reference-Format}
 % \bibliography{bibliography}
