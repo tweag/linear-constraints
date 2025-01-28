@@ -1152,8 +1152,8 @@ reference in the array refers to the same location |n|. Both types
 one can allocate, and manipulate arrays of arrays with this
 \textsc{api}. For example, an array of integers has type
 |PArray (AtomRef Int) n|, and indeed, the |UArray| type from
-\cref{sec:introduction} is a synonym for an array of atomic references.
-An array of arrays of integers would has type |PArray (PArray (AtomRef Int)) n|. Thus,
+\cref{sec:introduction} is a synonym for an array of atomic references.\jp{Can we have the definition?}
+An array of arrays of integers has type |PArray (PArray (AtomRef Int)) n|. Thus,
 the framework handles nested mutable structures without any additional
 difficulty. %% As discussed in \cref{sec:what-it-looks-like}, the scope of |newPArray| returns
 %% an unrestricted value to ensure that the linear constraint is consumed within
@@ -1197,7 +1197,7 @@ The |lendMut arr i k| primitive lends access to the reference at index |i| in
 |arr|, to a continuation function |k| (in Rust terminology, the function
 \emph{borrows} an element of the array). Note that the continuation must return the
 read-write capability, so that the ownership transfer is indeed temporary. The
-type system guarantees that the borrowed reference cannot be shared or deallocated.
+type system guarantees that the borrowed reference cannot be shared or deallocated.\jp{Ok, but what we want to know is how the type achieves this; perhaps we again need to state that the constraints themselves are only ``borrowed''}
 %
 % Here, the return type of the scope, |r|,
 % is not in |Ur|: since the scope must return the |constraint(RW p)| constraint, it is
@@ -1211,7 +1211,7 @@ never simultaneously available.
 Because the elements of an array can be mutable structures (such as
 other arrays), reading can be done safely only if we can ensure that
 no one else has access to the array while the element is accessed. Otherwise,
-the array -- including the element being read -- could be mutated.
+the array -- including the element being read -- could be mutated. \jp{This isn't very clear. I believe it should be recalled that all the array contents recursively share the same location}
 Therefore,
 gaining simple read access to an element needs to be done using a
 scoped \textsc{api} as well:
@@ -1295,8 +1295,8 @@ With these building blocks, we can now implement various utility functions on
 arrays, such as swapping two elements of an array, which is shown in
 \Cref{fig:swap}.  It is
 not so simple to implement\footnote{Indeed, Rust's implementation uses
-an \emph{unsafe} block.}, because we need two elements of an array
-simultaneously, but only one element can be borrowed at a time. To
+an \emph{unsafe} block.}\jyp{is the statement of the footnote this still current? We should specify which version of Rust we're talking about.}, because we need two elements of an array
+simultaneously, but only one element can be borrowed at a time.\jp{This is because, essentially, borrowing an element actually borrows the whole array. The reader might expect something more flexible here.} To
 solve this problem, we split the array into two slices such that the
 two indices fall in two different slices. Then simply borrow the
 element |i| from the first slice, and |j| from the second slice (using
@@ -1483,7 +1483,7 @@ our system.
 \caption{Requirements for the entailment relation $[[Q1 ||- Q2]]$}
 \label{fig:entailment-relation}
 \end{figure}
-
+\jp{In the requirements, the RHS of entailment has a variable form. Clarify.}
 \begin{definition}[Entailment relation]
   \label{def:entailment-relation}
   The qualified type system is parameterised by a relation
@@ -1492,7 +1492,7 @@ our system.
 
   We write, abusing notation, $[[Q \in Dup]]$ for a simple constraint
   $[[{Q}]]=[[{(UCtx, LCtx)}]]$ if for all $[[{q}]]\in[[{LCtx}]]$ we
-  have $[[q \in Dup]]$.
+  have $[[q \in Dup]]$. \jp{How about writing using set inclusion?}
 
   The entailment relation must obey the laws listed in
   \Fref{fig:entailment-relation}.
@@ -1619,6 +1619,7 @@ contexts is always satisfied.
   \caption{Qualified type system}
   \label{fig:typing-rules}
 \end{figure}
+\jp{in the above figure; I'm unclear if only having linear variable occurences is enough. omega is convertible to 1, but where is this captured? }
 
 The typing rules are in \Cref{fig:typing-rules}.
 A qualified type system~\cite{QualifiedTypes} such as ours introduces a
@@ -1631,12 +1632,12 @@ that $[[{G}]]$ is addressed explicitly, whereas $[[{Q}]]$
 is used implicitly in \rref{E-Var}.
 
 Because constraints are used implicitly, if there are several instances
-of the same $[[{1.q}]]$, it is non-deterministic which one is used in
+of the same $[[{1.q}]]$\jp{it is unclear to me why there is an explicit scaling by 1 here}, it is non-deterministic which one is used in
 which instance of \rref*{E-Var}. As a consequence, we must require
 that any two instances of $[[{1.q}]]$ in a constraint $[[{Q}]]$ have
 the same computational content (see \cref{sec:desugaring}). How do we
 reconcile this non-determinism with the use of linear constraints, in
-\cref{sec:arrays} to thread mutations? We certainly don't want type
+\cref{sec:arrays} to thread mutations?\jp{reconcile ... with ?} We certainly don't want type
 inference to non-deterministically reorder a |readRef| and a
 |writeRef|! The solution is that the \textsc{api} is arranged so that
 only a single instance of |constraint(RW n)| is ever
@@ -1650,7 +1651,7 @@ how to break the typing assumptions into constraints
 $[[{Q1}]]$/$[[{Q2}]]$ and contexts $[[{G1}]]$/$[[{G2}]]$. We will see
 how to infer constraints in \cref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
-definition that programmers can reason about typing. As is standard in
+definition that programmers can reason about typing.\jp{about typing but not operational meaning? I'm unclear here.} As is standard in
 the qualified-type literature (since the original paper~\cite{QualifiedTypes}), we do not
 directly give a dynamic
 semantics to this language; instead, we will give it meaning via
@@ -2124,7 +2125,7 @@ one we must maintain if we are to be compatible with \textsc{ghc}.
 $[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
 takes care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the front of
-the list). To understand why, consider the following example:
+the list). To understand why, consider the following example:\jp{can we use a conventional indentation here?}
 \begin{code}
 f =   unique $
         let    pack (Ur arr) = new 10
@@ -2140,7 +2141,7 @@ there are actually two linear |constraint(RW n)| constraints: this local one and
 one assumed when unpacking |arr|. The wrong
 choice among the constraints will lead the algorithm to fail.
 Choosing the first $[[{q}]]$ linear assumption guarantees we get the
-most local one.
+most local one.\jp{In the above paragraph, it says "most recent" I suggest sticking to this terminology here too.}
 
 Another interesting feature of the solver (\Cref{fig:simpl-solver}) is that
 no rule solves a linear constraint if it appears both in the
