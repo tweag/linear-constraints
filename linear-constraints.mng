@@ -1935,7 +1935,7 @@ emitted constraints with $[[&]]$, not $[[*]]$.
 %
   This can also be understood in terms of the array example of
   \cref{sec:introduction}:
-  if an array is freed in one branch of a $\kcase$, we require it to be freed (or freezed) in
+  if an array is freed in one branch of a $\kcase$, we require it to be freed (or frozen) in
 the other branches too.
   Otherwise, the array's state will be unknown to the type system
   after the $\kcase$.
@@ -2174,7 +2174,7 @@ Looking at |ambiguous1|, the invocation of |useC| has both a linear |constraint 
 a more local unrestricted |constraint (C)|. The strategy to pick the more local constraint
 fails here, because it would leave the linear |constraint (C)| unconsumed. A
 tempting refinement might be to always consume the most local \emph{linear}
-constraint. That would handle handles |ambiguous1| correctly, but fail on |ambiguous2|. In
+constraint. That would handle |ambiguous1| correctly, but fail on |ambiguous2|. In
 the case of the latter, if the invocation of |giveC useC| consumes the linear
 |constraint (C)|, then the second |useC| invocation will fail. It is possible to
 give a type derivation to |ambiguous2| in the qualified type system
