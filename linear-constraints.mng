@@ -1295,7 +1295,7 @@ With these building blocks, we can now implement various utility functions on
 arrays, such as swapping two elements of an array, which is shown in
 \Cref{fig:swap}.  It is
 not so simple to implement\footnote{Indeed, Rust's implementation uses
-an \emph{unsafe} block.}\jyp{is the statement of the footnote this still current? We should specify which version of Rust we're talking about.}, because we need two elements of an array
+an \emph{unsafe} block.}\jp{is the statement of the footnote this still current? We should specify which version of Rust we're talking about.}, because we need two elements of an array
 simultaneously, but only one element can be borrowed at a time.\jp{This is because, essentially, borrowing an element actually borrows the whole array. The reader might expect something more flexible here.} To
 solve this problem, we split the array into two slices such that the
 two indices fall in two different slices. Then simply borrow the
