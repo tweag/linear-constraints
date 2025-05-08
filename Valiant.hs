@@ -22,6 +22,9 @@ import Data.Functor.Const
 
 data Ur a where {Ur :: a %Many -> Ur a}
 
+(&) :: a %1 -> (a %1 -> b) %1 -> b
+x & f = f x
+
 -------------------------------------------------------------------------------
 --
 -- Quantified functors
@@ -103,6 +106,9 @@ data RW' a n where
 
 newtype RW'' n = RW (RW n)
 
+data Read' a n where
+  Read' :: Read n %1 -> a n %Many -> Read' a n
+
 newUArray :: Linearly %1 -> Int -> (Linearly %1 -> Int -> Exists (RW' a)) -> Exists (RW' (UArray a))
 newUArray UnsafeMkLinearly lgth mk = unsafePerformIO $ do
   r <- newIOArray (0, lgth - 1) (error "uninitialised array element")
@@ -141,19 +147,22 @@ class Sliceable a where
 -- type instance SliceShapeIndex (Ref a) = ()
 
 instance Sliceable (Ref a) where
---   type SliceIndex (Ref a) = ()
---   type SliceArg (Ref a) = ()
---   type SliceShape (Ref a) = Id
+  type SliceIndex (Ref a) = ()
+  type SliceArg (Ref a) = ()
+  type SliceShape (Ref a) = Const ()
 
---   fullSlice = ()
---   sliceSlice () = I $ MkRef ()
+  fullSlice = ()
+  sliceSlice () () = Const ()
 
 -- type instance SliceShapeIndex (UArray a) = (SliceShapeIndex a, SliceShapeIndex a)
 
 instance Sliceable a => Sliceable (UArray a) where
   type SliceIndex (UArray a) = ((Int, Int), SliceIndex a)
-  -- type SliceArg (UArray a) = (Int, SliceIndex a)
---   type SliceShape (UArray a) = Par (SliceShape a) (SliceShape a)
+  type SliceArg (UArray a) = (Int, SliceArg a)
+  type SliceShape (UArray a) = V2
+
+  -- fullSlice = error "TODO"
+  -- sliceSlice = error "TODO"
 
 type Container :: forall (f :: Type -> Type) -> (i -> Type) -> f i -> Type
 data family Container f
@@ -186,4 +195,106 @@ borrowS (UnsafeMkRead, UnsafeMkWrite) (UnsafeMkSlice ((l,h),bounds) as) i =
     error "borrowS: index out of bounds"
 
 sliceS :: forall n a. Sliceable a => RW n %1 -> Slice a n -> SliceArg a -> Exists (Container (SliceShape a) (RW' (Slice a)) :*: ((Container (SliceShape a) RW'') :-> RW n))
-sliceS = _
+sliceS (UnsafeMkRead, UnsafeMkWrite) (UnsafeMkSlice bounds a) i =
+  error "TODO"
+  -- Ex (P _1 _2)
+
+-- sliceMatrix :: RW n %1 -> Matrix a n -> (Int, Int) -> …
+
+sliceHMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
+sliceHMatrix = error "TODO"
+
+sliceVMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
+sliceVMatrix = error "TODO"
+
+sliceHMatrixR :: Read n %1 -> Matrix a n -> Int -> Exists ((Par (Read' (Matrix a))):*: ((Par Read) :-> Read n))
+sliceHMatrixR = error "TODO"
+
+sliceVMatrixR :: Read n %1 -> Matrix a n -> Int -> Exists ((Par (Read' (Matrix a))):*: ((Par Read) :-> Read n))
+sliceVMatrixR = error "TODO"
+
+writeMatrix :: RW n %1 -> Matrix a n -> Int -> Int -> a -> RW n
+writeMatrix = error "TODO"
+
+readMatrix :: Read n %1 -> Matrix a n -> Int -> Int -> (Read n, a)
+readMatrix = error "TODO"
+
+-- | X = X*A
+mulMatrixWith :: RW n %1 -> Read p %1 -> Matrix a n -> Matrix a p -> (RW n, Read p)
+mulMatrixWith = error "TODO"
+
+-- | X = X+YZ
+addMulMatrixWith :: RW n %1 -> Read p %1 -> Read q %1 -> Matrix a n -> Matrix a p -> Matrix a q -> (RW n, Read p, Read q)
+addMulMatrixWith = error "TODO"
+
+-- | Upper triangular matrices are always square!
+sliceUpperMatrixR :: Read n %1 -> Matrix a n -> Int -> SplitUpperMatrixR a (Read n)
+sliceUpperMatrixR = error "TODO"
+
+data SplitUpperMatrixR a r where
+  SUMR :: Read p %1 -> Read n %1 -> Read q %1 -> Matrix a p -> Matrix a n -> Matrix a q -> (Read p %1 -> Read n %1 -> Read q %1 -> r) %1 -> SplitUpperMatrixR a r
+
+-- | Upper triangular matrices are always square!
+sliceUpperMatrix :: RW n %1 -> Matrix a n -> Int -> SplitUpperMatrix a (RW n)
+sliceUpperMatrix = error "TODO"
+
+data SplitUpperMatrix a r where
+  SUM :: RW p %1 -> RW n %1 -> RW q %1 -> Matrix a p -> Matrix a n -> Matrix a q -> (RW p %1 -> RW n %1 -> RW q %1 -> r) %1 -> SplitUpperMatrix a r
+
+data Matrix a n
+
+w :: Read p %1-> RW n %1 -> Read q %1 -> Matrix a p -> Matrix a n -> Matrix a q -> (Read p, RW n, Read q)
+w rp rwn rq p n q =
+  sliceVMatrix rwn n i & \case
+    (Ex (P (PP (RW' rwx x) (RW' rwz z)) (A release_n))) ->
+      sliceUpperMatrixR rq q i & \case
+        SUMR rb ry rc b y c release_q ->
+          w rp rwx rb p x b & \case
+           (rp, (rx, wx), rb) ->
+             addMulMatrixWith rwz rx ry z x y & \case
+               (rwz, rx, ry) -> w rp rwz rc p z c & \case
+                 (rp, rwz, rc) -> (rp, release_n (PP (RW (rx, wx)) (RW rwz)), release_q rb ry rc)
+  where
+   i = 57
+
+v :: RW n %1 -> Matrix a n -> RW n
+v rwn n =
+    sliceUpperMatrix rwn n i & \case
+      SUM rwa rwx rwb a x b release_n ->
+        v rwa a & \case
+          (ra, wa) -> v rwb b & \case
+            (rb, wb) -> w ra rwx rb a x b & \case
+              (ra, rwx, rb) -> release_n (ra, wa) rwx (rb, wb)
+  where
+    i = 42
+
+ -- def v(C: ReadWrite):
+ --      # precondition: C is uppertriangular. C=0 if 1×1; just 1 non-zero element if 2×2.
+ --      if size(C) > 2:
+ --          # recursive case
+ --          let (A,X)   =    C   # rough middle split (A, B square)
+ --              (0,B)
+ --          v(A)
+ --          v(B)
+ --          w(A,X,B)
+ --  def w(F: Read, W : ReadWrite, G : Read):
+ --      # preconditions:
+ --      # W is a partial closure. It is closed with A, and separately with D, but not all together.
+ --      # A and D upper triangular (and are square)
+ --      if size(G) > 1:
+ --          (X|Z) = W   # vertical splitting.
+ --          [B,Y] = G
+ --          [0,C]
+ --          A = F
+ --          w(A,X,B) # X = all combinations of A and B (complete now)
+ --      elif size(F) > 1:
+ --          (Z-Y) = W   # horizontal splitting.
+ --          [A,X] = F
+ --          [0,B]
+ --          C = G
+ --          w(B,Y,C) # Y = all combinations of B and C (complete now) (could be done in parallel with previous call)
+
+ --      Z += X×Y # reads X and Y, multiply and write to Z.
+ --      w(A,Z,C) # Z = all combinations of A and C (complete now with the things going via B)
+ --      # postcondition:
+ --      # W is ready
