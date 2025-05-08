@@ -1,8 +1,9 @@
 {-# LANGUAGE GHC2021 #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE LinearTypes #-}
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE QualifiedDo #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Valiant where
@@ -24,6 +25,13 @@ data Ur a where {Ur :: a %Many -> Ur a}
 
 (&) :: a %1 -> (a %1 -> b) %1 -> b
 x & f = f x
+
+(>>=) :: a %1 -> (a %1 -> b) %1 -> b
+x >>= f = f x
+
+fail :: a
+fail = error "Incomplete pattern-matching in do notation"
+
 
 -------------------------------------------------------------------------------
 --
@@ -244,27 +252,23 @@ data SplitUpperMatrix a r where
 data Matrix a n
 
 w :: Read p %1-> RW n %1 -> Read q %1 -> Matrix a p -> Matrix a n -> Matrix a q -> (Read p, RW n, Read q)
-w rp rwn rq p n q =
-  sliceVMatrix rwn n i & \case
-    (Ex (P (PP (RW' rwx x) (RW' rwz z)) (A release_n))) ->
-      sliceUpperMatrixR rq q i & \case
-        SUMR rb ry rc b y c release_q ->
-          w rp rwx rb p x b & \case
-           (rp, (rx, wx), rb) ->
-             addMulMatrixWith rwz rx ry z x y & \case
-               (rwz, rx, ry) -> w rp rwz rc p z c & \case
-                 (rp, rwz, rc) -> (rp, release_n (PP (RW (rx, wx)) (RW rwz)), release_q rb ry rc)
+w rp rwn rq p n q = Valiant.do
+  (Ex (P (PP (RW' rwx x) (RW' rwz z)) (A release_n))) <- sliceVMatrix rwn n i
+  SUMR rb ry rc b y c release_q <- sliceUpperMatrixR rq q i
+  (rp, (rx, wx), rb) <- w rp rwx rb p x b 
+  (rwz, rx, ry) <- addMulMatrixWith rwz rx ry z x y
+  (rp, rwz, rc) <- w rp rwz rc p z c
+  (rp, release_n (PP (RW (rx, wx)) (RW rwz)), release_q rb ry rc)
   where
    i = 57
 
 v :: RW n %1 -> Matrix a n -> RW n
-v rwn n =
-    sliceUpperMatrix rwn n i & \case
-      SUM rwa rwx rwb a x b release_n ->
-        v rwa a & \case
-          (ra, wa) -> v rwb b & \case
-            (rb, wb) -> w ra rwx rb a x b & \case
-              (ra, rwx, rb) -> release_n (ra, wa) rwx (rb, wb)
+v rwn n = Valiant.do
+    SUM rwa rwx rwb a x b release_n <- sliceUpperMatrix rwn n i
+    (ra, wa) <- v rwa a
+    (rb, wb) <- v rwb b
+    (ra, rwx, rb) <- w ra rwx rb a x b
+    release_n (ra, wa) rwx (rb, wb)
   where
     i = 42
 
