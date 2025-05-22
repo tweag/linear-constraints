@@ -184,8 +184,14 @@ sliceDeep rwn as slc = Ex @_ @' (n,n) $ P
                           (Ex (P (RW' rwa a) (A release_a))) <- borrow_method as rwn' i
                           (Ex (P (PP l (RW' rwr _)) (A release_rl))) <- slc rwa a
                           Ex (P l (A (\(RW rwl') -> release_a (RW (release_rl (PP (RW rwl') (RW rwr)))))))
-                     , write_method = _w1 }))
-    _2)
+                     , write_method = error "I don't think it makes sense to write directly in a deep slice. Is there a way to prevent this statically?" }))
+    (RW' unsafeMkRW (UnsafeMkSlice
+                     { borrow_method = \rwn' i -> Valiant.do
+                          (Ex (P (RW' rwa a) (A release_a))) <- borrow_method as rwn' i
+                          (Ex (P (PP (RW' rwl _) r) (A release_rl))) <- slc rwa a
+                          Ex (P r (A (\(RW rwr') -> release_a (RW (release_rl (PP (RW rwl) (RW rwr')))))))
+                     , write_method = error "I don't think it makes sense to write directly in a deep slice. Is there a way to prevent this statically?" }))
+  )
   release
   where
     release = A $ \(PP (RW (UnsafeMkRead,UnsafeMkWrite)) (RW (UnsafeMkRead,UnsafeMkWrite))) -> rwn
