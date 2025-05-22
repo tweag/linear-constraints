@@ -5,6 +5,7 @@
 {-# LANGUAGE LinearTypes #-}
 {-# LANGUAGE QualifiedDo #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Valiant where
 
@@ -12,7 +13,7 @@ import GHC.IOArray
 import Control.Monad
 import GHC.Types
 import System.IO.Unsafe (unsafePerformIO)
-import Prelude hiding (Read)
+import Prelude hiding (Read, ($))
 import Data.Functor.Const
 
 -------------------------------------------------------------------------------
@@ -23,7 +24,10 @@ import Data.Functor.Const
 
 data Ur a where {Ur :: a %Many -> Ur a}
 
-(&) :: a %1 -> (a %1 -> b) %1 -> b
+($) :: (a %p -> b) %1 -> a %p -> b
+f $ x = f x
+
+(&) :: a %p -> (a %p -> b) %1 -> b
 x & f = f x
 
 (>>=) :: a %1 -> (a %1 -> b) %1 -> b
@@ -100,7 +104,10 @@ dupl5 UnsafeMkLinearly = (UnsafeMkLinearly, UnsafeMkLinearly, UnsafeMkLinearly, 
 --
 -------------------------------------------------------------------------------
 
-newtype Ref a n = MkRef a
+type Reg = Type
+type Val :: Type -> Reg -> Type
+newtype Val a n = MkVal a
+type UArray :: (Reg -> Type) -> Reg -> Type
 newtype UArray a n = UnsafeMkUArray (IOArray Int (Exists a))
 
 data Read n = UnsafeMkRead
@@ -109,6 +116,7 @@ type RW n = (Read n, Write n)
 unsafeMkRW = (UnsafeMkRead, UnsafeMkWrite)
 
 -- | `SomeRW a = ∃n. RW n ⊗ a n`
+type RW' :: (Reg -> Type) -> Reg -> Type
 data RW' a n where
   RW' :: RW n %1 -> a n %Many -> RW' a n
 
@@ -126,6 +134,12 @@ newUArray UnsafeMkLinearly lgth mk = unsafePerformIO $ do
   return $ Ex (RW' unsafeMkRW (UnsafeMkUArray r))
 {-# NOINLINE newUArray #-}
 
+-- Can presumably be changed to
+-- :: RW n %1 -> UArray a n -> Int -> RW' a n
+-- or even
+-- :: Read n %1 -> UArray a n -> Int -> (Read n, Ur a)
+-- Everything's garbage collected, so we don't need (or have) an ownership
+-- permission to drop when we consider parts of the structures.
 borrowUA :: RW n %1 -> UArray a n -> Int -> Exists (RW' a :*: (RW'' :-> RW n))
 borrowUA (UnsafeMkRead, UnsafeMkWrite) (UnsafeMkUArray as) i = unsafePerformIO $ do
   Ex a <- readIOArray as i
@@ -138,76 +152,49 @@ writeUA (UnsafeMkRead, UnsafeMkWrite) (UnsafeMkRead, UnsafeMkWrite) (UnsafeMkUAr
   return $ unsafeMkRW
 {-# NOINLINE writeUA #-}
 
--- -- | Split out of Sliceable because GHC refuses to use it in kinds of associated
--- -- types otherwise. Unfortunate.
--- type SliceShapeIndex :: (Type -> Type) -> Type
--- type family SliceShapeIndex a :: Type
+type Slice :: (Reg -> Type) -> Reg -> Type
+data Slice a n = UnsafeMkSlice
+  { borrow_method :: RW n %1 -> Int -> Exists (RW' a :*: (RW'' :-> RW n))
+  , write_method :: forall p. RW n %1 -> RW p %1 -> Int -> a p -> RW n }
 
-type Sliceable :: (Type -> Type) -> Constraint
-class Sliceable a where
-  type SliceIndex a :: Type
-  type SliceArg a :: Type
-  type SliceShape a :: Type -> Type
+fullSlice :: forall n a. RW n %1 -> UArray a n -> Exists (RW' (Slice a) :*: (RW'' :-> RW n))
+fullSlice rwn as = Ex $ P (RW' rwn (UnsafeMkSlice { borrow_method, write_method })) (A (\(RW rw) -> rw))
+  where
+    borrow_method rwn' i = borrowUA rwn' as i
+    write_method :: forall p. RW n %1 -> RW p %1 -> Int -> a p -> RW n
+    write_method rwn' rwp i v = writeUA rwn' rwp as i v
 
-  fullSlice :: SliceIndex a
-  sliceSlice :: SliceIndex a -> SliceArg a -> SliceShape a (SliceArg a)
+-- TODO: bound checking, both of `i`, and in the derived methods.
+-- TODO: a version for read-only
+slice :: forall n a. RW n %1 -> Slice a n -> Int -> Exists (Par (RW' (Slice a)) :*: (Par RW'' :-> RW n))
+slice rwn as i = Ex @_ @'(n,n) $ P
+    (PP
+     (RW' unsafeMkRW (UnsafeMkSlice { borrow_method = borrow_method as, write_method = write_method as }))
+     (RW' unsafeMkRW (UnsafeMkSlice { borrow_method = (\r j -> borrow_method as r (i+j)), write_method = (\r r' j v -> write_method as r r' (i+j) v) })))
+    release
+  where
+    release = A $ \(PP (RW (UnsafeMkRead,UnsafeMkWrite)) (RW (UnsafeMkRead,UnsafeMkWrite))) -> rwn
 
--- type instance SliceShapeIndex (Ref a) = ()
+-- TODO: a version for read-only
+sliceDeep :: forall n a. RW n %1 -> Slice a n -> (forall p. RW p %1 -> a p -> Exists (Par (RW' a) :*: (Par RW'' :-> RW p))) -> Exists (Par (RW' (Slice a)) :*: (Par RW'' :-> RW n))
+sliceDeep rwn as slc = Ex @_ @' (n,n) $ P
+  (PP
+    (RW' unsafeMkRW (UnsafeMkSlice
+                     { borrow_method = \rwn' i -> Valiant.do
+                          (Ex (P (RW' rwa a) (A release_a))) <- borrow_method as rwn' i
+                          (Ex (P (PP l (RW' rwr _)) (A release_rl))) <- slc rwa a
+                          Ex (P l (A (\(RW rwl') -> release_a (RW (release_rl (PP (RW rwl') (RW rwr)))))))
+                     , write_method = _w1 }))
+    _2)
+  release
+  where
+    release = A $ \(PP (RW (UnsafeMkRead,UnsafeMkWrite)) (RW (UnsafeMkRead,UnsafeMkWrite))) -> rwn
 
-instance Sliceable (Ref a) where
-  type SliceIndex (Ref a) = ()
-  type SliceArg (Ref a) = ()
-  type SliceShape (Ref a) = Const ()
-
-  fullSlice = ()
-  sliceSlice () () = Const ()
-
--- type instance SliceShapeIndex (UArray a) = (SliceShapeIndex a, SliceShapeIndex a)
-
-instance Sliceable a => Sliceable (UArray a) where
-  type SliceIndex (UArray a) = ((Int, Int), SliceIndex a)
-  type SliceArg (UArray a) = (Int, SliceArg a)
-  type SliceShape (UArray a) = V2
-
-  -- fullSlice = error "TODO"
-  -- sliceSlice = error "TODO"
-
-type Container :: forall (f :: Type -> Type) -> (i -> Type) -> f i -> Type
-data family Container f
-
-data instance Container (Const ()) a i = MkNone
-data V2 a = V2 a a
-type Fst2 :: V2 a -> a
-type family Fst2 ab where
-  Fst2 ('V2 a _) = a
-
-type Snd2 :: V2 a -> a
-type family Snd2 ab where
-  Snd2 ('V2 _ b) = b
-data instance Container V2 a i = MkP (a (Fst2 i)) (a (Snd2 i))
-
-data Slice a n
-  = UnsafeMkSlice (SliceIndex a) (a n)
-
-mkSlice :: forall n a. Sliceable a => RW n %1 -> a n -> Exists (RW' (Slice a))
-mkSlice (UnsafeMkRead, UnsafeMkWrite) a =
-  Ex (RW' unsafeMkRW (UnsafeMkSlice (fullSlice @a) a))
-
-borrowS :: forall n a. Sliceable a => RW n %1 -> Slice (UArray a) n -> Int -> Exists (RW' (Slice a) :*: (RW'' :-> RW n))
-borrowS (UnsafeMkRead, UnsafeMkWrite) (UnsafeMkSlice ((l,h),bounds) as) i =
-  if 0 <= i && i < h then
-    case borrowUA unsafeMkRW as (i+l) of
-      Ex (P (RW' (UnsafeMkRead, UnsafeMkWrite) a) (A release)) ->
-        Ex (P (RW' unsafeMkRW (UnsafeMkSlice bounds a)) (A $ \cases (RW (UnsafeMkRead, UnsafeMkWrite)) -> release (RW unsafeMkRW)))
-  else
-    error "borrowS: index out of bounds"
-
-sliceS :: forall n a. Sliceable a => RW n %1 -> Slice a n -> SliceArg a -> Exists (Container (SliceShape a) (RW' (Slice a)) :*: ((Container (SliceShape a) RW'') :-> RW n))
-sliceS (UnsafeMkRead, UnsafeMkWrite) (UnsafeMkSlice bounds a) i =
-  error "TODO"
-  -- Ex (P _1 _2)
-
--- sliceMatrix :: RW n %1 -> Matrix a n -> (Int, Int) -> …
+-------------------------------------------------------------------------------
+--
+-- Matrices
+--
+-------------------------------------------------------------------------------
 
 sliceHMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
 sliceHMatrix = error "TODO"
