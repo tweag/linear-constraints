@@ -59,8 +59,11 @@ linear-constraints.tar.gz: linear-constraints.tex linear-constraints.bbl newunic
 nix::
 	nix-shell --pure --run make
 
-continous-nix:: nix
+continuous-nix:: nix
 	nix-shell --pure --run "ls linear-constraints.mng bibliography.bib $(OTT_FILES) | entr make"
+
+continuous::
+	ls linear-constraints.mng bibliography.bib $(OTT_FILES) | entr make
 
 .SECONDARY:
 # the line above prevents deletion of temporary files, which can be helpful for debugging build problems
