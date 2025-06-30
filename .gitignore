@@ -56,7 +56,7 @@ flycheck_*.el
 .projectile
 
 # directory configuration
-.dir-locals.el
+.dir-locals-2.el
 
 # network security
 /network-security.data
@@ -330,7 +330,7 @@ TSWLatexianTemp*
 
 # auto folder when using emacs and auctex
 ./auto/*
-*.el
+.auctex-auto
 
 # expex forward references with \gathertags
 *-tags.tex
