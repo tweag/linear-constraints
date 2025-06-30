@@ -1003,8 +1003,109 @@ With just these simple ingredients -- a duplicable, discardable constraint
 that can be assumed linearly -- we can write \textsc{api}s that require
 uniqueness without heavy use of continuations.
 
-\section{Application: memory ownership}
+\section{Applications}
 \label{sec:memory-ownership}
+
+\subsection{A theory of nested arrays}
+\label{sec:nested-arrays}
+
+\unsure{I[Arnaud] find it difficult to motivate this complex array API without
+  referring to freezing. Should we open with freezing? Otherwise a more direct
+  array-of-linear-stuff should presumably suffice? Actually that's not true.
+  When writing in a deep cell a[x][y], the simple linear mutable arrays would rewrite
+  the pointer a[x]. Anyway, we need a good opening there, unless we're willing
+  to say “linear types don't do X well” which is not the most compelling maybe?}
+
+Capabilities\unsure{I'm assuming, here, that we've used capabilities before, I'm
+  going to be assuming the borrow/release pattern as well.} encoded as linear
+constraints can represent pretty complex access patterns. We endeavour to
+demonstrate, in this section, how for instance we can implement matrices, or any
+high-dimensional tensor really, and their blocks as arrays of arrays (say an
+array of columns)\change{I'm thinking of finishing this in the next subsection
+  about self-borrows instead, then I should revise this sentence}. To whet the reader's appetite, consider that slicing a matrix
+in two sets of columns is, rather straightforward: just consider two halves of
+the root array; but slicing a matrix in two sets of lines is much less obvious
+as it requires slicing each column in two. Blockwise matrix operations require
+both kind of slices.
+
+Yet, we propose to build a library of arrays which lets us build such deep
+slices. One of our main tool is that existential types such as we use in this
+paper, or \textsc{gatd}s as in Haskell or Ocaml let us package capabilities as
+values, hence let us program capabilities. This is hardly a new insight,
+functional languages with capabilities usually have ways to pack capabilities
+inside values~\cite{AtsLinearViews,mezzo-permissions}\unsure{Rust's lifetime are
+  an exception here. The fact that they can't be existentially quantified over
+  is a pretty restrictive (but maybe also liberating?) aspect of Rust's design.
+  Should we comment on this?}. What is new is that this natural generalisation
+of the concept of type classes is enough to represent many capability systems.
+
+Like matrices above\unsure{I'm assuming again!} arrays take a region parameter
+to which we can provide capabilities, unlike matrices we have to account for
+nesting. More specifically, we want (the |U| stands for ``unique''):
+\begin{code}
+UArray (UArray a) n
+\end{code}
+not
+\begin{code}
+UArray (UArray a n') n
+\end{code}
+Because, thinking in terms of ownership, we want the region |r| to own both the
+root array and any internal array.\unsure{Obvious? needs explanation?}
+Therefore our type of mutable arrays will have kind
+\begin{code}
+type UArray :: (Reg -> Type) -> Reg -> Type
+\end{code}
+Notice that it's very convenient for the region parameter to be the last
+parameter, in order for the types to align when nesting arrays.
+
+In consequence, we can't have |UArray Int|, we will need a type to mediate
+between nested arrays, bound to a region, and ordinary values. We introduce the
+type |Val| to that effect.
+
+\begin{code}
+type Val :: Type -> Reg -> Type
+newtype Val a n = MkVal a
+instance R (Val a n)
+instance W (Val a n)
+\end{code}
+
+Since |Val| isn't an abstract type, its free to ignore its capabilities (which
+is fine since no mutation can occur in a |Val a r|). We provide unrestricted
+read and write access to |Val| since neither do anything, but they'll be needed
+to interface with the array functions\critical{We can only do this if we change
+  the solver!}. With this, a matrix of integers can have
+type (we'll enrich this type to accommodate slices below)\change{In the next
+  section?}
+\begin{code}
+type Matrix0 n = UArray (UArray (Val Int)) n
+\end{code}
+
+Let's start with a mutable array \textsc{api} without slice.\critical{TODO: explain Dict}
+
+\begin{code}
+newUArray :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. UArray a n .<= constraint(RW n)
+borrowUA :: constraint(RW n) =>. UArray a n -> Int -> exists p. (a p, (constraint(RW p) =>. Dict (constraint(RW n)))) .<= constraint(RW p)
+borrowUAR :: constraint(R n) =>. UArray a n -> Int -> exists p. (a p, (constraint(R p) =>. Dict (constraint(R n)))) .<= constraint(R p)
+writeUA :: constraint((RW n, RW p)) =>. UArray a n -> Int -> a p -> () .<= constraint(RW n)
+\end{code}
+
+To write a value |u| into an array |a|, you need read and write access to |u| since
+you are going to give |a| permission to read and write to |u|. For the same
+reason we need to produce read and write capabilities to the elements we
+initialise the array with in |newUArray|.
+
+Accessing internal arrays, both for reading and writing, is more interesting. We
+need to get a pointer to the interior value with the appropriate permission.
+This pointer must be temporary, because writing to an array |a| can invalidate
+its interior pointers, for instance, an internal value |u| can be moved to
+another region (not with only these primitives but see \improvement{Section
+  splay tree}). So the only way to access internal values is via borrowing,
+making sure that we call a release function before writing into |a|
+again.\unsure{Check that the previous section explains enough}
+
+\subsection{Former intro}
+\change{All the section, below this point, is to be removed, integrating
+  whatever we feel like}
 Let us now turn back to the more substantial example introduced in
 \cref{sec:introduction}: manual memory management.  In functional programming
 languages like Haskell, memory deallocation is normally the responsibility of a
