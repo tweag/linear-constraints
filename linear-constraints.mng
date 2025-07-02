@@ -1533,7 +1533,7 @@ w p n q =
       multiplyMatricesInto y x z
       w a y q
       joinUpperMatrix a x b; joinMatrices y z
-    then do
+    else do
       let i = size q `div` 2
       (a,z,b) <- splitUpperMatrix q i
       (x,y) <- splitMatrixH n i
@@ -1543,8 +1543,45 @@ w p n q =
       joinUpperMatrix a x b; joinMatrices y z
 \end{code}
 
-\todo{add figure}
+\providecommand{\upperRightTriangle}[4]{
+    % 1: start pos
+    % 2: side length of the square
+    % 3: text to display in the triangle
+  \begin{scope}[shift={(#1 , -#1)}]
+    \pgfmathsetmacro{\triSize}{#2}
+    \draw[#4] (0,0) -- (\triSize,0) -- (\triSize,-\triSize) -- cycle;
+    \node at (2*\triSize/3, -\triSize/3) {#3};
+  \end{scope}
+}
+\providecommand{\matrixRectangle}[5]{
+  \begin{scope}[shift={#1}]
+    \draw [#5] (0,0) rectangle (#2,-#3) ;
+    \node at (#2 / 2,-#3 / 2) {#4};
+  \end{scope}
+}
 
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \def\asize{1}
+    \def\bsize{1.1}
+    \def\qsize{0.6}
+    \pgfmathsetmacro{\psize}{\asize + \bsize}
+    \pgfmathsetmacro{\bpos}{\asize}
+    \pgfmathsetmacro{\qpos}{\psize}
+    \pgfmathsetmacro{\totsize}{\psize + \qsize}
+    \upperRightTriangle{0}{\asize}{a}{white}
+    \upperRightTriangle{\bpos}{\bsize}{b}{white}
+    \upperRightTriangle{0}{\psize}{}{}
+    \upperRightTriangle{\qpos}{\qsize}{q}{}
+    \upperRightTriangle{0}{\totsize}{}{}
+    \matrixRectangle{(\asize,0)}{\bsize}{\asize}{x}{dotted}
+    \matrixRectangle{(\psize,0)}{\qsize}{\asize}{y}{dotted}
+    \matrixRectangle{(\psize,-\asize)}{\qsize}{\bsize}{z}{dotted}
+  \end{tikzpicture}
+  \caption{Division of the inputs of the |w| function when |p| is larger than |q|.}
+  \label{fig:valiant-w}
+\end{figure}
 The splitting and joining of general rectangular matrices follows the usual pattern (and in fact, can be used to implement such operations on triangular matrices).
 > splitMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, Slices n l r))
 > splitMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, Slices n l r))
