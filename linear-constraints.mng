@@ -1580,7 +1580,7 @@ w p n q =
     \matrixRectangle{(\qpos,0)}{\qsize}{\asize}{y}{dotted}
     \matrixRectangle{(\qpos,-\bpos)}{\qsize}{\bsize}{z}{dotted}
   \end{tikzpicture}
-  \caption{Division of the inputs of the |w| function when |p| is larger than |q|.}
+  \caption{Division of the inputs of the |w| function when |p| is larger than |q|. That is, |p=(a,x,b)| and |n=(x,y)|.}
   \label{fig:valiant-w}
 \end{figure}
 The splitting and joining of general rectangular matrices follows the usual pattern (and in fact, can be used to implement such operations on triangular matrices).
