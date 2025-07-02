@@ -1563,21 +1563,22 @@ w p n q =
 \begin{figure}
   \centering
   \begin{tikzpicture}
+    \def\extraSpace{0.25}
     \def\asize{1}
     \def\bsize{1.1}
     \def\qsize{0.6}
     \pgfmathsetmacro{\psize}{\asize + \bsize}
     \pgfmathsetmacro{\bpos}{\asize}
-    \pgfmathsetmacro{\qpos}{\psize}
+    \pgfmathsetmacro{\qpos}{\psize + \extraSpace}
     \pgfmathsetmacro{\totsize}{\psize + \qsize}
     \upperRightTriangle{0}{\asize}{a}{white}
     \upperRightTriangle{\bpos}{\bsize}{b}{white}
     \upperRightTriangle{0}{\psize}{}{}
     \upperRightTriangle{\qpos}{\qsize}{q}{}
-    \upperRightTriangle{0}{\totsize}{}{}
-    \matrixRectangle{(\asize,0)}{\bsize}{\asize}{x}{dotted}
-    \matrixRectangle{(\psize,0)}{\qsize}{\asize}{y}{dotted}
-    \matrixRectangle{(\psize,-\asize)}{\qsize}{\bsize}{z}{dotted}
+    \matrixRectangle{(\qpos,0)}{\qsize}{\psize}{}{}
+    \matrixRectangle{(\bpos,0)}{\bsize}{\asize}{x}{dotted}
+    \matrixRectangle{(\qpos,0)}{\qsize}{\asize}{y}{dotted}
+    \matrixRectangle{(\qpos,-\bpos)}{\qsize}{\bsize}{z}{dotted}
   \end{tikzpicture}
   \caption{Division of the inputs of the |w| function when |p| is larger than |q|.}
   \label{fig:valiant-w}
