@@ -1454,6 +1454,114 @@ pivot. Once finished, it returns the index of the pivot element; |sort| then
 splits the array at the pivot element and recursively operates on the two
 slices.
 
+\subsection{In-place Valiant algorithm}
+This subsection illustrates in-place modification of matrices on a
+parsing algorithm. This algorithm was invented by
+\citet{valiant_general_1975} as a theoretical tool to show that
+context-free parsing could be sub-cubic, but has also
+found practical applications
+\citep{bernardy_efficient_2013,bernardy_efficient_2015}.  Valiant's
+algorithm is a divide-and conquer algorithm which works on matrices,
+and we use it illustrate how such corresponding ownership patterns can be
+encoded with our system.
+
+We direct the curious reader to the cited works, but at its core,
+Valiant's algorithm consists in reducing context-free parsing to the
+computation of a (non-associative) transitive closure of a cycle-free
+directed graph. Each node corresponds to a position in the string, and
+edges are labeled by the set non-terminals generating the corresponding substring. The grammar
+controls whether two paths can be combined into a longer path, depending on their labels.
+In the closed graph, the eventual labels of the edge
+between the start node and the end node give the parsing result.  The
+graph and its closure are represented by adjacency matrices which are
+both upper-triangular.  We will show how to update this matrix in-place,
+building up closures, in a divide and conquer pattern.
+By nature of the closure, the closure is built incrementally: one add labels to the entries of the matrix, but never remove them.
+
+In fact, Valiant's algorithm consists in two divide-and-conquer recursive functions:
+\begin{code}
+v :: constraint (RW n) =>. Matrix a n .<= constraint (RW n)
+w :: (Read p, RW n, Read q) =>. Matrix a p -> Matrix a n -> Matrix a q =>. (Read p, RW n, Read q)
+\end{code}
+Here |v| takes a writeable matrix |n|. When done |n| will be transitively
+closed. The |w| function is a
+helper, which takes two fully closed sub-matrices |p| and |q|, and a
+partial subgraph between the nodes of |p| and the nodes of |q|, represented as a rectangular matrix |n|. When done, |n| contains
+all the possible labeled paths from |p| to |q|.
+
+If its input is small enough, then there is nothing to do for |v|, but otherwise it splits |n| it in two new triangular matrices |a| and
+|b| and the top-right matrix |x|. (The bottom left is always empty.)
+The read-write ownership is transferred to each of the components.
+After recursively computing the closure of |a| and |b|, the matrix is
+completed using the helper function (|w a x b|).
+\begin{code}
+v n =
+  if size n <= 2
+    return ()
+  else do
+    let i = size n `div` 2
+    (a,x,b) <- splitUpperMatrix n i
+    v a
+    v b
+    w a x b
+    joinUpperMatrix a x b
+\end{code}
+The splitting and joining of upper triangular matrices is prodived by the functions:
+
+> splitUpperMartix :: constraint (RW n) =>. Matrix a n -> Int -> exists m l r. Ur (Matrix a l, Matrix a m, Matrix a r) .<= constraint ((RW l, RW r, TriSlices n m l r))
+> joinUpperMatrix :: constraint ((TriSlices n m l r, RW r , RW m, RW l)) =>. Matrix a l -> Matrix a m -> Matrix a r -> Ur (Matrix a n) .<= constraint (RW n)
+
+The helper |w p n q| is somewhat more involved. It won't touch the
+completed matrices |p| and |q|, as declared in its signature. If both
+of the upper-triangular matrices |p| and |q| are one-by-one, then
+we're done. Otherwise, we split the larger of the two (say |p|) into
+three parts, and |n| is split along the corresponding dimension, at
+the same position, into |y| and |z|. The matrix |z| is closed by a recursive
+call. Then the multiplication of |x| and |z| is performed (the
+multiplication of elements, non-terminals, determines the grammar) and
+added (using set union) to |y|. Finally |z| is recursively closed. The case of splitting |q| is symmetric.
+\begin{code}
+w p n q =
+  if size p <= 1 && size q <= 1
+  then return ()
+  else if size p > size q
+    then do
+      let i = size p `div` 2
+      (a,x,b) <- splitUpperMatrix p i
+      (y,z) <- splitMatrixV n i
+      w b z q
+      multiplyMatricesInto y x z
+      w a y q
+      joinUpperMatrix a x b; joinMatrices y z
+    then do
+      let i = size q `div` 2
+      (a,z,b) <- splitUpperMatrix q i
+      (x,y) <- splitMatrixH n i
+      w p x a
+      multiplyMatricesInto y x z
+      w p y b
+      joinUpperMatrix a x b; joinMatrices y z
+\end{code}
+
+\todo{add figure}
+
+The splitting and joining of general rectangular matrices follows the usual pattern (and in fact, can be used to implement such operations on triangular matrices).
+> splitMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, Slices n l r))
+> splitMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, Slices n l r))
+> joinMatrices :: constraint ((Slices n l r, RW r, RW l)) =>. Matrix a l -> Matrix a r -> Ur (Matrix a n) .<= constraint (RW n)
+
+We won't detail the underlying matrix multiplication; but its signature is the following.
+> multiplyMatricesInto :: constraint (RW x, Read y, Read z) =>. Matrix NTSet x -> Matrix NTSet y -> Matrix NTSet z .<= constraint (RW x, Read y, Read z) 
+
+The structure of the algorithm follows exactly that outlined by
+\citet{valiant_general_1975}. The overhead is the
+explicitly calling of join functions to re-construct ownership
+of the analysed matrices. In return, one gets additional static
+checks: we do not demand full read-write permissions on complete
+matrices. Besides, even though the algorithm is imperative, it can be
+called from pure functions, where the resulting matrix would be
+\emph{frozen}.\todo{how?}
+
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
 
