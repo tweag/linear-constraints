@@ -1583,12 +1583,13 @@ w p n q =
   \label{fig:valiant-w}
 \end{figure}
 The splitting and joining of general rectangular matrices follows the usual pattern (and in fact, can be used to implement such operations on triangular matrices).
-> splitMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, Slices n l r))
-> splitMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, Slices n l r))
-> joinMatrices :: constraint ((Slices n l r, RW r, RW l)) =>. Matrix a l -> Matrix a r -> Ur (Matrix a n) .<= constraint (RW n)
+
+> splitMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, MatSlices n l r))
+> splitMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, MatSlices n l r))
+> joinMatrices :: constraint ((MatSlices n l r, RW r, RW l)) =>. Matrix a l -> Matrix a r -> Ur (Matrix a n) .<= constraint (RW n)
 
 We won't detail the underlying matrix multiplication; but its signature is the following.
-> multiplyMatricesInto :: constraint (RW x, Read y, Read z) =>. Matrix NTSet x -> Matrix NTSet y -> Matrix NTSet z .<= constraint (RW x, Read y, Read z) 
+> multiplyMatricesInto :: constraint ((RW x, Read y, Read z)) =>. Matrix NTSet x -> Matrix NTSet y -> Matrix NTSet z .<= constraint (RW x, Read y, Read z) 
 
 The structure of the algorithm follows exactly that outlined by
 \citet{valiant_general_1975}. The overhead is the
