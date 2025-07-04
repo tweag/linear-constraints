@@ -3,8 +3,6 @@
 -- indeed works as intended. This is used as a source to ground our examples in
 -- the paper.
 
-module Array where
-
 {-# LANGUAGE GHC2021 #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
@@ -14,7 +12,7 @@ module Array where
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Valiant where
+module Array where
 
 import GHC.IOArray
 import Control.Monad
@@ -178,30 +176,37 @@ slice rwn as i = Ex @_ @'(n,n) $ P
     (PP
      (RW' unsafeMkRW (UnsafeMkSlice { borrow_method = borrow_method as, write_method = write_method as }))
      (RW' unsafeMkRW (UnsafeMkSlice { borrow_method = (\r j -> borrow_method as r (i+j)), write_method = (\r r' j v -> write_method as r r' (i+j) v) })))
-    release
-  where
-    release = A $ \(PP (RW (UnsafeMkRead,UnsafeMkWrite)) (RW (UnsafeMkRead,UnsafeMkWrite))) -> rwn
+    (A $ \(PP (RW (UnsafeMkRead,UnsafeMkWrite)) (RW (UnsafeMkRead,UnsafeMkWrite))) -> rwn)
 
 -- TODO: a version for read-only
 sliceDeep :: forall n a. RW n %1 -> Slice a n -> (forall p. RW p %1 -> a p -> Exists (Par (RW' a) :*: (Par RW'' :-> RW p))) -> Exists (Par (RW' (Slice a)) :*: (Par RW'' :-> RW n))
 sliceDeep rwn as slc = Ex @_ @' (n,n) $ P
   (PP
     (RW' unsafeMkRW (UnsafeMkSlice
-                     { borrow_method = \rwn' i -> Valiant.do
+                     { borrow_method = \rwn' i -> Array.do
                           (Ex (P (RW' rwa a) (A release_a))) <- borrow_method as rwn' i
                           (Ex (P (PP l (RW' rwr _)) (A release_rl))) <- slc rwa a
                           Ex (P l (A (\(RW rwl') -> release_a (RW (release_rl (PP (RW rwl') (RW rwr)))))))
                      , write_method = error "I don't think it makes sense to write directly in a deep slice. Is there a way to prevent this statically?" }))
     (RW' unsafeMkRW (UnsafeMkSlice
-                     { borrow_method = \rwn' i -> Valiant.do
+                     { borrow_method = \rwn' i -> Array.do
                           (Ex (P (RW' rwa a) (A release_a))) <- borrow_method as rwn' i
                           (Ex (P (PP (RW' rwl _) r) (A release_rl))) <- slc rwa a
                           Ex (P r (A (\(RW rwr') -> release_a (RW (release_rl (PP (RW rwl) (RW rwr')))))))
                      , write_method = error "I don't think it makes sense to write directly in a deep slice. Is there a way to prevent this statically?" }))
   )
-  release
-  where
-    release = A $ \(PP (RW (UnsafeMkRead,UnsafeMkWrite)) (RW (UnsafeMkRead,UnsafeMkWrite))) -> rwn
+  (A $ \(PP (RW (UnsafeMkRead,UnsafeMkWrite)) (RW (UnsafeMkRead,UnsafeMkWrite))) -> rwn)
+
+borrowDeep :: forall n a b. RW n %1 -> Slice a n -> (forall p. RW p %1 -> a p -> Exists (RW' b :*: (RW'' :-> RW p))) -> Exists (RW' (Slice b) :*: (RW'' :-> RW n))
+borrowDeep rwn as brw = Ex @_ @_ $ P
+  (RW' unsafeMkRW (UnsafeMkSlice
+                  { borrow_method = \rwn' i -> Array.do
+                    (Ex (P (RW' rwa a) (A release_a))) <- borrow_method as rwn' i
+                    (Ex (P (RW' rwb b) (A release_b))) <- brw rwa a
+                    Ex (P (RW' rwb b) (A $ \(RW rwb') -> release_a (RW (release_b (RW rwb')))))
+                  , write_method = error "It doesn't even make sens to write when the inner arrays have been sliced"
+                  }))
+  (A $ \(RW (UnsafeMkRead, UnsafeMkWrite)) -> rwn)
 
 -------------------------------------------------------------------------------
 --
@@ -209,28 +214,28 @@ sliceDeep rwn as slc = Ex @_ @' (n,n) $ P
 --
 -------------------------------------------------------------------------------
 
-sliceHMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
-sliceHMatrix = error "TODO"
+-- sliceHMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
+-- sliceHMatrix = error "TODO"
 
-sliceVMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
-sliceVMatrix = error "TODO"
+-- sliceVMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
+-- sliceVMatrix = error "TODO"
 
-sliceHMatrixR :: Read n %1 -> Matrix a n -> Int -> Exists ((Par (Read' (Matrix a))):*: ((Par Read) :-> Read n))
-sliceHMatrixR = error "TODO"
+-- sliceHMatrixR :: Read n %1 -> Matrix a n -> Int -> Exists ((Par (Read' (Matrix a))):*: ((Par Read) :-> Read n))
+-- sliceHMatrixR = error "TODO"
 
-sliceVMatrixR :: Read n %1 -> Matrix a n -> Int -> Exists ((Par (Read' (Matrix a))):*: ((Par Read) :-> Read n))
-sliceVMatrixR = error "TODO"
+-- sliceVMatrixR :: Read n %1 -> Matrix a n -> Int -> Exists ((Par (Read' (Matrix a))):*: ((Par Read) :-> Read n))
+-- sliceVMatrixR = error "TODO"
 
-writeMatrix :: RW n %1 -> Matrix a n -> Int -> Int -> a -> RW n
-writeMatrix = error "TODO"
+-- writeMatrix :: RW n %1 -> Matrix a n -> Int -> Int -> a -> RW n
+-- writeMatrix = error "TODO"
 
-readMatrix :: Read n %1 -> Matrix a n -> Int -> Int -> (Read n, a)
-readMatrix = error "TODO"
+-- readMatrix :: Read n %1 -> Matrix a n -> Int -> Int -> (Read n, a)
+-- readMatrix = error "TODO"
 
--- | X = X*A
-mulMatrixWith :: RW n %1 -> Read p %1 -> Matrix a n -> Matrix a p -> (RW n, Read p)
-mulMatrixWith = error "TODO"
+-- -- | X = X*A
+-- mulMatrixWith :: RW n %1 -> Read p %1 -> Matrix a n -> Matrix a p -> (RW n, Read p)
+-- mulMatrixWith = error "TODO"
 
--- | X = X+YZ
-addMulMatrixWith :: RW n %1 -> Read p %1 -> Read q %1 -> Matrix a n -> Matrix a p -> Matrix a q -> (RW n, Read p, Read q)
-addMulMatrixWith = error "TODO"
+-- -- | X = X+YZ
+-- addMulMatrixWith :: RW n %1 -> Read p %1 -> Read q %1 -> Matrix a n -> Matrix a p -> Matrix a q -> (RW n, Read p, Read q)
+-- addMulMatrixWith = error "TODO"
