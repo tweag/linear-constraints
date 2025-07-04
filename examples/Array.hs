@@ -110,8 +110,6 @@ dupl5 UnsafeMkLinearly = (UnsafeMkLinearly, UnsafeMkLinearly, UnsafeMkLinearly, 
 -------------------------------------------------------------------------------
 
 type Reg = Type
-type Val :: Type -> Reg -> Type
-newtype Val a n = MkVal a
 type UArray :: (Reg -> Type) -> Reg -> Type
 newtype UArray a n = UnsafeMkUArray (IOArray Int (Exists a))
 
@@ -119,6 +117,12 @@ data Read n = UnsafeMkRead
 data Write n = UnsafeMkWrite
 type RW n = (Read n, Write n)
 unsafeMkRW = (UnsafeMkRead, UnsafeMkWrite)
+
+type Val :: Type -> Reg -> Type
+newtype Val a n = MkVal a
+-- | Unrestricted!
+rwVal :: RW (Val a n)
+rwVal = (UnsafeMkRead, UnsafeMkWrite)
 
 -- | `SomeRW a = ∃n. RW n ⊗ a n`
 type RW' :: (Reg -> Type) -> Reg -> Type
@@ -161,6 +165,12 @@ type Slice :: (Reg -> Type) -> Reg -> Type
 data Slice a n = UnsafeMkSlice
   { borrow_method :: RW n %1 -> Int -> Exists (RW' a :*: (RW'' :-> RW n))
   , write_method :: forall p. RW n %1 -> RW p %1 -> Int -> a p -> RW n }
+
+writeSlice :: RW n %1 -> RW p %1 -> Slice a n -> Int -> a p -> RW n
+writeSlice rwn rwp as i a = write_method as rwn rwp i a
+
+borrowSlice :: RW n %1 -> Slice a n -> Int -> Exists (RW' a :*: (RW'' :-> RW n))
+borrowSlice rwn as i = borrow_method as rwn i
 
 fullSlice :: forall n a. RW n %1 -> UArray a n -> Exists (RW' (Slice a) :*: (RW'' :-> RW n))
 fullSlice rwn as = Ex $ P (RW' rwn (UnsafeMkSlice { borrow_method, write_method })) (A (\(RW rw) -> rw))
@@ -214,11 +224,36 @@ borrowDeep rwn as brw = Ex @_ @_ $ P
 --
 -------------------------------------------------------------------------------
 
--- sliceHMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
--- sliceHMatrix = error "TODO"
+-- | Let's assume that a matrix is an array of columns
+newtype Matrix a n = MkMatrix (UArray (UArray (Val a)) n)
 
--- sliceVMatrix :: RW n %1 -> Matrix a n -> Int -> Exists ((Par (RW' (Matrix a))):*: ((Par RW'') :-> RW n))
--- sliceVMatrix = error "TODO"
+blockify :: RW n %1 -> Matrix a n -> Exists (RW' (BMatrix a) :*: (RW'' :-> RW n))
+blockify rwm (MkMatrix m) = Array.do
+  (Ex (P (RW' rwm' m') (A release_m'))) <- fullSlice rwm m
+  (Ex (P (RW' rwm'' m'') (A release_m''))) <- borrowDeep rwm' m' fullSlice
+  Ex (P (RW' rwm'' (MkBMatrix m'')) (A (\rwm''' -> release_m' (RW (release_m'' rwm''')))))
+
+-- | `B` stands for “block”. A 'BMatrix' can be sliced, but in exchange a
+-- 'BMatrix' has a lifetime.
+newtype BMatrix a n = MkBMatrix (Slice (Slice (Val a)) n)
+
+num_col :: Read n %1 -> BMatrix a n -> (Read n , Ur Int)
+num_col = error "TODO"
+
+num_row :: Read n %1 -> BMatrix a n -> (Read n , Ur Int)
+num_row = error "TODO"
+
+-- | Slice a matrix into two set of columns, splitting rows in two.
+sliceHMatrix :: RW n %1 -> BMatrix a n -> Int -> Exists ((Par (RW' (BMatrix a))):*: ((Par RW'') :-> RW n))
+sliceHMatrix rwm (MkBMatrix m) col_num = Array.do
+  (Ex (P (PP (RW' rwl l) (RW' rwr r)) (A release))) <- slice rwm m col_num
+  Ex (P (PP (RW' rwl (MkBMatrix l)) (RW' rwr (MkBMatrix r))) (A release))
+
+-- | Slice a matrix into two set of rows, splitting columns in two.
+sliceVMatrix :: RW n %1 -> BMatrix a n -> Int -> Exists ((Par (RW' (BMatrix a))):*: ((Par RW'') :-> RW n))
+sliceVMatrix rwm (MkBMatrix m) row_num = Array.do
+  (Ex (P (PP (RW' rwl l) (RW' rwr r)) (A release))) <- sliceDeep rwm m (\rw col -> slice rw col row_num)
+  Ex (P (PP (RW' rwl (MkBMatrix l)) (RW' rwr (MkBMatrix r))) (A release))
 
 -- sliceHMatrixR :: Read n %1 -> Matrix a n -> Int -> Exists ((Par (Read' (Matrix a))):*: ((Par Read) :-> Read n))
 -- sliceHMatrixR = error "TODO"
@@ -226,16 +261,54 @@ borrowDeep rwn as brw = Ex @_ @_ $ P
 -- sliceVMatrixR :: Read n %1 -> Matrix a n -> Int -> Exists ((Par (Read' (Matrix a))):*: ((Par Read) :-> Read n))
 -- sliceVMatrixR = error "TODO"
 
--- writeMatrix :: RW n %1 -> Matrix a n -> Int -> Int -> a -> RW n
--- writeMatrix = error "TODO"
+writeBMatrix :: RW n %1 -> BMatrix a n -> Int -> Int -> a -> RW n
+writeBMatrix rwm (MkBMatrix m) row_num col_num a = Array.do
+  (Ex (P (RW' rwc c) (A release_c))) <- borrowSlice rwm m col_num
+  rwc <- writeSlice rwc rwVal c row_num (MkVal a)
+  release_c (RW rwc)
 
--- readMatrix :: Read n %1 -> Matrix a n -> Int -> Int -> (Read n, a)
--- readMatrix = error "TODO"
+readBMatrix :: Read n %1 -> BMatrix a n -> Int -> Int -> (Read n, Ur a)
+readBMatrix = error "TODO"
+  -- sketch: borrow -> borrow -> read the Val
+
+-- | X = X+A
+writePlusBMatrix :: Num a => RW n %1 -> BMatrix a n -> Int -> Int -> a -> RW n
+writePlusBMatrix (rx, wx) x i j a = Array.do
+  (rx, Ur b) <- readBMatrix rx x i j
+  writeBMatrix (rx, wx) x i j (b+a)
 
 -- -- | X = X*A
 -- mulMatrixWith :: RW n %1 -> Read p %1 -> Matrix a n -> Matrix a p -> (RW n, Read p)
 -- mulMatrixWith = error "TODO"
 
 -- -- | X = X+YZ
--- addMulMatrixWith :: RW n %1 -> Read p %1 -> Read q %1 -> Matrix a n -> Matrix a p -> Matrix a q -> (RW n, Read p, Read q)
--- addMulMatrixWith = error "TODO"
+addMulMatrixWith :: forall n p q a. Num a => RW n %1 -> Read p %1 -> Read q %1 -> BMatrix a n -> BMatrix a p -> BMatrix a q -> (RW n, Read p, Read q)
+addMulMatrixWith rwx ry rz x y z = Array.do
+  (ry, Ur n) <- num_row ry y
+  (ry, Ur p) <- num_col ry y
+  (rz, Ur m) <- num_col rz z -- A better implementation would check that p == num_row z0
+  let
+    -- It could all be done by blocks too, if it's better.
+    rows :: RW n %1 -> Read p %1 -> Read q %1 -> Int -> (RW n, Read p, Read q)
+    rows rwx' ry' rz' i =
+      if i == n then (rwx', ry', rz')
+      else Array.do
+        let
+          cols :: RW n %1 -> Read p %1 -> Read q %1 -> Int -> (RW n, Read p, Read q)
+          cols rwx'' ry'' rz'' j =
+            if j == m then (rwx'', ry'', rz'')
+            else Array.do
+              let
+                go :: RW n %1 -> Read p %1 -> Read q %1 -> Int -> (RW n, Read p, Read q)
+                go rwx''' ry''' rz''' k =
+                  if k == p then (rwx''', ry''', rz''')
+                  else Array.do
+                    (ry''', Ur a) <- readBMatrix ry''' y i k
+                    (rz''', Ur b) <- readBMatrix rz''' z k j
+                    rwx''' <- writePlusBMatrix rwx''' x i j (a * b)
+                    go rwx''' ry''' rz''' (k+1)
+              (rwx'', ry'', rz'') <- go rwx'' ry'' rz'' 0
+              cols rwx'' ry'' rz'' (j+1)
+        (rwx', ry', rz') <- cols rwx' ry' rz' 0
+        rows rwx' ry' rz' (i+1)
+  rows rwx ry rz 0
