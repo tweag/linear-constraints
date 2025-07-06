@@ -1481,7 +1481,7 @@ By nature of the closure, the closure is built incrementally: one add labels to 
 In fact, Valiant's algorithm consists in two divide-and-conquer recursive functions:
 \begin{code}
 v :: constraint (RW n) =>. Matrix a n .<= constraint (RW n)
-w :: (Read p, RW n, Read q) =>. Matrix a p -> Matrix a n -> Matrix a q =>. (Read p, RW n, Read q)
+w :: (Read p, RW n, Read q) =>. Matrix a p -> Matrix a n -> Matrix a q .<= (Read p, RW n, Read q)
 \end{code}
 Here |v| takes a writeable matrix |n|. When done |n| will be transitively
 closed. The |w| function is a
@@ -1599,7 +1599,74 @@ of the analysed matrices. In return, one gets additional static
 checks: we do not demand full read-write permissions on complete
 matrices. Besides, even though the algorithm is imperative, it can be
 called from pure functions, where the resulting matrix would be
-\emph{frozen}.\todo{how?}
+\emph{frozen}.\jp{When the generic matrix stuff is done, show to combine with freezing}
+
+\subsection{Splay Trees}
+
+Another application of in-place updates are \emph{splay trees}. A
+splay tree acts like a binary search tree, but at every access, the
+tree structure is modified so that the recently accessed elements are
+moved towards the root of the tree. This way, recently acessed
+elements are faster to reach in subsequent lookups.
+
+
+A tree associated with a region |n| will be defined as follows:
+
+> data Node n = Node (Ref Node n) Int (Ref Node n) | Leaf
+%
+The noteworthy feature is that each child is accessible via an
+updateable reference.
+As usual, we need splitting and joining functions for this data:
+> splitTree :: constraint (RW n) => Ref Node n -> ∃ p q. (Ref Node p, Int, Ref Node q) .<= constraint((RW p, RW q, TreeSlice p q n))
+> joinTree :: constraint((RW p, RW q, TreeSlice p q n)) =>. Ref Node p -> Int -> Ref Node q -> Ref Node n .<= constraint((RW n))
+\todo{splitTree may fail (Leaf). Dealing with this case will considerably complexify the example. I'm not sure if it's worth it. But there is an interesting point belowwhich can be seen already with this simpler case: namely this is a bit convoluted compared to what one would write normally either with Haskell or C.}
+
+Accessing generic references would be done via the following two functions:\jp{we discussed |AtomRef| above, how |Ref| is different is unclear to me.}
+> readRef :: constraint (Read n) =>. Ref a n -> Ur a .<= constraint (Read n)
+> writeRef :: constraint (RW n) =>. Ref a n -> a -> () .<= constraint (RW n)
+%
+But for this application we also need a way to exchange the contents of references:
+> swapRefs :: constraint((RW p, RW q)) =>. Ref f p -> Ref f q -> () .<= constraint((RW p, RW q))
+
+When accessing a node in the splay tree, it is brought towards the
+root by repeated use of 'rotate' operations which effectively exchange
+a node with either its left or right child.
+
+The implementation of rotation with the left child would be:
+\begin{code}
+rotate :: RW n =>. Ref Node n -> () .<= (RW n)
+rotate root = do
+  -- create a new temporary tree for the exchange
+  newRoot <- newRef Leaf
+
+  -- swap newRoot (root.left)
+  (l, x, r) <- splitTree root
+  swapRefs newRoot l
+  joinTree l x r
+
+  -- swap (newRoot.right) (root.left)
+  (l, x, r) <- splitTree newRoot
+  (l', x', r') <- borrow root
+  swapRefs r l'
+  joinTree l x r >> joinTree l' x' r'
+
+  -- swap (newRoot.right) root
+  (l, x, r) <- borrow newRoot
+  swapRefs root l
+  joinTree l x r
+
+  swapRefs root newRoot
+  freeRef newRoot
+\end{code}
+
+The above code mixes aspects of functional and imperative styles. Like
+in a functional language, we're explicitly pattern matching on nodes
+structures when accessing them, using splitTree. But we can't simply
+deep-match on the tree, and reconstruct it with the nodes at another
+place, because the calls to |joinTree| must reflect the exact original
+structure. So, we resort to local swaps, as one would do in an
+imperative language.\jp{IMO we're reaching the limit of the system here.}
+
 
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
