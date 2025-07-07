@@ -1630,11 +1630,37 @@ But for this application we also need a way to exchange the contents of referenc
 
 When accessing a node in the splay tree, it is brought towards the
 root by repeated use of 'rotate' operations which effectively exchange
-a node with either its left or right child.
+a node with either its left or right child. There follows a schematic
+representation of the rotation with the left child:
+\begin{center}
+  \begin{tikzpicture}[baseline=(current bounding box.center),
+    level distance=.8cm,
+    level 1/.style={sibling distance=.8cm},
+    level 2/.style={sibling distance=.8cm}]
+    \node {y}
+    child {node {x}
+      child {node {A}}
+      child {node {B}}
+    }
+    child {node {C}};
+  \end{tikzpicture}
+  \(\quad \Rightarrow \quad\)
+  \begin{tikzpicture}[baseline=(current bounding box.center),
+    level distance=.8cm,
+    level 1/.style={sibling distance=.8cm},
+    level 2/.style={sibling distance=.8cm}]
+    \node {x}
+    child {node {A}}
+    child {node {y}
+      child {node {B}}
+      child {node {C}}
+    };
+  \end{tikzpicture}
+\end{center}
 
-The implementation of rotation with the left child would be:
+Using our ownership system, the implementation of the above rotation would be:
 \begin{code}
-rotate :: RW n =>. Ref Node n -> () .<= (RW n)
+rotate :: constraint (RW n) =>. Ref Node n -> () .<= constraint (RW n)
 rotate root = do
   -- create a new temporary tree for the exchange
   newRoot <- newRef Leaf
