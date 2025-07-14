@@ -1284,24 +1284,24 @@ of the concept of type classes is enough to represent many capability systems.
 
 Like matrices above\unsure{I'm assuming again!} arrays take a region parameter
 to which we can provide capabilities, unlike matrices we have to account for
-nesting. More specifically, we want (the |U| stands for ``unique''):
+nesting. More specifically, we want (the |N| stands for ``nested''):
 \begin{code}
-UArray (UArray a) n
+NArray (NArray a) n
 \end{code}
 not
 \begin{code}
-UArray (UArray a n') n
+NArray (NArray a n') n
 \end{code}
 Because, thinking in terms of ownership, we want the region |r| to own both the
 root array and any internal array.\unsure{Obvious? needs explanation?}
 Therefore our type of mutable arrays will have kind
 \begin{code}
-type UArray :: (Reg -> Type) -> Reg -> Type
+type NArray :: (Reg -> Type) -> Reg -> Type
 \end{code}
 Notice that it's very convenient for the region parameter to be the last
 parameter, in order for the types to align when nesting arrays.
 
-In consequence, we can't have |UArray Int|, we will need a type to mediate
+In consequence, we can't have |NArray Int|, we will need a type to mediate
 between nested arrays, bound to a region, and ordinary values. We introduce the
 type |Val| to that effect.
 
@@ -1320,22 +1320,22 @@ to interface with the array functions\critical{We can only do this if we change
 type (we'll enrich this type to accommodate slices below)\change{In the next
   section?}
 \begin{code}
-type Matrix0 n = UArray (UArray (Val Int)) n
+type Matrix0 n = NArray (NArray (Val Int)) n
 \end{code}
 
 Let's start with a mutable array \textsc{api} without slice.\critical{TODO: explain Dict}
 
 \begin{code}
-newUArray :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. UArray a n .<= constraint(RW n)
-borrowUA :: constraint(RW n) =>. UArray a n -> Int -> exists p. (a p, (constraint(RW p) =>. Dict (constraint(RW n)))) .<= constraint(RW p)
-borrowUAR :: constraint(R n) =>. UArray a n -> Int -> exists p. (a p, (constraint(R p) =>. Dict (constraint(R n)))) .<= constraint(R p)
-writeUA :: constraint((RW n, RW p)) =>. UArray a n -> Int -> a p -> () .<= constraint(RW n)
+newNArray :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. NArray a n .<= constraint(RW n)
+borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (a p, (constraint(RW p) =>. Dict (constraint(RW n)))) .<= constraint(RW p)
+borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (a p, (constraint(R p) =>. Dict (constraint(R n)))) .<= constraint(R p)
+writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
 
 To write a value |u| into an array |a|, you need read and write access to |u| since
 you are going to give |a| permission to read and write to |u|. For the same
 reason we need to produce read and write capabilities to the elements we
-initialise the array with in |newUArray|.
+initialise the array with in |newNArray|.
 
 Accessing internal arrays, both for reading and writing, is more interesting. We
 need to get a pointer to the interior value with the appropriate permission.
