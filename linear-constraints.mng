@@ -1079,7 +1079,8 @@ would reject the program.
 When a value has such a linear release function we say that the value \emph{has
   a lifetime}. When a value doesn't have a lifetime, we say it is \emph{owned}.
 This distinction will be quite important for \cref{sec:o1-freeze}, in
-particular.
+particular. In addition, we refer to any function which returns one or more
+values with lifetimes as a \emph{borrow}.
 
 For completeness, let us observe that the Haskell language (at least
 \textsc{ghc}'s flavour) supports higher-order constraints. With higher-order
@@ -1095,10 +1096,24 @@ implicit style is preferable in a fully fledged programming language.
 \subsubsection{Slicing in two}
 \label{sec:slicing-two}
 
-TODOS:
-\begin{itemize}
-  \item Introduce slicing in two
-\end{itemize}
+A more advanced form of borrowing slices of arrays is to borrow two independent
+slices from the same array simultaneously. As long as two slices don't overlap,
+mutating one doesn't affect the other, and it's therefore safe to mutate them
+concurrently.\change{Todo}
+
+\begin{code}
+slice :: constraint(RW n) =>. UArray a n -> Int -> exists p q. Ur (UArray a p, UArray a q) .<= (RW p, RW q)
+\end{code}
+
+\unsure{Potential example}
+\begin{code}
+sub ::  constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+sub as start len =
+  let  pack  (Ur (_, rght), release_r)  =  slice as start
+       pack  (Ur (sb, _), release_s)    =  slice rght len
+  in (Ur sb, (let {pack () = release_s; pack () = release_r} in ()))
+
+\end{code}
 
 \subsection{Blockwise matrices: in-place Valiant algorithm}
 \improvement{Come back to the introduction of this section to make sure that it
