@@ -657,7 +657,7 @@ free :: MArray a ->. ()
   \begin{subfigure}{.55\linewidth}
 \begin{code}
 type constraint(RW n) = constraint((Read n, Write n))
-new  :: constraint (Unique) =>. Int -> exists n. UArray a n .<= constraint (RW n)
+new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
 write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 free :: constraint (RW n) =>. UArray a n -> ()
@@ -731,7 +731,7 @@ However, we still need to explain how a constraint |constraint (RW n)| can come
 into scope.
 The type of |new| with linear constraints is as follows:
 \begin{code}
-new  :: constraint (Unique) =>. Int -> exists n. UArray a n .<= constraint (RW n)
+new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
 \end{code}
 
 This type, too, illustrates several new aspects:
@@ -1006,24 +1006,103 @@ uniqueness without heavy use of continuations.
 \section{Applications}
 \label{sec:memory-ownership}
 
-\subsection{Read and write capabilities}
-\label{sec:capablities-intro}
-
-\begin{itemize}
-  \item Arrays with unrestricted leaves
-  \item Read, write capabilities
-  \item Basic API
-\end{itemize}
+\improvement{This section needs an intro}
 
 \subsection{Borrowing slices}
 \label{sec:borrowing-slices}
 
+As an introduction to a style that will be used a lot throughout this section,
+let us start with answering the question of: how can we extend the purely
+functional mutable array interface of \cref{fig:constraints-interface} so that
+we can take subarrays (hereafter referred to as a \emph{slices}) of arrays.
+
+\subsubsection{Simple slices}
+\label{sec:simple-slices}
+
+A first intuition may be to add a function looking like this:
+\begin{code}
+sub1 :: constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. Ur (UArray a p) .<= constraint(RW p)
+\end{code}
+This |sub1| takes a starting index and a length, and return the corresponding
+slice of the array. The slice is returned with a fresh type-level name,
+consuming the capabilities on the original array, so that we can't write
+concurrently on the slice and on the original array, preserving referential
+transparency.
+
+There is one problem, though: this is a one way transformation. It is rare that
+one wants to abandon the original array altogether when taking a slice: the goal
+is usually to focus on the array for a portion of an algorithm, and return to
+the global view later.
+
+To be able to return to the global view, we only need to be able to recover
+the original |constraint(RW n)| capabilities. A simple modification of |sub1|
+achieves this result:
+\begin{code}
+sub ::  constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+\end{code}
+That is, |sub| returns an additional value of type |constraint(RW p) =>. () .<=
+(constraint(RW n))|. We call this additional value a \emph{release function}. We
+can then call this release function when we're done with the slice, and return
+to the original array. \emph{E.g.}
+
+\improvement{Define swap somewhere? The code is in comments below}
+\begin{code}
+-- Reversing the elements of an array, the array's length is a parameter
+rev :: constraint(RW n) =>. UArray a n -> Int -> () .<= constraint(RW n)
+rev as len =
+  if len <= 1 then ()
+  else
+    let        ilen                 =  len - 2
+         pack  (Ur inner, release)  =  sub as 1 ilen     -- take a slice
+         pack  ()                   =  rev inner ilen      -- reverse the slice recursively
+         pack  ()                   =  release             -- return to the old array
+         pack  ()                   =  swap as 0 (len -1)  -- swap the first and last element
+    in ()
+\end{code}
+
+% \begin{code}
+% swap :: constraint(RW n) =>. UArray a n -> Int -> Int -> () .<= constraint(RW n)
+% swap as i j =
+%   let  pack  (Ur ai)  =  read as i
+%        pack  (Ur aj)  =  read as j
+%        pack  ()       =  write as i aj
+%        pack  ()       =  write as j ai
+%   in ()
+% \end{code}
+
+The release function returned by |sub| is linear, which means it must be called.
+When an array has a linear release function attached, it can't be freed (with
+the |free| function of \cref{fig:constraints-interface}), for instance, since
+this would leave the release function unable to be called and the type system
+would reject the program.
+
+When a value has such a linear release function we say that the value \emph{has
+  a lifetime}. When a value doesn't have a lifetime, we say it is \emph{owned}.
+This distinction will be quite important for \cref{sec:o1-freeze}, in
+particular.
+
+For completeness, let us observe that the Haskell language (at least
+\textsc{ghc}'s flavour) supports higher-order constraints. With higher-order
+constraints, we could replace the release \emph{function} by a release
+\emph{constraint} of type |constraint(RW p) =>. constraint(RW n)|. The
+difference is that we wouldn't have to call |release| explicitly anymore, simply
+using the original array would implictly release the slice's permissions. We
+didn't want to rely on higher-order constraints in this article, as we feel that
+the additional complications to \cref{sec:constraint-solver} would obscure the
+exposition. Either way, we haven't made our mind whether the explicit style or
+implicit style is preferable in a fully fledged programming language.
+
+\subsubsection{Slicing in two}
+\label{sec:slicing-two}
+
+TODOS:
 \begin{itemize}
-  \item Simple example borrowing a subarray
   \item Introduce slicing in two
 \end{itemize}
 
 \subsection{Blockwise matrices: in-place Valiant algorithm}
+\improvement{Come back to the introduction of this section to make sure that it
+  flows with the previous section}
 This subsection illustrates in-place modification of matrices on a
 parsing algorithm. This algorithm was invented by
 \citet{valiant_general_1975} as a theoretical tool to show that
@@ -4077,7 +4156,7 @@ $$
 % End:
 
 
-% LocalWords:  sequent typechecker idempotence polymorphism desugar
+% LocalWords:  sequent typechecker idempotence polymorphism desugar subarray
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
 % LocalWords:  sequents implicational deallocate deallocating monadic
