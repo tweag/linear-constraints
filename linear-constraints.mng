@@ -17,13 +17,14 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass[acmsmall,usenames,dvipsnames,natbib=false,acmthm=false,screen]{acmart}
+\documentclass{jfp}
 % \settopmatter{printacmref=false,printfolios=true}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
-\usepackage[backend=biber,datamodel=acmdatamodel, style=acmauthoryear,uniquename=false]{biblatex}
-\addbibresource{bibliography.bib}
+% \usepackage[backend=biber,datamodel=acmdatamodel, style=acmauthoryear,uniquename=false]{biblatex}
+% \addbibresource{bibliography.bib}
 
+\usepackage[dvipsnames]{xcolor}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{subcaption}
@@ -34,7 +35,7 @@ import GHC.Base
     citecolor={blue!50!black},
     urlcolor={blue!80!black}
   }
-\usepackage[plain]{fancyref}
+% \usepackage[plain]{fancyref}
 \usepackage[capitalize]{cleveref}
 \usepackage{mathpartir}
 \usepackage{newunicodechar}
@@ -218,104 +219,52 @@ import GHC.Base
   \newcommand{\bnfor}{\mathrel{\mid}}
 
   % theorems
-  \theoremstyle{acmplain}
   \newtheorem{theorem}{Theorem}[section]
   \newtheorem{lemma}[theorem]{Lemma}
   \newtheorem{corollary}[theorem]{Corollary}
   \newtheorem{property}[theorem]{Property}
 
-  \theoremstyle{acmdefinition}
   \newtheorem{definition}[theorem]{Definition}
-
-%%%%%%%%%%%%%%%%% /Domain-specific macros %%%%%%%%%%%%%%%%%
-
-\setcopyright{rightsretained}
-\acmPrice{}
-\acmDOI{10.1145/3547626}
-\acmYear{2022}
-\copyrightyear{2022}
-\acmSubmissionID{icfp22main-p15-p}
-\acmJournal{PACMPL}
-\acmVolume{6}
-\acmNumber{ICFP}
-\acmArticle{95}
-\acmMonth{8}
-
-% Commented out because of biblatex
-% \citestyle{acmauthoryear}
 
 \begin{document}
 
-\title[Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness]{Linearly Qualified Types}
-\subtitle{Generic Inference for Capabilities and Uniqueness}
+\journaltitle{JFP}
+\cpr{The Author(s),}
+\jnlDoiYr{2025}
+\doival{10.1017/xxxxx}
 
+\title{Linearly Qualified Types\\Generic Inference for Capabilities and Uniqueness}
+\righttitle{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
+
+\begin{authgrp}
 \author{Arnaud Spiwack}
-\orcid{0000-0002-5985-2086}
-\affiliation{
-  \institution{Tweag}
-  \city{Paris}
-  \country{France}
+\affiliation{Tweag, Paris, France
+  \email{arnaud.spiwack@@tweag.io}
 }
-\email{arnaud.spiwack@@tweag.io}
 \author{Csongor Kiss}
-\orcid{0000-0002-0195-2420}
-\affiliation{
-  \institution{Imperial College London}
-  \city{London}
-  \country{United Kingdom}
+\affiliation{Imperial College London, London, United Kingdom
+  \email{csongor.kiss14@@imperial.ac.uk}
 }
-\email{csongor.kiss14@@imperial.ac.uk}
 \author{Jean-Philippe Bernardy}
-\orcid{0000-0002-8469-5617}
-\affiliation{
-  \institution{University of Gothenburg}
-  \city{Gothenburg}
-  \country{Sweden}
+\affiliation{University of Gothenburg, Gothenburg, Sweden
+  \email{jean-philippe.bernardy@@gu.se}
 }
-\email{jean-philippe.bernardy@@gu.se}
 \author{Nicolas Wu}
-\orcid{0000-0002-4161-985X}
-\affiliation{
-  \institution{Imperial College London}
-  \city{London}
-  \country{United Kingdom}
+\affiliation{Imperial College London, London, United Kingdom
+  \email{n.wu@@imperial.ac.uk}
 }
-\email{n.wu@@imperial.ac.uk}
 \author{Richard A.~Eisenberg}
-\orcid{0000-0002-7669-9781}
-\affiliation{
-  \institution{Tweag}
-  \city{Paris}
-  \country{France}
+\affiliation{Tweag, Paris, France
+  \email{rae@@richarde.dev}
 }
-\email{rae@@richarde.dev}
+\end{authgrp}
+% I don't know why this isn't computed automatically
+\lefttitle{A. Spiwack, C. Kiss, J.-P. Bernardy, N. Wu, R. A.~Eisenberg}
 
-\keywords{GHC, Haskell, linear logic, linear types,
-  constraints, qualified types, inference}
-
-\begin{CCSXML}
-<ccs2012>
-   <concept>
-       <concept_id>10011007.10011006.10011008.10011024</concept_id>
-       <concept_desc>Software and its engineering~Language features</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
-   <concept>
-       <concept_id>10011007.10011006.10011008.10011009.10011012</concept_id>
-       <concept_desc>Software and its engineering~Functional languages</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
-   <concept>
-       <concept_id>10011007.10011006.10011039</concept_id>
-       <concept_desc>Software and its engineering~Formal language definitions</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
- </ccs2012>
-\end{CCSXML}
-
-\ccsdesc[500]{Software and its engineering~Language features}
-\ccsdesc[300]{Software and its engineering~Functional languages}
-\ccsdesc[300]{Software and its engineering~Formal language definitions}
+\begin{keywords}
+  GHC, Haskell, linear logic, linear types, constraints, qualified types,
+  inference
+\end{keywords}
 
 \begin{abstract}
   A linear parameter must be consumed exactly once in the body of its
@@ -454,7 +403,7 @@ read2AndDiscard arr =
 The only changes from the impure version are that this version explicitly requires having
 read and write access to the array,
 and pattern-matching against $\packbox$ (read ``pack'') is necessary in order to access the linear constraint
-packed in the result of |read| and |free|. (\Fref{sec:implicit-existentials}
+packed in the result of |read| and |free|. (\Cref{sec:implicit-existentials}
 suggests how we can get rid of $\packbox$, too.)
 Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
@@ -465,22 +414,22 @@ Our contributions are as follows:
 \item A system of qualified types that allows a constraint assumption
   to be given a multiplicity (linear or unrestricted). Linear assumptions are used precisely
   once in the body of a definition
-  (\Fref{sec:qualified-type-system}). This system supports examples
+  (\Cref{sec:qualified-type-system}). This system supports examples
   that have motivated the design of several resource-aware systems,
-  such as ownership \textit{à la} Rust (\Fref{sec:memory-ownership}), or
+  such as ownership \textit{à la} Rust (\Cref{sec:memory-ownership}), or
   capabilities in the style of Mezzo~\cite{mezzo-permissions} or
   \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system points
   towards a possible unification of these lines of research.
 
 \item Applications of this qualified type system to allow writing
   \begin{itemize}
-  \item resource-aware algorithms without explicit threading (\Fref{sec:memory-ownership}); and
-  \item functions whose result can only be used linearly (\Fref{sec:Unique-constraint})
+  \item resource-aware algorithms without explicit threading (\Cref{sec:memory-ownership}); and
+  \item functions whose result can only be used linearly (\Cref{sec:Unique-constraint})
   \end{itemize}
 
 \item An inference algorithm that respects the multiplicity of
   assumptions. We prove that this algorithm is sound with respect to
-  our type system~(\Fref{sec:type-inference}). It consists of
+  our type system~(\Cref{sec:type-inference}). It consists of
   \begin{itemize}
   \item a constraint generation
     algorithm~(\cref{sec:constraint-generation}). The language of
@@ -739,7 +688,7 @@ This type, too, illustrates several new aspects:
 \item The |constraint(Unique)| constraint is a linear constraint, though
 it takes no type parameter. It restricts the result of |new|
 to be used linearly, meaning that any variable that stores the result of |new| must
-have multiplicity $[[{1}]]$. |constraint(Unique)| is explained more fully in \Fref{sec:Unique-constraint}.
+have multiplicity $[[{1}]]$. |constraint(Unique)| is explained more fully in \Cref{sec:Unique-constraint}.
 
 \item Because |UArray| is now parameterised by a type-level tag |n|, |new| must
 return a |UArray| with a fresh such |n|. This is achieved through returning an
@@ -749,7 +698,7 @@ existentially-quantified type\footnote{There is a variety of ways that existenti
   24]{tapl}.
   However, \citet{existentials} work out an
   approach that makes linear constraints even easier to use, as we
-  discuss in \Fref{sec:implicit-existentials}. In order to separate
+  discuss in \Cref{sec:implicit-existentials}. In order to separate
   concerns, we do not build our formalism on \citet{existentials},
   instead modeling our existentials on the more widely known formulation described by \citet{tapl}.
   We additionally freely
@@ -801,7 +750,7 @@ read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n
 % data PackHandle where
 %   Pack :: forall h. constraint (Open h) =>. Handle h -> PackHandle
 % \end{code}
-% In our implementation (\Fref{sec:implementation}), packed linear constraints
+% In our implementation (\Cref{sec:implementation}), packed linear constraints
 % piggy-back on \textsc{ghc}'s standard \textsc{gadt} syntax. Correspondingly, existential types are
 % introduced by a data constructor, which we write as $\packbox$.
 % In order to simplify extracting out the payload of an existential, however, we
@@ -1960,7 +1909,7 @@ our system.
   have $[[q \in Dup]]$. \jp{How about writing using set inclusion?}
 
   The entailment relation must obey the laws listed in
-  \Fref{fig:entailment-relation}.
+  \Cref{fig:entailment-relation}.
 \end{definition}
 %
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
@@ -3399,26 +3348,26 @@ Mezzo's, or \textsc{ats}'s.
 % practical applications. And we achieved this at a surprisingly low price: teaching
 % linear logic to \textsc{ghc}'s constraint solver.
 
-\begin{acks}
-  Jean-Philippe Bernardy is supported by grant
-  \grantnum{clasp}{2014-39} from the \grantsponsor{clasp}{Swedish
-    Research Council}{https://www.vr.se}, which funds the Centre for
-  Linguistic Theory and Studies in Probability (CLASP) in the
-  Department of Philosophy, Linguistics, and Theory of Science at the
-  University of Gothenburg.
-%
-  Nicolas Wu is supported by
-  \grantsponsor{EPSRC}{EPSRC}{https://www.ukri.org/councils/epsrc/}
-  Grant \grantnum{EPSRC}{EP/S028129/1}.
+% \begin{acks}
+%   Jean-Philippe Bernardy is supported by grant
+%   \grantnum{clasp}{2014-39} from the \grantsponsor{clasp}{Swedish
+%     Research Council}{https://www.vr.se}, which funds the Centre for
+%   Linguistic Theory and Studies in Probability (CLASP) in the
+%   Department of Philosophy, Linguistics, and Theory of Science at the
+%   University of Gothenburg.
+% %
+%   Nicolas Wu is supported by
+%   \grantsponsor{EPSRC}{EPSRC}{https://www.ukri.org/councils/epsrc/}
+%   Grant \grantnum{EPSRC}{EP/S028129/1}.
 
 
-\end{acks}
+% \end{acks}
 
 % For natbib:
-% \bibliographystyle{ACM-Reference-Format}
-% \bibliography{bibliography}
+\bibliographystyle{JFPlike} 
+\bibliography{bibliography}
 % For biblatex:
-\printbibliography
+% \printbibliography
 \newpage
 
 \appendix

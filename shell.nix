@@ -27,6 +27,9 @@ pkgs.mkShell
           # for ott
           supertabular
 
+          # jfp dependencies
+          soul framed tex-gyre
+
           # acmart and dependencies
           acmart totpages trimspaces
           libertine environ hyperxmp
