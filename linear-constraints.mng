@@ -1000,14 +1000,14 @@ to the original array. \emph{E.g.}
 -- Reversing the elements of an array, the array's length is a parameter
 rev :: constraint(RW n) =>. UArray a n -> Int -> () .<= constraint(RW n)
 rev as len =
-  if len <= 1 then ()
+  if len <= 1 then pack ()
   else
     let        ilen                 =  len - 2
          pack  (Ur inner, release)  =  sub as 1 ilen       -- take a slice
          pack  ()                   =  rev inner ilen      -- reverse the slice recursively
          pack  ()                   =  release             -- return to the old array
          pack  ()                   =  swap as 0 (len -1)  -- swap the first and last element
-    in ()
+    in pack ()
 \end{code}
 
 % \begin{code}
@@ -1019,6 +1019,37 @@ rev as len =
 %        pack  ()       =  write as j ai
 %   in ()
 % \end{code}
+
+\change{Explain this algorithm}
+\critical{I'm using length here, we need to define it somewhere}
+\begin{code}
+insertSort :: constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
+insertSort as =
+  let  pack (Ur len) = length as in
+  if len <= 1 then pack ()
+  else
+    let   pack (Ur    a)           =  read 0 as
+          pack (Ur tail, release)  =  sub as 1 (len - 1)
+          pack ()                  =  insertSort tail
+          pack (Ur a')             =  insert a tail
+          pack ()                  =  release
+          pack ()                  =  write as 0 a'
+    in pack ()
+
+insert :: constraint(RW n) =>. a -> UArray a n -> Ur a .<= constraint(RW n)
+insert a bs =
+  let  pack (Ur len)  =  length bs in
+  if len == 0 then pack (Ur a)
+  else
+    let  pack (Ur b)  =  read b in
+    if a <= b then pack (Ur a)
+    else
+      let  pack (Ur tail, release)  =  sub bs 1 (len - 1)
+           pack (Ur b')             =  insert a tail
+           pack ()                  =  release
+           pack ()                  =  write bs 0 b'
+      in pack (Ur b)
+\end{code}
 
 The release function returned by |sub| is linear, which means it must be called.
 When an array has a linear release function attached, it can't be freed (with
@@ -1049,15 +1080,62 @@ implicit style is preferable in a fully fledged programming language.
 A more advanced form of borrowing slices of arrays is to borrow two independent
 slices from the same array simultaneously. As long as two slices don't overlap,
 mutating one doesn't affect the other, and it's therefore safe to mutate them
-concurrently.\change{Todo}
+concurrently.
 
+The |sub| primitive from earlier can't be used to borrow two independent slices:
+when a slice is borrowed, then we lose access to the original array until the
+slice is released, so we can't make a second slice exist simultaneously. So we
+need a new function. The simplest possible function is to cut a function in two
+at a given position:
 \begin{code}
 slice :: constraint(RW n) =>. UArray a n -> Int -> exists p q. Ur (UArray a p, UArray a q) .<= (RW p, RW q)
+\end{code}
+such that |slice as n| returns two slices, one with the first |n| elements, and
+one with the remaining |length as - n| elements.
+
+\change{TODO}
+\critical{I'm using length here, we need to define it somewhere}
+\begin{code}
+mergeSort ::  constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
+mergeSort as =
+  let   pack (Ur len)  =  length as in
+  if len <= 1 then pack ()
+  else
+    let  pack (Ur(ls, rs), release)  =  slice as (len / 2)
+         pack ()                     =  mergeSort ls
+         pack ()                     =  mergeSort rs
+         pack ()                     =  merge ls rs
+    in pack ()
+
+merge ::  constraint((RW p, RW q)) =>. UArray a p -> UArray a q -> () .<= constraint((RW p, RW q))
+merge ls rs =
+  let  pack (Ur len1)  =  length ls
+       pack (Ur len2)  =  length rs
+  in
+  if len1 == 0 || len2 == 0 then pack ()
+  else
+    let  pack (Ur l)  =  read ls
+         pack (Ur r)  =  read rs
+    in
+    if l <= r then
+      let  pack (Ur (_, ls'), release)  =  slice ls 1
+           pack ()                      =  merge ls' rs
+           pack ()                      =  release
+      in pack ()
+    else
+      let  pack ()                 =  write ls 0 r
+           pack (Ur ls', release)  =  slice 1 ls
+           pack (Ur r')            =  insert l rs
+           pack ()                 =  write rs 0 r'
+           pack ()                 =  merge ls' rs
+           pack ()                 =  release
+      in pack ()
 \end{code}
 
 \unsure{Potential example}
 \begin{code}
-sub ::  constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+sub ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
+        exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
 sub as start len =
   let  pack  (Ur (_, rght), release_r)  =  slice as start
        pack  (Ur (sb, _), release_s)    =  slice rght len
