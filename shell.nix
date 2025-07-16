@@ -33,13 +33,6 @@ pkgs.mkShell
           # don't know why but needed
           # TODO
           newtx txfonts fontaxes
-
-          # acmart and dependencies
-          # acmart totpages trimspaces
-          # libertine environ hyperxmp
-          # ifmtarg comment ncctools
-          # inconsolata newtx txfonts
-          # xpatch xurl
           ;
       })
 
