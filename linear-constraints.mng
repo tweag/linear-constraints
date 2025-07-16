@@ -987,7 +987,8 @@ To be able to return to the global view, we only need to be able to recover
 the original |constraint(RW n)| capabilities. A simple modification of |sub1|
 achieves this result:
 \begin{code}
-sub ::  constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+sub ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
+        exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
 \end{code}
 That is, |sub| returns an additional value of type |constraint(RW p) =>. () .<=
 (constraint(RW n))|. We call this additional value a \emph{release function}. We
@@ -1002,7 +1003,7 @@ rev as len =
   if len <= 1 then ()
   else
     let        ilen                 =  len - 2
-         pack  (Ur inner, release)  =  sub as 1 ilen     -- take a slice
+         pack  (Ur inner, release)  =  sub as 1 ilen       -- take a slice
          pack  ()                   =  rev inner ilen      -- reverse the slice recursively
          pack  ()                   =  release             -- return to the old array
          pack  ()                   =  swap as 0 (len -1)  -- swap the first and last element
