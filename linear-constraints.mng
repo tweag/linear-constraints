@@ -120,7 +120,7 @@ import GHC.Base
   \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
   % ^^ Need for pgfsyspdfmark apparently?
   \ifx\noeditingmarks\undefined
-      \setlength{\marginparwidth}{1.2cm} % A size that matches the new PACMPL format
+      \setlength{\marginparwidth}{2cm} % A size that matches the new JFP format
       \newcommand{\Red}[1]{{\color{red}{#1}}}
       \newcommand{\newaudit}[1]{{\color{blue}{#1}}}
       \newcommand{\note}[1]{{\color{blue}{\begin{itemize} \item {#1} \end{itemize}}}}
@@ -228,10 +228,10 @@ import GHC.Base
 
 \begin{document}
 
-\journaltitle{JFP}
-\cpr{The Author(s),}
+\journaltitle{JFP} % What's the correct value here?
+\cpr{The Author(s),} % What's the correct value here?
 \jnlDoiYr{2025}
-\doival{10.1017/xxxxx}
+\doival{10.1017/xxxxx} % dummy value
 
 \title{Linearly Qualified Types\\Generic Inference for Capabilities and Uniqueness}
 \righttitle{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
