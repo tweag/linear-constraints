@@ -30,20 +30,18 @@ pkgs.mkShell
           # jfp dependencies
           soul framed tex-gyre
 
+          # don't know why but needed
+          # TODO
+          newtx txfonts fontaxes
+
           # acmart and dependencies
-          acmart totpages trimspaces
-          libertine environ hyperxmp
-          ifmtarg comment ncctools
-          inconsolata newtx txfonts
-          xpatch xurl
+          # acmart totpages trimspaces
+          # libertine environ hyperxmp
+          # ifmtarg comment ncctools
+          # inconsolata newtx txfonts
+          # xpatch xurl
           ;
       })
 
       ];
-
-    FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories =
-    # Fonts for Xetex
-    [ pkgs.libertine
-      pkgs.inconsolata
-    ]; };
-}
+  }
