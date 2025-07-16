@@ -1,5 +1,4 @@
 $pdf_mode = "1";
-$pdflatex = "xelatex --shell-escape -halt-on-error -interaction nonstop -file-line-error";
 $clean_ext = "bbl synctex.gz synctex.gz(busy)";
 
 # When a file required for the compilation of the main latex file
