@@ -192,7 +192,7 @@ import GHC.Base
   \newcommand{\aand}{\constraintop{\&}}
   \DeclareMathOperator*{\bigaand}{\vcenter{\hbox{\Large\&}}}
   \newcommand{\lollycirc}{\raisebox{-0.255ex}{\scalebox{1.4}{$\circ$}}}
-  \newcommand{\Lolly}{\constraintop{=\kern-1.1ex \lollycirc}}
+  \newcommand{\Lolly}{\constraintop{=\kern-0.9ex \lollycirc}}
   \newcommand{\FatArrow}{\constraintop{\Rightarrow}}
   \newcommand{\RLolly}{\mathop{\constraintfont \circledless}}
   \newcommand{\RFatArrow}{\constraintop{\rtimes}}
