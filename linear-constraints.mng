@@ -3209,7 +3209,7 @@ make linear constraints easier to use.
 % sense for prominent patterns and how our choices should be tuned.
 
 \section{Design considerations}
-\label{sec:design-space}
+\label{sec:design-considerations}
 
 \critical{TODO}
 
