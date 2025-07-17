@@ -1,4 +1,5 @@
 $pdf_mode = "1";
+$pdflatex = "pdflatex -halt-on-error -interaction=nonstopmode";
 $clean_ext = "bbl synctex.gz synctex.gz(busy)";
 
 # When a file required for the compilation of the main latex file
