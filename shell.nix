@@ -32,7 +32,7 @@ pkgs.mkShell
 
           # don't know why but needed
           # TODO
-          newtx txfonts fontaxes
+          newtx txfonts fontaxes breakurl
           ;
       })
 
