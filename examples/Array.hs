@@ -209,14 +209,14 @@ sliceDeep rwn as slc = Ex @_ @' (n,n) $ P
 
 borrowDeep :: forall n a b. RW n %1 -> Slice a n -> (forall p. RW p %1 -> a p -> Exists (RW' b :*: (RW'' :-> RW p))) -> Exists (RW' (Slice b) :*: (RW'' :-> RW n))
 borrowDeep rwn as brw = Ex @_ @_ $ P
-  (RW' unsafeMkRW (UnsafeMkSlice
+  (RW' rwn (UnsafeMkSlice
                   { borrow_method = \rwn' i -> Array.do
                     (Ex (P (RW' rwa a) (A release_a))) <- borrow_method as rwn' i
                     (Ex (P (RW' rwb b) (A release_b))) <- brw rwa a
                     Ex (P (RW' rwb b) (A $ \(RW rwb') -> release_a (RW (release_b (RW rwb')))))
                   , write_method = error "It doesn't even make sens to write when the inner arrays have been sliced"
                   }))
-  (A $ \(RW (UnsafeMkRead, UnsafeMkWrite)) -> rwn)
+  (A $ \(RW rwn') -> rwn')
 
 -------------------------------------------------------------------------------
 --

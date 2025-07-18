@@ -1165,6 +1165,8 @@ sub as start len =
 \end{code}
 
 \subsection{Blockwise matrices: in-place Valiant algorithm}
+\label{sec:valiant}
+
 \improvement{Come back to the introduction of this section to make sure that it
   flows with the previous section}
 This subsection illustrates in-place modification of matrices on a
@@ -1316,49 +1318,47 @@ called from pure functions, where the resulting matrix would be
 \subsection{Matrices from first principles: a theory of nested arrays}
 \label{sec:nested-arrays}
 
-\unsure{I[Arnaud] find it difficult to motivate this complex array API without
-  referring to freezing. Should we open with freezing? Otherwise a more direct
-  array-of-linear-stuff should presumably suffice? Actually that's not true.
-  When writing in a deep cell a[x][y], the simple linear mutable arrays would rewrite
-  the pointer a[x]. Anyway, we need a good opening there, unless we're willing
-  to say “linear types don't do X well” which is not the most compelling maybe?}
+In \cref{sec:borrowing-slices}, we split arrays in two at a position, in
+\ref{sec:valiant} we split matrices either at a vertical position or a
+horizontal position. Higher-dimensional tensors could, in general, be split
+along any dimension. The good news is that we don't have to define a new
+interface from unsafe primitives for each dimension.
+Capabilities-as-linear-constraints are flexible enough that we can build a
+single interface which covers all dimensions.
 
-Capabilities\unsure{I'm assuming, here, that we've used capabilities before, I'm
-  going to be assuming the borrow/release pattern as well.} encoded as linear
-constraints can represent pretty complex access patterns. We endeavour to
-demonstrate, in this section, how for instance we can implement matrices, or any
-high-dimensional tensor really, and their blocks as arrays of arrays (say an
-array of columns)\change{I'm thinking of finishing this in the next subsection
-  about self-borrows instead, then I should revise this sentence}. To whet the reader's appetite, consider that slicing a matrix
-in two sets of columns is, rather straightforward: just consider two halves of
-the root array; but slicing a matrix in two sets of lines is much less obvious
-as it requires slicing each column in two. Blockwise matrix operations require
-both kind of slices.
+\paragraph*{Arrays with nesting}
 
-Yet, we propose to build a library of arrays which lets us build such deep
-slices. One of our main tool is that existential types such as we use in this
-paper, or \textsc{gatd}s as in Haskell or Ocaml let us package capabilities as
-values, hence let us program capabilities. This is hardly a new insight,
-functional languages with capabilities usually have ways to pack capabilities
-inside values~\cite{AtsLinearViews,mezzo-permissions}\unsure{Rust's lifetime are
-  an exception here. The fact that they can't be existentially quantified over
-  is a pretty restrictive (but maybe also liberating?) aspect of Rust's design.
-  Should we comment on this?}. What is new is that this natural generalisation
-of the concept of type classes is enough to represent many capability systems.
+Specifically, we're going to represent matrices as arrays of arrays (say an
+array of columns). Higher-dimensional tensors will follow easily. To whet the
+reader's appetite, slicing a matrix in two sets of columns is, rather
+straightforward: just consider two halves of the root array; but slicing a
+matrix in two sets of lines is much less obvious as it requires slicing each
+column in two.
 
-Like matrices above\unsure{I'm assuming again!} arrays take a region parameter
-to which we can provide capabilities, unlike matrices we have to account for
-nesting. More specifically, we want (the |N| stands for ``nested''):
-\begin{code}
-NArray (NArray a) n
-\end{code}
-not
-\begin{code}
-NArray (NArray a n') n
-\end{code}
-Because, thinking in terms of ownership, we want the region |r| to own both the
-root array and any internal array.\unsure{Obvious? needs explanation?}
-Therefore our type of mutable arrays will have kind
+Let's first notice that we can't use the |UArray| type of
+\cref{sec:borrowing-slices}. Indeed, nesting |UArray| would give us a type like
+|UArray (UArray a p) n|. But this isn't what we want: presumably |p| should be
+different for each array. Nor can we use something like |UArray (exists p.
+UArray a p .<= RW p) n|, since |RW p| is a linear constraint, and an |UArray|
+can only store linear values.
+
+So we need to introduce a new type |NArray| (the |N| stands for ``nested'').
+What we want to express, with |NArray| is that all the arrays have the same
+owner, so that when we write an array |bs| in a cell of an array |as|, we
+relinquish the ownership of |bs| to that of |as|. We do that by abstracting over
+the type-level name of |bs|.
+
+% Yet, we propose to build a library of arrays which lets us build such deep
+% slices. One of our main tool is that existential types such as we use in this
+% paper, or \textsc{gadt}s as in Haskell or Ocaml let us package capabilities as
+% values, hence let us program capabilities. This is hardly a new insight,
+% functional languages with capabilities usually have ways to pack capabilities
+% inside values~\cite{AtsLinearViews,mezzo-permissions}\unsure{Rust's lifetime are
+%   an exception here. The fact that they can't be existentially quantified over
+%   is a pretty restrictive (but maybe also liberating?) aspect of Rust's design.
+%   Should we comment on this?}. What is new is that this natural generalisation
+% of the concept of type classes is enough to represent many capability systems.
+
 \begin{code}
 type NArray :: (Reg -> Type) -> Reg -> Type
 \end{code}
@@ -1372,27 +1372,29 @@ type |Val| to that effect.
 \begin{code}
 type Val :: Type -> Reg -> Type
 newtype Val a n = MkVal a
-instance R (Val a n)
-instance W (Val a n)
+instance constraint(R (Val a n))
+instance constraint(W (Val a n))
 \end{code}
+
+%format Matrix0 = "\Varid Matrix \ensuremath{_0}"
 
 Since |Val| isn't an abstract type, its free to ignore its capabilities (which
 is fine since no mutation can occur in a |Val a r|). We provide unrestricted
 read and write access to |Val| since neither do anything, but they'll be needed
 to interface with the array functions\critical{We can only do this if we change
   the solver!}. With this, a matrix of integers can have
-type (we'll enrich this type to accommodate slices below)\change{In the next
-  section?}
+type:
 \begin{code}
 type Matrix0 n = NArray (NArray (Val Int)) n
 \end{code}
-
-Let's start with a mutable array \textsc{api} without slice.\critical{TODO: explain Dict}
+This isn't quite the type that we will use to represent the matrices of
+\cref{sec:valiant}, because in this section it will be convenient to have a
+separate type for full arrays (|NArray|) and slices (|Slice| below).
 
 \begin{code}
 newNArray :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. NArray a n .<= constraint(RW n)
-borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (a p, (constraint(RW p) =>. Dict (constraint(RW n)))) .<= constraint(RW p)
-borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (a p, (constraint(R p) =>. Dict (constraint(R n)))) .<= constraint(R p)
+borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (a p, (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (a p, (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
 writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
 
@@ -1401,14 +1403,94 @@ you are going to give |a| permission to read and write to |u|. For the same
 reason we need to produce read and write capabilities to the elements we
 initialise the array with in |newNArray|.
 
-Accessing internal arrays, both for reading and writing, is more interesting. We
-need to get a pointer to the interior value with the appropriate permission.
-This pointer must be temporary, because writing to an array |a| can invalidate
-its interior pointers, for instance, an internal value |u| can be moved to
-another region (not with only these primitives but see \improvement{Section
-  splay tree}). So the only way to access internal values is via borrowing,
-making sure that we call a release function before writing into |a|
-again.\unsure{Check that the previous section explains enough}
+Accessing inner arrays, both for reading and writing, is more interesting: it
+introduces a new kind of borrow, in the form of the functions |borrowNA| and
+|borrowNAR|. We don't borrow slices here, we borrow inner values. If you ignore
+all the capabilities, these borrows have the type signature we'd expect of a
+read function. They're borrows because they need to provide capabilities for the
+inner value, and a release function. The fresh capabilities and the release
+function prevent aliasing mutable cells.
+
+\paragraph*{Slice type}
+\label{sec:slice-type}
+
+This is enough \textsc{api} on full arrays to let us implement slices. Because
+we are going to be manipulating capabilities in an unsafe way, we shall need a
+handful of unsafe primitives to provide or consume capabilities.
+
+\begin{code}
+unsafeRead :: () .<= constraint(Read n)
+unsafeWrite :: () .<= constraint(Write n)
+unsafeRW :: () .<= constraint(RW n)
+unsafeRW = let { pack () = unsafeRead; pack () = unsafeWrite } in pack ()
+
+unsafeConsumeRead :: constraint(Read n) =>. ()
+unsafeConsumeWrite :: constraint(Write n) =>. ()
+unsafeConsumeRW :: constraint(RW n) =>. ()
+unsafeConsumeRW = let { () = unsafeConsumeRead; () = unsafeConsumeWrite } in ()
+\end{code}
+These aren't user facing, as they would make the library unsound. They are only
+used as part of the implementation of our array and slice library.
+
+We shall use an object-oriented definition of slices because functions are a
+very powerful and convenient abstraction. An implementation aiming for
+efficiency would have to use a more specialised implementation (like above,
+|UnsafeMkSlice| isn't part of the public interface).
+\begin{code}
+type Slice :: (Reg -> Type) -> Reg -> Type
+data Slice a n = UnsafeMkSlice {
+  borrowS  ::  constraint(RW n) =>. Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p),
+  writeS   ::  forall p. constraint((RW n, RW p)) =>. Int -> a p -> () .<= constraint(RW n) }
+\end{code}
+An array can be converted into a slice which spans the whole array
+\begin{code}
+fullSlice :: constraint(RW n) =>. NArray a n -> exists p. (Ur (Slice a p), constraint(RW p) =>. () .<= constraint(RW n)) .<= constraint(RW p)
+fullSlice as =
+  pack (  (UnsafeMkSlice { borrowS = borrowNA as, writeS = writeNA as }),
+          pack ())
+\end{code}
+
+More interestingly, we can lift any borrow operation on the inner type |a| to a
+borrow on slices. The idea is simple: we delay actually calling the inner borrow
+function until we borrow an inner value from the slice.
+\begin{code}
+borrowDeep ::  constraint(RW n) =>. Slice a n ->
+               (forall p. constraint(RW p) =>. a p -> exists q. (Ur (b p), (constraint(RW b) =>. () .<= constraint(RW p)))) ->
+               exists r. (Ur (Slice b r), constraint(RW r) =>. () .<= constraint(RW n))
+borrowDeep as brw = pack (
+  UnsafeMkSlice {
+      borrowS = \i ->
+        let  pack  (Ur a, release_a)  =  borrowS as i
+             pack  (Ur b, release_b)  =  brw a
+       in
+       pack  (Ur b, let { pack() = release_b; pack() = release_a } in pack())
+      writeS =
+         error "Attempt to write to a borrowed space" },
+  (pack ()) )
+borrowDeepR ::  constraint(Read n) =>. Slice a n ->
+                (forall p. constraint(Read p) =>. a p -> exists q. (Ur (b p), (constraint(Read b) =>. () .<= constraint(Read p)))) ->
+                exists r. (Ur (Slice b r), constraint(Read r) =>. () .<= constraint(Read n))
+borrowDeepR = … -- Mutatis mutandis
+\end{code}
+Note how the write method is an error after a deep borrow. It doesn't make sense
+to try to write a |b| in a cell that really holds an |a|. In our case |b| will
+always be |Slice c| for some |c|, so |writeS| would have to replace a slice of
+an array wholesale, this isn't an operation which can be performed without
+copying the inner array, while |writeS| is supposed to be of $O(1)$ write
+operation. Fortunately, slices are always borrowed, and attempting to write a
+slice to an array cell would result in a static error: the release function
+hasn't been called.
+
+\change{TODO}
+\paragraph*{Implementing UArray}
+\label{sec:implementing-uarray}
+
+\paragraph*{Deep slicing}
+\label{sec:deep-slicing}
+
+\paragraph*{Implementing Matrix}
+\label{sec:implementing-matrix}
+
 
 \subsection{Freezing nested structures}
 \label{sec:o1-freeze}
