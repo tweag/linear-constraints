@@ -2174,7 +2174,7 @@ desugaring to a simpler core language in \cref{sec:desugaring}.
 We survey several distinctive features of our qualified type system below:
 
 \info{See Fig 10, p25 of OutsideIn\cite{OutsideIn}.}
-\paragraph{Linear functions.}
+\paragraph*{Linear functions.}
 The type of linear functions is written $[[{a ->_1 b}]]$.
   Despite our focus on linear constraints,
   we still need linearity in ordinary arguments.
@@ -2193,7 +2193,7 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   it is perfectly fine to have $[[1.q ; f :_omega a ->_1 b, x :_omega 1.q
   =o a |- f x : b]]$ when $[[{f}]]$ is a linear function.
 
-\paragraph{Variables.}
+\paragraph*{Variables.}
 As is standard, the \rref{E-Var} rule works in a context containing more
 than just the used binding for $[[{x}]]$. However, crucially,
 our rule allows only
@@ -2202,18 +2202,18 @@ used. We can see this in the rule by noticing that the context has an unrestrict
 component $[[{omega.G_2}]]$. The $[[{G1}]]$ component might be restricted or might not,
 allowing this rule to apply both for restricted and unrestricted $[[{x}]]$.
 
-\paragraph{Data constructors.}
+\paragraph*{Data constructors.}
 Data constructors $[[{K}]]$ don't have a dedicated typing
 rule. Instead they are typed using the \rref{E-Var}, where they are
 treated as if they were unrestricted variables.
 
-\paragraph{Let-bindings.}
+\paragraph*{Let-bindings.}
 Bindings in a |let| may be for either linear or unrestricted variables.
   We could require all bindings to be linear and to implement unrestricted
   information only using |Ur|, but it is very easy to add a multiplicity
   annotation on |let|, and so we do.
 
-\paragraph{Local assumptions.}
+\paragraph*{Local assumptions.}
 \Rref{E-Let} includes support for local
   assumptions. We thus have the ability to generalise a subset of
   the constraints needed by $[[{e1}]]$ (but not the type variables---no
@@ -2226,7 +2226,7 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 %%   straightforward, yet tedious, to extend data types here to full
 %%   \textsc{gadt}s.
 
-\paragraph{Existentials.}
+\paragraph*{Existentials.}
  We include $[[{exists as. t o= Q}]]$, as
   introduced in \cref{sec:what-it-looks-like}, together with
   the $\packbox$ constructor. See rules~\rref*{E-Pack} and
@@ -3237,7 +3237,7 @@ make linear constraints easier to use.
 \section{Related work}
 \label{sec:related-work}
 
-\paragraph{OutsideIn}
+\paragraph*{OutsideIn}
 \label{sec:outsidein}
 
 Our aim is to integrate the present work in \textsc{ghc}, and
@@ -3294,7 +3294,7 @@ consumes the same constraints.
 %%   \rref*{E-Var} rule needed subsumption; we would also need it for the
 %%   \rref*{E-Pack} rule as well. So we preferred having one shared
 %%   dedicated rule.
-\paragraph{Ownership}
+\paragraph*{Ownership}
 
 % The memory ownership example of \cref{sec:memory-ownership} is
 % strongly inspired by Rust.
@@ -3327,7 +3327,7 @@ Clean is another language with built-in ownership typing. Like Haskell
 it is a lazy language. Mutation is performed by returning a new
 reference, like in Linear Haskell without linear constraints.
 
-\paragraph{Languages with capabilities}
+\paragraph*{Languages with capabilities}
 
 The idea of using capabilities to enforce high-level resource usage protocols is not new~\citep{DBLP:conf/pldi/DeLineF01},
 and as such has been applied in practical programming languages before.
@@ -3373,7 +3373,7 @@ constraints providing the general inference mechanism.
 % basing linear constraints on Haskell, a lazy language, we are forced
 % to make sequencing explicit in \textsc{api}s.
 
-\paragraph{Linearly typed languages}
+\paragraph*{Linearly typed languages}
 
 Affe~\cite{kindly-bent} is a linearly typed \textsc{ml}-style core
 language with mutable references and arrays, augmented with a notion
@@ -3382,7 +3382,7 @@ contrast, we represent scopes as functions. Affe is presented as a
 fully integrated solution, while linear constraints is a small layer
 on top of Linear Haskell.
 
-\paragraph{Logic programming}
+\paragraph*{Logic programming}
 
 There are a lot of commonalities between \textsc{ghc}'s constraint and logic
 programs. Traditional type classes can be seen as Horn clause programs, much
@@ -3410,7 +3410,7 @@ strategy, but it seems to required for the soundness of the constraint
 generation algorithm. Or, if they are not required, uniform proofs are
 at least an effective strategy to prove soundness.
 
-% \paragraph{Resource usage analysis}
+% \paragraph*{Resource usage analysis}
 
 % \Citet{resource-usage-analysis} introduce a framework which can be
 % instantiated into many resource analyses (such as proper deallocation
