@@ -394,7 +394,7 @@ Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
 
-\nw{It should be more clearly stated that this is an extended version of the ICFP paper, and 
+\nw{It should be more clearly stated that this is an extended version of the ICFP paper, and
 what the particular contributions of this version are.}
 Our contributions are as follows:
 \begin{itemize}
@@ -3564,7 +3564,7 @@ Mezzo's, or \textsc{ats}'s.
 % \end{acks}
 
 % For natbib:
-\bibliographystyle{JFPlike} 
+\bibliographystyle{JFPlike}
 \bibliography{bibliography}
 % For biblatex:
 % \printbibliography

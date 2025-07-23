@@ -1,7 +1,6 @@
 with { pkgs = import ./nix {}; };
 pkgs.mkShell
   { buildInputs = with pkgs; [
-      niv
       haskellPackages.lhs2tex
       biber
       ott
@@ -20,7 +19,7 @@ pkgs.mkShell
           xargs todonotes
           mathpartir
           newunicodechar
-          
+
           # for lhs2tex
           lazylist polytable
 
