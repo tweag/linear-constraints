@@ -216,7 +216,7 @@ import GHC.Base
 \jnlDoiYr{2025}
 \doival{10.1017/xxxxx} % dummy value
 
-\title{Linearly Qualified Types\\Generic Inference for Capabilities and Uniqueness}
+\title{Linearly Qualified Types\\Generic Inference for Capabilities and Uniqueness \nw{This title is too long}}
 \righttitle{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
 
 \begin{authgrp}
@@ -288,7 +288,7 @@ dependently typed programmers can now use linear types with Idris 2.
 All of these systems are vastly different in ergonomics and
 scope. Rust uses dedicated syntax and code generation
 to support management of resources, while Linear Haskell is a
-type system change without any other impact on the compiler, such as in the
+type system change without requiring any other impact on the compiler, such as in the
 code generator or runtime system.\rae{But actually we'd \emph{like} to have
 an impact on the runtime system to allow update-in-place.} Linear Haskell
 is designed to be general purpose, but
@@ -296,6 +296,8 @@ using its linear arguments to emulate Rust's ownership model is a tedious exerci
 requires
 % the compiler doesn't know how to help, requiring
 the programmer to carefully thread resource tokens.
+\nw{Maybe a comment about why we want this in the first place? Some positive adjective about
+Rust's model would be enough.}
 
 To get a sense of the power and the tedium of programming with linear types, consider the
 following function:
@@ -392,6 +394,8 @@ Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
 
+\nw{It should be more clearly stated that this is an extended version of the ICFP paper, and 
+what the particular contributions of this version are.}
 Our contributions are as follows:
 \begin{itemize}
 \item A system of qualified types that allows a constraint assumption
@@ -406,8 +410,8 @@ Our contributions are as follows:
 
 \item Applications of this qualified type system to allow writing
   \begin{itemize}
-  \item resource-aware algorithms without explicit threading (\Cref{sec:memory-ownership}); and
   \item functions whose result can only be used linearly (\Cref{sec:Unique-constraint})
+  \item resource-aware algorithms without explicit threading (\Cref{sec:memory-ownership}); and
   \end{itemize}
 
 \item An inference algorithm that respects the multiplicity of
@@ -435,14 +439,14 @@ Our design is intended to work well with other features of Haskell and
 \section{Background: Linear Haskell}
 \label{sec:linear-types}
 
-This section, mostly cribbed from \citet[Section 2.1]{LinearHaskell},
-describes our baseline approach, as released in \textsc{ghc}~9.0.
+This section follows \citet[Section 2.1]{LinearHaskell},
+to describe our baseline approach, as released in \textsc{ghc}~9.0.
 %
 Linear Haskell adds a new type of functions,
 dubbed \emph{linear functions}, and written |a ⊸ b|.\footnote{The linear function
   type and its notation come from linear
-  logic~\cite{girard-linear-logic}, to which the phrase \emph{linear
-    types} refers. All the various design of linear typing in the
+  logic~\citep{girard-linear-logic}, to which the phrase \emph{linear
+    types} refers. All the various designs of linear typing in the
   literature amount to adding such a linear function type, but details
   can vary wildly. See~\citet[Section 6]{LinearHaskell} for an analysis
   of alternative approaches.} A linear function consumes its
@@ -450,7 +454,7 @@ dubbed \emph{linear functions}, and written |a ⊸ b|.\footnote{The linear funct
 
 \begin{quote}
 % \emph{Meaning of the linear arrow}: %JP: redundant
-|f :: a ⊸ b| guarantees that if |(f u)| is consumed exactly once,
+|f :: a ⊸ b| guarantees that if |(f u)| is consumed exactly once, \\
 then the argument |u| is consumed exactly once.
 \end{quote}
 To make sense of this statement we need to know what ``consumed exactly once'' means.
@@ -483,13 +487,12 @@ We stress that a multiplicity of \(1\) restricts \emph{how the variable can be u
 restrict \emph{which values can be substituted for it}.
 In particular, a linear function cannot assume that it is given the
 unique pointer to its argument.  For example, if |f :: a ⊸ b|, then
-the following is fine:
+the following is fine because the type of |duplicate| makes no guarantees about how it uses |x|:
 \begin{code}
-g :: a -> (b, b)
-g x = (f x, f x)
+duplicate :: (a ⊸ b) -> a -> (b, b)
+duplicate f x = (f x, f x)
 \end{code}
-The type of |g| makes no guarantees about how it uses |x|.
-In particular, |g| can pass |x| to |f|.
+In particular, |duplicate| can pass two copies of |x| to two copies of |f|.
 
 Pattern matching on a value of type |Ur a| yields a payload of multiplicity
 $[[{omega}]]$, even when the scrutinee has multiplicity $[[{1}]]$. In general, given a
@@ -545,6 +548,7 @@ constraints}. Once these capabilities are consumed, the array can no
 longer be read from or written to without triggering a compile time
 error.
 
+\nw{I think this paragraph is out of place. We should also say where in the paper these shortcomings are addressed}
 A further drawback of today's Linear Haskell is that
 the programmer cannot restrict how a linear function is used.
 For example, suppose we want to use linear types to create
@@ -700,13 +704,13 @@ With all these features working together, we see that |new| returns a non-duplic
 |UArray| tagged with |n|, accessible only when the |constraint(RW n)| constraint is available.
 
 We must also ensure that |read| can both promise to operate only on a readable array
-and that the array remains readable afterwards. That is, |read| must both consume
-a linear constraint |constraint(Read n)| and also produce a fresh linear constraint
-|constraint(Read n)|, as we see in \cref{fig:constraints-interface}, and repeated
-here:
+and that the array remains readable afterwards:
 \begin{code}
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 \end{code}
+That is, |read| must both consume
+a linear constraint |constraint(Read n)| and also produce a fresh linear constraint
+|constraint(Read n)|.
 %% The fact that existential quantification generates new type-level names
 %% is folklore. It's used crucially in the interface of the
 %% |ST| monad~\cite{st-monad} and in type-class
@@ -744,6 +748,7 @@ read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n
 % syntactic sugar for a |case| expression.
 We have now seen all the ingredients needed to write
 the |read2AndDiscard| example as in \cref{sec:introduction}.
+\nw{I think we kill this last sentence}
 
 \subsection{Minimal Examples}
 \label{sec:examples}
@@ -754,6 +759,8 @@ limited resources allows the typechecker to reject certain classes
 of ill-behaved programs. Accordingly, the following examples show the
 different reasons a program might be rejected.
 
+\nw{I probably doesn't matter, but I would have defined |use :: forall c . constraint (c) =>. Int| and
+pass in |C| as a type application.}
 In what follows, we will be using a constraint |constraint (C)| that is consumed by the |useC|
 function.
 \begin{code}
@@ -800,13 +807,13 @@ notNeglecting = const useC 10
 is accepted, because the |constraint (C)| constraint is passed on to |useC| which itself
 appears as an argument to a linear function (whose result is itself consumed linearly).
 
-\subsubsection{Overusing}
+\subsubsection{Indulging}
 \label{sec:overusing}
 
 Finally, the following program is rejected because it uses |C| twice:
 \begin{code}
-overusing :: constraint (C) =>. (Int, Int)
-overusing = (useC, useC)
+indulging :: constraint (C) =>. (Int, Int)
+indulging = (useC, useC)
 \end{code}
 %
 % However, the
@@ -876,8 +883,8 @@ constructor function can immediately be misused, violating the assumption of uni
 \begin{code}
 new :: Int -> MArray a
 
-bad = let arr = new 5 in (arr, arr)
-badToo = Ur (new 5)
+forge = let arr = new 5 in (arr, arr)
+smuggle = Ur (new 5)
 \end{code}
 %
 However, with linear constraints, we can overcome this problem by putting the
@@ -887,10 +894,10 @@ new :: constraint(Unique) =>. Int -> MArray a
 \end{code}
 Suppose we have assumed the |constraint(Unique)| constraint linearly; that is,
 we must use the |constraint(Unique)| assumption precisely once. Now, our definition
-for |bad| is rejected: either we infer |arr| to have multiplicity~$[[{omega}]]$,
+for |forge| is rejected: either we infer |arr| to have multiplicity~$[[{omega}]]$,
 in which case its definition uses |constraint(Unique)| $[[{omega}]]$ times; or
 we infer |arr| to have multiplicity~$[[{1}]]$, in which case its use (twice) violates
-the linearity restriction. Likewise, the use of |Ur| in |badToo| requires using
+the linearity restriction. Likewise, the use of |Ur| in |smuggle| requires using
 the |constraint(Unique)| assumption $[[{omega}]]$ times.
 
 This is promising so far, but several problems remain:
@@ -943,16 +950,21 @@ uniqueness without heavy use of continuations.
 \subsection{Borrowing slices}
 \label{sec:borrowing-slices}
 
-As an introduction to a style that will be used a lot throughout this section,
-let us start with answering the question of: how can we extend the purely
-functional mutable array interface of \cref{fig:constraints-interface} so that
-we can take subarrays (hereafter referred to as a \emph{slices}) of arrays.
+Managing mutuable arrays is an important use case for linearly qualified types,
+since many algorithms are split into subalgorithms that work on a particular
+given subarray, or \emph{slice}, before returning control to the main algorithm.
+
+% As an introduction to a style that will be used a lot throughout this section,
+% let us start with answering the question of: how can we extend the purely
+% functional mutable array interface of \cref{fig:constraints-interface} so that
+% we can take subarrays (hereafter referred to as a \emph{slices}) of arrays.
 
 \subsubsection{Simple slices}
 \label{sec:simple-slices}
 
 %format sub1 = "\Varid sub \ensuremath{_1}"
 
+\nw{I think |sub| should probably be named |slice|: there are so many other "sub" things.}
 A first intuition may be to add a function looking like this:
 \begin{code}
 sub1 :: constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. Ur (UArray a p) .<= constraint(RW p)
@@ -1066,6 +1078,7 @@ didn't want to rely on higher-order constraints in this article, as we feel that
 the additional complications to \cref{sec:constraint-solver} would obscure the
 exposition. Either way, we haven't made our mind whether the explicit style or
 implicit style is preferable in a fully fledged programming language.
+\nw{We should rephrase this! Not making up our mind sounds too informal}
 
 \subsubsection{Slicing in two}
 \label{sec:slicing-two}
