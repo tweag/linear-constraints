@@ -1002,12 +1002,11 @@ tail of |bs|, that is |sub bs 1 (len - 1)| (where |len| is the length of |bs|).
 \info{I'm using insertion sort as an example here to set up the merge sort
   example below.}
 \critical{I'm using length here, we need to define it somewhere}
+\critical{I'm using unless here, we need to define it somewhere}
 \begin{code}
 insertSort :: constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
 insertSort as =
-  if length as <= 1 then
-    Linearly.return ()
-  else Linearly.do
+  unless (length as <= 1) $ Linearly.do
     Ur a <- read 0 as
     (Ur tail, release) <-sub as 1 (len - 1)
     insertSort tail
@@ -1017,9 +1016,7 @@ insertSort as =
 
 insert :: constraint(RW n) =>. a -> UArray a n -> Ur a .<= constraint(RW n)
 insert a bs =
-  if length bs == 0 then
-    Linearly.return (Ur a)
-  else Linearly.do
+  unless (length bs == 0) $ Linearly.do
     Ur b <- read b in
     if a <= b then
       Linearly.return (Ur a)
@@ -1128,9 +1125,7 @@ is why we need the |slice| function in |mergeSort| to even be able to call
 \begin{code}
 mergeSort ::  constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
 mergeSort as =
-  if length as <= 1 then
-    Linearly.return ()
-  else
+  unless (length as <= 1) $ Linearly.do
     (Ur(ls, rs), release) <- slice as (len / 2)
     mergeSort ls
     mergeSort rs
@@ -1138,9 +1133,7 @@ mergeSort as =
 
 merge ::  constraint((RW p, RW q)) =>. UArray a p -> UArray a q -> () .<= constraint((RW p, RW q))
 merge ls rs =
-  if length ls == 0 || length rs == 0 then
-    List.return ()
-  else Linearly.do
+  unless (length ls == 0 || length rs == 0) $ Linearly.do
     Ur l <- read ls
     Ur r <- read rs
     if l <= r then Linearly.do
