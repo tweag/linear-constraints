@@ -1624,6 +1624,8 @@ absent), |get| returns the read and write permissions to the map, otherwise, it
 borrows the corresponding cell. With this, we can easily write a |set| function
 with the above specification.
 
+\unsure{This is a case where we can't easily make the pack constructor disappear
+  with a do notation. It's possible, but more verbose.}
 \begin{code}
 set :: constraint(RW s) =>. Map v s -> Int -> v -> () .<= constraint(RW s)
 set vs i v = case get vs i of
