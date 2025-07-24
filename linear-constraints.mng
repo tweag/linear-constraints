@@ -1597,6 +1597,10 @@ imperative language.\jp{IMO we're reaching the limit of the system here.}
 \subsection{Self-referential borrows}
 \label{sec:self-borrow}
 
+\subsection{Capabilities in monadic computations}
+\label{sec:monad-capability}
+
+
 \subsection{Former intro}
 \change{All the section, below this point, is to be removed, integrating
   whatever we feel like}
@@ -3315,6 +3319,17 @@ make linear constraints easier to use.
 \label{sec:design-considerations}
 
 \critical{TODO}
+
+\subsection{Variation on release function}
+\label{sec:unrestricted-release}
+
+\subsection{Linearly vs sticky scopes}
+\label{sec:linearly-vs-sticky}
+
+\subsection{Further considerations on freezing}
+\label{sec:freezing-in-details}
+
+\unsure{I don't know yet whether we will need this space}
 
 \section{Related work}
 \label{sec:related-work}
