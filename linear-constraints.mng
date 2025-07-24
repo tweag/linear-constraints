@@ -1594,6 +1594,10 @@ imperative language.\jp{IMO we're reaching the limit of the system here.}
 \subsection{Non-lexical lifetimes}
 \label{sec:nl-lifetimes}
 
+\unsure{In this section and the next, it sounds like if I'm trying to say that
+  we're better than Rust or something. This isn't the intent, the intent is to
+  look at Rust for inspiration for interesting examples. How do I sound less
+  callous?}
 In early versions of the Rust programming language, borrows were, for all
 intents and purposes, bound to lexical scopes. This turned out to be too coarse
 grained, rejecting natural sound programs. This became known as the problem of
@@ -1643,6 +1647,35 @@ pattern at no cost.
 
 \subsection{Self-referential borrows}
 \label{sec:self-borrow}
+
+Another, this one current, pattern which Rust doesn't support is what has been
+known as ``self-referential borrows'' by the community. The problem is as
+follow: borrowed value |b| can't outlive the (owned) value |o| it borrows from, but as
+long as |o| and |b| are paired together in a record, we know that |o| doesn't
+die, so |b| remains valid. A typical example is an array |o| paired with a
+slice of |o|. Such a pair shouldn't have restrictions on its lifetime, but Rust
+can't express the relationship between the fields.
+
+In our presentation, this can't-outlive requirement is enforced by the release
+function: as the release function is linear we must use the release function to
+return, say, read and write capabilities to |o|, which must then be disposed of
+some way. Until that happens, |o| lives. Making a self-referential borrow is as
+easy as storing not only the original value and the borrow, but also the release
+function.
+
+\begin{code}
+data Buffer s a n =
+  MkBuffer :: NArray a s -> Slice a n -> (constraint(RW n) =>. () .<= constraint(RW s)) ->. Buffer s a n
+\end{code}
+It may be convenient to existentially quantify over the region argument |s| of
+the |NArray|, making a |Buffer| look very similar to a slice.
+
+Note that buffers define in this manner are always going to be linear values,
+rather than unrestricted value with linear constraints like our arrays and
+matrices so far. Here both the value and the constraints are linear. This is
+because a |Buffer| contains a release function, which is always linear. It may
+make |Buffer| less convenient to use than it should, we revisit this aspect
+in~\cref{sec:unrestricted-release}.
 
 \subsection{Capabilities in monadic computations}
 \label{sec:monad-capability}
@@ -3367,7 +3400,7 @@ make linear constraints easier to use.
 
 \critical{TODO}
 
-\subsection{Variation on release function}
+\subsection{Variation on release functions}
 \label{sec:unrestricted-release}
 
 \subsection{Linearly vs sticky scopes}
