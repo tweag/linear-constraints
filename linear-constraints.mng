@@ -379,11 +379,11 @@ With our extension, we can write a new pure version of |read2AndDiscard| which d
 not require explicit threading of the array:
 \begin{code}
 read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
-read2AndDiscard arr =
-  let   pack x   =  read arr 0
-        pack y   =  read arr 1
-        pack ()  =  free arr
-  in (x, y)
+read2AndDiscard arr = Linearly.do
+  x   <-  read arr 0
+  y   <-  read arr 1
+  free arr
+  Linearly.return (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
 read and write access to the array,
@@ -1005,30 +1005,30 @@ tail of |bs|, that is |sub bs 1 (len - 1)| (where |len| is the length of |bs|).
 \begin{code}
 insertSort :: constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
 insertSort as =
-  let  pack (Ur len) = length as in
-  if len <= 1 then pack ()
-  else
-    let   pack (Ur    a)           =  read 0 as
-          pack (Ur tail, release)  =  sub as 1 (len - 1)
-          pack ()                  =  insertSort tail
-          pack (Ur a')             =  insert a tail
-          pack ()                  =  release
-          pack ()                  =  write as 0 a'
-    in pack ()
+  if length as <= 1 then
+    Linearly.return ()
+  else Linearly.do
+    Ur a <- read 0 as
+    (Ur tail, release) <-sub as 1 (len - 1)
+    insertSort tail
+    Ur a' <- insert a tail
+    release
+    write as 0 a'
 
 insert :: constraint(RW n) =>. a -> UArray a n -> Ur a .<= constraint(RW n)
 insert a bs =
-  let  pack (Ur len)  =  length bs in
-  if len == 0 then pack (Ur a)
-  else
-    let  pack (Ur b)  =  read b in
-    if a <= b then pack (Ur a)
-    else
-      let  pack (Ur tail, release)  =  sub bs 1 (len - 1)
-           pack (Ur b')             =  insert a tail
-           pack ()                  =  release
-           pack ()                  =  write bs 0 b'
-      in pack (Ur b)
+  if length bs == 0 then
+    Linearly.return (Ur a)
+  else Linearly.do
+    Ur b <- read b in
+    if a <= b then
+      Linearly.return (Ur a)
+    else Linearly.do
+      (Ur tail, release) <- sub bs 1 (len - 1)
+      Ur b' <- insert a tail
+      release
+      write bs 0 b'
+      Linearly.return (Ur b)
 \end{code}
 
 % \improvement{Define swap somewhere? The code is in comments below}
@@ -1128,38 +1128,32 @@ is why we need the |slice| function in |mergeSort| to even be able to call
 \begin{code}
 mergeSort ::  constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
 mergeSort as =
-  let   pack (Ur len)  =  length as in
-  if len <= 1 then pack ()
+  if length as <= 1 then
+    Linearly.return ()
   else
-    let  pack (Ur(ls, rs), release)  =  slice as (len / 2)
-         pack ()                     =  mergeSort ls
-         pack ()                     =  mergeSort rs
-         pack ()                     =  merge ls rs
-    in pack ()
+    (Ur(ls, rs), release) <- slice as (len / 2)
+    mergeSort ls
+    mergeSort rs
+    merge ls rs
 
 merge ::  constraint((RW p, RW q)) =>. UArray a p -> UArray a q -> () .<= constraint((RW p, RW q))
 merge ls rs =
-  let  pack (Ur len1)  =  length ls
-       pack (Ur len2)  =  length rs
-  in
-  if len1 == 0 || len2 == 0 then pack ()
-  else
-    let  pack (Ur l)  =  read ls
-         pack (Ur r)  =  read rs
-    in
-    if l <= r then
-      let  pack (Ur (_, ls'), release)  =  slice ls 1
-           pack ()                      =  merge ls' rs
-           pack ()                      =  release
-      in pack ()
-    else
-      let  pack ()                 =  write ls 0 r
-           pack (Ur ls', release)  =  slice 1 ls
-           pack (Ur r')            =  insert l rs
-           pack ()                 =  write rs 0 r'
-           pack ()                 =  merge ls' rs
-           pack ()                 =  release
-      in pack ()
+  if length ls == 0 || length rs == 0 then
+    List.return ()
+  else Linearly.do
+    Ur l <- read ls
+    Ur r <- read rs
+    if l <= r then Linearly.do
+      (Ur (_, ls'), release) <- slice ls 1
+      merge ls' rs
+      release
+    else Linearly.do
+      write ls 0 r
+      (Ur ls', release) <- slice 1 ls
+      Ur r' <- insert l rs
+      write rs 0 r'
+      merge ls' rs
+      release
 \end{code}
 
 It's worth noting that, despite being a very simple function, |slice| is very
@@ -1170,10 +1164,10 @@ partially discharging the linear constraint of the release functions.
 \begin{code}
 sub ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
         exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
-sub as start len =
-  let  pack  (Ur (_, rght), release_r)  =  slice as start
-       pack  (Ur (sb, _), release_s)    =  slice rght len
-  in (Ur sb, (let {pack () = release_s; pack () = release_r} in ()))
+sub as start len = Linearly.do
+  (Ur (_, rght), release_r) <-  slice as start
+  (Ur (sb, _), release_s) <-  slice rght len
+  Linearly.return (Ur sb, Linearly.do {release_s; release_r})
 
 \end{code}
 
@@ -1252,7 +1246,7 @@ w p n q =
   if size p <= 1 && size q <= 1
   then return ()
   else if size p > size q
-    then do
+    then Linearly.do
       let i = size p `div` 2
       (a,x,b) <- splitUpperMatrix p i
       (y,z) <- splitMatrixV n i
@@ -1260,7 +1254,7 @@ w p n q =
       multiplyMatricesInto y x z
       w a y q
       joinUpperMatrix a x b; joinMatrices y z
-    else do
+    else Linearly.do
       let i = size q `div` 2
       (a,z,b) <- splitUpperMatrix q i
       (x,y) <- splitMatrixH n i
@@ -1435,12 +1429,12 @@ handful of unsafe primitives to provide or consume capabilities.
 unsafeRead :: () .<= constraint(Read n)
 unsafeWrite :: () .<= constraint(Write n)
 unsafeRW :: () .<= constraint(RW n)
-unsafeRW = let { pack () = unsafeRead; pack () = unsafeWrite } in pack ()
+unsafeRW = Linearly.do { unsafeRead; unsafeWrite }
 
 unsafeConsumeRead :: constraint(Read n) =>. ()
 unsafeConsumeWrite :: constraint(Write n) =>. ()
 unsafeConsumeRW :: constraint(RW n) =>. ()
-unsafeConsumeRW = let { () = unsafeConsumeRead; () = unsafeConsumeWrite } in ()
+unsafeConsumeRW = Linearly.do { unsafeConsumeRead; unsafeConsumeWrite }
 \end{code}
 These aren't user facing, as they would make the library unsound. They are only
 used as part of the implementation of our array and slice library.
@@ -1459,8 +1453,8 @@ An array can be converted into a slice which spans the whole array
 \begin{code}
 fullSlice :: constraint(RW n) =>. NArray a n -> exists p. (Ur (Slice a p), constraint(RW p) =>. () .<= constraint(RW n)) .<= constraint(RW p)
 fullSlice as =
-  pack (  (UnsafeMkSlice { borrowS = borrowNA as, writeS = writeNA as }),
-          pack ())
+  Linearly.return (  (UnsafeMkSlice { borrowS = borrowNA as, writeS = writeNA as }),
+                     Linearly.return ())
 \end{code}
 
 More interestingly, we can lift any borrow operation on the inner type |a| to a
@@ -1470,16 +1464,16 @@ function until we borrow an inner value from the slice.
 borrowDeep ::  constraint(RW n) =>. Slice a n ->
                (forall p. constraint(RW p) =>. a p -> exists q. (Ur (b p), (constraint(RW b) =>. () .<= constraint(RW p)))) ->
                exists r. (Ur (Slice b r), constraint(RW r) =>. () .<= constraint(RW n))
-borrowDeep as brw = pack (
+borrowDeep as brw = Linearly.return (
   UnsafeMkSlice {
-      borrowS = \i ->
-        let  pack  (Ur a, release_a)  =  borrowS as i
-             pack  (Ur b, release_b)  =  brw a
-       in
-       pack  (Ur b, let { pack() = release_b; pack() = release_a } in pack())
+      borrowS = \i -> Linearly.do
+        (Ur a, release_a)  <-  borrowS as i
+        (Ur b, release_b)  <-  brw a
+        Linearly.return (Ur b, Linearly.do { release_b; release_a })
       writeS =
          error "Attempt to write to a borrowed space" },
-  (pack ()) )
+  (Linearly.return ()) )
+
 borrowDeepR ::  constraint(Read n) =>. Slice a n ->
                 (forall p. constraint(Read p) =>. a p -> exists q. (Ur (b p), (constraint(Read b) =>. () .<= constraint(Read p)))) ->
                 exists r. (Ur (Slice b r), constraint(Read r) =>. () .<= constraint(Read n))
