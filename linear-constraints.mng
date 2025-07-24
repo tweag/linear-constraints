@@ -1594,6 +1594,51 @@ imperative language.\jp{IMO we're reaching the limit of the system here.}
 \subsection{Non-lexical lifetimes}
 \label{sec:nl-lifetimes}
 
+In early versions of the Rust programming language, borrows were, for all
+intents and purposes, bound to lexical scopes. This turned out to be too coarse
+grained, rejecting natural sound programs. This became known as the problem of
+non-lexical lifetimes (see \emph{e.g.}~\cite{non-lexical-lifetime-blog}). Rust
+has since implemented non-lexical lifetime, however in capability-based systems,
+including capabilities encoded as linear constraints, non-lexical lifetimes are
+for free.
+
+A typical example of non-lexical lifetimes consists in the following: we have a
+map attaching references to keys, if a key is present we want to update the
+corresponding reference, otherwise we want to create a new reference at that
+key.
+
+We can model this problem with the following \textsc{api}, where references are
+taken to be arrays known to have exactly one cell.
+
+\begin{code}
+type Ref a s = UArray a s
+
+type Map :: Type -> Reg -> Type
+get ::  constraint(RW s) =>. Map v s -> Int ->
+        Either (() .<= constraint(RW s)) (exists r. (Ref v r, constraint(RW r) =>. () .<= constraint(RW s)) .<= constraint(RW r))
+add :: constraint(RW s) =>. Map v s -> Int -> v -> () .<= constraint(RW s)
+\end{code}
+
+The |get| function is the most interesting: if the key (here an |Int| is
+absent), |get| returns the read and write permissions to the map, otherwise, it
+borrows the corresponding cell. With this, we can easily write a |set| function
+with the above specification.
+
+\begin{code}
+set :: constraint(RW s) =>. Map v s -> Int -> v -> () .<= constraint(RW s)
+set vs i v = case get vs i of
+  Right (pack (rv, release)) -> Linearly.do {write rv 0 v; release}
+  Left (pack ()) -> add vs i v
+\end{code}
+
+The difficulty, when lifetimes are lexical, is that the borrow from |vs|, which
+comes from the |case| scrutinee, remains in the |Right| branch (hence |vs| is
+inaccessible here), but is written to directly in the |Left| branch. There is no
+lexical scope which encompasses the scrutinee and the |Right| branch but not the
+|Left| branch. With linear constraints and capabilities, it's explicit in the
+type of |get| that the |Left| branch doesn't borrow, so we get this non-lexical
+pattern at no cost.
+
 \subsection{Self-referential borrows}
 \label{sec:self-borrow}
 
