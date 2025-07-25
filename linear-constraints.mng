@@ -1515,7 +1515,7 @@ The |read| function is a little more involved, since it involves a borrow. But
 the borrow is degenerate since we're borrowing a value of type |Val a|.
 
 \begin{code}
-read :: MArray a ->. Int -> (MArray a, Ur a)
+read :: UArray a ->. Int -> (UArray a, Ur a)
 read (OwnedArray as) i = Linearly.do
   (Ur (Val a), release) <- borrowNA as i
   release
