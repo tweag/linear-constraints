@@ -1386,7 +1386,7 @@ Since |Val| isn't an abstract type, its free to ignore its capabilities (which
 is fine since no mutation can occur in a |Val a r|). We provide unrestricted
 read and write access to |Val| since neither do anything, but they'll be needed
 to interface with the array functions\critical{We can only do this if we change
-  the solver!}. With this, a matrix of integers can have
+  the solver!}. With this, a matrix  can have
 type:
 \begin{code}
 type Matrix0 a n = NArray (NArray (Val a)) n
