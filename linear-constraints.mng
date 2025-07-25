@@ -1013,6 +1013,7 @@ insertSort as =
     Ur a' <- insert a tail
     release
     write as 0 a'
+    Linearly.return ()
 
 insert :: constraint(RW n) =>. a -> UArray a n -> Ur a .<= constraint(RW n)
 insert a bs =
@@ -1130,6 +1131,7 @@ mergeSort as =
     mergeSort ls
     mergeSort rs
     merge ls rs
+    Linear.return ()
 
 merge ::  constraint((RW p, RW q)) =>. UArray a p -> UArray a q -> () .<= constraint((RW p, RW q))
 merge ls rs =
@@ -1140,6 +1142,7 @@ merge ls rs =
       (Ur (_, ls'), release) <- slice ls 1
       merge ls' rs
       release
+      Linear.return ()
     else Linearly.do
       write ls 0 r
       (Ur ls', release) <- slice 1 ls
@@ -1147,6 +1150,7 @@ merge ls rs =
       write rs 0 r'
       merge ls' rs
       release
+      Linear.return ()
 \end{code}
 
 It's worth noting that, despite being a very simple function, |slice| is very
@@ -1422,12 +1426,12 @@ handful of unsafe primitives to provide or consume capabilities.
 unsafeRead :: () .<= constraint(Read n)
 unsafeWrite :: () .<= constraint(Write n)
 unsafeRW :: () .<= constraint(RW n)
-unsafeRW = Linearly.do { unsafeRead; unsafeWrite }
+unsafeRW = Linearly.do { unsafeRead; unsafeWrite ; Linear.return ()}
 
 unsafeConsumeRead :: constraint(Read n) =>. ()
 unsafeConsumeWrite :: constraint(Write n) =>. ()
 unsafeConsumeRW :: constraint(RW n) =>. ()
-unsafeConsumeRW = Linearly.do { unsafeConsumeRead; unsafeConsumeWrite }
+unsafeConsumeRW = Linearly.do { unsafeConsumeRead; unsafeConsumeWrite ; Linear.return ()}
 \end{code}
 These aren't user facing, as they would make the library unsound. They are only
 used as part of the implementation of our array and slice library.
@@ -1445,9 +1449,9 @@ data Slice a n = UnsafeMkSlice {
 An array can be converted into a slice which spans the whole array
 \begin{code}
 fullSlice :: constraint(RW n) =>. NArray a n -> exists p. (Ur (Slice a p), constraint(RW p) =>. () .<= constraint(RW n)) .<= constraint(RW p)
-fullSlice as =
-  Linearly.return (  (UnsafeMkSlice { borrowS = borrowNA as, writeS = writeNA as }),
-                     Linearly.return ())
+fullSlice as = Linearly.return
+  (  (UnsafeMkSlice { borrowS = borrowNA as, writeS = writeNA as }),
+     Linearly.return ())
 \end{code}
 
 More interestingly, we can lift any borrow operation on the inner type |a| to a
