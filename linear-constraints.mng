@@ -1226,7 +1226,7 @@ v n =
 \end{code}
 The splitting and joining of upper triangular matrices is prodived by the functions:
 
-> splitUpperMartix :: constraint (RW n) =>. Matrix a n -> Int -> exists m l r. Ur (Matrix a l, Matrix a m, Matrix a r) .<= constraint ((RW l, RW r, TriSlices n m l r))
+> splitUpperMatrix :: constraint (RW n) =>. Matrix a n -> Int -> exists m l r. Ur (Matrix a l, Matrix a m, Matrix a r) .<= constraint ((RW l, RW r, TriSlices n m l r))
 > joinUpperMatrix :: constraint ((TriSlices n m l r, RW r , RW m, RW l)) =>. Matrix a l -> Matrix a m -> Matrix a r -> Ur (Matrix a n) .<= constraint (RW n)
 
 The helper |w p n q| is somewhat more involved. It won't touch the
@@ -1246,7 +1246,7 @@ w p n q =
     then Linearly.do
       let i = size p `div` 2
       (a,x,b) <- splitUpperMatrix p i
-      (y,z) <- splitMatrixV n i
+      (y,z) <- sliceMatrixV n i
       w b z q
       multiplyMatricesInto y x z
       w a y q
@@ -1254,7 +1254,7 @@ w p n q =
     else Linearly.do
       let i = size q `div` 2
       (a,z,b) <- splitUpperMatrix q i
-      (x,y) <- splitMatrixH n i
+      (x,y) <- sliceMatrixH n i
       w p x a
       multiplyMatricesInto y x z
       w p y b
@@ -1303,8 +1303,8 @@ w p n q =
 \end{figure}
 The splitting and joining of general rectangular matrices follows the usual pattern (and in fact, can be used to implement such operations on triangular matrices).
 
-> splitMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, MatSlices n l r))
-> splitMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, MatSlices n l r))
+> sliceMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, MatSlices n l r))
+> sliceMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, MatSlices n l r))
 > joinMatrices :: constraint ((MatSlices n l r, RW r, RW l)) =>. Matrix a l -> Matrix a r -> Ur (Matrix a n) .<= constraint (RW n)
 
 We won't detail the underlying matrix multiplication; but its signature is the following.
@@ -1389,7 +1389,7 @@ to interface with the array functions\critical{We can only do this if we change
   the solver!}. With this, a matrix of integers can have
 type:
 \begin{code}
-type Matrix0 n = NArray (NArray (Val Int)) n
+type Matrix0 a n = NArray (NArray (Val a)) n
 \end{code}
 This isn't quite the type that we will use to represent the matrices of
 \cref{sec:valiant}, because in this section it will be convenient to have a
@@ -1397,8 +1397,8 @@ separate type for full arrays (|NArray|) and slices (|Slice| below).
 
 \begin{code}
 newNArray :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. NArray a n .<= constraint(RW n)
-borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (a p, (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
-borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (a p, (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
+borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
 writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
 
@@ -1454,9 +1454,99 @@ fullSlice as = Linearly.return
      Linearly.return ())
 \end{code}
 
-More interestingly, we can lift any borrow operation on the inner type |a| to a
-borrow on slices. The idea is simple: we delay actually calling the inner borrow
-function until we borrow an inner value from the slice.
+More interestingly, we can slice a |Slice| in two\unsure{The type applications
+  are a bit of a lie here. But this is already quite a complicated function, so
+  I don't know whether we should go even more in the weeds. In fact, I don't
+  even think the test of this function really helps at anything. It was meant as
+  evidence that, yes, this can be done, but I don't like it anymore.}
+\begin{code}
+sliceS ::  constraint(RW n) =>. Slice a n -> Int ->
+           exists p q. (Ur (Slice a p, Slice a q), (constraint(RW p, RW q) =>. () .<= constraint(RW n))) .<= constraint(RW p, RW q)
+sliceS as i = Linearly.return
+   (  ( UnsafeMkSlice {
+          borrowS = (\j ->
+            if j > i then
+              error "Index out of bound"
+            else Linearly.do
+              unsafeRw @n
+              borrowS as j),
+          writeS = (\j v ->
+            if j > i then
+              error "Index out of bound"
+            else
+              unsafeRw @n
+              writeS as j v )},
+        UnsafeMkSlice {
+          borrowS = (\j -> Linearly.do
+             unsafeRW @n
+             borrowS as (i+j)),
+          writeS = (\j v -> Linearly.do
+            unsafeRW @n
+            writeS as (i+j) v) }),
+      (Linearly.do { unsafeConsumeRW @p; unsafeConsumeRW @q; Linearly.return () }) )
+\end{code}
+Note that the implementation uses unsafe creation and consumption of
+capabilities, since it creates a new access pattern. As the library author, we
+must, in exchange, ensure that this access pattern doesn't create aliases.
+
+\paragraph*{Implementing UArray}
+\label{sec:implementing-uarray}
+
+With these primitives in hands we can give an implementation to the |UArray|
+type of \cref{sec:borrowing-slices} and up. Since in
+\cref{sec:borrowing-slices}, we use the same a type for owned arrays and slice,
+we implement it as a sum type.
+
+\begin{code}
+data UArray a n
+  = OwnedArray (NArray (Val a) n)
+  | SliceArray (Slice (Val a) n)
+\end{code}
+
+We can, for instance, write the |write| function
+
+\begin{code}
+write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
+write (OwnedArray as) i a = writeNA as i (Val a)
+write (SliceArray as) i a = writeS as i (Val a)
+\end{code}
+
+The |read| function is a little more involved, since it involves a borrow. But
+the borrow is degenerate since we're borrowing a value of type |Val a|.
+
+\begin{code}
+read :: MArray a ->. Int -> (MArray a, Ur a)
+read (OwnedArray as) i = Linearly.do
+  (Ur (Val a), release) <- borrowNA as i
+  release
+  Linear.return (Ur a)
+read (SliceArray as) i = Linearly.do
+  (Ur (Val a), release) <- borrowS as i
+  release
+  Linear.return (Ur a)
+\end{code}
+
+As a final example, here is the implementation of the |slice| function.
+
+\begin{code}
+slice ::  constraint(RW n) =>. UArray a n -> Int ->
+          exists p q. (Ur (UArray a p, UArray a q), (constraint(RW p, RW q) =>. () .<= constraint(RW n))) .<= constraint((RW p, RW q))
+slice (OwnedArray as) i = Linearly.do
+  (Ur as', release_top) <- fullSlice as
+  (Ur (SliceArray l, SliceArray r), release_slices) <- sliceS as' i
+  Linearly.return (Ur (l, r), do { release_slices; release_top })
+slice (SliceArray as) i = Linearly.do
+  (Ur (l, r), release_slices) <- sliceS as i
+  Linearly.return (Ur (SliceArray l, SliceArray r), release_slices)
+\end{code}
+
+\paragraph*{Deep borrowing and slicing}
+\label{sec:deep-slicing}
+
+The motivation for defining the |Slice| type, however, is that we can lift any
+borrow operation on the inner type |a| to a borrow on slices. The idea is
+simple: we delay actually calling the inner borrow function until we borrow an
+inner value from the slice.
 \begin{code}
 borrowDeep ::  constraint(RW n) =>. Slice a n ->
                (forall p. constraint(RW p) =>. a p -> exists q. (Ur (b p), (constraint(RW b) =>. () .<= constraint(RW p)))) ->
@@ -1466,7 +1556,7 @@ borrowDeep as brw = Linearly.return (
       borrowS = \i -> Linearly.do
         (Ur a, release_a)  <-  borrowS as i
         (Ur b, release_b)  <-  brw a
-        Linearly.return (Ur b, Linearly.do { release_b; release_a })
+        Linearly.return (Ur b, Linearly.do { release_b; release_a }),
       writeS =
          error "Attempt to write to a borrowed space" },
   (Linearly.return ()) )
@@ -1485,16 +1575,67 @@ operation. Fortunately, slices are always borrowed, and attempting to write a
 slice to an array cell would result in a static error: the release function
 hasn't been called.
 
-\change{TODO}
-\paragraph*{Implementing UArray}
-\label{sec:implementing-uarray}
-
-\paragraph*{Deep slicing}
-\label{sec:deep-slicing}
+Similarly we can lift a slicing function on the inner |a| with the following
+functions
+\begin{code}
+sliceDeep
+  ::  constraint(RW n) =>. Slice a n ->
+      (forall p. constraint(RW p) =>. a p -> exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
+      exists q. constraint((RW o, RW q)) =>. (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
+sliceDeepR
+  ::  constraint(Read n) =>. Slice a n ->
+      (forall p. constraint(Read p) =>. a p -> exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
+      exists q. constraint((Read o, Read q)) =>. (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
+\end{code}
+We're omitting their implementation because it's becomes a little involved
+without being meaningfully different form the other borrowing functions we've
+seen so far. The idea is the same as deep borrowing: the slicing function is
+suspended until a borrows is called. But when we borrow, we only need one of the
+two produce slices, so we return the other one immediately. Note that the type
+of the inner slicing function is slightly abstracted compared to the type of
+`sliceS`: it doesn't take an integer argument, which we assume to be captured by
+the closure.
 
 \paragraph*{Implementing Matrix}
 \label{sec:implementing-matrix}
 
+This is enough material to implement the |Matrix| type from \cref{sec:valiant}.
+Like arrays, matrices are implemented as a disjunction
+\begin{code}
+data Matrix a n
+  = OwnedMatrix (NArray (NArray (Val a)) n)
+  | SliceMatrix (Slice (Slice (Val a)) n)
+\end{code}
+
+We can see the deep borrowing and slicing functions at work, for instance, in
+the |sliceMatrixV| function, which splits a matrix vertically into a top matrix
+and a bottom matrix.
+\begin{code}
+sliceMatrixV ::  constraint(RW n) =>. Matrix a n -> Int ->
+                 exists p q. (Ur (Matrix p, Matrix q), constraint((RW p, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW p, RW q))
+sliceMatrixV (OwnedMatrix m) row_num = Linearly.do
+  (Ur m', release_top) <- fullSlice m
+  (Ur m'', release_top_deep) <- borrowDeep m' fullSlice
+  (Ur (t, b), release_slices) <- sliceDeep m'' (\col -> slice col row_num)
+  Linearly.return (
+    Ur (SliceMatrix t, SliceMatrix b),
+    Linearly.do { release_slices; release_top_deep; release_top })
+sliceMatrixV (SliceMatrix m) row_num = Linearly.do
+  (Ur (t, b), release_slices) <- sliceDeep m (\col -> slice col row_num)
+  Linearly.return (Ur (SliceMatrix t, SliceMatrix b), release_slices )
+\end{code}
+Notice how we use |borrowDeep| in the |OwnedMatrix| case to convert an |Array
+(Array _)| into a |Slice (Slice _)|. The rest of the matrix functions follow
+easily.
+
+As promised our nested array \textsc{api} is general enough to support slicing
+along both dimension of matrices. Of course, there's nothing special about
+matrices, higher dimension tensors would work as well. The key to all this is
+that all this flexibility follows from the theory of linear constraints, which
+is a natural extension of Haskell's constraints. Constraints can be captured in
+closure, and in existential types (or \textsc{gadt}s in real-life Haskell),
+which affords us a lot of programming techniques. We don't have to develop any
+\emph{ad hoc} theory of capabilities.
 
 \subsection{Freezing nested structures}
 \label{sec:o1-freeze}
@@ -4407,7 +4548,7 @@ $$
 
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar subarray
-% LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable
+% LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable disjunction
 % LocalWords:  combinator sigils equalities wanteds intuitionistic
 % LocalWords:  sequents implicational deallocate deallocating monadic
 % LocalWords:  deallocated instantiations desugars unioned
