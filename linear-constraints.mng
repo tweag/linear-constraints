@@ -216,7 +216,7 @@ import GHC.Base
 \jnlDoiYr{2025}
 \doival{10.1017/xxxxx} % dummy value
 
-\title{Linearly Qualified Types\\Generic Inference for Capabilities and Uniqueness \nw{This title is too long}}
+\title{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
 \righttitle{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
 
 \begin{authgrp}
@@ -244,10 +244,10 @@ import GHC.Base
 % I don't know why this isn't computed automatically
 \lefttitle{A. Spiwack, C. Kiss, J.-P. Bernardy, N. Wu, R. A.~Eisenberg}
 
-\begin{keywords}
-  GHC, Haskell, linear logic, linear types, constraints, qualified types,
-  inference
-\end{keywords}
+% \begin{keywords}
+%   GHC, Haskell, linear logic, linear types, constraints, qualified types,
+%   inference
+% \end{keywords}
 
 \begin{abstract}
   A linear parameter must be consumed exactly once in the body of its
@@ -386,10 +386,11 @@ read2AndDiscard arr = Linearly.do
   Linearly.return (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly requires having
-read and write access to the array,
-and pattern-matching against $\packbox$ (read ``pack'') is necessary in order to access the linear constraint
-packed in the result of |read| and |free|. (\Cref{sec:implicit-existentials}
-suggests how we can get rid of $\packbox$, too.)
+read and write access to the array, and the
+use of the qualified |Linearly.do| notation to sequence the appropriate actions.
+% and pattern-matching against $\packbox$ (read ``pack'') is necessary in order to access the linear constraint
+% packed in the result of |read| and |free|. (\Cref{sec:implicit-existentials}
+% suggests how we can get rid of $\packbox$, too.)
 Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
@@ -468,6 +469,10 @@ Our definition is based on the type of the value concerned:
   and then consume all its linear components exactly once.
 \end{itemize}
 \end{definition}
+
+In the case of arrays, we treat |MArray a| as  a 
+
+
 %
 \subsection{Multiplicities}
 \label{sec:multiplicities}
@@ -642,10 +647,10 @@ free :: constraint (RW n) =>. UArray a n -> ()
 
 There are a few things to notice:
 \begin{itemize}
-\item We have introduced a new type variable |n|. In contrast,
-  the version in \Cref{fig:linear-interface} without linear
-  constraints  has type |free :: MArray a ->. ()|.
-  The type variable |n| is a type-level tag used to identify the array.
+\item We have introduced a new type variable |n|, which is a type-level tag
+  used to identify the array. In contrast, the version in
+  \Cref{fig:linear-interface} without linear constraints  has type
+  |free :: MArray a ->. ()|.
   % Ideally, the linear constraint would refer directly to the
   % array value, and have the dependent type |free :: (n :: Array a) -> constraint (RW n) =>. ()|.
   % While giving a compile-time name to a function argument is common in
@@ -661,6 +666,52 @@ There are a few things to notice:
   left to use, thus preventing the array from being used after freeing.
   This is precisely what we were trying to achieve.
 \end{itemize}
+
+Let us now see some examples programs that use |free|. We reject |dithering|
+because it does not unconditionally consume |constraint(RW n)|:
+\begin{code}
+dithering :: constraint (RW n) =>. UArray a n -> Bool -> ()
+dithering arr x = if x then free arr else ()
+\end{code}
+The branch where |x == True| uses the resource |constraint(RW n)|,
+whereas the other branch does not.
+
+Linear constraints can interact with linear functions.
+Consider the type of the linear version of |const|:
+\begin{code}
+const :: a ->. b -> a
+\end{code}
+This function uses its first argument linearly, and ignores the second. Thus,
+the the second arrow is unrestricted.
+%
+One way to improperly use the linear |const| is by neglecting a linear variable:
+\begin{code}
+neglecting :: constraint (RW n) =>. UArray a n -> ()
+neglecting arr = const () (free arr)
+\end{code}
+The problem with |neglecting| is that, although |free| is mentioned in this program,
+it is never consumed: |const| does not use its second argument.
+The constraint |constraint(RW n)| is not consumed exactly once, and
+thus this program is rejected.
+%
+The rule is that a linear constraint can only be consumed (linearly)
+in a linear context. For example,
+\begin{code}
+notNeglecting :: constraint (RW n) =>. UArray a n -> ()
+notNeglecting arr = const (free arr) ()
+\end{code}
+is accepted, because the |constraint (RW n)| constraint is passed on to |free|
+which itself appears as an argument to a linear function (whose result is
+itself consumed linearly).
+
+\label{sec:overusing}
+Finally, the following program is rejected because it uses |RW n| twice:
+\begin{code}
+indulging :: constraint (RW n) =>. UArray a n -> ((), ())
+indulging arr = (free arr, free arr)
+\end{code}
+Although freeing a resource multiple times is usually only considered bad form,
+our type system rules this out completely.
 
 The above deals with freeing an array and ensuring that it cannot be used afterwards.
 However, we still need to explain how a constraint |constraint (RW n)| can come
@@ -746,75 +797,9 @@ a linear constraint |constraint(Read n)| and also produce a fresh linear constra
 % denotes a \emph{strict} binding, necessary for binding the type variables and
 % assuming the constraints carried with |f args|; it can be understood as
 % syntactic sugar for a |case| expression.
-We have now seen all the ingredients needed to write
-the |read2AndDiscard| example as in \cref{sec:introduction}.
-\nw{I think we kill this last sentence}
 
-\subsection{Minimal Examples}
-\label{sec:examples}
 
-To get a sense of how the features that we introduce should behave, we now
-look at some simple examples.\jp{This seems either way too late or redundant. How can anyone understand the previous section without already understanding this? I suggest either to 1. move this into the Linear Haskell section (using regular arguments). or 2. delete.} Using constraints to represent
-limited resources allows the typechecker to reject certain classes
-of ill-behaved programs. Accordingly, the following examples show the
-different reasons a program might be rejected.
 
-\nw{I probably doesn't matter, but I would have defined |use :: forall c . constraint (c) =>. Int| and
-pass in |C| as a type application.}
-In what follows, we will be using a constraint |constraint (C)| that is consumed by the |useC|
-function.
-\begin{code}
-useC :: constraint (C) =>. Int
-\end{code}
-The type of |useC| indicates that it consumes the linear resource |C| exactly once.
-
-\subsubsection{Dithering}
-
-We reject this program:
-\begin{code}
-dithering :: constraint (C) =>. Bool -> Int
-dithering x = if x then useC else 10
-\end{code}
-The problem with |dithering| is that it does not unconditionally consume |constraint(C)|:
- the branch where |x == True| uses the resource |C|,
-whereas the other branch does not.
-
-\subsubsection{Neglecting}
-
-Now consider the type of the linear version of |const|:
-\begin{spec}
-const :: a ->. b -> a
-\end{spec}
-This function uses its first argument linearly, and ignores the second. Thus,
-the the second arrow is unrestricted.
-%
-One way to improperly use the linear |const| is by neglecting a linear variable:
-\begin{code}
-neglecting :: constraint (C) =>. Int
-neglecting = const 10 useC
-\end{code}
-The problem with |neglecting| is that, although |useC| is mentioned in this program,
-it is never consumed: |const| does not use its second argument.
-The constraint |constraint(C)| is not consumed exactly once, and
-thus this program is rejected.
-%
-The rule is that a linear constraint can only be consumed (linearly)
-in a linear context. For example,
-\begin{code}
-notNeglecting :: constraint (C) =>. Int
-notNeglecting = const useC 10
-\end{code}
-is accepted, because the |constraint (C)| constraint is passed on to |useC| which itself
-appears as an argument to a linear function (whose result is itself consumed linearly).
-
-\subsubsection{Indulging}
-\label{sec:overusing}
-
-Finally, the following program is rejected because it uses |C| twice:
-\begin{code}
-indulging :: constraint (C) =>. (Int, Int)
-indulging = (useC, useC)
-\end{code}
 %
 % However, the
 % following version is accepted:
