@@ -237,7 +237,8 @@ import GHC.Base
   \email{n.wu@@imperial.ac.uk}
 }
 \author{Richard A.~Eisenberg}
-\affiliation{Tweag, Paris, France
+\affiliation{Tweag, Paris, France\footnote{Since working on this paper, Richard
+    Eisenberg's affiliation has changed to Jane Street, USA}
   \email{rae@@richarde.dev}
 }
 \end{authgrp}
