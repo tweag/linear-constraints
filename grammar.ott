@@ -10,7 +10,7 @@ metavar a,b  ::= {{ com Type variables }}
 metavar K  ::= {{ com Data constructors }}
 metavar T  ::= {{ com Type constructors }}
 indexvar i, j ::=  {{ com Index variables }}
-indexvar g, w, r, o, ext ::=  {{ com Annotation variables }}
+indexvar g, w, r, o, b, ext ::=  {{ com Annotation variables }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Grammar  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,7 +71,9 @@ q  :: ACt_ ::= {{ com Atomic constraints }}
 Q, Qdup {{ tex Q_{\mathcal{D} }  }} :: 'Ct_' ::=  {{ com Constraints }}
 | ( UCtx , LCtx )    ::   :: Sets
 | piF . q            ::   :: Atom   {{ tex [[piF]]\scale[[q]] }}
-| Q1 * Q2            :: M :: Tensor
+| Q1 * .... * Qi     :: M :: Tensor
+| many Q             :: M :: Many  {{ tex \overline{[[Q]]} }}
+| Q1 /\ Q2           :: M :: Sup
 | Empty              :: M :: Empty  {{tex \mathbf{\varepsilon} }}
 | ! Q                :: M :: Unrestricted
 | Q [ theta ]        :: M :: Subst
@@ -85,11 +87,6 @@ qF :: 'ACt_' ::= {{ com Formatted atomic constraints }}
 
 QF :: 'Ct_' ::= {{ com Formatted constraints }}
 | Q              ::   :: Formatted   {{ tex \constraintfont{[[Q]]} }}
-
-QQ {{ tex \mathcal{Q} }} :: 'G_' ::= {{ com Givens }}
-| Q                ::   :: GivenConstraint
-| QQ & Q           ::   :: With
-| QQ1 * QQ2        ::   :: Tensor
 
 C :: 'Ctg_' ::= {{ tex \constraintfont{[[C]]} }} {{ com Generated constraints}}
 | Q                  ::   :: Simple
@@ -274,11 +271,13 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 terminals :: 'terminals_' ::=
 | &           ::   :: With    {{ tex \aand }}
 | &&          ::   :: BigWith {{ tex \bigaand }}
+| /\          ::   :: Sup {{ tex \vee }}
 | *           ::   :: Tensor  {{ tex \qtensor }}
 | **          ::   :: TypeTensor {{ tex \otimes }}
 | |-          ::   :: entails {{ tex \vdash }}
 | |->         ::   :: infer {{ tex \vdashi }}
 | |-s         ::   :: solve {{ tex \vdashs }}
+| |-d         ::   :: diffrel {{ tex \vdashd }}
 | |-simp      ::   :: solve_simples {{ tex \vdashsimp }}
 | ||-         ::   :: Entails {{ tex \Vdash }}
 | ~>          ::   :: generates {{ tex \leadsto }}
@@ -291,6 +290,7 @@ terminals :: 'terminals_' ::=
 | o-          ::   :: illol   {{ tex \otimes }}
 | \in         ::   :: In      {{ tex \in }}
 | \notin      ::   :: NotIn   {{ tex \notin }}
+| \d          ::   :: SetDiff {{ tex \setminus }}
 | omega       ::   :: Many    {{ tex \omega }}
 | Sum         ::   :: BigSum  {{ tex \sum }}
 | empty       ::   :: emptyseq {{ tex ∙ }} % alternative: ϵ
@@ -321,11 +321,14 @@ formula :: formula_ ::=
 | G1 = G2                         ::   :: ctx_equal
 | QF \in Dup                      ::   :: Q_in_Dup {{ tex [[QF]] \in [[Dup]] }}
 | qF \in Dup                      ::   :: q_in_Dup {{ tex [[qF]] \in [[Dup]] }}
+| qF1 \notin Dup                  ::   :: q_not_dup
 | LCtxF1 \subseteq LCtxF2         ::   :: subset
 | qF \in UCtxF                    ::   :: q_in_UCtx {{ tex [[qF]] \in [[UCtxF]] }}
 | qF \notin UCtxF                 ::   :: q_notin_UCtx  {{ tex [[qF]] \notin [[UCtxF]] }}
 | qF \notin LCtxF                 ::   :: q_notin_LCtx  {{ tex [[qF]] \notin [[LCtxF]] }}
+| qF \notin QF                    ::   :: q_notin_Q     {{ tex [[qF]] \notin [[QF]] }}
 | LCtxF1 = LCtxF2                 ::   :: LCtx_eq
+| UCtxF1 = UCtxF2                 ::   :: UCtx_eq
 | s1 = s2                         ::   :: s_eq
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

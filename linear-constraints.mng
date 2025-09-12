@@ -168,6 +168,7 @@ import GHC.Base
       }%
   }
   \newcommand{\vdashs}{⊢_{\mathsf{s}}}
+  \newcommand{\vdashd}{⊢_{\mathsf{diff}}}
   \newcommand{\vdashsimp}{⊢_{\mathsf{s}}^{\mathsf{a}}}
   \newcommand{\scale}{\constraintfont{\cdot}}
   %% Constraint notations
@@ -2785,7 +2786,7 @@ that $[[Q_g |- C]]$ holds, as required by \cref{lem:generation-soundness}.
 The constraint solver is represented by the following judgement:
 %
 $$
-[[ UCtx ; DCtx; LCtx_i |-s C ~> LCtx_o]]
+[[ |-s C ~> Q]]
 $$
 %
 The judgement
@@ -2825,7 +2826,7 @@ constraints.  The atomic-constraint solver is represented by the following
 judgement:
 %
 $$
-[[ UCtx ; DCtx ; LCtx_i |-simp pi.q ~> LCtx_o]]
+[[ |-simp pi.q ~> Q ]]
 $$
 
 It has a similar structure to the main solver, but only deals with atomic
@@ -2853,7 +2854,8 @@ presents the rules of the constraint solver.
 \begin{figure}
   \maybesmall
   \centering
-  \drules[S]{$[[UCtx ; DCtx ; LCtx_i |-s C_w ~> LCtx_o ]]$}{Constraint solving}{Atom, Mult, ImplOne, Add, ImplMany}
+  \drules[S]{$[[|-s C_w ~> Q ]]$}{Constraint solving}{Atom, Mult, Impl, Add}
+  \drules[D]{$[[|-d Q_i \d Q_b ~> Q_o ]]$}{Check bounds}{Linear, Dup, Ur}
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
@@ -2915,8 +2917,7 @@ context is a sequence of 0 or more $[[{Linearly}]]$.
     \label{fig:simpl-entailment}
   \end{subfigure}
   \begin{subfigure}{\linewidth}
-    \drules[Atom]{$[[UCtx ; DCtx ; LCtx |-simp pi.q ~>
-      LCtx_o]]$}{Atomic-constraint solver}{Many,OneL,OneD, OneU}
+    \drules[Atom]{$[[|-simp pi.q ~> Q]]$}{Atomic-constraint solver}{Use}
     \caption{Atomic-constraint solver}
     \label{fig:simpl-solver}
   \end{subfigure}

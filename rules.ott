@@ -187,53 +187,63 @@ defns
 Solve :: '' ::=
 
 defn
-UCtxF ; DCtxF ; LCtxF |-s CF_w ~> LCtxF_o :: :: Solve :: 'S_' {{ com Constraint solving }}
+|-s CF_w ~> QF :: :: Solve :: 'S_' {{ com Constraint solving }}
 by
 
-UCtx ; DCtx ; LCtx_i |-simp pi.q ~> LCtx_o
+|-simp pi.q ~> Q
 ---------------------------------------------- :: Atom
-UCtx ; DCtx ; LCtx_i |-s pi.q ~> LCtx_o
+|-s pi.q ~> Q
 
-UCtx ; DCtx ; LCtx_i |-s C1 ~> LCtx_o  UCtx ; DCtx ; LCtx_i |-s C2 ~> LCtx_o
+|-s C1 ~> Q1  |-s C2 ~> Q2
 --------------------------------------------------------------- :: Add
-UCtx ; DCtx ; LCtx_i |-s C1 & C2 ~> LCtx_o
+|-s C1 & C2 ~> Q1 /\ Q2
 
-UCtx ; DCtx ; LCtx_i |-s C1 ~> LCtx_o'  UCtx ; DCtx ; LCtx_o' |-s C2 ~> LCtx_o
+|-s C1 ~> Q1  |-s C2 ~> Q2
 ------------------------------------------------------------- :: Mult
-UCtx ; DCtx ; LCtx_i |-s C1 * C2 ~> LCtx_o
+|-s C1 * C2 ~> Q1 * Q2
 
-UCtx \u UCtx0 ; DCtx \u (LCtx0 \n Dup) ; LCtx_i \u (LCtx0 \m Dup) |-s C ~> LCtx_o
-LCtx_o \subseteq LCtx_i
----------------------------------------------- :: ImplOne
-UCtx ; DCtx ; LCtx_i |-s 1.((UCtx0, LCtx0) => C) ~> LCtx_o
-
-UCtx \u UCtx0 ; LCtx0 \n Dup; LCtx0 \m Dup |-s C ~> emptyset
----------------------------------------------- :: ImplMany
-UCtx ; DCtx ; LCtx_i |-s omega . ((UCtx0, LCtx0) => C) ~> LCtx_i
+|-s C ~> Q_i
+|-d Q_i \d Q_b ~> Q_o
+---------------------------------------------- :: Impl
+|-s pi . (Q_b => C) ~> pi . Q_o
 
 defn
-UCtxF ; DCtxF ; LCtxF |-simp piF . qF ~> LCtxF_o :: :: SolveSimple :: 'Atom_' {{ com Atomic constraint solving }}
-  {{ tex [[UCtxF]]; [[DCtxF]]; [[LCtxF]] [[|-simp]] [[piF]] \scale [[qF]] [[~>]] [[LCtxF_o]] }}
+|-d QF1 \d QF2 ~> QF3 :: :: CheckMult :: 'D_' {{ com Constraint bounding }}
 by
 
-q \in UCtx
--------------------------------- :: Many
-UCtx ; DCtx ; LCtx |-simp omega.q ~> LCtx
+LCtx_b = LCtx'_b \u q
+q \notin Dup
+q \notin LCtx'_b
+q \notin UCtx_b
+|-d Q_i \d (UCtx_b, LCtx'_b) ~> Q_o * 1.q
+q \notin Q_o
+------------------------------------ :: Linear
+|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o
 
-LCtx = LCtx1 , q , LCtx2
-q \notin LCtx2
-q \notin UCtx
--------------------------------- :: OneL
-UCtx ; DCtx ; LCtx |-simp 1.q ~> LCtx1 , LCtx2
+LCtx_b = LCtx'_b \u q
+q \in Dup
+q \notin LCtx'_b
+q \notin UCtx_b
+|-d Q_i \d (UCtx_b, LCtx'_b) ~> Q_o * many 1.q
+q \notin Q_o
+------------------------------------ :: Dup
+|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o
 
-Linearly \notin UCtx
--------------------------------- :: OneD
-UCtx ; DCtx, Linearly ; LCtx |-simp 1.q ~> LCtx
+UCtx_b = UCtx'_b \u q
+q \notin LCtx_b
+q \notin UCtx'_b
+|-d Q_i \d (UCtx'_b, LCtx_b) ~> Q_o * (pi_1.q * .. * pi_i.q)
+q \notin Q_o
+------------------------------------ :: Ur
+|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o
 
-q \in UCtx
-q \notin DCtx \u LCtx
--------------------------------- :: OneU
-UCtx ; DCtx ; LCtx |-simp 1.q ~> LCtx
+defn
+|-simp piF . qF ~> QF :: :: SolveSimple :: 'Atom_' {{ com Atomic constraint solving }}
+  {{ tex [[|-simp]] [[piF]] \scale [[qF]] [[~>]] [[QF]] }}
+by
+
+-------------------------------- :: Use
+|-simp pi.q ~> pi.q
 
 % todo
 
