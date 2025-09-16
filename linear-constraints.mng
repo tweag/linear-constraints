@@ -2789,29 +2789,59 @@ $$
 [[ |-s C ~> Q]]
 $$
 %
-The judgement
-takes in three contexts: $[[{UCtx}]]$, which holds all the unrestricted
-atomic constraint assumptions, $[[{DCtx}]]$ which holds the linear atomic
-assumptions which are members of $[[{Dup}]]$ and $[[{LCtx_i}]]$, which holds the linear
-atomic constraint assumptions which aren't members of $[[{Dup}]]$.
-The linear contexts $[[{DCtx}]]$, $[[{LCtx_i}]]$, and $[[{LCtx_o}]]$ have been described
-as multisets (\cref{sec:constraint-domain}), but we treat them
-as ordered lists in the more concrete setting here; we will see soon
-why this treatment is necessary.
+The judgement doesn't take any context as an input\unsure{Is this
+  over-simplifying. In real life we do need a context in order to dereference
+  names and all that.}. Instead the judgement outputs a simple constraint
+$[[{Q}]]$, which we want to read as a context which entails $[[{C}]]$ (see
+\cref{lem:solver-soundness}).
 
-Linearity requires treating constraints as consumable resources. This
-is what $[[{LCtx_o}]]$ is for: it contains the hypotheses of
-$[[{LCtx_i}]]$ which are not consumed when proving $[[{C}]]$. As
-suggested by the notation, it is an output of the
-algorithm. Constraints from $[[{DCtx}]]$ are never outputted in
-$[[{LCtx_i}]]$: if constraints from $[[{DCtx}]]$ remain unused, we
-weaken them instead.
+Returning a context rather than taking it as an argument lets us effectively
+count the occurrence of atomic constraint in the solution, which we can then
+reject if it is not compatible with the multiplicity of the given constraint.
+This is essentially the same technique that \textsc{ghc} uses to implement
+linearity of regular terms in its typechecker. Note that we return the whole
+context here, whereas \textsc{Ghc}'s typechecker only returns multiplicity,
+which is more suited for a concrete implementation.
 
-If the constraint solver finds a solution, then the output linear constraints
-must be a subset of the input linear constraints, and the solution must indeed
-be entailed from the given assumptions.
+Returning whole contexts is unusual but not unheard of, see for instance
+\cite{algebraic-subtyping}, which returns whole contexts in order to implement
+subtyping. This particular presentation is, however, very unusual when it comes
+to proof search in linear logic. Most typically, linear-logic proof search is
+presented in state-passing style: rules take an input context, and return a
+“leftover” context which contains all the remaining, unused hypotheses.
+
+The reasons to choose this presentation, which, for the Haskell practioner, we
+could describe as writer-style rather than state-style, are\footnote{If you have
+  read the conference version of this article, you may remember that in that
+  version, we presented a state-passing constraint solver. We now prefer this
+  writer-style version.}\unsure{Is the item list below readable without giving
+  an example of a state-passing rule? In fact, I haven't explained the rules at
+  all yet. Maybe I should move this paragraph below}
+\begin{itemize}
+  \item When solving $[[{C1 * C2}]]$, $[[{C1}]]$ and $[[{C2}]]$ are perfectly
+        symmetric, making typechecking robust to reordering the source program.
+        This isn't the case in state-passing style where $[[{C1}]]$ and
+        $[[{C2}]]$ are checked in different contexts.
+  \item Solving $[[{C1 * C2}]]$ involves solving $[[{C1}]]$ and $[[{C2}]]$ in
+        parallel, whereas the state-passing style sequentialise $[[{C1}]]$ and
+        $[[{C2}]]$. This is important to integrate in \textsc{ghc}'s constraint
+        solver, which likes to suspend constraints it doesn't know how to solve
+        yet. Suspension isn't compatible with sequentialised state-passing
+        style: it isn't possible to wait until $[[{C2}]]$ is solved to solve
+        $[[{C1}]]$ if solving $[[{C2}]]$ requires the output of $[[{C1}]]$.
+  \item Incidentally, counting down from a context like the state-passing style
+        does doesn't generalise to arbitrary semiring. There is no current plan
+        to extend \text{ghc} with a richer semiring than multiplicities, but the
+        writer-style is more future proof.
+\end{itemize}
+
+If the constraint solver finds a solution then $[[|-s C ~> Q]]$ then
+$[[{Q}]]$ entails $[[{C}]]$. In order to check that $[[Q_g |- C]]$, it therefore suffices to
+check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
+
+\critical{TODO: below}
 \begin{lemma}[Constraint solver soundness]
-\label{lem:solver-soundness} If $[[UCtx; DCtx; LCtx_i |-s C ~> LCtx_o]]$, then:
+\label{lem:solver-soundness} If $[[|-s C ~> Q]]$, then:
 \begin{enumerate}
 \item $[[{LCtx_o}]]\subseteq [[{LCtx_i}]]$
 \item $[[(UCtx, DCtx \u LCtx_i) |- C * (emptyset, LCtx_o)]]$
@@ -2859,6 +2889,7 @@ presents the rules of the constraint solver.
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
+\critical{Define the sup}
 
 \begin{itemize}
   \item The~\rref*{S-Mult} rule proceeds by solving one side of a
