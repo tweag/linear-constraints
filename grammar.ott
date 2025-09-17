@@ -73,7 +73,7 @@ Q, Qdup {{ tex Q_{\mathcal{D} }  }} :: 'Ct_' ::=  {{ com Constraints }}
 | piF . q            ::   :: Atom   {{ tex [[piF]]\scale[[q]] }}
 | Q1 * .... * Qi     :: M :: Tensor
 | many Q             :: M :: Many  {{ tex \overline{[[Q]]} }}
-| Q1 /\ Q2           :: M :: Sup
+| Q1 \/ Q2           :: M :: Sup
 | Empty              :: M :: Empty  {{tex \mathbf{\varepsilon} }}
 | ! Q                :: M :: Unrestricted
 | Q [ theta ]        :: M :: Subst
@@ -92,7 +92,7 @@ C :: 'Ctg_' ::= {{ tex \constraintfont{[[C]]} }} {{ com Generated constraints}}
 | Q                  ::   :: Simple
 | C1 * C2            ::   :: Tensor
 | C1 & C2            ::   :: With
-| piF . ( Q => C )   ::   :: Impl  {{ tex [[piF]]\scale([[Q]] \Lolly [[C]]) }}
+| piF . ( Q => C )   ::   :: Impl  {{ tex [[piF]]\scale ([[Q]] \Lolly [[C]]) }}
 | ! C                ::   :: Unrestricted
 | piF . C            :: M :: Scale  {{tex [[piF]]\scale[[C]]}}
 | && C               :: M :: BigWith
@@ -271,7 +271,7 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 terminals :: 'terminals_' ::=
 | &           ::   :: With    {{ tex \aand }}
 | &&          ::   :: BigWith {{ tex \bigaand }}
-| /\          ::   :: Sup {{ tex \vee }}
+| \/          ::   :: Sup {{ tex \vee }}
 | *           ::   :: Tensor  {{ tex \qtensor }}
 | **          ::   :: TypeTensor {{ tex \otimes }}
 | |-          ::   :: entails {{ tex \vdash }}
@@ -321,6 +321,7 @@ formula :: formula_ ::=
 | G1 = G2                         ::   :: ctx_equal
 | QF \in Dup                      ::   :: Q_in_Dup {{ tex [[QF]] \in [[Dup]] }}
 | qF \in Dup                      ::   :: q_in_Dup {{ tex [[qF]] \in [[Dup]] }}
+| QF1 \notin Dup                  ::   :: Q_not_dup
 | qF1 \notin Dup                  ::   :: q_not_dup
 | LCtxF1 \subseteq LCtxF2         ::   :: subset
 | qF \in UCtxF                    ::   :: q_in_UCtx {{ tex [[qF]] \in [[UCtxF]] }}
