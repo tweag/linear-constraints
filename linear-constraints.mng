@@ -2932,20 +2932,20 @@ presents the rules of the constraint solver.
 \subsubsection{An Atomic-Constraint Solver}
 \label{sec:simple-constr-solv}
 
-\critical{TODO: below}
 So far, the atomic-constraint domain has been
 an abstract parameter. In this section, though, we offer a concrete
 domain which supports our examples.
 
-For the sake of our examples, we need very little: linear
-constraints can remain abstract. It is thus sufficient for the entailment relation
+For the sake of our examples, we need very little: is suffices that linear
+constraints be atoms, whose only meaningful operation is to compare them for
+equality.
+It is thus sufficient for the entailment relation
 (\Cref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
 is already assumed---while respecting linearity. That is, with the
 exception of a distinguished constraint $[[{Linearly}]]$, which can be
 duplicated and discarded, and we use to model the |Unique|
-constraint from~\ref{sec:Unique-constraint}. The set $[[{Dup}]]$ is
-defined to only contain $[[{Linearly}]]$, therefore the $[[{DCtx}]]$
-context is a sequence of 0 or more $[[{Linearly}]]$.
+constraint from~\ref{sec:Unique-constraint}. That is, the set $[[{Dup}]]$ is
+defined to only contain $[[{Linearly}]]$.
 
 \begin{figure}
   \maybesmall
@@ -2965,13 +2965,18 @@ context is a sequence of 0 or more $[[{Linearly}]]$.
   \label{fig:predicate-domain}
 \end{figure}
 
-The corresponding atomic-constraint solver
-(\Cref{fig:simpl-solver}) is more interesting.
-It is deterministic: in all circumstances,
-only one of the three rules can apply. This means that the
-algorithm does not guess, thus never needs to backtrack.
-Avoiding guesses is a key property of \textsc{ghc}'s solver~\cite[Section~6.4]{OutsideIn},
-one we must maintain if we are to be compatible with \textsc{ghc}.
+The corresponding atomic-constraint solver (\Cref{fig:simpl-solver}) is as
+simple as it gets. It consists in a single rule saying that the only way to
+prove a constraint $[[{q}]]$ is to use an hypothesis of type $[[{q}]]$. This
+solver never guesses since it only every apply this one rule.\unsure{We probably
+  want a forward reference to the discussion on implementation; should that
+  discussion happen in the related work section, like it currently sort of does,
+  or in a separate subsection of the new Design consideration section?}.
+Avoiding guesses is a key property of \textsc{ghc}'s
+solver~\cite[Section~6.4]{OutsideIn}, one we must maintain if we are to be
+compatible with \textsc{ghc}.
+
+\critical{TODO: below}
 
 \Cref{fig:simpl-solver} is also where the fact that the
 $[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
@@ -2987,7 +2992,6 @@ f =   unique $ Linearly.do
         Linearly.return $ Ur ()
 
 \end{code}
-In this example, the programmer meant for
 |free| to use the |constraint(RW n)| constraint introduced locally in the type
 of |fr|. Yet
 there are actually two linear |constraint(RW n)| constraints: this local one and the
