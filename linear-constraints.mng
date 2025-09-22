@@ -2919,7 +2919,7 @@ presents the rules of the constraint solver.
         the occurrence of $[[{1.q}]]$ introduced by the innermost implication.
         Even though there could be valid solutions using more outer
         implications. In particular the solver will fail on
-        $[[1.(1.q => 1.(1.q => 1.q * 1.q))]]$ even though it has a valid
+        $[[{1.(1.q => 1.(1.q => 1.q * 1.q))}]]$ even though it has a valid
         solution.
 
         If there are several occurrences of the same $[[{1.q}]]$ in $[[{Q_b}]]$,
@@ -2977,13 +2977,14 @@ one we must maintain if we are to be compatible with \textsc{ghc}.
 $[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
 takes care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the front of
-the list). To understand why, consider the following example:\jp{can we use a conventional indentation here?}
+the list). To understand why, consider the following example:
 \begin{code}
-f =   unique $
-        let    pack (Ur arr) = new 10
-               fr   ::  constraint (RW n) =>. ()   ^^
-               fr   =   free arr
-               ()   =   fr                         in Ur ()
+f =   unique $ Linearly.do
+        Ur arr <- new 10
+        fr   ::  constraint (RW n) =>. ()
+        fr   =   free arr
+        ()   =   fr
+        Linearly.return $ Ur ()
 
 \end{code}
 In this example, the programmer meant for
