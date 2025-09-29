@@ -2800,7 +2800,7 @@ count the occurrence of atomic constraint in the solution, which we can then
 reject if it is not compatible with the multiplicity of the given constraint.
 This is essentially the same technique that \textsc{ghc} uses to implement
 linearity of regular terms in its typechecker. Note that we return the whole
-context here, whereas \textsc{Ghc}'s typechecker only returns multiplicity,
+context here, whereas \textsc{ghc}'s typechecker only returns multiplicity,
 which is more suited for a concrete implementation.
 
 Returning whole contexts is unusual but not unheard of, see for instance
@@ -2904,30 +2904,95 @@ presents the rules of the constraint solver.
         $[[{pi . ( Q_b => C )}]]$ do is limit the scope of the constraints in
         $[[{Q_b}]]$. This is achieved via the judgement
         $[[|-d Q_i \d Q_b ~> Q_o]]$, the rules for which are quite formalistic,
-        but are easily expressed in English: for each atomic constraint in
-        $[[{Q_b}]]$, there must be a single occurrence in $[[{Q_b}]]$, and all
-        occurrences are then removed from $[[{Q_i}]]$, yielding $[[{Q_o}]]$.
-        Then a linear atomic constraint $[[1.q \notin Dup]]$ removes a single
-        linear constraint from $[[{Q_i}]]$, a linear atomic constraint
-        $[[1.q \in Dup]]$ removes any number of linear constraints (but no
-        unrestricted constraints), and an
+        but are easily expressed in English: for each atomic constraint
+        $[[{q}]]$ in $[[{Q_b}]]$, there must be a single occurrence of $[[{q}]]$
+        in $[[{Q_b}]]$, and all occurrences of $[[{q}]]$ must then removed from
+        $[[{Q_i}]]$ to yield $[[{Q_o}]]$. Then a linear atomic constraint
+        $[[1.q \notin Dup]]$ removes a single linear constraint from
+        $[[{Q_i}]]$, a linear atomic constraint $[[1.q \in Dup]]$ removes any
+        number of linear constraints (but no unrestricted constraints), and an
         unrestricted constraint $[[{omega . q}]]$ removes any number of
         constraints with arbitrary multiplicity. If this fails to remove all
         occurrences of $[[{q}]]$, then the solver fails.
 
-        The consequence of this strategy is that the solver can only ever use
-        the occurrence of $[[{1.q}]]$ introduced by the innermost implication.
-        Even though there could be valid solutions using more outer
-        implications. In particular the solver will fail on
-        $[[{1.(1.q => 1.(1.q => 1.q * 1.q))}]]$ even though it has a valid
-        solution.
-
-        If there are several occurrences of the same $[[{1.q}]]$ in $[[{Q_b}]]$,
-        then the solver considers this an ambiguity and fails.
-
-        Both of these failures are designed to avoiding guessing when solving an
-        implication.
 \end{itemize}
+
+The solving strategy is mainly embodied by the~\rref*{S-Impl} rule. It makes
+strong assumptions in order to avoid guesses. Avoiding guesses is a key property
+of \textsc{ghc}'s solver~\cite[Section~6.4]{OutsideIn}, one we must maintain if
+we are to be compatible with \textsc{ghc}.\unsure{We probably want a forward
+  reference to the discussion on implementation; should that discussion happen
+  in the related work section, like it currently sort of does, or in a separate
+  subsection of the new Design consideration section?}
+
+One consequence of our strategy is that the solver can only ever use
+the occurrence of $[[{1.q}]]$ introduced by the innermost implication.
+Even though there could be valid solutions using more outer
+implications. In particular the solver will fail on constraints of the form
+$[[{1.(1.q => 1.(1.q => 1.q * 1.q))}]]$ even though it has a valid
+solution. For instance, the following would fail to typecheck with our solver.
+
+\begin{code}
+class constraint (C)
+giveC :: (constraint(C) =>. Int) -> Int
+
+counting :: (constraint((C, C)) =>. Int) -> Int
+counting take_two =
+  giveC $
+  giveC $ -- Multiplicity error: this linear |constraint(C)| is used several times.
+  take_two
+\end{code}
+
+Likewise, if there are several occurrences of the same $[[{1.q}]]$ in
+$[[{Q_b}]]$, then the solver considers this an ambiguity and fails. For instance
+
+\begin{code}
+class constraint (C)
+giveTwoC :: (constraint((C, C)) =>. Int) -> Int
+
+repeating :: (constraint(C) =>. Int) -> Int
+repeating take_one =
+  giveTwoC $
+    take_one + take_one -- Ambiguity error: there are two different |constraint(C)| to choose from
+\end{code}
+
+In both of these are examples of incompleteness of the solver, as both of these
+example can be ascribed a type in the declarative type system of
+\cref{sec:typing-rules}. Although we can imagine applications where solving
+similar constraints would be helpful, we consider it to be a reasonable
+restrictions as it's compatible with all our motivating examples
+(\cref{sec:memory-ownership}), and in exchange we get a solver which is only
+marginally more complex than, say, \textsc{ghc}'s solver, solves $[[{Q1 *
+  Q2}]]$ in parallel, and is guess free.
+
+We also believe that our strategy tends to match expectations in many cases.
+Consider the following example:
+\begin{code}
+f =   unique $ Linearly.do
+        Ur arr <- new 10
+        fr   ::  constraint (RW n) =>. () -- fails here with |constraint(RW n)| used more than once
+        fr   =   Linearly.do
+          free arr
+          free arr
+        ()   =   fr -- A cleverer solver may fail here saying that there is no |constraint(RW n)| left to use
+        Linearly.return $ Ur ()
+\end{code}
+In this example, it is possible to type |fr| in the declarative type system.
+However, |fr| is incorrect as it frees the array several time, which isn't
+permitted. It would only succeed because it can make use of the |constraint(RW
+n)| constraint which is meant to be used to call |fr| itself. Doing so would
+point at the wrong location for a mistake. Whereas our strategy points at the
+actual mistake. The fixed code, on the other hand, does typecheck
+\begin{code}
+f =   unique $ Linearly.do
+        Ur arr <- new 10
+        fr   ::  constraint (RW n) =>. ()
+        fr   =   free arr
+        ()   =   fr
+        Linearly.return $ Ur ()
+\end{code}
+As their is a strict nesting between the two occurrences of |constraint(RW n)|
+to choose from when calling |free|, so the solver chooses the innermost.
 
 \subsubsection{An Atomic-Constraint Solver}
 \label{sec:simple-constr-solv}
@@ -2968,13 +3033,7 @@ defined to only contain $[[{Linearly}]]$.
 The corresponding atomic-constraint solver (\Cref{fig:simpl-solver}) is as
 simple as it gets. It consists in a single rule saying that the only way to
 prove a constraint $[[{q}]]$ is to use an hypothesis of type $[[{q}]]$. This
-solver never guesses since it only every apply this one rule.\unsure{We probably
-  want a forward reference to the discussion on implementation; should that
-  discussion happen in the related work section, like it currently sort of does,
-  or in a separate subsection of the new Design consideration section?}.
-Avoiding guesses is a key property of \textsc{ghc}'s
-solver~\cite[Section~6.4]{OutsideIn}, one we must maintain if we are to be
-compatible with \textsc{ghc}.
+solver never guesses since it only every apply this one rule.
 
 \critical{TODO: below}
 
@@ -2983,15 +3042,6 @@ $[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
 takes care to use the most recent occurrence of $[[{q}]]$
 (remember that \rref{S-ImplOne} adds the new hypotheses on the front of
 the list). To understand why, consider the following example:
-\begin{code}
-f =   unique $ Linearly.do
-        Ur arr <- new 10
-        fr   ::  constraint (RW n) =>. ()
-        fr   =   free arr
-        ()   =   fr
-        Linearly.return $ Ur ()
-
-\end{code}
 |free| to use the |constraint(RW n)| constraint introduced locally in the type
 of |fr|. Yet
 there are actually two linear |constraint(RW n)| constraints: this local one and the
