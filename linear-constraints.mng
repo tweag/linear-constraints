@@ -2885,7 +2885,7 @@ presents the rules of the constraint solver.
   \centering
   \drules[S]{$[[|-s C_w ~> Q ]]$}{Constraint solving}{Atom, Mult, Impl, Add}
   \drules[D]{$[[|-d Q_i \d Q_b ~> Q_o ]]$}{Check bounds}{Linear, Dup, Ur}
-  \drules[Inf]{$[[Q1 /\ Q2 = Q ]]$}{Meet}{Ur, Match, DiffL, DiffR}
+  \drules[Inf]{$[[Q1 /\ Q2 = Q ]]$}{Meet}{Ur, Match, DiffL, DiffR, DiffDL, DiffDR}
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}

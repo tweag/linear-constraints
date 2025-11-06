@@ -250,13 +250,29 @@ by
 
 (UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
 q \notin LCtx2
+q \notin Dup
 ------------------------------------------------------------------- :: DiffL
 (UCtx1, LCtx1 \u q ) /\ (UCtx2, LCtx2) = Q * omega.q
 
 (UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
 q \notin LCtx1
+q \notin Dup
+q \notin Dup
 ------------------------------------------------------------------- :: DiffR
 (UCtx1, LCtx1 ) /\ (UCtx2, LCtx2 \u q) = Q * omega.q
+
+(UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
+q \notin LCtx2
+q \in Dup
+------------------------------------------------------------------- :: DiffDL
+(UCtx1, LCtx1 \u q ) /\ (UCtx2, LCtx2) = Q * 1.q
+
+(UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
+q \notin LCtx1
+q \notin Dup
+q \in Dup
+------------------------------------------------------------------- :: DiffDR
+(UCtx1, LCtx1 ) /\ (UCtx2, LCtx2 \u q) = Q * 1.q
 
 defn
 |-simp piF . qF ~> QF :: :: SolveSimple :: 'Atom_' {{ com Atomic constraint solving }}
