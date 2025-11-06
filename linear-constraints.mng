@@ -2885,10 +2885,10 @@ presents the rules of the constraint solver.
   \centering
   \drules[S]{$[[|-s C_w ~> Q ]]$}{Constraint solving}{Atom, Mult, Impl, Add}
   \drules[D]{$[[|-d Q_i \d Q_b ~> Q_o ]]$}{Check bounds}{Linear, Dup, Ur}
+  \drules[Inf]{$[[Q1 /\ Q2 = Q ]]$}{Meet}{Ur, Match, DiffL, DiffR}
   \caption{Constraint solver}
   \label{fig:constraint-solver}
 \end{figure}
-\critical{Define the sup}
 
 \begin{itemize}
   \item The~\rref*{S-Mult} rule proceeds by solving both sides then combining
@@ -2897,9 +2897,9 @@ presents the rules of the constraint solver.
         conjunction is generated from $\kcase$ expressions, only one of them is
         actually going to be executed, therefore both branches must consume
         exactly the same resources. This is handled by the \emph{join}
-        $[[{Q1 \/ Q2}]]$, which computes a context which is compatible with
-        $[[{Q1}]]$ and $[[{Q2}]]$. That is $[[Q1 \/ Q2 ||- Q1]]$ and
-        $[[Q1 \/ Q2 ||- Q2]]$.
+        $[[{Q1 /\ Q2}]]$, which computes a context which is compatible with
+        $[[{Q1}]]$ and $[[{Q2}]]$. That is $[[Q1 /\ Q2 ||- Q1]]$ and
+        $[[Q1 /\ Q2 ||- Q2]]$.
   \item The~\rref*{S-Impl} rule handles implications. What implications
         $[[{pi . ( Q_b => C )}]]$ do is limit the scope of the constraints in
         $[[{Q_b}]]$. This is achieved via the judgement
@@ -3035,7 +3035,8 @@ simple as it gets. It consists in a single rule saying that the only way to
 prove a constraint $[[{q}]]$ is to use an hypothesis of type $[[{q}]]$. This
 solver never guesses since it only every apply this one rule.
 
-\critical{TODO: below}
+\critical{Below this point, in this section, I don't think we need anything. But we'll see when we're done
+  with refactoring this section, so I'm keeping it to remember to check.}
 
 \Cref{fig:simpl-solver} is also where the fact that the
 $[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}

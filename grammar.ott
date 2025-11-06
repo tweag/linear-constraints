@@ -73,7 +73,7 @@ Q, Qdup {{ tex Q_{\mathcal{D} }  }} :: 'Ct_' ::=  {{ com Constraints }}
 | piF . q            ::   :: Atom   {{ tex [[piF]]\scale[[q]] }}
 | Q1 * .... * Qi     :: M :: Tensor
 | many Q             :: M :: Many  {{ tex \overline{[[Q]]} }}
-| Q1 \/ Q2           :: M :: Sup
+| Q1 /\ Q2           :: M :: Sup
 | Empty              :: M :: Empty  {{tex \mathbf{\varepsilon} }}
 | ! Q                :: M :: Unrestricted
 | Q [ theta ]        :: M :: Subst
@@ -271,7 +271,7 @@ G {{ tex \Gamma }}, D {{ tex \Delta }} :: 'Ctx_' ::= {{ com Contexts }}
 terminals :: 'terminals_' ::=
 | &           ::   :: With    {{ tex \aand }}
 | &&          ::   :: BigWith {{ tex \bigaand }}
-| \/          ::   :: Sup {{ tex \vee }}
+| /\          ::   :: Inf {{ tex \wedge }}
 | *           ::   :: Tensor  {{ tex \qtensor }}
 | **          ::   :: TypeTensor {{ tex \otimes }}
 | |-          ::   :: entails {{ tex \vdash }}

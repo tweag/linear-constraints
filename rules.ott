@@ -196,7 +196,7 @@ by
 
 |-s C1 ~> Q1  |-s C2 ~> Q2
 --------------------------------------------------------------- :: Add
-|-s C1 & C2 ~> Q1 \/ Q2
+|-s C1 & C2 ~> Q1 /\ Q2
 
 |-s C1 ~> Q1  |-s C2 ~> Q2
 ------------------------------------------------------------- :: Mult
@@ -236,6 +236,27 @@ q \notin UCtx'_b
 q \notin Q_o
 ------------------------------------ :: Ur
 |-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o
+
+defn
+QF1 /\ QF2 = QF3 :: :: QInf :: 'Inf_' {{ com Constraint meet }}
+by
+
+------------------------------------------------------------------- :: Ur
+(UCtx1, emptyset) /\ (UCtx2, emptyset) = (UCtx1 \u UCtx2, emptyset)
+
+(UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
+------------------------------------------------------------------- :: Match
+(UCtx1, LCtx1 \u q ) /\ (UCtx2, LCtx2 \u q) = Q * 1.q
+
+(UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
+q \notin LCtx2
+------------------------------------------------------------------- :: DiffL
+(UCtx1, LCtx1 \u q ) /\ (UCtx2, LCtx2) = Q * omega.q
+
+(UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
+q \notin LCtx1
+------------------------------------------------------------------- :: DiffR
+(UCtx1, LCtx1 ) /\ (UCtx2, LCtx2 \u q) = Q * omega.q
 
 defn
 |-simp piF . qF ~> QF :: :: SolveSimple :: 'Atom_' {{ com Atomic constraint solving }}
