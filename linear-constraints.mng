@@ -3564,6 +3564,7 @@ special treatment, and are harmless.
 
 \subsection{Inferring Packing and Unpacking}
 \label{sec:implicit-existentials}
+\critical{This section is out of sync with the current paper's presentation.}
 Recent work~\cite{existentials} describes an algorithm (call it \textsc{edwl}, after the
 authors' names) that
 can infer the location of the pack and unpack annotations (our $\packbox$ and $\kunpack$)
@@ -3586,6 +3587,8 @@ have presented here, formally. None of this would change in adapting \textsc{edw
 Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit packing and unpacking would
 make linear constraints easier to use.
+
+\unsure{There is a bunch of commented out text below this point, is it worth reviving?}
 
 % One challenge if existential packing and unpacking are inferred is that
 % the order in which a program is executed might become ambiguous.
