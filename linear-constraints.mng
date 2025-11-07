@@ -923,7 +923,8 @@ The pattern of using a continuation in |unique| mirrors the use
 of that technique by \citet[Fig.~2]{LinearHaskell}. But
 |unique| is, now, the only place where we need a continuation: once
 we have our linear |constraint(Unique)| assumption, we can use it to produce
-new values that must be unique.
+new values that must be unique. We compare the two approaches further in
+\cref{sec:linearly-vs-sticky}.
 
 With just these simple ingredients -- a duplicable, discardable constraint
 that can be assumed linearly -- we can write \textsc{api}s that require
@@ -1353,7 +1354,7 @@ the type-level name of |bs|.
 \begin{code}
 type NArray :: (Reg -> Type) -> Reg -> Type
 \end{code}
-Notice that it's very convenient for the region parameter to be the last
+Notice that it's convenient for the region parameter to be the last
 parameter, in order for the types to align when nesting arrays.
 
 In consequence, we can't have |NArray Int|, we will need a type to mediate
@@ -1372,9 +1373,10 @@ instance constraint(W (Val a n))
 Since |Val| isn't an abstract type, its free to ignore its capabilities (which
 is fine since no mutation can occur in a |Val a r|). We provide unrestricted
 read and write access to |Val| since neither do anything, but they'll be needed
-to interface with the array functions\critical{We can only do this if we change
-  the solver!}. With this, a matrix  can have
-type:
+to interface with the array functions\info{This means that we can have both
+  unrestricted and linear capabilities for |Val| in scope at the same time (the
+  toplevel ones, and the one given from the borrow). So this design actually
+  uses the new solver.}. With this, a matrix can have type:
 \begin{code}
 type Matrix0 a n = NArray (NArray (Val a)) n
 \end{code}
@@ -1388,6 +1390,11 @@ borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (cons
 borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
 writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
+\info{Maybe something to be aware of here is that since |a p| is taken with
+  multiplicity $[[{omega}]]$, any |Val a p| written in the array is
+  unrestricted, hence points to an unrestricted |a|. So we have nested arrays,
+  here, but they are ultimately arrays of unrestricted values. Which is why the
+  types of the |write| functions work.}
 
 To write a value |u| into an array |a|, you need read and write access to |u| since
 you are going to give |a| permission to read and write to |u|. For the same
@@ -1444,7 +1451,7 @@ fullSlice as = Linearly.return
 More interestingly, we can slice a |Slice| in two\unsure{The type applications
   are a bit of a lie here. But this is already quite a complicated function, so
   I don't know whether we should go even more in the weeds. In fact, I don't
-  even think the test of this function really helps at anything. It was meant as
+  even think the text of this function really helps at anything. It was meant as
   evidence that, yes, this can be done, but I don't like it anymore.}
 \begin{code}
 sliceS ::  constraint(RW n) =>. Slice a n -> Int ->
