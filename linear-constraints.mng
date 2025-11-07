@@ -3641,16 +3641,91 @@ make linear constraints easier to use.
 
 \critical{TODO}
 
-\subsection{Variation on release functions}
-\label{sec:unrestricted-release}
-
 \subsection{Linearly vs sticky scopes}
 \label{sec:linearly-vs-sticky}
+
+\unsure{Maybe this should cite the blog post, for completeness \url{https://www.tweag.io/blog/2023-03-23-linear-constraints-linearly/}}
+In \cref{sec:Unique-constraint}, we introduced the |Unique| constraint as a
+means of creating new linear values (in our case linear constraints). The
+|Unique| constraint is the motivation for introducing the set $[[{Dup}]]$ of
+duplicable atomic constraints. So it's natural to ask whether it's worth the
+complexity.
+
+Let's compare our |new| function with a |newScoped| function in the style
+advertised in the Linear Haskell paper~\cite{LinearHaskell}, that is |newScoped|
+takes as an additional argument a continuation which represents the scope in
+which the new array is live.
+\begin{code}
+new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
+newScoped :: Int -> (forall n. constraint(RW n) =>. UArray a n -> Ur r) ->. Ur r
+\end{code}
+
+A first observation, maybe, is that |new| is more primitive. It's easy to
+implement |newScoped| in terms of |new|:
+\begin{code}
+newScoped :: Int -> (forall n. constraint(RW n) =>. UArray a n -> Ur r) ->. Ur r
+newScoped lgth scope = unique $ do
+  Ur arr <- new lgth
+  scope arr
+\end{code}
+
+Using scope functions like |newScoped| is going to be more verbose whenever
+there's more than one scope involved. Scopes, by themselves, aren't a problem,
+the verbosity may be acceptable. In the Rust programming language, by
+comparison, values are scoped as well. Scopes are represented with the
+\verb+{...}+ syntax, instead of functions, but in a first approximation these
+are the same.
+
+Where the difference is significant, is that with the |Unique| constraint and
+the |new| function there can be several arrays in one scope, like in Rust,
+rather than a single one as in |newScoped|. With |new| the |unique| function is
+the only one in charge of introducing scopes.
+
+However, there is a way in which the scoped style of introducing linear values
+is harmful to expressiveness. It is due to how we prevent linear constraints
+from escaping scopes by making sure that the scope returns an |Ur r|.
+
+Suppose we're given a function
+\begin{code}
+sum :: constraint(RW n) =>. UArray Int n -> Ur Int
+\end{code}
+And we want to use it to compute the sum of the first two elements of an array.
+It would look a like this:
+\begin{code}
+newScoped 57 $ \arr ->
+   ... -- some initialisation/computation involving arr
+   let !(Ur s) = newScoped 2 $ \prefix -> do
+     Ur a0 <- read arr 0
+     Ur a1 <- read arr 1
+     write prefix 0 a0
+     write prefix 1 a1
+     sum prefix2
+   in
+   ... -- more writing to arr
+\end{code}
+
+However, this example doesn't typecheck. The read and write capabilities for |arr| are captured
+by the scope of the |prefix| array, and they're not allowed to escape that
+scope. That's because |Ur| is a blunt instrument: if it prevents some linear
+constraints from escaping (the capabilities for |prefix|) then it prevents all
+capabilities from escaping.
+
+So the |prefix| scope demands that |arr| be frozen before exiting the scope, and
+we aren't allowed to write after exiting the scope. The only solution to make
+this example work is to extend the scope of |prefix| all the way to the end of
+the scope of |arr|.
+
+So the end of |Ur|-terminated scope tend to stick together. And that's pretty
+detrimental to the modularity of programs. Duplicable constraints seems to be a
+pretty low price to pay to lift this limitation.
 
 \subsection{Further considerations on freezing}
 \label{sec:freezing-in-details}
 
 \unsure{I don't know yet whether we will need this space}
+
+\subsection{Variation on release functions}
+\label{sec:unrestricted-release}
 
 \section{Related work}
 \label{sec:related-work}
@@ -4645,7 +4720,7 @@ $$
 
 % LocalWords:  sequent typechecker idempotence polymorphism desugar subarray
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable disjunction
-% LocalWords:  combinator sigils equalities wanteds intuitionistic
+% LocalWords:  combinator sigils equalities wanteds intuitionistic modularity
 % LocalWords:  sequents implicational deallocate deallocating monadic
-% LocalWords:  deallocated instantiations desugars unioned
+% LocalWords:  deallocated instantiations desugars unioned duplicable
 % LocalWords:  deterministically unrestrictedly subexponentials
