@@ -952,7 +952,10 @@ given subarray, or \emph{slice}, before returning control to the main algorithm.
 
 %format sub1 = "\Varid sub \ensuremath{_1}"
 
-\nw{I think |sub| should probably be named |slice|: there are so many other "sub" things.}
+\nw{I think |sub| should probably be named |slice|: there are so many other
+  "sub" things. AS: I used |sub| because it returns a single array, while I've
+  used |slice|, below, when several arrays, spanning the original array, are
+  returned. Maybe that's not the best terminology, I don't know.}
 A first intuition may be to add a function looking like this:
 \begin{code}
 sub1 :: constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. Ur (UArray a p) .<= constraint(RW p)
