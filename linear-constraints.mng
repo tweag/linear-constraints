@@ -1308,7 +1308,7 @@ of the analysed matrices. In return, one gets additional static
 checks: we do not demand full read-write permissions on complete
 matrices. Besides, even though the algorithm is imperative, it can be
 called from pure functions, where the resulting matrix would be
-\emph{frozen}.\jp{When the generic matrix stuff is done, show to combine with freezing}
+\emph{frozen}, see \cref{sec:o1-freeze}.
 
 \subsection{Matrices from first principles: a theory of nested arrays}
 \label{sec:nested-arrays}
@@ -1637,9 +1637,83 @@ which affords us a lot of programming techniques. We don't have to develop any
 \subsection{Freezing nested structures}
 \label{sec:o1-freeze}
 
+\unsure{I put this introduction here to explain why there was even a problem to
+  solve. But possibly it's better to move more of the discussion to
+  {sec:freezing-in-details}}
+%
+When working with matrices in a functional language the most typical pattern is
+to use immutable matrices. Some algorithm, though, like Valiant's algorithm in
+Section~\ref{sec:valiant}, need to mutate matrices. In which case a mutable
+matrix is created temporarily, then \emph{frozen} into an immutable matrix when
+the algorithm is over.
+
+In Haskell, this is embodied by the following (simplified) \textsc{api}.
+
+\begin{code}
+new :: Int -> a -> ST s (MArray s a)
+read :: MArray s a -> Int -> ST s a
+write :: MArray s a -> Int -> a -> ST s ()
+unsafeFreeze :: MArray s a -> ST s (Array a)
+\end{code}
+
+For instance the function |array| to build an immutable array from an
+associating list looks like this:
+
+\begin{code}
+array :: Int -> [(Int, a)] -> Array a
+array n assocs = runST $ do
+  buffer <- newArray n undefined
+  forM_ assocs $ \(i,a) ->
+    write buffer i a
+  unsafeFreeze buffer
+\end{code}
+
+In |array| we see the pattern, albeit on arrays rather than matrices: create a
+mutable |buffer|, mutate it as needed then freeze it into an immutable array.
+Freezing is $O(1)$ because the frozen immutable array is the same memory block
+as the input mutable array.
+
+This has two shortcomings, however:
 \begin{itemize}
-  \item Based on the blog post
+  \item The freezing function is unsafe, in that there's nothing preventing you
+        from writing |buffer| to buffer after calling |unsafeFreeze|, in which
+        case you'd mutate the immutable array which shares its memory.
+  \item It doesn't give an $O(1)$ way to freeze arrays of arrays. Such as our
+        matrices, as described in \cref{sec:implementing-matrix}. If you have an
+        |MArray s (MArray s a)|, then you need to first map over the outer array
+        to freeze the inner arrays.
 \end{itemize}
+
+Traditional linear type give a good solution to unsafe
+freeze~\citep{LinearHaskell}. With linear constraints, we can solve both
+problems handily (we compare linear solutions with and without linear
+constraints in \cref{sec:freezing-in-details}). We can provide a
+primitive:\critical{We haven't actually defined an |Ur| constraint or something
+  equivalent yet, we need to fix it for this example}
+
+\begin{code}
+freezeNA :: constraint((Read n, Write n)) => NArray a n -> () .<= constraint ((Ur (Read n)))
+\end{code}
+
+After calling |freeze|, we no longer have a |Write| permission on the array: it
+has become immutable. In exchange we gain an unrestricted |Read| access meaning
+that the array can safely be shared.
+
+If we are willing to fix a particular nesting, we can even hide the permissions
+altogether and use a traditional Haskell style. For instance for matrices as
+defined in \cref{sec:implementing-matrix}:
+
+\begin{code}
+data FMatrix a where { MkMatrix :: constraint (Read n) => Matrix a n -> FMatrix a }
+
+readF :: FMatrix -> Int -> Int -> Ur a
+readF (MkMatrix m) row_num col_num = do
+  (Ur col, release) <- borrowNA m col_num
+  (Ur (Val a), release_col) <- borrowNA col row_num
+  release_col
+  release
+  Ur a
+\end{code}
 
 \subsection{Beyond arrays: splay Trees}
 
