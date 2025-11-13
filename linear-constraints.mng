@@ -1190,7 +1190,7 @@ By nature of the closure, the closure is built incrementally: one add labels to 
 In fact, Valiant's algorithm consists in two divide-and-conquer recursive functions:
 \begin{code}
 v :: constraint (RW n) =>. Matrix a n .<= constraint (RW n)
-w :: (Read p, RW n, Read q) =>. Matrix a p -> Matrix a n -> Matrix a q .<= (Read p, RW n, Read q)
+w :: constraint((Read p, RW n, Read q)) =>. Matrix a p -> Matrix a n -> Matrix a q .<= constraint((Read p, RW n, Read q))
 \end{code}
 Here |v| takes a writeable matrix |n|. When done |n| will be transitively
 closed. The |w| function is a
@@ -1207,19 +1207,19 @@ completed using the helper function (|w a x b|).
 v n =
   if size n <= 2
     return ()
-  else do
+  else Linearly.do
     let i = size n `div` 2
-    (a,x,b) <- splitUpperMatrix n i
+    (Ur (a,x,b), release_n) <- splitUpperMatrix n i
     v a
     v b
     w a x b
-    joinUpperMatrix a x b
+    release_n
 \end{code}
-The splitting and joining of upper triangular matrices is prodived by the functions:
-
-> splitUpperMatrix :: constraint (RW n) =>. Matrix a n -> Int -> exists m l r. Ur (Matrix a l, Matrix a m, Matrix a r) .<= constraint ((RW l, RW r, TriSlices n m l r))
-> joinUpperMatrix :: constraint ((TriSlices n m l r, RW r , RW m, RW l)) =>. Matrix a l -> Matrix a m -> Matrix a r -> Ur (Matrix a n) .<= constraint (RW n)
-
+The splitting upper triangular matrices is prodived by the function:
+\begin{code}
+splitUpperMatrix ::  constraint (RW n) =>. Matrix a n -> Int ->
+                     exists m l r. (Ur (Matrix a l, Matrix a m, Matrix a r), constraint((RW m, RW l, RW r) =>. () .<= RW n)) .<= constraint((RW m, RW l, RW r))
+\end{code}
 The helper |w p n q| is somewhat more involved. It won't touch the
 completed matrices |p| and |q|, as declared in its signature. If both
 of the upper-triangular matrices |p| and |q| are one-by-one, then
@@ -1236,20 +1236,20 @@ w p n q =
   else if size p > size q
     then Linearly.do
       let i = size p `div` 2
-      (a,x,b) <- splitUpperMatrix p i
-      (y,z) <- sliceMatrixV n i
+      (Ur (a,x,b), release_p) <- splitUpperMatrix p i
+      (Ur (y,z), release_n) <- sliceMatrixV n i
       w b z q
       multiplyMatricesInto y x z
       w a y q
-      joinUpperMatrix a x b; joinMatrices y z
+      release_p; release_n
     else Linearly.do
       let i = size q `div` 2
-      (a,z,b) <- splitUpperMatrix q i
-      (x,y) <- sliceMatrixH n i
+      (Ur (a,z,b), release_q) <- splitUpperMatrix q i
+      (Ur (x,y), release_n) <- sliceMatrixH n i
       w p x a
       multiplyMatricesInto y x z
       w p y b
-      joinUpperMatrix a x b; joinMatrices y z
+      release_q; release_n
 \end{code}
 
 \providecommand{\upperRightTriangle}[4]{
@@ -1294,9 +1294,8 @@ w p n q =
 \end{figure}
 The splitting and joining of general rectangular matrices follows the usual pattern (and in fact, can be used to implement such operations on triangular matrices).
 
-> sliceMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, MatSlices n l r))
-> sliceMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. Ur (Matrix a l, Matrix a r) .<= constraint ((RW l, RW r, MatSlices n l r))
-> joinMatrices :: constraint ((MatSlices n l r, RW r, RW l)) =>. Matrix a l -> Matrix a r -> Ur (Matrix a n) .<= constraint (RW n)
+> sliceMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. (Ur (Matrix a l, Matrix a r), constraint(RW l, RW r) =>. () .<= constraint (RW n)) .<= constraint ((RW l, RW r))
+> sliceMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. (Ur (Matrix a l, Matrix a r), constraint(RW l, RW r) =>. () .<= constraint (RW n)) .<= constraint ((RW l, RW r))
 
 We won't detail the underlying matrix multiplication; but its signature is the following.
 > multiplyMatricesInto :: constraint ((RW x, Read y, Read z)) =>. Matrix NTSet x -> Matrix NTSet y -> Matrix NTSet z .<= constraint (RW x, Read y, Read z)
