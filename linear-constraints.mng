@@ -404,6 +404,26 @@ use of the qualified |Linearly.do| notation to sequence the appropriate actions.
 Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
+In this approach the array is non-linear but its capabilities
+(\emph{i.e.} read or write access) are given by \emph{linear constraints}.
+Once these capabilities are consumed, the array can no longer be read from
+or written to without triggering a compile time error.
+Additionally, using capabilities in this way prevents problems
+that arise from aliasing.
+
+
+% In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
+% in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which means that
+% |let  (a, b) = p in ()|
+% will not actually evaluate the pair. To force evaluation, a strictness annotation can be added:
+% |let  ^^ !(a, b) = p in ()|.
+% Pattern matching in linear $\klet$ bindings must always be strict in Linear Haskell, so writing
+% the lazy version would be rejected by the compiler. To simplify the
+% presentation, we assume that all patterns in $\klet$ bindings are strict.
+% Strict $\klet$ pattern bindings can be desugared into $\kcase$ expressions:
+% |case p of (a, b) -> ()|.
+
+
 
 This paper is an extended version of~\cite{SpiwackKBWE22}; in particular, it adds numerous examples that were not included in the original.
 \nw{Add more here later}
@@ -550,42 +570,6 @@ $$
 \end{array}
 $$
 
-\subsection{Shortcomings of Linear Haskell that We Address}
-The |read| function in \cref{sec:introduction} consumes the array it
-operates on. Therefore, the same array can no longer be used in
-further operations: doing so would result in a type error.  To resolve
-this, a new name for the same array is produced by each operation.
-
-From the perspective of the programmer, this is unwanted boilerplate.
-Minimizing such boilerplate is the main aim of this paper.  Our
-approach is to let the array be non-linear, and let its
-capabilities (\emph{i.e.} having read or write access) be \emph{linear
-constraints}. Once these capabilities are consumed, the array can no
-longer be read from or written to without triggering a compile time
-error.
-
-\nw{I think this paragraph is out of place. We should also say where in the paper these shortcomings are addressed}
-A further drawback of today's Linear Haskell is that
-the programmer cannot restrict how a linear function is used.
-For example, suppose we want to use linear types to create
-a pure interface to arrays that supports in-place mutation;
-the interface is safe only if we guarantee that arrays cannot
-be aliased. Because the result of a hypothetical |newArray|
-function can be stored in an unrestricted variable (of multiplicity
-$[[{omega}]]$), the linearity system cannot prevent its aliasing.
-Instead, \citet[Fig.~2]{LinearHaskell} use a continuation-passing
-style to enforce non-aliasing.
-
-% In \cref{sec:introduction} and in the rest of the paper, we use pattern matches
-% in $\klet$ bindings. By default in Haskell, patterns in $\klet$s are lazy, which means that
-% |let  (a, b) = p in ()|
-% will not actually evaluate the pair. To force evaluation, a strictness annotation can be added:
-% |let  ^^ !(a, b) = p in ()|.
-% Pattern matching in linear $\klet$ bindings must always be strict in Linear Haskell, so writing
-% the lazy version would be rejected by the compiler. To simplify the
-% presentation, we assume that all patterns in $\klet$ bindings are strict.
-% Strict $\klet$ pattern bindings can be desugared into $\kcase$ expressions:
-% |case p of (a, b) -> ()|.
 
 \section{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
