@@ -293,18 +293,22 @@ All of these systems are vastly different in ergonomics and
 scope. Rust uses dedicated syntax and code generation
 to support management of resources, while Linear Haskell is a
 type system change without requiring any other impact on the compiler, such as in the
-code generator or runtime system.\rae{But actually we'd \emph{like} to have
-an impact on the runtime system to allow update-in-place.} Linear Haskell
-is designed to be general purpose, but
-using its linear arguments to emulate Rust's ownership model is a tedious exercise. It
-requires
-% the compiler doesn't know how to help, requiring
+code generator or runtime system.
+\rae{But actually we'd \emph{like} to have
+an impact on the runtime system to allow update-in-place.}
+Linear Haskell is powerful enough to emulate Rust's
+ownership, but using its linear arguments to do so is a tedious exercise,
+since it requires
 the programmer to carefully thread resource tokens.
-\nw{Maybe a comment about why we want this in the first place? Some positive adjective about
-Rust's model would be enough.}
 
-To get a sense of the power and the tedium of programming with linear types, consider the
-following function:
+%format arr0
+%format arr1
+%format arr2
+
+To get a sense of the power and the tedium of programming with linear types
+for memory management, consider the following function which
+reads the first two elements |x| and |y| of an array |arr0| and
+returns them after deallocating the array:
 \begin{code}
 read2AndDiscard :: MArray a ->. (Ur a, Ur a)
 read2AndDiscard arr0 =
@@ -313,29 +317,31 @@ read2AndDiscard arr0 =
        ()         = free arr2
   in (x, y)
 \end{code}
-This function reads the first two elements of an array and returns them after
-deallocating the array.
-Linearity enables the array library to ensure that there is only one reference
-to the array, and therefore it can be mutated in-place without violating
-referential transparency. Let us stress that this uniqueness property
-is an invariant of the array library, not an intrinsic property of
-linear functions.
-
-After the array has been freed, it is no longer
+The power of linearity enables the array library to ensure that there is only
+one reference to the array, and therefore it can be mutated in-place without
+violating referential transparency.
+% Let us stress that this uniqueness property
+% is an invariant of the array library, not an intrinsic property of
+% linear functions.
+Linearity also ensures that after the array has been freed, it is no longer
 possible to read or write to it.
-%
-Notice that the |read| function consumes the array and returns a
-fresh array, to be used in future operations. Operationally, the array remains
-the same, but each operation assigns a new name to it, thus facilitating tracking
-references statically. Finally, |free| consumes the array without returning a
-new one, statically guaranteeing that it can no longer be used.
 The values |x| and |y| read from the array are returned; their
 types include elements wrapped by the |Ur|
 (pronounced ``unrestricted'',  and corresponding to the
 ``!'' operator of \citet{girard-linear-logic}) type, allowing them to be used
 arbitrarily many times. This works because |read2AndDiscard| takes a restricted-use array
 containing unrestricted elements.
-%
+
+On the other hand, there is significant tedium in manipulating
+the array through |arr0|, |arr1|, and |arr2|.
+This arises because the |read| function consumes the array and returns a fresh
+array, to be used in future operations.
+Operationally, the array remains
+the same, but each operation assigns a new name to it, to facilitate tracking
+references statically.
+
+
+
 In a non-linear language, one would have to forgo referential transparency to
 handle mutable operations either by using a monadic interface or allowing
 arbitrary effects.
@@ -389,8 +395,8 @@ read2AndDiscard arr = Linearly.do
   free arr
   Linearly.return (x, y)
 \end{code}
-The only changes from the impure version are that this version explicitly requires having
-read and write access to the array, and the
+The only changes from the impure version are that this version explicitly constrains
+the function to require require read and write access to the array, and the
 use of the qualified |Linearly.do| notation to sequence the appropriate actions.
 % and pattern-matching against $\packbox$ (read ``pack'') is necessary in order to access the linear constraint
 % packed in the result of |read| and |free|. (\Cref{sec:implicit-existentials}
@@ -399,8 +405,9 @@ Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
 
-\nw{It should be more clearly stated that this is an extended version of the ICFP paper, and
-what the particular contributions of this version are.}
+This paper is an extended version of~\cite{SpiwackKBWE22}; in particular, it adds numerous examples that were not included in the original.
+\nw{Add more here later}
+
 Our contributions are as follows:
 \begin{itemize}
 \item A system of qualified types that allows a constraint assumption
