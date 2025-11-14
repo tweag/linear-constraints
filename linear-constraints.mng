@@ -2863,10 +2863,33 @@ type system.
 \subsection{Constraint Solving}
 \label{sec:constraint-solver}
 
-In this section,
-we build a \emph{constraint solver} that proves
-that $[[Q_g |- C]]$ holds, as required by \cref{lem:generation-soundness}.
-The constraint solver is represented by the following judgement:
+In this section, we build a \emph{constraint solver} that decides whether or not
+$[[Q_g |- C]]$ holds, as required by \cref{lem:generation-soundness}.
+
+So far, the constraint domain has been kept abstract. For the sake of
+concreteness let us fix a particular constraint domain for the duration of this
+section. As atomic constraints, we take an arbitrary countable set. We will only
+compare atomic constraints for equality, so the only structure that we require
+is that equality of atomic constraints is decidable. Furthermore, we fix an
+arbitrary decidable subset $[[Dup]]$ of duplicable atomic constraints (to which
+the |Unique| constraint must belong). This is one of the simplest possible
+domain but it's sufficient to support our examples throughout this paper. The
+entailment relation for this domain is given by a simple recursive definition
+shown in \cref{fig:concrete-domain}. The intention for our definition relation
+is to mean that a constraint $[[{q}]]$ is entailed if and only if it is already
+assumed; with the appropriate linearity restrictions.
+
+\begin{figure}
+  \maybesmall
+  \centering
+  \drules[Q]{$[[QF1 ||- QF2]]$}{Entailment relation}{Linear, DupOne, DupNone, Ur}
+
+  \caption{Concrete constraint entailment}
+  \label{fig:concrete-domain}
+\end{figure}
+
+
+The constraint solver itself is represented by the following judgement:
 %
 $$
 [[ |-s C ~> Q]]
@@ -2895,7 +2918,7 @@ presented in state-passing style (\emph{e.g.}
 and return a “leftover” context which contains all the remaining, unused
 hypotheses.
 
-The reasons to choose this presentation, which, for the Haskell practioner, we
+The reasons to choose this presentation, which, for the Haskell practitioner, we
 could describe as writer-style rather than state-style, are\unsure{Is the item list below readable without giving
   an example of a state-passing rule? In fact, I haven't explained the rules at
   all yet. Maybe I should move this paragraph below}
@@ -2932,28 +2955,6 @@ check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
   \label{lem:solver-soundness}
   If $[[|-s C ~> Q]]$, then $[[Q |- C]]$
 \end{lemma}
-
-To handle simple wanted constraints, we will need  a domain-specific
-\emph{atomic-constraint solver} to be the algorithmic counterpart of the
-abstract entailment relation of \cref{sec:constraint-domain}. The
-main solver will appeal to this atomic-constraint solver when solving atomic
-constraints.  The atomic-constraint solver is represented by the following
-judgement:
-%
-$$
-[[ |-simp pi.q ~> Q ]]
-$$
-
-It has a similar structure to the main solver, but only deals with atomic
-constraints. Even though the main solver is parameterised by this
-atomic-constraint solver, we will give an instantiation in
-\cref{sec:simple-constr-solv}.
-%
-We require the following property of the atomic-constraint solver:
-
-\begin{property}[Atomic-constraint solver soundness]
-\label{prop:atomic-solver-soundness} If $[[ |-simp pi.q ~> Q ]]$, then $[[Q ||- pi.q]]$.
-\end{property}
 
 \subsubsection{Constraint Solver Algorithm}
 
@@ -3076,47 +3077,6 @@ f =   unique $ Linearly.do
 \end{code}
 As their is a strict nesting between the two occurrences of |constraint(RW n)|
 to choose from when calling |free|, so the solver chooses the innermost.
-
-\subsubsection{An Atomic-Constraint Solver}
-\label{sec:simple-constr-solv}
-
-So far, the atomic-constraint domain has been
-an abstract parameter. In this section, though, we offer a concrete
-domain which supports our examples.
-
-For the sake of our examples, we need very little: is suffices that linear
-constraints be atoms, whose only meaningful operation is to compare them for
-equality.
-It is thus sufficient for the entailment relation
-(\Cref{fig:simpl-entailment}) to prove $[[{q}]]$ if and only if it
-is already assumed---while respecting linearity. That is, with the
-exception of a distinguished constraint $[[{Linearly}]]$, which can be
-duplicated and discarded, and we use to model the |Unique|
-constraint from~\ref{sec:Unique-constraint}. That is, the set $[[{Dup}]]$ is
-defined to only contain $[[{Linearly}]]$.
-
-\begin{figure}
-  \maybesmall
-  \centering
-  \begin{subfigure}{\linewidth}
-    \drules[Q]{$[[Q1 ||- Q2]]$}{Entailment relation}{Hyp,Prod,Empty,
-      DiscardD, DupD}
-    \caption{Entailment relation}
-    \label{fig:simpl-entailment}
-  \end{subfigure}
-  \begin{subfigure}{\linewidth}
-    \drules[Atom]{$[[|-simp pi.q ~> Q]]$}{Atomic-constraint solver}{Use}
-    \caption{Atomic-constraint solver}
-    \label{fig:simpl-solver}
-  \end{subfigure}
-  \caption{A stripped-down constraint domain}
-  \label{fig:predicate-domain}
-\end{figure}
-
-The corresponding atomic-constraint solver (\Cref{fig:simpl-solver}) is as
-simple as it gets. It consists in a single rule saying that the only way to
-prove a constraint $[[{q}]]$ is to use an hypothesis of type $[[{q}]]$. This
-solver never guesses since it only every apply this one rule.
 
 \critical{Below this point, in this section, I don't think we need anything. But we'll see when we're done
   with refactoring this section, so I'm keeping it to remember to check.}

@@ -323,7 +323,8 @@ formula :: formula_ ::=
 | qF \in Dup                      ::   :: q_in_Dup {{ tex [[qF]] \in [[Dup]] }}
 | QF1 \notin Dup                  ::   :: Q_not_dup
 | qF1 \notin Dup                  ::   :: q_not_dup
-| LCtxF1 \subseteq LCtxF2         ::   :: subset
+| LCtxF1 \subseteq LCtxF2         ::   :: LCtx_subset
+| UCtxF1 \subseteq UCtxF2         ::   :: UCtx_subset
 | qF \in UCtxF                    ::   :: q_in_UCtx {{ tex [[qF]] \in [[UCtxF]] }}
 | qF \notin UCtxF                 ::   :: q_notin_UCtx  {{ tex [[qF]] \notin [[UCtxF]] }}
 | qF \notin LCtxF                 ::   :: q_notin_LCtx  {{ tex [[qF]] \notin [[LCtxF]] }}

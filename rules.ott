@@ -8,24 +8,28 @@ Qs :: '' ::=
 
 
 defn
-QF1 ||- QF2 :: :: Qrules :: 'Q_' {{ com Constraint entailment }}
+QF1 ||- QF2 :: :: Qrules :: 'Q_' {{ com Concrete constraint entailment }}
 by
 
------------------- :: Hyp
-omega.Q * pi.q ||- pi.q
+(UCtx1, LCtx1) ||- (UCtx2, LCtx2)
+q \notin Dup
+------------------------------------------:: Linear
+(UCtx1, LCtx1 \u q) ||- (UCtx2, LCtx2 \u q)
 
-Q1 ||- Q1'   Q2 ||- Q2'
------------------------ :: Prod
-Q1*Q2 ||- Q1' * Q2'
+(UCtx1, LCtx1 \u q) ||- (UCtx2, LCtx2)
+q \in Dup
+------------------------------------------:: DupOne
+(UCtx1, LCtx1 \u q) ||- (UCtx2, LCtx2 \u q)
 
------------------- :: Empty
-omega.Q ||- Empty
+(UCtx1, LCtx1) ||- (UCtx2, LCtx2)
+q \notin LCtx2
+q \in Dup
+------------------------------------------:: DupNone
+(UCtx1, LCtx1 \u q) ||- (UCtx2, LCtx2)
 
------------------- :: DiscardD
-1.Linearly ||- Empty
-
------------------- :: DupD
-1.Linearly ||- 1.Linearly * 1.Linearly
+UCtx1 \subseteq UCtx2
+---------------------------------------:: Ur
+(UCtx1, emptyset) ||- (UCtx2, emptyset)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Entailment  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,9 +194,8 @@ defn
 |-s CF_w ~> QF :: :: Solve :: 'S_' {{ com Constraint solving }}
 by
 
-|-simp pi.q ~> Q
 ---------------------------------------------- :: Atom
-|-s pi.q ~> Q
+|-s pi.q ~> pi.q
 
 |-s C1 ~> Q1  |-s C2 ~> Q2
 --------------------------------------------------------------- :: Add
@@ -273,16 +276,6 @@ q \notin Dup
 q \in Dup
 ------------------------------------------------------------------- :: DiffDR
 (UCtx1, LCtx1 ) /\ (UCtx2, LCtx2 \u q) = Q * 1.q
-
-defn
-|-simp piF . qF ~> QF :: :: SolveSimple :: 'Atom_' {{ com Atomic constraint solving }}
-  {{ tex [[|-simp]] [[piF]] \scale [[qF]] [[~>]] [[QF]] }}
-by
-
--------------------------------- :: Use
-|-simp pi.q ~> pi.q
-
-% todo
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Desugared expressions  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
