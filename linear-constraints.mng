@@ -2248,6 +2248,57 @@ splits the array at the pivot element and recursively operates on the two
 slices.
 
 
+\subsection{Typestates}
+
+So far, we have used linear constraints in conjunction with pure
+algorithms, but they are just as effective to annotate effectful code.
+To be able to do this, we must use a linear monad. For instance linear
+IO:
+
+\begin{code}
+return : a -> L a
+bind : L a ⊸ (a -> L b) ⊸ L b
+\end{code}
+
+Brady (TODO Idris 2: Quantitative Type Theory in Practice) presents
+the example of an ATM, whose API cause transition between the
+following states:
+
+TODO: steal picture from brady.
+
+While Brady's API uses linear types, we can capture the (effectful)
+transitions using linear constraints instance:
+
+\begin{code}
+initATM : L (∃ s. ATM s .<= Ready s)
+shutDown : Ready s =>. ATM s -> L ()
+insertCard : Ready s =>. ATM s -> L (() .<= CardInserted s)
+checkPIN : CardInserted s =>. ATM s -> Int -> L (Either (() .<= Session s)  (() .<= CardInserted))
+dispense : Session s =>.  ATM s -> L (() .<= Session s) 
+ejectCard : CardInserted s =>. L (() .<= Ready s)
+terminateSession : Session s =>. L (() .<= CardInserted s)
+message : ATM s -> String -> L ()
+\end{code}
+% TODO: for Brady, one can eject the card even in session.
+
+One possible use of the above API is the following:
+
+\begin{code}
+runATM : L ()
+runATM = do  m <- initATM
+             insertCard m
+             ok <- checkPIN m 1234
+             message m "Checking PIN"
+             case ok of
+               Left () -> dispense m
+               Right () -> terminateSession m
+             ejectCard m
+             shutDown m
+\end{code}
+
+Compared to the (plain) use of linear types of Brady, we do not
+consume and recreate the ATM value (m) at each state.
+
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
 
