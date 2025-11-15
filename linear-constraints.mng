@@ -100,6 +100,8 @@ import GHC.Base
   }
 
   \usepackage{xargs}
+  \usepackage{tikz}
+  \usetikzlibrary{automata, positioning}
   \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
   % ^^ Need for pgfsyspdfmark apparently?
   \ifx\noeditingmarks\undefined
@@ -2263,7 +2265,23 @@ bind :: L a ⊸ (a -> L b) ⊸ L b
 \Citet{DBLP:conf/ecoop/Brady21} presents the example of an ATM, whose
 API cause transition between the following states:
 
-TODO: steal picture from brady.
+\begin{tikzpicture}[
+    state/.style={rectangle, draw, thick, minimum width=2cm, minimum height=1cm},
+    >=stealth,
+    node distance=2cm and 3cm
+  ]
+  
+  \node (ready) [state] {Ready};
+  \node (cardinserted) [state, right of=ready] {CardInserted};
+  \node (session) [state, below of=cardinserted] {Session};
+
+  \draw[->] (ready) -- node[above] {insertCard} (cardinserted);
+  \draw[->] (cardinserted) to[bend left] node[above] {checkPIN (incorrect)} (ready);
+  \draw[->] (cardinserted) -- node[right] {checkPIN (correct)} (session);
+  \draw[->] (session) edge[loop above] node {dispense} ();
+  \draw[->] (session) -- node[left] {ejectCard} (ready);
+
+\end{tikzpicture}
 
 While Brady API uses linear types, we can capture the (effectful)
 transitions using linear constraints instance:
