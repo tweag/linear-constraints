@@ -2253,20 +2253,19 @@ slices.
 So far, we have used linear constraints in conjunction with pure
 algorithms, but they are just as effective to annotate effectful code.
 To be able to do this, we must use a linear monad. For instance linear
-IO:
+|IO|:
 
 \begin{code}
-return : a -> L a
-bind : L a ⊸ (a -> L b) ⊸ L b
+return :: a -> L a
+bind :: L a ⊸ (a -> L b) ⊸ L b
 \end{code}
 
-Brady (TODO Idris 2: Quantitative Type Theory in Practice) presents
-the example of an ATM, whose API cause transition between the
-following states:
+\Citet{DBLP:conf/ecoop/Brady21} presents the example of an ATM, whose
+API cause transition between the following states:
 
 TODO: steal picture from brady.
 
-While Brady's API uses linear types, we can capture the (effectful)
+While Brady API uses linear types, we can capture the (effectful)
 transitions using linear constraints instance:
 
 \begin{code}
