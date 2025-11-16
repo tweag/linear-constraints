@@ -2255,36 +2255,37 @@ slices.
 So far, we have used linear constraints in conjunction with pure
 algorithms, but they are just as effective to annotate effectful code.
 To be able to do this, we must use a linear monad. For instance linear
-|IO|:
+|IO|, whose |bind| and |return| have the following signatures:
 
 \begin{code}
 return :: a -> L a
 bind :: L a ⊸ (a -> L b) ⊸ L b
 \end{code}
 
-\Citet{DBLP:conf/ecoop/Brady21} presents the example of an ATM, whose
-API cause transition between the following states:
+In what follows, we illustrate effectful use of linear constraints
+with a modified the API for a ATM machine presented by
+\citet{DBLP:conf/ecoop/Brady21}. This API has three states, and
+function calls can effect a transition between those, as schematized
+below:
+%
+\begin{center}
+  \begin{tikzpicture}[minimum width=2cm, minimum height=1cm,
+    every state/.style={rectangle}]
+    
+    \draw (0,0) node (ready) [state] {Ready};
+    \draw (10,0) node (cardinserted) [state] {CardInserted};
+    \draw (5,-5) node (session) [state] {Session};
 
-\begin{tikzpicture}[
-    state/.style={minimum width=2cm, minimum height=1cm},
-    node distance=2cm
-  ]
-  
-  \node (ready) [state] {Ready};
-  \node (cardinserted) [state, right of=ready] {CardInserted};
-  \node (session) [state, below left of=cardinserted] {Session};
+    \draw[->] (ready) --  node[above] {insertCard} (cardinserted);
+    \draw[->] (cardinserted) to[bend left] node[above] {checkPIN (incorrect)} (ready);
+    \draw[->] (cardinserted) -- node[right] {checkPIN (correct)} (session);
+    \draw[->] (session) edge[loop above] node {dispense} ();
+    \draw[->] (session) -- node[left] {ejectCard} (ready);
 
-  \draw[->] (ready) -- node[above] {insertCard} (cardinserted);
-  \draw[->] (cardinserted) to[bend left] node[above] {checkPIN (incorrect)} (ready);
-  \draw[->] (cardinserted) -- node[right] {checkPIN (correct)} (session);
-  \draw[->] (session) edge[loop above] node {dispense} ();
-  \draw[->] (session) -- node[left] {ejectCard} (ready);
-
-\end{tikzpicture}
-
-While Brady API uses linear types, we can capture the (effectful)
-transitions using linear constraints instance:
-
+  \end{tikzpicture}
+\end{center}
+While Brady's API uses linear types, we can capture the (effectful)
+transitions using linear constraints, as follows:
 \begin{code}
 initATM : L (∃ s. ATM s .<= Ready s)
 shutDown : Ready s =>. ATM s -> L ()
@@ -2296,9 +2297,7 @@ terminateSession : Session s =>. L (() .<= CardInserted s)
 message : ATM s -> String -> L ()
 \end{code}
 % TODO: for Brady, one can eject the card even in session.
-
 One possible use of the above API is the following:
-
 \begin{code}
 runATM : L ()
 runATM = do  m <- initATM
@@ -2311,9 +2310,10 @@ runATM = do  m <- initATM
              ejectCard m
              shutDown m
 \end{code}
-
-Compared to the (plain) use of linear types of Brady, we do not
-consume and recreate the ATM value (m) at each state.
+%
+Compared to the (plain) use of linear types of Brady, linear
+constraints allows one to use a single value of type |ATM|, instead of
+consuming and recreating for each call.
 
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
