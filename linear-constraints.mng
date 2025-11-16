@@ -2266,14 +2266,13 @@ bind :: L a ⊸ (a -> L b) ⊸ L b
 API cause transition between the following states:
 
 \begin{tikzpicture}[
-    state/.style={rectangle, draw, thick, minimum width=2cm, minimum height=1cm},
-    >=stealth,
-    node distance=2cm and 3cm
+    state/.style={minimum width=2cm, minimum height=1cm},
+    node distance=2cm
   ]
   
   \node (ready) [state] {Ready};
   \node (cardinserted) [state, right of=ready] {CardInserted};
-  \node (session) [state, below of=cardinserted] {Session};
+  \node (session) [state, below left of=cardinserted] {Session};
 
   \draw[->] (ready) -- node[above] {insertCard} (cardinserted);
   \draw[->] (cardinserted) to[bend left] node[above] {checkPIN (incorrect)} (ready);
