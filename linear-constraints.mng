@@ -1141,13 +1141,9 @@ given subarray, or \emph{slice}, before returning control to the main algorithm.
 \subsubsection{Simple slices}
 \label{sec:simple-slices}
 
-%format sub1 = "\Varid sub \ensuremath{_1}"
+%format sub1 = "\Varid{constrict}"
+%format sub  = "\Varid{restict}"
 
-\nw{I think |sub| should probably be named |slice|: there are so many other
-  "sub" things. AS: I used |sub| because it returns a single array, while I've
-  used |slice|, below, when several arrays, spanning the original array, are
-  returned. Maybe that's not the best terminology, I don't know. NW: Maybe returning
-  more than one slice should be called |slices|.}
 A first intuition may be to add a function looking like this:
 \begin{code}
 sub1 :: constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. Ur (UArray a p) .<= constraint(RW p)
@@ -1158,7 +1154,8 @@ consuming the capabilities on the original array, so that we can't write
 concurrently on the slice and on the original array, preserving referential
 transparency.
 
-There is one problem, though: this is a one way transformation. It is rare that
+There is one problem, though: this is a one way transformation since
+|n| is not recovered in the output constraint. It is rare that
 one wants to abandon the original array altogether when taking a slice: the goal
 is usually to focus on the array for a portion of an algorithm, and return to
 the global view later.
