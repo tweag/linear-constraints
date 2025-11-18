@@ -59,7 +59,8 @@ import GHC.Base
 %format ->. = "⊸"
 %format => = "\FatArrow "
 %format =>. = "\Lolly "
-%format poly_arrow = "\mathop{\to_{\multiplicityfont{m}}}"
+%format poly_arrow  = "\mathop{\to_{\multiplicityfont{m}}}"
+%format poly_arrow_ m a b= a "\mathop{\to_{\multiplicityfont{" m "}}}" b
 %format .<= = "\RLolly"
 %format <== = "\RFatArrow"
 %format omega = "\omega"
@@ -80,6 +81,7 @@ import GHC.Base
 %format ^^ = "\,"
 %format e1
 %format e2
+%format pi = "\Varid{\pi}"
 %
 %format ! = "!"
   %% ^^ this suppresses some space. I think lhs2TeX would otherwise use \mathop
@@ -87,6 +89,7 @@ import GHC.Base
 %format (at n) = "{@}" n
 %format phantom x = "\phantom{" x "}"
 %endif
+
 
 %let full = False
 
@@ -387,6 +390,7 @@ concepts, which have been studied independently elsewhere
 
 With our extension, we can write a new pure version of |read2AndDiscard| which does
 not require explicit threading of the array:
+\nw{|UArray| is never introduced. Is it supposed to be an unboxed array? (probably not)}
 \begin{code}
 read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
 read2AndDiscard arr = Linearly.do
@@ -501,7 +505,14 @@ Our definition is based on the type of the value concerned:
 \end{itemize}
 \end{definition}
 
-In the case of arrays, we treat |MArray a| as  a 
+\nw{There's something here that has started to confuse me. If we have |f x| for |x :: Int|
+and |f :: Int ⊸ Int|, nothing in this defintion prevents |f| from having a body like |f x = x + x|,
+because ``to consume exaclty once'' means to ``just evaluate it'', so I'm not prevented
+in this definition from doing that evaluation twice.}
+
+Under this definition, the types |MArray Int| and |UArray Int n| are each considered to be an atomic base type.
+Consuming one eactly once corresponds to evaluating it.
+
 
 
 %
@@ -511,13 +522,20 @@ The usual arrow type |a -> b| can be recovered using |Ur|, as |Ur a ⊸ b|, but 
 Haskell provides a first-class treatment of |a -> b|, thus ensuring
 backwards compatibility with Haskell. In practice, the type-checker
 records the \emph{multiplicity} of every introduced variable: \(1\) for linear
-arguments and \(ω\) for unrestricted ones. This way, one can give a unified treatment
-of both arrow types~\citep{linearity-and-pi-calculus}.
+arguments and \(ω\) for unrestricted ones. Multiplicity is also recorded
+in the arrows:
+\[
+  |poly_arrow_ pi a b|
+\]
+This way, one can give a unified treatment of both arrow types~\citep{linearity-and-pi-calculus} by
+instantiating $\pi$ to the appropriate multiplicity:
 $$
 \begin{array}{lcll}
   [[{pi}]], [[{rho}]] & \bnfeq & [[{1}]] \bnfor [[{omega}]] & \text{Multiplicities}
 \end{array}
 $$
+Thus, linear arrows are given by
+|poly_arrow_ 1 a b| and unrestricted arrows by |poly_arrow_ omega a b|.
 
 We stress that a multiplicity of \(1\) restricts \emph{how the variable can be used}. It does not
 restrict \emph{which values can be substituted for it}.
@@ -569,11 +587,67 @@ $$
 \right.
 \end{array}
 $$
+\nw{These equations don't belong here without an explanation of where they might arise. Perhaps introduce function composition for $\cdot$, but what would be good for $+$?}
 
+
+\nw{This would be a good place to discuss the interface for mutable arrays in \Cref{fig:linear-interface}.
+This would prepare the way for a better comparison of the constraints version, and
+would hopefully also let us see something about multiplicities. My hope is that
+here we can more carefully describe the linear type interface,
+but also motivate deficencies that are fixed later.}
+
+\nw{Potentially a good place to introduce how |Ur| is defined.}
 
 \section{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
-\jp{Why is this here? This current presentation is stuttering. IMO. It should go back somewhere in sec. 4.}
+
+The use of type classes to handle ad-hoc polymorphism
+was one of the innovative features of Haskell's design~\citep{WalderB89,HudakHJW07}.
+This allows for a constraint to appear in the signature of a type
+that the compiler attempts to satisfy.
+For instance, consider the Haskell function |show|:
+\begin{code}
+show :: constraint (Show a) => a -> String
+\end{code}
+In addition to the function arrow |->|, common to all functional
+programming languages, the type of this function features a constraint arrow |=>|.
+Everything to the
+left of a constraint arrow is called a \emph{constraint}, and will be
+highlighted in \constraintfont{blue} throughout the paper. Here
+|constraint (Show a)| is a
+class constraint.
+
+Constraints are handled implicitly by
+the typechecker. That is, if we want to |show| the integer |n :: Int| we would write |show
+n|, and the typechecker is responsible for proving that |constraint (Show Int)| holds, without
+intervention from the programmer.
+Note that constraint arrows are \emph{unrestricted}: they create a demand
+from the compiler to supply the required constraint, which it achieves by
+providing the appropriate instance.
+Since |Show Int| is a valid instance, its use is entirely unrestricted.
+
+Just as constraint arrows allow a value to depend on \emph{unrestricted} implicit parameters,
+linear constrants allow a value to depend on \emph{linear} implicit parameters.
+As a consequence, linear constraints are not produced in the same way as
+unrestricted constraints.
+This is demonstrated in the |read| function that our library enables:
+\begin{code}
+read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
+\end{code}
+Here there are two occurrences of the |constraint (Read n)| constraint.
+The first occurrence in the usual constraint position on the left, |constraint (Read n) =>. ...|,
+indicates that this function \emph{consumes} a |constraint (Read n)| constraint.
+The second occurrence at the end of the signature, |... .<= constraint (Read n)|,
+indicates that this function \emph{produces} a |constraint (Read n)| constraint.
+This section proceeds by first demonstrating
+how linear constraints are consumed~\cref{sec:consuming-linear-constraints},
+then describes how these constraints are produced~\cref{sec:producing-linear-constraints}.
+
+
+\subsection{Consuming Linear Constraints}
+\label{sec:consuming-linear-constraints}
+
+
 \begin{figure}%
   \maybesmall
   \centering
@@ -604,24 +678,7 @@ free :: constraint (RW n) =>. UArray a n -> ()
 \caption{Interfaces for mutable arrays}
 \end{figure}
 
-Consider the Haskell function |show|:
-\begin{code}
-show :: constraint (Show a) => a -> String
-\end{code}
-In addition to the function arrow |->|, common to all functional
-programming languages, the type of this function features a constraint arrow |=>|.
-Everything to the
-left of a constraint arrow is called a \emph{constraint}, and will be
-highlighted in \constraintfont{blue} throughout the paper. Here
-|constraint (Show a)| is a
-class constraint.
-
-Constraints are handled implicitly by
-the typechecker. That is, if we want to |show| the integer |n :: Int| we would write |show
-n|, and the typechecker is responsible for proving that |constraint (Show Int)| holds, without
-intervention from the programmer.
-
-For our |read2AndDiscard| example, the |constraint((Read n, Write n))| (abbreviated as |constraint(RW n)|)
+For our |read2AndDiscard :: | example, the |constraint((Read n, Write n))| (abbreviated as |constraint(RW n)|)
 constraint represents read and write
 access to the array tagged with the type variable |n|. (The full \textsc{api} under consideration appears
 in \cref{fig:constraints-interface}.)
@@ -635,6 +692,7 @@ function arrow (|->.|). Constraints to the left of a linear constraint
 arrow are \emph{linear constraints}.
 Using the linear constraint |constraint(RW n)|, we can give
 the following type to |free|:
+\nw{Maybe we should rename |RW| to |Access|, since it makes more sense of |free|: after a free we can no longer access the array; both reading and writing are a form of access.}
 
 \begin{code}
 free :: constraint (RW n) =>. UArray a n -> ()
@@ -708,10 +766,14 @@ indulging arr = (free arr, free arr)
 Although freeing a resource multiple times is usually only considered bad form,
 our type system rules this out completely.
 
+\subsection{Producing Linear Constraints}
+\label{sec:producing-linear-constraints}
+
 The above deals with freeing an array and ensuring that it cannot be used afterwards.
 However, we still need to explain how a constraint |constraint (RW n)| can come
 into scope.
 The type of |new| with linear constraints is as follows:
+\nw{I don't think the |Int| parameter is ever explained.}
 \begin{code}
 new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
 \end{code}
@@ -722,6 +784,7 @@ This type, too, illustrates several new aspects:
 it takes no type parameter. It restricts the result of |new|
 to be used linearly, meaning that any variable that stores the result of |new| must
 have multiplicity $[[{1}]]$. |constraint(Unique)| is explained more fully in \Cref{sec:Unique-constraint}.
+\nw{Should it be explained more carefully here?}
 
 \item Because |UArray| is now parameterised by a type-level tag |n|, |new| must
 return a |UArray| with a fresh such |n|. This is achieved through returning an
@@ -740,6 +803,7 @@ empty.
   The idea of using existentials to return linear capabilities can be attributed to \citet{DBLP:conf/esop/FluetMA06}.
 } packing the type variable |n|. Such types are introduced with the $\packbox$ constructor.
 % , which some readers might recognize as $\keyword{pack}$. % redundant with "packing". If there is a specific concept that this refers to, a typeface isn't enough to identify it (explicit reference is needed)
+    \nw{This point makes no sense now. $\packbox$ isn't used. It needs to be demonstrated, or perhaps it is a good place to motivate the |Linearly.do|}
 
 \item Not only do we need a fresh type variable |n|, but we also need to introduce
 the linear constraint |constraint(RW n)| for use in subsequent calls to |read| and |free|.
@@ -749,6 +813,7 @@ Our existentials also allow packing a constraint, thanks to the |.<=| operator.
 With all these features working together, we see that |new| returns a non-duplicable
 |UArray| tagged with |n|, accessible only when the |constraint(RW n)| constraint is available.
 
+\nw{It's not immediately cleary why write has |RW|, rather than just a |Write| constraint. That should be explained.}
 We must also ensure that |read| can both promise to operate only on a readable array
 and that the array remains readable afterwards:
 \begin{code}
@@ -859,6 +924,7 @@ The caller may use the linear function's result unrestrictedly.  This poses a
 challenge for providing a type-safe interface for libraries that rely on having a unique pointer to
 some resource, such as safe mutable arrays, because the obvious definition of a
 constructor function can immediately be misused, violating the assumption of uniqueness.
+\nw{The snippets below need some explanation.}
 %
 \begin{code}
 new :: Int -> MArray a
@@ -881,6 +947,9 @@ the linearity restriction. Likewise, the use of |Ur| in |smuggle| requires using
 the |constraint(Unique)| assumption $[[{omega}]]$ times.
 
 This is promising so far, but several problems remain:
+\nw{This tells us what is desired for the behaviour of |Linearly| but it's not clear that how
+it is possible to make |Linearly| be duplicable and discardable, or whether
+it is an in-built constraint.}
 
 \begin{description}
 \item[Duplicating |constraint(Unique)|] What if we want to create multiple
@@ -948,7 +1017,8 @@ given subarray, or \emph{slice}, before returning control to the main algorithm.
 \nw{I think |sub| should probably be named |slice|: there are so many other
   "sub" things. AS: I used |sub| because it returns a single array, while I've
   used |slice|, below, when several arrays, spanning the original array, are
-  returned. Maybe that's not the best terminology, I don't know.}
+  returned. Maybe that's not the best terminology, I don't know. NW: Maybe returning
+  more than one slice should be called |slices|.}
 A first intuition may be to add a function looking like this:
 \begin{code}
 sub1 :: constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. Ur (UArray a p) .<= constraint(RW p)
