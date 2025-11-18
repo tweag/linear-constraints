@@ -628,20 +628,36 @@ Since |Show Int| is a valid instance, its use is entirely unrestricted.
 
 Just as constraint arrows allow a value to depend on \emph{unrestricted} implicit parameters,
 linear constrants allow a value to depend on \emph{linear} implicit parameters.
-As a consequence, linear constraints are not produced in the same way as
-unrestricted constraints.
-This is demonstrated in the |read| function that our library enables:
-\begin{code}
-read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
-\end{code}
-Here there are two occurrences of the |constraint (Read n)| constraint.
-The first occurrence in the usual constraint position on the left, |constraint (Read n) =>. ...|,
-indicates that this function \emph{consumes} a |constraint (Read n)| constraint.
-The second occurrence at the end of the signature, |... .<= constraint (Read n)|,
-indicates that this function \emph{produces} a |constraint (Read n)| constraint.
+In order to manage linearity implicitly, this paper introduces a
+linear constraint arrow (|=>.|), much like Linear Haskell introduces a linear
+function arrow (|->.|). Constraints to the left of a linear constraint
+arrow are \emph{linear constraints}. There thus four different arrows that can be used:
+\[
+\begin{array}{c||cc}
+      & \text{explicit argument} & \text{implicit argument} \\ \hline
+\text{unrestricted} & |->|   & |=>| \\
+\text{linear}        & |->.| & |=>.|
+\end{array}
+\]
+The fact that linear constraints are implicit and inferred by the compiler is
+key to avoiding the tedium of passing resource variables around.
 This section proceeds by first demonstrating
 how linear constraints are consumed~\cref{sec:consuming-linear-constraints},
 then describes how these constraints are produced~\cref{sec:producing-linear-constraints}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \subsection{Consuming Linear Constraints}
@@ -655,10 +671,13 @@ then describes how these constraints are produced~\cref{sec:producing-linear-con
     \noindent%
 \begin{code}
 phantom ( type constraint(RW n) = constraint((Read n, Write n)) )
+
 new  :: Int -> (MArray a ->. Ur r) ->. Ur r
 write :: MArray a ->. Int -> a -> MArray a
 read :: MArray a ->. Int -> (MArray a, Ur a)
 free :: MArray a ->. ()
+
+phantom (unique :: (Unique =>. Ur r) ->. Ur r)
 \end{code}
 \caption{Linear Types}
 \label{fig:linear-interface}
@@ -667,10 +686,13 @@ free :: MArray a ->. ()
   \begin{subfigure}{.55\linewidth}
 \begin{code}
 type constraint(RW n) = constraint((Read n, Write n))
+
 new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
 write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 free :: constraint (RW n) =>. UArray a n -> ()
+
+unique :: (Unique =>. Ur r) ->. Ur r
 \end{code}
 \caption{Linear Constraints}
 \label{fig:constraints-interface}
@@ -678,25 +700,37 @@ free :: constraint (RW n) =>. UArray a n -> ()
 \caption{Interfaces for mutable arrays}
 \end{figure}
 
-For our |read2AndDiscard :: | example, the |constraint((Read n, Write n))| (abbreviated as |constraint(RW n)|)
-constraint represents read and write
-access to the array tagged with the type variable |n|. (The full \textsc{api} under consideration appears
-in \cref{fig:constraints-interface}.)
+One way to understand constraints is that they they demand evidence to be
+supplied before the value they constrain can be used.
+From this perspective, linear constraints consume that evidence exactly
+once.
+
+In the context of mutuble array access, the capabilities of that
+array--such as the ability to read or write from the array--
+act as suitable evidence that operations may act on that array.
+These capabilities exist at the type level and must refer to a specific
+array. To achieve this, an array |arr| of values of type |a| is tagged with a type variable |n|:
+\begin{code}
+  arr :: MArray a n
+\end{code}
+Then, the constraints |constraint (Read n)| and |constraint (Write n)| become evidence that the array can be
+read from or written to. As a convenience we also have a synonym when both are available:
+\begin{code}
+type constraint(RW n) = constraint((Read n, Write n))
+\end{code}
 That is, the constraint |constraint(RW n)|
 is provable if and only if the array tagged with |n| is readable and writable.
 This constraint is linear: it must be consumed (that is, used as an assumption
 in a function call) exactly once.
-In order to manage linearity implicitly, this paper introduces a
-linear constraint arrow (|=>.|), much like Linear Haskell introduces a linear
-function arrow (|->.|). Constraints to the left of a linear constraint
-arrow are \emph{linear constraints}.
-Using the linear constraint |constraint(RW n)|, we can give
-the following type to |free|:
-\nw{Maybe we should rename |RW| to |Access|, since it makes more sense of |free|: after a free we can no longer access the array; both reading and writing are a form of access.}
 
+The |free| function, which frees the contents of a given array will consume the |constraint(RW n)| constraint
+entirely, making it no longer available:
+\nw{Maybe we should rename |RW| to |Access|, since it makes more sense of |free|: after a free we can no longer access the array; both reading and writing are a form of access.}
 \begin{code}
 free :: constraint (RW n) =>. UArray a n -> ()
 \end{code}
+This can only be called when |constraint (RW n)| can be satisfied for the given array of type |UArray a n|.
+
 
 There are a few things to notice:
 \begin{itemize}
@@ -766,25 +800,202 @@ indulging arr = (free arr, free arr)
 Although freeing a resource multiple times is usually only considered bad form,
 our type system rules this out completely.
 
-\subsection{Producing Linear Constraints}
-\label{sec:producing-linear-constraints}
+
+\subsection{Threading Linear Constraints}
+\label{sec:borrowing-linear-constraints}
+\nw{Maybe call it ``Borrowing'' instead?}
+
+Working with mutable arrays requires operations such as |read| and |write| to coordinate
+on their access. Using ordinary linear types, this coordination is achieved by linearly
+consuming the input array of type |MArray a|, and making it available as output
+for the next operation.
+
+This can be readily seen in their types, where |MArray a| appears twice--once as input
+into a linear function and then again in the output. Consider the type of |write|:
+\nw{It's not immediately clear why write has |RW|, rather than just a |Write| constraint. That should be explained.}
+
+\begin{minipage}{0.5\linewidth}
+> write :: MArray a ->. Int -> a -> MArray a
+\end{minipage}
+% \begin{minipage}{0.5\linewidth}
+% > read :: MArray a ->. Int -> (MArray a, Ur a)
+% \end{minipage}
+
+\noindent
+This interface is at the heart of the bureaucracy that we wish to avoid
+in programs like the first |read2AndDicard| implementation (\cref{sec:introduction}),
+since the resulting array is an explicit value that must be threaded
+through to the next operation. The frustration is that this is essentially
+the same array as that which was passed in as input.
+
+Using linear constraints allows the appropriate capability to be passed around implicitly,
+so that the array variable does not need to be emitted as output.
+This is demonstrated in the |write| function that our library enables:
+% \begin{code}
+% read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
+% \end{code}
+\begin{code}
+write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
+\end{code}
+% read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
+Here there are two occurrences of the |constraint (RW n)| constraint.
+The first occurrence in the usual constraint position on the left, |constraint (RW n) =>. ...|,
+indicates that this function \emph{consumes} a |constraint (RW n)| constraint.
+The second occurrence at the end of the signature, |... .<= constraint (RW n)|,
+indicates that this function \emph{produces} a |constraint (RW n)| constraint.
+
+We must also ensure that |read| can both promise to operate only on a readable array
+and that the array remains readable afterwards:
+\begin{code}
+read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
+\end{code}
+That is, |read| must both consume
+a linear constraint |constraint(Read n)| and also produce a fresh linear constraint
+|constraint(Read n)|.
+
+As a consequence, the array |arr| can be safely reused as a parameter
+between different invocations of |read| and |write|, while it is the
+capabilities that are being implicitly threaded around.
+When work with the array is finished, the capabilities can be consumed with |free|.
+\nw{This would be a great place to introduce the |Linearly.do| notation and
+explain something about it.}
+
+
+
+
+\subsection{Linear Contexts}
+\label{sec:linear-contexts}
+\label{sec:Unique-constraint}
 
 The above deals with freeing an array and ensuring that it cannot be used afterwards.
 However, we still need to explain how a constraint |constraint (RW n)| can come
-into scope.
-The type of |new| with linear constraints is as follows:
-\nw{I don't think the |Int| parameter is ever explained.}
+into scope. First, though, it will be beneficial to understand the
+mechanics of creating new arrays using linear types without constraints.
+
+The creation of an |MArray a| must be carefully protected,
+because a naive constructor function can easily be abused. For instance, consider
+the following function that creates a new array:
+\begin{code}
+naive :: Int -> MArray a
+\end{code}
+Nothing prevents the result of a call to naive from being
+duplicated with |diagonal|:
+\begin{code}
+diagonal :: a -> (a, a)
+diagonal x = (x, x)
+\end{code}
+Now the first and second components of |diagonal (naive 10)| point to
+the same array and there is nothing preventing |free| from
+being being evaluated on one component before the other is written to.
+Similarly, the array produced can be lifted an unrestricted occurrence
+with a simple use of |Ur (naive n)|.
+With this it possible to perform repeated operations on an array,
+completely circumventing the linear safety mechanism.
+
+
+
+The original interface for linear types
+makes use of the |new| function to create new arrays,
+following the pattern of using a linear continuation
+advocated by \citet[Fig.~2]{LinearHaskell}:
+\begin{code}
+new  :: Int -> (MArray a ->. Ur r) ->. Ur r
+\end{code}
+The result of |new n (\arr -> p)| is essentially that of the program |p|,
+where it has been able to make use of the array |arr| of size |n|,
+with the guarantee that |arr| is treated linearly.
+In particular, only one reference to |arr| is produced by |new|,
+and this must be consumed linearly, thus avoiding the problems that arise from using the naive constructor.
+\nw{Should we mention the similarity to |ST| somewhere?}
+
+
+Similarly, it is possible to create a |new| function
+for working with |UArray a n| types using the same trick:
+\begin{code}
+new  :: Int -> (constraint (RW n) =>  exists n. Ur (UArray a n) -> Ur r) -> Ur r
+\end{code}
+\nw{I'd like to motivate something like the above, where we don't use |Linearly| at all. This needs a check: should it be linear output?}
+
+
+\subsection{Linear Contexts with Linearly}
+
+Linear constraints provide an alternative solution to this problem
+by putting the special |constraint Linearly| constraint on |new|.
+As we will see, this does not behave like other constraints:
+\begin{code}
+new :: constraint(Unique) =>. Int -> MArray a
+\end{code}
+
+\noindent
+Suppose we have assumed the |constraint(Unique)| constraint linearly; that is,
+we must use the |constraint(Unique)| assumption precisely once.
+Now, |forge (new 10)| is rejected: either we infer 
+the new array to have multiplicity~$[[{omega}]]$,
+in which case its definition uses |constraint(Unique)| $[[{omega}]]$ times; or
+we infer it to have multiplicity~$[[{1}]]$, in which case its use (twice) violates
+the linearity restriction. Likewise, the use of |Ur (new 10)| requires using
+the |constraint(Unique)| assumption $[[{omega}]]$ times and is thus rejected.
+
+\nw{And now the problem is that |Linearly| is a special kind of constraint ...}
+This is promising so far, but several problems remain:
+\nw{This tells us what is desired for the behaviour of |Linearly| but it's not clear that how
+it is possible to make |Linearly| be duplicable and discardable, or whether
+it is an in-built constraint.}
+
+\begin{description}
+\item[Duplicating |constraint(Unique)|] What if we want to create multiple
+arrays, each of which having a unique pointer? If |constraint(Unique)| is assumed
+linearly, then |let arr1 = new 5; arr2 = new 6| will fail, as it uses our
+|constraint(Unique)| assumption twice. We thus stipulate that |constraint(Unique)|
+must itself be duplicable: from one assumption of |constraint(Unique)|, we
+must be able to satisfy any arbitrary fixed number of demands on that constraint.
+By ``arbitrary fixed number'', we mean to say that we can duplicate |constraint(Unique)|
+a finite number of times, but we may not use an assumption of |constraint(Unique)| with
+multiplicity 1 to satisfy |constraint(Unique)| at multiplicity $[[{omega}]]$.
+
+\item[Discarding |constraint(Unique)|] Similarly to allowing
+  duplication, we must allow discarding, in case a function allocates
+  no arrays at all. Accordingly, we allow a linear assumption of
+  |constraint(Unique)| to be accepted even if the constraint is never
+  used.
+
+\item[Initial assumption of |constraint(Unique)|] For this approach to work,
+we must have an assumption of |constraint(Unique)| of multiplicity 1. We can
+achieve this via the following primitive:
+\begin{code}
+unique :: (Unique =>. Ur r) ->. Ur r
+\end{code}
+The argument to |unique| will be a continuation that assumes |constraint(Unique)|
+with multiplicity 1. Because |unique| returns an unrestricted value, no restricted
+values from the continuation can escape the scope of the |constraint(Unique)|
+assumption. Thus, the continuation has exactly the condition we need: a
+linear assumption of |constraint(Unique)|.
+\end{description}
+
+The pattern of using a continuation in |unique| mirrors the use
+of that technique by \citet[Fig.~2]{LinearHaskell}. But
+|unique| is, now, the only place where we need a continuation: once
+we have our linear |constraint(Unique)| assumption, we can use it to produce
+new values that must be unique. We compare the two approaches further in
+\cref{sec:linearly-vs-sticky}.
+
+With just these simple ingredients -- a duplicable, discardable constraint
+that can be assumed linearly -- we can write \textsc{api}s that require
+uniqueness without heavy use of continuations.
+
+
+\nw{A new subsection might be good here to make clear that now we are dealing with linear constraint arrays, but then I don't know how to name the section above}
+The type of |new| for |UArray a n| arrays with capabilities as linear constraints is as follows:
 \begin{code}
 new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
 \end{code}
-
 This type, too, illustrates several new aspects:
 \begin{itemize}
 \item The |constraint(Unique)| constraint is a linear constraint, though
 it takes no type parameter. It restricts the result of |new|
 to be used linearly, meaning that any variable that stores the result of |new| must
 have multiplicity $[[{1}]]$. |constraint(Unique)| is explained more fully in \Cref{sec:Unique-constraint}.
-\nw{Should it be explained more carefully here?}
+\nw{There's some repetition now that needs to be fixed}
 
 \item Because |UArray| is now parameterised by a type-level tag |n|, |new| must
 return a |UArray| with a fresh such |n|. This is achieved through returning an
@@ -813,16 +1024,7 @@ Our existentials also allow packing a constraint, thanks to the |.<=| operator.
 With all these features working together, we see that |new| returns a non-duplicable
 |UArray| tagged with |n|, accessible only when the |constraint(RW n)| constraint is available.
 
-\nw{It's not immediately cleary why write has |RW|, rather than just a |Write| constraint. That should be explained.}
-We must also ensure that |read| can both promise to operate only on a readable array
-and that the array remains readable afterwards:
-\begin{code}
-read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
-\end{code}
-That is, |read| must both consume
-a linear constraint |constraint(Read n)| and also produce a fresh linear constraint
-|constraint(Read n)|.
-%% The fact that existential quantification generates new type-level names
+% The fact that existential quantification generates new type-level names
 %% is folklore. It's used crucially in the interface of the
 %% |ST| monad~\cite{st-monad} and in type-class
 %% reflection~\cite{type-class-reflection} (in both of these cases, existential
@@ -916,81 +1118,8 @@ a linear constraint |constraint(Read n)| and also produce a fresh linear constra
 % not be able to consume the |constraint (Open h)| constraint
 % linearly.
 
-\subsection{Restricting to a Linear Context with |constraint(Unique)|}
-\label{sec:Unique-constraint}
-A linear function makes a promise about how it is going to use its argument, but
-linearity imposes no restrictions on how a function -- or its result -- is going to be used.
-The caller may use the linear function's result unrestrictedly.  This poses a
-challenge for providing a type-safe interface for libraries that rely on having a unique pointer to
-some resource, such as safe mutable arrays, because the obvious definition of a
-constructor function can immediately be misused, violating the assumption of uniqueness.
-\nw{The snippets below need some explanation.}
-%
-\begin{code}
-new :: Int -> MArray a
 
-forge = let arr = new 5 in (arr, arr)
-smuggle = Ur (new 5)
-\end{code}
-%
-However, with linear constraints, we can overcome this problem by putting the
-special |constraint(Unique)| constraint on |new|:
-\begin{code}
-new :: constraint(Unique) =>. Int -> MArray a
-\end{code}
-Suppose we have assumed the |constraint(Unique)| constraint linearly; that is,
-we must use the |constraint(Unique)| assumption precisely once. Now, our definition
-for |forge| is rejected: either we infer |arr| to have multiplicity~$[[{omega}]]$,
-in which case its definition uses |constraint(Unique)| $[[{omega}]]$ times; or
-we infer |arr| to have multiplicity~$[[{1}]]$, in which case its use (twice) violates
-the linearity restriction. Likewise, the use of |Ur| in |smuggle| requires using
-the |constraint(Unique)| assumption $[[{omega}]]$ times.
 
-This is promising so far, but several problems remain:
-\nw{This tells us what is desired for the behaviour of |Linearly| but it's not clear that how
-it is possible to make |Linearly| be duplicable and discardable, or whether
-it is an in-built constraint.}
-
-\begin{description}
-\item[Duplicating |constraint(Unique)|] What if we want to create multiple
-arrays, each of which having a unique pointer? If |constraint(Unique)| is assumed
-linearly, then |let arr1 = new 5; arr2 = new 6| will fail, as it uses our
-|constraint(Unique)| assumption twice. We thus stipulate that |constraint(Unique)|
-must itself be duplicable: from one assumption of |constraint(Unique)|, we
-must be able to satisfy any arbitrary fixed number of demands on that constraint.
-By ``arbitrary fixed number'', we mean to say that we can duplicate |constraint(Unique)|
-a finite number of times, but we may not use an assumption of |constraint(Unique)| with
-multiplicity 1 to satisfy |constraint(Unique)| at multiplicity $[[{omega}]]$.
-
-\item[Discarding |constraint(Unique)|] Similarly to allowing
-  duplication, we must allow discarding, in case a function allocates
-  no arrays at all. Accordingly, we allow a linear assumption of
-  |constraint(Unique)| to be accepted even if the constraint is never
-  used.
-
-\item[Initial assumption of |constraint(Unique)|] For this approach to work,
-we must have an assumption of |constraint(Unique)| of multiplicity 1. We can
-achieve this via the following primitive:
-\begin{code}
-unique :: (Unique =>. Ur r) ->. Ur r
-\end{code}
-The argument to |unique| will be a continuation that assumes |constraint(Unique)|
-with multiplicity 1. Because |unique| returns an unrestricted value, no restricted
-values from the continuation can escape the scope of the |constraint(Unique)|
-assumption. Thus, the continuation has exactly the condition we need: a
-linear assumption of |constraint(Unique)|.
-\end{description}
-
-The pattern of using a continuation in |unique| mirrors the use
-of that technique by \citet[Fig.~2]{LinearHaskell}. But
-|unique| is, now, the only place where we need a continuation: once
-we have our linear |constraint(Unique)| assumption, we can use it to produce
-new values that must be unique. We compare the two approaches further in
-\cref{sec:linearly-vs-sticky}.
-
-With just these simple ingredients -- a duplicable, discardable constraint
-that can be assumed linearly -- we can write \textsc{api}s that require
-uniqueness without heavy use of continuations.
 
 \section{Applications}
 \label{sec:memory-ownership}
