@@ -1133,6 +1133,11 @@ Managing mutuable arrays is an important use case for linearly qualified types,
 since many algorithms are split into subalgorithms that work on a particular
 given subarray, or \emph{slice}, before returning control to the main algorithm.
 
+This section first covers simple slices where work only needs to
+be carried out on a restricted part of an array~(\cref{sec:simple-slices}).
+Then the more general case is considered, where independent parts of
+an array should be worked on simultaneously~(\cref{sec:slicing-two}).
+
 % As an introduction to a style that will be used a lot throughout this section,
 % let us start with answering the question of: how can we extend the purely
 % functional mutable array interface of \cref{fig:constraints-interface} so that
@@ -1265,7 +1270,7 @@ exposition. Either way, we haven't made our mind whether the explicit style or
 implicit style is preferable in a fully fledged programming language.
 \nw{We should rephrase this! Not making up our mind sounds too informal}
 
-\subsubsection{Slicing in two}
+\subsubsection{Independent slices}
 \label{sec:slicing-two}
 
 A more advanced form of borrowing slices of arrays is to borrow two independent
@@ -1368,7 +1373,11 @@ second slice cannot exist simultaneously.
 
 \improvement{Come back to the introduction of this section to make sure that it
   flows with the previous section}
-This subsection illustrates in-place modification of matrices on a
+\nw{This section should start with a focus on matrices and why they are interesting.
+Then, we say we illustrate this with the parsing algorithm.}
+
+This subsection illustrates in-place modification of matrices.
+on a
 parsing algorithm. This algorithm was invented by
 \citet{valiant_general_1975} as a theoretical tool to show that
 context-free parsing could be sub-cubic, but has also
