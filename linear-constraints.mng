@@ -826,7 +826,7 @@ The creation of an |MArray a| must be carefully protected,
 because a naive constructor function can easily be abused. For instance, consider
 the following function that creates a new array:
 \begin{code}
-naive :: Int -> MArray a
+newNaive :: Int -> MArray a
 \end{code}
 Nothing prevents the result of a call to naive from being
 duplicated with |diagonal|:
@@ -834,11 +834,11 @@ duplicated with |diagonal|:
 diagonal :: a -> (a, a)
 diagonal x = (x, x)
 \end{code}
-Now the first and second components of |diagonal (naive 10)| point to
+Now the first and second components of |diagonal (newNaive 10)| point to
 the same array and there is nothing preventing |free| from
 being being evaluated on one component before the other is written to.
 Similarly, the array produced can be lifted an unrestricted occurrence
-with a simple use of |Ur (naive n)|.
+with a simple use of |Ur (newNaive n)|.
 With this it possible to perform repeated operations on an array,
 completely circumventing the linear safety mechanism.
 
