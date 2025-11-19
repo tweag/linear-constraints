@@ -529,13 +529,8 @@ in the arrows:
 \]
 This way, one can give a unified treatment of both arrow types~\citep{linearity-and-pi-calculus} by
 instantiating $\pi$ to the appropriate multiplicity:
-$$
-\begin{array}{lcll}
-  [[{pi}]], [[{rho}]] & \bnfeq & [[{1}]] \bnfor [[{omega}]] & \text{Multiplicities}
-\end{array}
-$$
-Thus, linear arrows are given by
-|poly_arrow_ 1 a b| and unrestricted arrows by |poly_arrow_ omega a b|.
+linear arrows |a ->. b| are given by
+|poly_arrow_ 1 a b| and unrestricted arrows |a -> b| are given by |poly_arrow_ omega a b|.
 
 We stress that a multiplicity of \(1\) restricts \emph{how the variable can be used}. It does not
 restrict \emph{which values can be substituted for it}.
@@ -2524,6 +2519,7 @@ linear constraints. Our design, based on the work of \citet{OutsideIn}, is compa
 
 \nw{This will need fixing. I have just dumped these here from earlier on.}
 
+
 In general, given a
 multiplicity set, the desired
 (sub)structural rules can be obtained by endowing multiplicities with the appropriate
@@ -2545,6 +2541,11 @@ Futhermore, it is not clear how to extend the constraint solver of
 constraints.}${}^,$\footnote{Here and in the rest of the paper we adopt the convention that
 equations defining a function by pattern matching are marked with a
 $\left\{\right.$ to their left.}
+$$
+\begin{array}{lcll}
+  [[{pi}]], [[{rho}]] & \bnfeq & [[{1}]] \bnfor [[{omega}]] & \text{Multiplicities}
+\end{array}
+$$
 %
 $$
 \begin{array}{c@@{\qquad\qquad}c}
