@@ -1142,17 +1142,19 @@ given subarray, or \emph{slice}, before returning control to the main algorithm.
 \label{sec:simple-slices}
 
 %format sub1 = "\Varid{constrict}"
-%format sub  = "\Varid{restict}"
+%format sub  = "\Varid{restrict}"
 
-A first intuition may be to add a function looking like this:
+A first intuition may be to add a function that looks like this:
 \begin{code}
 sub1 :: constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. Ur (UArray a p) .<= constraint(RW p)
 \end{code}
-This |sub1| takes a starting index and a length, and return the corresponding
-slice of the array. The slice is returned with a fresh type-level name,
-consuming the capabilities on the original array, so that we can't write
-concurrently on the slice and on the original array, preserving referential
-transparency.
+Given an array |arr| together with and index |i| and a length |m|,
+the result of |sub1 arr i m| is the corresponding slice of |m|
+elements of the array starting at index |i|.
+Referential transparency is preserved because
+the slice is returned with a fresh type-level name |p|,
+and all the capabilities on the original array with type-level name |n|
+are consumed, so that the slice on the original array cannot be written to concurrently.
 
 There is one problem, though: this is a one way transformation since
 |n| is not recovered in the output constraint. It is rare that
@@ -1174,10 +1176,10 @@ to the original array.
 
 For instance we can write the following in-place insertion sort function, where
 |insert a bs| inserts |a| into the already-sorted array |bs| in place. To
-preserve the size of the array, the smallest element of $a\cup bs$ is removed
+preserve the size of the array, the smallest element of $\{|a|\}\cup |bs|$ is removed
 from the result and returned. In the interesting case, |a| isn't the smallest
-element of $a\cup bs$, so |b=read bs 0| is, we return |b| and insert |a| to the
-tail of |bs|, that is |sub bs 1 (len - 1)| (where |len| is the length of |bs|).
+element of $\{|a|\}\cup |bs|$, so |b=read bs 0| is, we return |b| and insert |a| to the
+tail of |bs|, that is |sub bs 1 (length bs - 1)|.
 
 \info{I'm using insertion sort as an example here to set up the merge sort
   example below.}
@@ -1235,6 +1237,7 @@ insert a bs =
 % \end{code}
 
 The release function returned by |sub| is linear, which means it must be called.
+\nw{This needs a bit of rephrasing}
 When an array has a linear release function attached, it can't be freed (with
 the |free| function of \cref{fig:constraints-interface}), for instance, since
 this would leave the release function unable to be called and the type system
@@ -1243,11 +1246,15 @@ would reject the program.
 When a value has such a linear release function we say that the value \emph{has
   a lifetime}. When a value doesn't have a lifetime, we say it is \emph{owned}.
 This distinction will be quite important for \cref{sec:o1-freeze}, in
-particular. In addition, we refer to any function which returns one or more
+particular.
+\nw{Perhaps so, but we don't need to know or you should elaborate}
+In addition, we refer to any function which returns one or more
 values with lifetimes as a \emph{borrow}.
 
 For completeness, let us observe that the Haskell language (at least
-\textsc{ghc}'s flavour) supports higher-order constraints. With higher-order
+\textsc{ghc}'s flavour)
+\nw{I'd remove this remark after we say something about how we use GHC at the start of the paper}
+supports higher-order constraints. With higher-order
 constraints, we could replace the release \emph{function} by a release
 \emph{constraint} of type |constraint(RW p) =>. constraint(RW n)|. The
 difference is that we wouldn't have to call |release| explicitly anymore, simply
@@ -1262,46 +1269,38 @@ implicit style is preferable in a fully fledged programming language.
 \label{sec:slicing-two}
 
 A more advanced form of borrowing slices of arrays is to borrow two independent
-slices from the same array simultaneously. As long as two slices don't overlap,
-mutating one doesn't affect the other, and it's therefore safe to mutate them
+slices from the same array simultaneously. As long as two slices do not overlap,
+mutating one does not affect the other, and it is therefore safe to mutate them
 concurrently.
+The ability to work on disjoint array slices is crucial for certain algorithms,
+such as the |merge| function in a merge sort.
 
-The |sub| primitive from earlier can't be used to borrow two independent slices:
-when a slice is borrowed, then we lose access to the original array until the
-slice is released, so we can't make a second slice exist simultaneously. So we
-need a new function. The simplest version is to cut an array in two at a given
-position:
+Borrowing two independent slices is achieved using |slice|, which slices
+an array at a given index and returns two arrays:
 \begin{code}
 slice ::  constraint(RW n) =>. UArray a n -> Int ->
           exists p q. (Ur (UArray a p, UArray a q), (constraint(RW p, RW q) =>. () .<= constraint(RW n))) .<= constraint((RW p, RW q))
 \end{code}
-such that |slice as n| returns two slices, one with the first |n| elements, and
-one with the remaining |length as - n| elements. The two slices can be used
-simultaneously. Crucially, both slices much be released for the original
+The result of |slice as n| is two slices, one with the first |n| elements of |as|,
+and one with the remaining |length as - n| elements. The two slices can be used
+simultaneously. Crucially, both slices must be released for the original
 array to be accessible again, this is represented as a single release function
 which consumes the permissions for both slices.
 
-To see why we may need two slices concurrently rather than, say, call |sub|
-twice in a sequence, consider the merge sorting function below. The |merge|
-function takes two sorted arrays |ls| and |rs|, and mutates them so that the
-concatenation of |ls| and |rs| becomes sorted as a whole\footnote{The
-  implementation of |merge| is chosen for simplicity over efficiency for the
-  sake of this exposition. Inserting elements into |rs| with the |insert|
-  function of \cref{sec:simple-slices} is convenient but not particularly
-  efficient. In fact, neither |merge| nor |insert| are truly in place: while
-  they do use $O(1)$ heap space, the actually use $O(n)$ stack space, since they
-  aren't tail recursive.}. It's crucial that the arrays |ls| and |rs| be
-disjoint, if they weren't, referential transparency would be lost and |merge|
-wouldn't be a pure function (for instance reordering |write ls 0 r| and |insert
-l rs|, which is a legal transformation, would change the result). The |sub|
-function from \cref{sec:simple-slices} can't prove that two slices are disjoint,
-so |sub| can never provide two slices of the same array at the same time. Which
-is why we need the |slice| function in |mergeSort| to even be able to call
-|merge|.
+The |merge| function takes two sorted arrays |ls| and |rs|, and mutates them so that the
+concatenation of |ls| and |rs| becomes sorted as a whole%
+\footnote{The implementation of |merge| is chosen for simplicity over
+efficiency for the sake of this exposition. Inserting elements into |rs| with
+the |insert| function of \cref{sec:simple-slices} is convenient but not
+particularly efficient. In fact, neither |merge| nor |insert| are truly in
+place: while they do use $O(1)$ heap space, the actually use $O(n)$ stack
+space, since they aren't tail recursive.}.
+It is crucial that the arrays |ls| and |rs| be disjoint, if they are not then
+referential transparency would be lost and |merge| would not be a pure function
+(for instance reordering |write ls 0 r| and |insert l rs|, which is a legal
+transformation, would change the result).
 
-\info{Merge sort isn't too simple on arrays, really, but it was the simplest
-  example I could come up with of a function that truly needed two slices of the
-  same array.}
+
 \critical{I'm using length here, we need to define it somewhere}
 \begin{code}
 mergeSort ::  constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
@@ -1332,12 +1331,16 @@ merge ls rs =
       release
       Linear.return ()
 \end{code}
+This code requires the two slices to be accessed concurrently, and this is
+achieved using the |slice| function in |mergeSort| which then goes
+on to work with |merge|.
+\nw{Probably need to explain the mechanics of how |merge| returns |(RW p, RW q)| constraint,
+which is sufficient to discharge |RW n|}
 
-It's worth noting that, despite being a very simple function, |slice| is very
-general. Indeed, |slice| can be used to define the |sub| function of
-\cref{sec:simple-slices}. Notice how the unneeded slices are released, below, by
-partially discharging the linear constraint of the release functions.
 
+
+The |slice| function is both simple and general. Indeed, it can be used to
+define the |sub| function of \cref{sec:simple-slices}. 
 \begin{code}
 sub ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
         exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
@@ -1345,8 +1348,20 @@ sub as start len = Linearly.do
   (Ur (_, rght), release_r) <-  slice as start
   (Ur (sb, _), release_s) <-  slice rght len
   Linearly.return (Ur sb, Linearly.do {release_s; release_r})
-
 \end{code}
+Notice how the unneeded
+slices are released, by partially discharging the linear constraint of the
+release functions.
+
+Conversely, The |sub| function from cannot be used to define |slice| since it
+cannot be used to borrow two independent slices: when a slice is borrowed,
+access to the original array is lost until the slice is released and so a
+second slice cannot exist simultaneously.
+
+
+
+
+
 
 \subsection{Blockwise matrices: in-place Valiant algorithm}
 \label{sec:valiant}
