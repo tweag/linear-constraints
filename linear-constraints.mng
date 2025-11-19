@@ -912,12 +912,22 @@ and this must be consumed linearly, thus avoiding the problems that arise from u
 Similarly, it is possible to create a |new| function
 for working with |UArray a n| types using the same trick:
 \begin{code}
-new  :: Int -> (constraint (RW n) =>  exists n. Ur (UArray a n) -> Ur r) -> Ur r
+new  :: Int -> (forall n . constraint (RW n) =>.  UArray a n -> Ur r) ->. Ur r
 \end{code}
 \nw{I'd like to motivate something like the above, where we don't use |Linearly| at all. This needs a check: should it be linear output?}
 
 
 \subsection{Linear Contexts with Linearly}
+
+\begin{figure}
+\begin{code}
+type Linearly :: Constraint
+
+dup :: Linearly =>. () .<= (Linearly, Linearly)
+eps :: Linearly =>. ()
+\end{code}
+\caption{Linearly}
+\end{figure}
 
 Linear constraints provide an alternative solution to this problem
 by putting the special |constraint Linearly| constraint on |new|.
@@ -1124,7 +1134,20 @@ With all these features working together, we see that |new| returns a non-duplic
 \section{Applications}
 \label{sec:memory-ownership}
 
-\improvement{This section needs an intro}
+There are many different applications of linear constraints.
+In this section, we consider
+borrowing slices~(\cref{sec:borrowing-slices}),
+blockwise matrices~(\cref{sec:valiant}),
+nested arrays~(\cref{sec:nested-arrays}),
+freezing nested structures~(\cref{sec:o1-freeze}),
+spay trees~(\cref{sec:splay-trees}),
+non-lexical lifetimes~(\cref{sec:nl-lifetimes}),
+self-referential borrows~(\cref{sec:self-borrow}),
+capabilities in monadic computations~(\cref{sec:monad-capability}).
+
+\improvement{This introduction needs improvement; right now it just has references}
+
+
 
 \subsection{Borrowing slices}
 \label{sec:borrowing-slices}
@@ -1928,6 +1951,7 @@ readF (MkMatrix m) row_num col_num = do
 \end{code}
 
 \subsection{Beyond arrays: splay Trees}
+\label{sec:splay-trees}
 
 Another application of in-place updates are \emph{splay trees}. A
 splay tree acts like a binary search tree, but at every access, the
