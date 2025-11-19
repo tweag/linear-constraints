@@ -629,8 +629,6 @@ new  :: Int -> (MArray a ->. Ur r) ->. Ur r
 write :: MArray a ->. Int -> a -> MArray a
 read :: MArray a ->. Int -> (MArray a, Ur a)
 free :: MArray a ->. ()
-
-phantom (unique :: (Unique =>. Ur r) ->. Ur r)
 \end{code}
 \caption{Linear Types}
 \label{fig:linear-interface}
@@ -644,7 +642,6 @@ new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint 
 write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 free :: constraint (RW n) =>. UArray a n -> ()
-
 \end{code}
 \caption{Linear Constraints}
 \label{fig:constraints-interface}
