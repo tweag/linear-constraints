@@ -549,45 +549,7 @@ duplicate f x = (f x, f x)
 In particular, |duplicate| can pass two copies of |x| to two copies of |f|.
 
 Pattern matching on a value of type |Ur a| yields a payload of multiplicity
-$[[{omega}]]$, even when the scrutinee has multiplicity $[[{1}]]$. In general, given a
-multiplicity set, the desired
-(sub)structural rules can be obtained by endowing multiplicities with the appropriate
-semiring structure~\citep{abel_unified_2020}. In
-this paper, we use the same multiplicity structure as Linear Haskell:\footnote{Even though linear Haskell additionally supports multiplicity
-polymorphism, we do not support multiplicity polymorphism on
-constraint arguments.  Linear Haskell takes advantage of multiplicity
-polymorphism to avoid duplication of higher-order functions. The
-prototypical example is |map :: (a poly_arrow b) -> [a] poly_arrow
-[b]|, where |poly_arrow| is the notation for a function arrow of
-multiplicity |multiplicity(m)|.  First-order functions, on the other
-hand, do not need multiplicity polymorphism, because linear functions
-can be $\eta$-expanded into unrestricted functions as explained in
-\cref{sec:linear-types}. Higher-order functions whose arguments are
-themselves constrained functions are rare, so we do not yet see the
-need to extend multiplicity polymorphism to apply to constraints.
-Futhermore, it is not clear how to extend the constraint solver of
-\cref{sec:constraint-solver} to support multiplicity-polymorphic
-constraints.}${}^,$\footnote{Here and in the rest of the paper we adopt the convention that
-equations defining a function by pattern matching are marked with a
-$\left\{\right.$ to their left.}
-%
-$$
-\begin{array}{c@@{\qquad\qquad}c}
-\left\{
-  \begin{array}{lcl}
-    [[{pi + rho}]] & = & [[{omega}]]
-  \end{array}
-\right.
-&
-\left\{
-  \begin{array}{lcl}
-    [[{1 . pi}]] & = & [[{pi}]] \\
-    [[{omega . pi}]] & = & [[{omega}]]
-  \end{array}
-\right.
-\end{array}
-$$
-\nw{These equations don't belong here without an explanation of where they might arise. Perhaps introduce function composition for $\cdot$, but what would be good for $+$?}
+$[[{omega}]]$, even when the scrutinee has multiplicity $[[{1}]]$.
 
 
 \nw{This would be a good place to discuss the interface for mutable arrays in \Cref{fig:linear-interface}.
@@ -2555,9 +2517,52 @@ such instances won't be used by our system to resolve constraints.
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
 
-We
-now present our design for a qualified type system~\cite{QualifiedTypes} that supports
+We now present our design for a qualified type system~\cite{QualifiedTypes} that supports
 linear constraints. Our design, based on the work of \citet{OutsideIn}, is compatible with Haskell and \textsc{ghc}.
+
+\subsection{Multiplicities}
+
+\nw{This will need fixing. I have just dumped these here from earlier on.}
+
+In general, given a
+multiplicity set, the desired
+(sub)structural rules can be obtained by endowing multiplicities with the appropriate
+semiring structure~\citep{abel_unified_2020}. In
+this paper, we use the same multiplicity structure as Linear Haskell:\footnote{Even though linear Haskell additionally supports multiplicity
+polymorphism, we do not support multiplicity polymorphism on
+constraint arguments.  Linear Haskell takes advantage of multiplicity
+polymorphism to avoid duplication of higher-order functions. The
+prototypical example is |map :: (a poly_arrow b) -> [a] poly_arrow
+[b]|, where |poly_arrow| is the notation for a function arrow of
+multiplicity |multiplicity(m)|.  First-order functions, on the other
+hand, do not need multiplicity polymorphism, because linear functions
+can be $\eta$-expanded into unrestricted functions as explained in
+\cref{sec:linear-types}. Higher-order functions whose arguments are
+themselves constrained functions are rare, so we do not yet see the
+need to extend multiplicity polymorphism to apply to constraints.
+Futhermore, it is not clear how to extend the constraint solver of
+\cref{sec:constraint-solver} to support multiplicity-polymorphic
+constraints.}${}^,$\footnote{Here and in the rest of the paper we adopt the convention that
+equations defining a function by pattern matching are marked with a
+$\left\{\right.$ to their left.}
+%
+$$
+\begin{array}{c@@{\qquad\qquad}c}
+\left\{
+  \begin{array}{lcl}
+    [[{pi + rho}]] & = & [[{omega}]]
+  \end{array}
+\right.
+&
+\left\{
+  \begin{array}{lcl}
+    [[{1 . pi}]] & = & [[{pi}]] \\
+    [[{omega . pi}]] & = & [[{omega}]]
+  \end{array}
+\right.
+\end{array}
+$$
+
 
 
 \subsection{Simple Constraints and Entailment}
