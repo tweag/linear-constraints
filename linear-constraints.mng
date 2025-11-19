@@ -497,21 +497,17 @@ To make sense of this statement we need to know what ``consumed exactly once'' m
 Our definition is based on the type of the value concerned:
 \begin{definition}[Consume exactly once]~ \label{def:consume}
 \begin{itemize}
-\item To consume a value of atomic base type (like |Int|) exactly once, just evaluate it.
-\item To consume a function exactly once, apply it to one argument, and then consume its result exactly once.
-\item To consume a pair exactly once, pattern-match on it, and then consume each component exactly once.
-\item In general, to consume a value of an algebraic datatype exactly once, pattern-match on it,
+  \item To consume a value of atomic base type (e.g. |Int|) or abstract type (e.g. |MArray Int| or |MUArray Int n|) exactly once, evaluate it exactly once.
+  \item To consume a function exactly once, apply it to one argument, and then consume its result exactly once.
+  \item To consume a pair exactly once, pattern-match on it, and then consume each component exactly once.
+  \item In general, to consume a value of an algebraic datatype exactly once, pattern-match on it,
   and then consume all its linear components exactly once.
 \end{itemize}
 \end{definition}
-
-\nw{There's something here that has started to confuse me. If we have |f x| for |x :: Int|
-and |f :: Int ⊸ Int|, nothing in this defintion prevents |f| from having a body like |f x = x + x|,
-because ``to consume exaclty once'' means to ``just evaluate it'', so I'm not prevented
-in this definition from doing that evaluation twice.}
-
-Under this definition, the types |MArray Int| and |UArray Int n| are each considered to be an atomic base type.
-Consuming one eactly once corresponds to evaluating it.
+\noindent
+In the call-by-name setting of Haskell, evaluating a value of atomic base type or abstract
+type multiple times is the same as evaluating exactly once.
+\nw{Actually, the point is that |f x| should only have only one occurrence of |x| in its body, no?}
 
 
 
@@ -765,12 +761,11 @@ on their access. Using ordinary linear types, this coordination is achieved by l
 consuming the input array of type |MArray a|, and making it available as output
 for the next operation.
 
-This can be readily seen in their types, where |MArray a| appears twice--once as input
+This can be readily seen in their types, where |MArray a| appears twice---once as input
 into a linear function and then again in the output. Consider the type of |write|:
-
-\begin{minipage}{0.5\linewidth}
-> write :: MArray a ->. Int -> a -> MArray a
-\end{minipage}
+\begin{code}
+write :: MArray a ->. Int -> a -> MArray a
+\end{code}
 % \begin{minipage}{0.5\linewidth}
 % > read :: MArray a ->. Int -> (MArray a, Ur a)
 % \end{minipage}
