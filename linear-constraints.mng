@@ -389,8 +389,8 @@ concepts, which have been studied independently elsewhere
 \citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.
 
 With our extension, we can write a new pure version of |read2AndDiscard| which does
-not require explicit threading of the array:
-\nw{|UArray| is never introduced. Is it supposed to be an unboxed array? (probably not)}
+not require explicit threading of the array. This instead uses a \emph{unique} array
+|UArray a n| of values of type |a|, which is tagged with a type value |n|:
 \begin{code}
 read2AndDiscard :: constraint ((Read n, Write n)) =>. UArray a n -> (Ur a, Ur a)
 read2AndDiscard arr = Linearly.do
@@ -649,7 +649,6 @@ write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n
 read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 free :: constraint (RW n) =>. UArray a n -> ()
 
-unique :: (Unique =>. Ur r) ->. Ur r
 \end{code}
 \caption{Linear Constraints}
 \label{fig:constraints-interface}
@@ -760,7 +759,6 @@ our type system rules this out completely.
 
 \subsection{Threading Linear Constraints}
 \label{sec:borrowing-linear-constraints}
-\nw{Maybe call it ``Borrowing'' instead?}
 
 Working with mutable arrays requires operations such as |read| and |write| to coordinate
 on their access. Using ordinary linear types, this coordination is achieved by linearly
@@ -769,7 +767,6 @@ for the next operation.
 
 This can be readily seen in their types, where |MArray a| appears twice--once as input
 into a linear function and then again in the output. Consider the type of |write|:
-\nw{It's not immediately clear why write has |RW|, rather than just a |Write| constraint. That should be explained.}
 
 \begin{minipage}{0.5\linewidth}
 > write :: MArray a ->. Int -> a -> MArray a
@@ -787,7 +784,11 @@ the same array as that which was passed in as input.
 
 Using linear constraints allows the appropriate capability to be passed around implicitly,
 so that the array variable does not need to be emitted as output.
-This is demonstrated in the |write| function that our library enables:
+For instance, the operation for writing to an array requires both read and write capabilities
+to prevent any other reads or writes from occurring concurrently.
+This is demonstrated in the |write| function that our library enables,
+where |constraint (RW n)| is the capability to access an array, which
+is to say that both read and write capabilities are needed:
 % \begin{code}
 % read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
 % \end{code}
@@ -795,7 +796,7 @@ This is demonstrated in the |write| function that our library enables:
 write :: constraint (RW n) =>. UArray a n -> Int -> a -> () .<= constraint (RW n)
 \end{code}
 % read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
-Here there are two occurrences of the |constraint (RW n)| constraint.
+Here there are two occurrences of the |constraint (RW n)| constraint:
 The first occurrence in the usual constraint position on the left, |constraint (RW n) =>. ...|,
 indicates that this function \emph{consumes} a |constraint (RW n)| constraint.
 The second occurrence at the end of the signature, |... .<= constraint (RW n)|,
@@ -854,36 +855,39 @@ completely circumventing the linear safety mechanism.
 The original interface for linear types
 makes use of the |new| function to create new arrays,
 following the pattern of using a linear continuation
-advocated by \citet[Fig.~2]{LinearHaskell}:
+advocated by \citet[Fig.~2]{LinearHaskell},
+(which is similar style to the use of the |ST| monad~\cite{st-monad}):
 \begin{code}
 new  :: Int -> (MArray a ->. Ur r) ->. Ur r
 \end{code}
-The result of |new n (\arr -> p)| is essentially that of the program |p|,
-where it has been able to make use of the array |arr| of size |n|,
+The result of |new k (\arr -> p)| is essentially that of the program |p|,
+where it has been able to make use of the array |arr| of size |k|,
 with the guarantee that |arr| is treated linearly.
 In particular, only one reference to |arr| is produced by |new|,
 and this must be consumed linearly, thus avoiding the problems that arise from using the naive constructor.
-\nw{Should we mention the similarity to |ST| somewhere?}
-
 
 Similarly, it is possible to create a |new| function
 for working with |UArray a n| types using the same trick:
 \begin{code}
 new  :: Int -> (forall n . constraint (RW n) =>.  UArray a n -> Ur r) ->. Ur r
 \end{code}
-\nw{I'd like to motivate something like the above, where we don't use |Linearly| at all. This needs a check: should it be linear output?}
+Now, when |new k (\arr -> p)| is called, the |constraint (RW n)| constraint is made
+available to the computation |p| that is provided unrestricted access to
+the new array |arr| of size |k|.
 
 
 \subsection{Linear Contexts with Linearly}
 
 \begin{figure}
 \begin{code}
-type Linearly :: Constraint
+type Unique :: Constraint
 
-dup :: Linearly =>. () .<= (Linearly, Linearly)
-eps :: Linearly =>. ()
+dup :: Unique =>. () .<= (Unique, Unique)
+eps :: Unique =>. ()
+
+unique :: (Unique =>. Ur r) ->. Ur r
 \end{code}
-\caption{Linearly}
+\caption{Interface for the built-in |Unique| constraint}
 \end{figure}
 
 Linear constraints provide an alternative solution to this problem
