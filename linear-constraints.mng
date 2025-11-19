@@ -2469,8 +2469,8 @@ To be able to do this, we must use a linear monad. For instance linear
 |IO|, whose |bind| and |return| have the following signatures:
 
 \begin{code}
-return :: a -> L a
-bind :: L a ⊸ (a -> L b) ⊸ L b
+return :: a ⊸ L a
+bind :: L a ⊸ (a ⊸ L b) ⊸ L b
 \end{code}
 
 In what follows, we illustrate effectful use of linear constraints
@@ -2491,26 +2491,24 @@ below:
     \draw[->] (cardinserted) to[bend left] node[above] {checkPIN (incorrect)} (ready);
     \draw[->] (cardinserted) -- node[right] {checkPIN (correct)} (session);
     \draw[->] (session) edge[loop above] node {dispense} ();
-    \draw[->] (session) -- node[left] {ejectCard} (ready);
-
+    \draw[->] (cardinserted) -- node[left] {ejectCard} (ready);
   \end{tikzpicture}
 \end{center}
 While Brady's API uses linear types, we can capture the (effectful)
 transitions using linear constraints, as follows:
 \begin{code}
-initATM : L (∃ s. ATM s .<= Ready s)
-shutDown : Ready s =>. ATM s -> L ()
-insertCard : Ready s =>. ATM s -> L (() .<= CardInserted s)
-checkPIN : CardInserted s =>. ATM s -> Int -> L (Either (() .<= Session s)  (() .<= CardInserted))
-dispense : Session s =>.  ATM s -> L (() .<= Session s) 
-ejectCard : CardInserted s =>. L (() .<= Ready s)
-terminateSession : Session s =>. L (() .<= CardInserted s)
-message : ATM s -> String -> L ()
+initATM :: L (∃ s. ATM s .<= Ready s)
+shutDown :: Ready s =>. ATM s -> L ()
+insertCard :: Ready s =>. ATM s -> L (() .<= CardInserted s)
+checkPIN :: CardInserted s =>. ATM s -> Int -> L (Either (() .<= Session s)  (() .<= CardInserted))
+dispense :: Session s =>.  ATM s -> L (() .<= Session s) 
+ejectCard :: CardInserted s =>. L (() .<= Ready s)
+terminateSession :: Session s =>. L (() .<= CardInserted s)
+message :: ATM s -> String -> L ()
 \end{code}
-% TODO: for Brady, one can eject the card even in session.
 One possible use of the above API is the following:
 \begin{code}
-runATM : L ()
+runATM :: L ()
 runATM = do  m <- initATM
              insertCard m
              ok <- checkPIN m 1234
@@ -2524,8 +2522,12 @@ runATM = do  m <- initATM
 %
 Compared to the (plain) use of linear types of Brady, linear
 constraints allows one to use a single value of type |ATM|, instead of
-consuming and recreating for each call.
-
+consuming and recreating for each call.  Note that for Brady,
+|ejectCard| can work both in |Session| and |CardInserted| state. One
+idea would be add an extra state |Ejectable| which is the union of
+those.  This is possible for classes in Haskell; i.e. we can have
+instances |Session => Ejectable| and |CardInserted => Ejectable|, but
+such instances won't be used by our system to resolve constraints.
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
 
