@@ -4985,7 +4985,66 @@ $$
           which, by definition of the tensor product is the same as
           $[[Q_o *  omega.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's
           hence sufficient to prove that $[[omega.q ||- pi_1.q * ... * pi_n.q]]$
-          which follows from the conditions in Figure~\ref{fig:entailment-relation}.
+          which follows from the conditions in \cref{fig:entailment-relation}.
+  \end{description}
+\end{proof}
+
+\begin{lemma}[Soundness of $[[{Q1/\Q2}]]$]
+  For any $[[Q1]]$, $[[Q2]]$, we have $[[Q1/\Q2 ||- Q1]]$ and $[[Q1/\Q2 ||- Q2]]$
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $[[Q1/\Q2 = Q]]$
+  \begin{description}
+    \item[\rref*{Inf-Ur}] We have
+          \begin{itemize}
+            \item $[[{Q1}]] = (UCtx1, emptyset)$ in other words,
+            $[[{Q1}]] = [[{omega.Q1'}]]$ for some $[[{Q1'}]]$.
+            \item $[[{Q2}]] = (UCtx2, emptyset)$ in other words,
+            $[[{Q2}]] = [[{omega.Q2'}]]$ for some $[[{Q2'}]]$.
+            \item
+            $[[{Q1 /\ Q2}]] = [[{(UCtx1 \u UCtx2, emptyset)}]] = [[{omega.Q1' * omega. Q2'}]]$.
+          \end{itemize}
+          It is the case, as required, that
+          $[[omega.Q1' * omega. Q2' ||- omega.Q1']]$ and
+          $[[omega.Q1' * omega. Q2' ||- omega.Q2']]$ by the rules of
+          \cref{fig:entailment-relation}.
+    \item[\rref*{D-Match}] We have
+          \begin{itemize}
+            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
+            \item $[[{Q2}]] = [[{(UCtx2, LCtx2 \u q )}]] = [[{Q2' * 1.q}]]$
+            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2') * 1.q}]]$
+          \end{itemize}
+          By induction hypothesis, $[[Q1' /\ Q2' ||- Q1']]$ and
+          $[[Q1' /\ Q2' ||- Q2']]$. Which, tensoring with $[[{1.q}]]$ according
+          to the rules of \cref{fig:entailment-relation}, gives
+          $[[(Q1' /\ Q2') * 1.q ||- Q1' * 1.q]]$ and
+          $[[(Q1' /\ Q2') * 1.q ||- Q2' * 1.q]]$. We conclude by definition of
+          $[[{Q1 /\Q2}]]$.
+    \item[\rref*{Inf-DiffL} and \rref*{Inf-DiffR}] These two cases are
+          symmetric, so we'll proof the case of \rref*{Inf-DiffL},
+          \rref*{Inf-DiffL} is similar. That is we have
+          \begin{itemize}
+            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
+            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2) * omega.q}]]$
+          \end{itemize}
+          By induction hypothesis $[[Q1' /\ Q2 ||- Q1']]$ and
+          $[[Q1' /\ Q2 ||- Q2]]$. Now $[[(Q1' /\ Q2) * omega.q ||- Q2]]$ by the
+          weakening rule of \cref{fig:entailment-relation}. And
+          $[[(Q1' /\ Q2) * omega.q ||- Q1' * 1.q]]$ by the rules of
+          \cref{fig:entailment-relation}.
+    \item[\rref*{Inf-DiffDL} and \rref*{Inf-DiffDR}] These two cases are
+          symmetric so we'll only prove the case of \rref*{Inf-DiffDL},
+          \rref*{Inf-DiffDR} is similar. That is we have
+          \begin{itemize}
+            \item $[[q \in Dup]]$
+            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
+            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2) * 1.q}]]$
+          \end{itemize}
+          By induction hypothesis $[[Q1' /\ Q2 ||- Q1']]$ and
+          $[[Q1' /\ Q2 ||- Q2]]$. Now $[[(Q1' /\ Q2) * 1.q ||- Q2]]$ because
+          $[[q\in Dup]]$ therefore $[[1.q ||- Empty]]$. Finally
+          $[[(Q1' /\ Q2) * 1.q ||- Q1' * 1.q]]$ by the rules of
+          \cref{fig:entailment-relation}.
   \end{description}
 \end{proof}
 

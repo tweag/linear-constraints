@@ -257,7 +257,6 @@ q \notin Dup
 (UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
 q \notin LCtx1
 q \notin Dup
-q \notin Dup
 ------------------------------------------------------------------- :: DiffR
 (UCtx1, LCtx1 ) /\ (UCtx2, LCtx2 \u q) = Q * omega.q
 
@@ -269,7 +268,6 @@ q \in Dup
 
 (UCtx1, LCtx1) /\ (UCtx2, LCtx2) = Q
 q \notin LCtx1
-q \notin Dup
 q \in Dup
 ------------------------------------------------------------------- :: DiffDR
 (UCtx1, LCtx1 ) /\ (UCtx2, LCtx2 \u q) = Q * 1.q
