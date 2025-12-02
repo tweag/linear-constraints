@@ -214,31 +214,28 @@ defn
 |-d QF1 \d QF2 ~> QF3 :: :: CheckMult :: 'D_' {{ com Constraint bounding }}
 by
 
-LCtx_b = LCtx'_b \u q
 q \notin Dup
-q \notin LCtx'_b
-q \notin UCtx_b
-|-d Q_i \d (UCtx_b, LCtx'_b) ~> Q_o * 1.q
-q \notin Q_o
------------------------------------- :: Linear
-|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o
-
-LCtx_b = LCtx'_b \u q
-q \in Dup
-q \notin LCtx'_b
-q \notin UCtx_b
-|-d Q_i \d (UCtx_b, LCtx'_b) ~> Q_o * many 1.q
-q \notin Q_o
------------------------------------- :: Dup
-|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o
-
-UCtx_b = UCtx'_b \u q
 q \notin LCtx_b
-q \notin UCtx'_b
-|-d Q_i \d (UCtx'_b, LCtx_b) ~> Q_o * (pi_1.q * .. * pi_i.q)
+q \notin UCtx_b
 q \notin Q_o
+|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * 1.q
+------------------------------------ :: Linear
+|-d Q_i \d (UCtx_b, LCtx_b \u q) ~> Q_o
+
+q \in Dup
+q \notin LCtx_b
+q \notin UCtx_b
+q \notin Q_o
+|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * many 1.q
+------------------------------------ :: Dup
+|-d Q_i \d (UCtx_b, LCtx_b \u q) ~> Q_o
+
+q \notin LCtx_b
+q \notin UCtx_b
+q \notin Q_o
+|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * pi_1.q * .. * pi_n.q
 ------------------------------------ :: Ur
-|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o
+|-d Q_i \d (UCtx_b \u q, LCtx_b) ~> Q_o
 
 defn
 QF1 /\ QF2 = QF3 :: :: QInf :: 'Inf_' {{ com Constraint meet }}

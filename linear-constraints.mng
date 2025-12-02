@@ -4945,6 +4945,50 @@ $$
   \end{description}
 \end{proof}
 
+\begin{lemma}[Soundess of $[[|-d Q_i \d Q_b ~> Q_o]]$]
+  If $[[|-d Q_i \d Q_b ~> Q_o]]$ is derivable (see \cref{fig:constraint-solver})),
+  then $[[Q_o * Q_b ||- Q_i]]$.
+\end{lemma}
+\begin{proof}
+  By induction on the derivation of $[[|-d Q_i \d Q_b ~> Q_o]]$.
+  \begin{description}
+    \item[\rref*{D-Linear}] We have
+          \begin{itemize}
+            \item $[[{Q_b}]]=[[{(UCtx_b, LCtx_b \u q)}]]$
+            \item $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * 1.q]]$ hence, by
+            induction hypothesis $[[Q_o * 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$
+          \end{itemize}
+          We need to prove that $[[Q_o * (UCtx_b, LCtx_b \u q) ||- Q_i]]$, but
+          by definition of the tensor product
+          $[[{(UCtx_b, LCtx_b \u q)}]] = [[{1.q * (UCtx_b, LCtx_b)}]]$, so the
+          induction hypothesis proves this case.
+    \item[\rref*{D-Dup}] We have
+          \begin{itemize}
+            \item $[[q \in Dup]]$
+            \item $[[{Q_b}]]=[[{(UCtx_b, LCtx_b \u q)}]]$
+            \item $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * many 1.q]]$ hence, by
+            induction hypothesis $[[Q_o * many 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$
+          \end{itemize}
+          We need to prove that $[[Q_o * (UCtx_b, LCtx_b \u q) ||- Q_i]]$,
+          which, by definition of the tensor product is the same as
+          $[[Q_o * 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's hence
+          sufficient to prove that $[[1.q ||- many 1.q]]$, which is precisely
+          what $[[q \in Dup]]$ gives us.
+    \item[\rref*{D-Ur}] We have
+          \begin{itemize}
+            \item $[[{Q_b}]] = [[{(UCtx_b \u q, LCtx_b)}]]$
+            \item
+            $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * pi_1.q * ... * pi_n.q]]$
+            hence, by induction hypothesis $[[Q_o * pi_1.q * ... * pi_n.q * (UCtx_b, LCtx_b) ||- Q_i]]$ 
+          \end{itemize}
+          We need to prove that $[[Q_o * (UCtx_b \u q, LCtx_b) ||- Q_i]]$,
+          which, by definition of the tensor product is the same as
+          $[[Q_o *  omega.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's
+          hence sufficient to prove that $[[omega.q ||- pi_1.q * ... * pi_n.q]]$
+          which follows from the conditions in Figure~\ref{fig:entailment-relation}.
+  \end{description}
+\end{proof}
+
 \begin{proof}[Proof of \cref{lem:solver-soundness}]
   % Proving that |-s C~>Q ==> Q|-C
   By induction on $[[|-s C_w ~> Q]]$
@@ -4960,8 +5004,7 @@ $$
           By \rref{C-Impl}, it suffices that  $[[Q_o * Q_b |- C]]$. Since
           $[[|-d Q_i \d Q_b ~> Q_o]]$, by Lemma\critical{Add lemma!!},
           $[[Q_o * Q_b ||- Q_i]]$, together with the induction
-          hypothesis\critical{Do we have a lemma for such transitivity, if not: prove, either
-          way, add reference}, we get $[[Q_o * Q_b |- C]]$ as required.
+          hypothesis and \rref{C-Dom}, we get $[[Q_o * Q_b |- C]]$ as required.
   \item[\rref*{S-Tensor}] We have
           \begin{itemize}
             \item $[[|-s C1 ~> Q1]]$, hence $[[Q1 |- C1]]$ by induction hypothesis
@@ -4984,7 +5027,7 @@ $$
           \end{itemize}
 
           By Lemma\critical{Add lemma}, we know that $[[Q1 /\ Q2 ||- Q1]]$ and
-          $[[Q1 /\ Q2 ||- Q2]]$. Therefore by Lemma\critical{Add Lemma}
+          $[[Q1 /\ Q2 ||- Q2]]$. Therefore by \rref{C-Dom}
           $[[Q1 /\ Q2 |- C1 ]]$ and $[[Q1 /\ Q2 |- C2]]$ follow from
           $[[Q1 |- C1]]$ and $[[Q2 |- C2]]$ respectively.
   \end{description}

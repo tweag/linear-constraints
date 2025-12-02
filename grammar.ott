@@ -9,7 +9,7 @@ metavar x,y,z,f ::= {{ com Term variables }}
 metavar a,b  ::= {{ com Type variables }}
 metavar K  ::= {{ com Data constructors }}
 metavar T  ::= {{ com Type constructors }}
-indexvar i, j ::=  {{ com Index variables }}
+indexvar i, j, k, n ::=  {{ com Index variables }}
 indexvar g, w, r, o, b, ext ::=  {{ com Annotation variables }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
