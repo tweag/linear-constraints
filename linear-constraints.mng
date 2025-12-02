@@ -4945,7 +4945,7 @@ $$
   \end{description}
 \end{proof}
 
-\begin{lemma}[Soundess of $[[|-d Q_i \d Q_b ~> Q_o]]$]
+\begin{lemma}[Soundess of $[[|-d Q_i \d Q_b ~> Q_o]]$]\label{l:diff-soundness}
   If $[[|-d Q_i \d Q_b ~> Q_o]]$ is derivable (see \cref{fig:constraint-solver})),
   then $[[Q_o * Q_b ||- Q_i]]$.
 \end{lemma}
@@ -4989,7 +4989,7 @@ $$
   \end{description}
 \end{proof}
 
-\begin{lemma}[Soundness of $[[{Q1/\Q2}]]$]
+\begin{lemma}[Soundness of $[[{Q1/\Q2}]]$]\label{l:meet-soundness}
   For any $[[Q1]]$, $[[Q2]]$, we have $[[Q1/\Q2 ||- Q1]]$ and $[[Q1/\Q2 ||- Q2]]$
 \end{lemma}
 \begin{proof}
@@ -4997,9 +4997,9 @@ $$
   \begin{description}
     \item[\rref*{Inf-Ur}] We have
           \begin{itemize}
-            \item $[[{Q1}]] = (UCtx1, emptyset)$ in other words,
+            \item $[[{Q1}]] = [[{(UCtx1, emptyset)}]]$ in other words,
             $[[{Q1}]] = [[{omega.Q1'}]]$ for some $[[{Q1'}]]$.
-            \item $[[{Q2}]] = (UCtx2, emptyset)$ in other words,
+            \item $[[{Q2}]] = [[{(UCtx2, emptyset)}]]$ in other words,
             $[[{Q2}]] = [[{omega.Q2'}]]$ for some $[[{Q2'}]]$.
             \item
             $[[{Q1 /\ Q2}]] = [[{(UCtx1 \u UCtx2, emptyset)}]] = [[{omega.Q1' * omega. Q2'}]]$.
@@ -5061,7 +5061,7 @@ $$
           We need to prove that $[[pi . Q_o |- pi . (Q_b => C)]]$.
 
           By \rref{C-Impl}, it suffices that  $[[Q_o * Q_b |- C]]$. Since
-          $[[|-d Q_i \d Q_b ~> Q_o]]$, by Lemma\critical{Add lemma!!},
+          $[[|-d Q_i \d Q_b ~> Q_o]]$, by \cref{l:diff-soundness},
           $[[Q_o * Q_b ||- Q_i]]$, together with the induction
           hypothesis and \rref{C-Dom}, we get $[[Q_o * Q_b |- C]]$ as required.
   \item[\rref*{S-Tensor}] We have
@@ -5085,7 +5085,7 @@ $$
             \item $[[Q1 /\ Q2 |- C2]]$
           \end{itemize}
 
-          By Lemma\critical{Add lemma}, we know that $[[Q1 /\ Q2 ||- Q1]]$ and
+          By \cref{l:meet-soundness}, we know that $[[Q1 /\ Q2 ||- Q1]]$ and
           $[[Q1 /\ Q2 ||- Q2]]$. Therefore by \rref{C-Dom}
           $[[Q1 /\ Q2 |- C1 ]]$ and $[[Q1 /\ Q2 |- C2]]$ follow from
           $[[Q1 |- C1]]$ and $[[Q2 |- C2]]$ respectively.
