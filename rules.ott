@@ -43,9 +43,9 @@ QF |- CF :: :: Crules :: 'C_'  {{ com Generalised constraint entailment }}
 by
 
 Q1 ||- Q2 \\\\
-Q2 |- Q3
+Q2 |- C
 --------- :: Dom
-Q1 |- Q3
+Q1 |- C
 
 --------- :: Id
 Q |- Q

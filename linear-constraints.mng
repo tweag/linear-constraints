@@ -2667,7 +2667,7 @@ our system.
   \maybesmall
   \begin{enumerate}
   \item $[[Q ||- Q]]$.
-  \item If $[[Q1 ||- Q2]]$  and $[[Q * Q2 ||- Q3]]$, then $[[Q * Q1 ||- Q3]]$.
+  \item If $[[Q1 ||- Q2]]$  and $[[Q2 ||- Q3]]$, then $[[Q1 ||- Q3]]$.
   \item If $[[Q ||- Q1 * Q2]]$, then there exist $[[{Q'}]]$, $[[{Qdup}]]$, and $[[{Q''}]]$
         such that:
         $$
@@ -4772,8 +4772,7 @@ $$
     hypothesis, we get $[[{Q1}]] = [[{omega.Q1'}]]$ and $[[{Q2}]] = [[{omega.Q2'}]]$
     such that $[[Q1' |- C1]]$ and $[[Q2' |- C2]]$. From which it
     follows that $[[omega.Q1'*omega.Q2' |- C1]]$ and
-    $[[omega.Q1'*omega.Q2' |- C1]]$ (by
-    \cref{lem:wanteds:weakening}) and, finally,
+    $[[omega.Q1'*omega.Q2' |- C1]]$ (by \rref{C-Dom} because $[[omega.Q' * Q ||- Q]]$) and, finally,
     $[[{Q}]]=[[{omega.Q}]]$ (by \cref{lem:wanteds:module-action})
     and $[[Q |- C1 & C2]]$.
   \item If $[[{C}]]=[[{rho.(Q1 => C')}]]$, then
@@ -4991,15 +4990,15 @@ $$
   \end{description}
 \end{proof}
 
-\begin{lemma}[Weakening of wanteds]\label{lem:wanteds:weakening}
-  If $[[Q |- C]]$, then $[[omega.Q'*Q |- C]]$
-\end{lemma}
-\begin{proof}
-  This is proved by a straightforward induction on the derivation of
-  $[[Q |- C]]$, using the corresponding property on the
-  simple-constraint entailment relation from
-  \cref{def:entailment-relation}, for the \rref*{C-Dom} case.
-\end{proof}
+% \begin{lemma}[Weakening of wanteds]\label{lem:wanteds:weakening}
+%   If $[[Q |- C]]$, then $[[omega.Q'*Q |- C]]$
+% \end{lemma}
+% \begin{proof}
+%   This is proved by a straightforward induction on the derivation of
+%   $[[Q |- C]]$, using the corresponding property on the
+%   simple-constraint entailment relation from
+%   \cref{def:entailment-relation}, for the \rref*{C-Dom} case.
+% \end{proof}
 
 \begin{lemma}\label{lem:wanteds:module-action}
   The following equality holds: $[[{pi.(rho.C)}]]=[[{(pi.rho).C}]]$.
