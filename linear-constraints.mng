@@ -754,11 +754,10 @@ our type system rules this out completely.
 \label{sec:borrowing-linear-constraints}
 
 Working with mutable arrays requires operations such as |read| and |write| to coordinate
-on their access. Using ordinary linear types, this coordination is achieved by linearly
+on their access. Using ordinary linear types this coordination is achieved by linearly
 consuming the input array of type |MArray a|, and making it available as output
 for the next operation.
-
-This can be readily seen in their types, where |MArray a| appears twice---once as input
+This can be readily seen in the types, where |MArray a| appears twice---once as input
 into a linear function and then again in the output. Consider the type of |write|:
 \begin{code}
 write :: MArray a ->. Int -> a -> MArray a
@@ -771,15 +770,17 @@ write :: MArray a ->. Int -> a -> MArray a
 This interface is at the heart of the bureaucracy that we wish to avoid
 in programs like the first |read2AndDicard| implementation (\cref{sec:introduction}),
 since the resulting array is an explicit value that must be threaded
-through to the next operation. The frustration is that this is essentially
-the same array as that which was passed in as input.
+forward through to the next operation. The frustration is that this is essentially
+a fresh variable for the array which was passed in as input.
 
 Using linear constraints allows the appropriate capability to be passed around implicitly,
-so that the array variable does not need to be emitted as output.
-For instance, the operation for writing to an array requires both read and write capabilities
-to prevent any other reads or writes from occurring concurrently.
-This is demonstrated in the |write| function that our library enables,
-where |constraint (RW n)| is the capability to access an array, which
+so that the array variable can be reused and no fresh variables need to be emitted
+for threading.
+In terms of capabilities, the operation for writing to an array requires
+exclusive access to both read and write capabilities so that any other
+reads or writes cannot occur concurrently.
+This is demonstrated in the type of the |write| function that our library
+enables, where |constraint (RW n)| is the capability to access an array, which
 is to say that both read and write capabilities are needed:
 % \begin{code}
 % read :: constraint (Read n) =>. UArray a n -> Int -> Ur a .<= constraint (Read n)
@@ -804,18 +805,19 @@ a linear constraint |constraint(Read n)| and also produce a fresh linear constra
 |constraint(Read n)|.
 
 As a consequence, the array |arr| can be safely reused as a parameter
-between different invocations of |read| and |write|, while it is the
+between different invocations of |read arr| and |write arr|, while it is the
 capabilities that are being implicitly threaded around.
-When work with the array is finished, the capabilities can be consumed with |free|.
+When work with the array is finished, the capabilities can be consumed with |free arr|,
+again using the same variable name.
 \nw{This would be a great place to introduce the |Linearly.do| notation and
 explain something about it.}
 
 
-
-
-\subsection{Linear Contexts}
+\subsection{Producing Linear Contexts}
 \label{sec:linear-contexts}
 \label{sec:Unique-constraint}
+
+
 
 The above deals with freeing an array and ensuring that it cannot be used afterwards.
 However, we still need to explain how a constraint |constraint (RW n)| can come
@@ -828,8 +830,8 @@ the following function that creates a new array:
 \begin{code}
 newNaive :: Int -> MArray a
 \end{code}
-Nothing prevents the result of a call to naive from being
-duplicated with |diagonal|:
+Nothing prevents the result of a call
+to naive from being duplicated with |diagonal|:
 \begin{code}
 diagonal :: a -> (a, a)
 diagonal x = (x, x)
@@ -841,7 +843,6 @@ Similarly, the array produced can be lifted an unrestricted occurrence
 with a simple use of |Ur (newNaive n)|.
 With this it possible to perform repeated operations on an array,
 completely circumventing the linear safety mechanism.
-
 
 
 The original interface for linear types
@@ -870,6 +871,7 @@ the new array |arr| of size |k|.
 
 \subsection{Linear Contexts with Linearly}
 
+
 \begin{figure}
 \begin{code}
 type Unique :: Constraint
@@ -882,12 +884,20 @@ unique :: (Unique =>. Ur r) ->. Ur r
 \caption{Interface for the built-in |Unique| constraint}
 \end{figure}
 
+Working within a linear context provided using a continuation-based interface
+restricts the scope within which the bound variable can occur.
+Thus, when multiple resources are required, instances of |new| must
+be nested, which can result in unwieldy code.
 Linear constraints provide an alternative solution to this problem
-by putting the special |constraint Linearly| constraint on |new|.
-As we will see, this does not behave like other constraints:
+by working with a special built-in |constraint Linearly| constraint.
+
+Using this special constraint, it is possible to create a new
+array variable that can be safely used:
 \begin{code}
 new :: constraint(Unique) =>. Int -> MArray a
 \end{code}
+in a manner that mirrors |newNaive|, but that nevertheless
+ensures that no misuse is possible:
 
 \noindent
 Suppose we have assumed the |constraint(Unique)| constraint linearly; that is,
