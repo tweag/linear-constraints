@@ -793,7 +793,7 @@ Here there are two occurrences of the |constraint (RW n)| constraint:
 The first occurrence in the usual constraint position on the left, |constraint (RW n) =>. ...|,
 indicates that this function \emph{consumes} a |constraint (RW n)| constraint.
 The second occurrence at the end of the signature, |... .<= constraint (RW n)|,
-indicates that this function \emph{produces} a |constraint (RW n)| constraint.
+indicates that this function \emph{produces} a |constraint (RW n)| constraint.\footnote{In general |A .<= constraint C| pairs a linear dictionary of |constraint C| with |A|, see \cref{sec:typing-rules} for the formal treatment.}
 
 We must also ensure that |read| can both promise to operate only on a readable array
 and that the array remains readable afterwards:
