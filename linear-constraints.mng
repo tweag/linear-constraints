@@ -882,57 +882,84 @@ eps :: Unique =>. ()
 unique :: (Unique =>. Ur r) ->. Ur r
 \end{code}
 \caption{Interface for the built-in |Unique| constraint}
+\label{fig:unique-interface}
 \end{figure}
 
 Working within a linear context provided using a continuation-based interface
 restricts the scope within which the bound variable can occur.
 Thus, when multiple resources are required, instances of |new| must
 be nested, which can result in unwieldy code.
+
 Linear constraints provide an alternative solution to this problem
 by working with a special built-in |constraint Linearly| constraint.
-
 Using this special constraint, it is possible to create a new
-array variable that can be safely used:
+array variable for the explicitly threaded |MArray| type that can be safely used:
 \begin{code}
 new :: constraint(Unique) =>. Int -> MArray a
 \end{code}
-in a manner that mirrors |newNaive|, but that nevertheless
-ensures that no misuse is possible:
-
-\noindent
+This works in a manner that mirrors |newNaive|, but nevertheless
+ensures that no misuse is possible.
 Suppose we have assumed the |constraint(Unique)| constraint linearly; that is,
 we must use the |constraint(Unique)| assumption precisely once.
-Now, |forge (new 10)| is rejected: either we infer 
+Now, |diagonal (new 10)| is rejected: either we infer 
 the new array to have multiplicity~$[[{omega}]]$,
 in which case its definition uses |constraint(Unique)| $[[{omega}]]$ times; or
 we infer it to have multiplicity~$[[{1}]]$, in which case its use (twice) violates
 the linearity restriction. Likewise, the use of |Ur (new 10)| requires using
 the |constraint(Unique)| assumption $[[{omega}]]$ times and is thus rejected.
 
-\nw{And now the problem is that |Linearly| is a special kind of constraint ...}
-This is promising so far, but several problems remain:
-\nw{This tells us what is desired for the behaviour of |Linearly| but it's not clear that how
-it is possible to make |Linearly| be duplicable and discardable, or whether
-it is an in-built constraint.}
+In a similar way, a |new| function that works for the linear constraints
+interface for arrays using |UArray| can also be defined:
+\begin{code}
+new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
+\end{code}
+This time, the new array comes equipped with the |constraint(RW n)| capability,
+ready to be consumed by future operations.
 
-\begin{description}
-\item[Duplicating |constraint(Unique)|] What if we want to create multiple
-arrays, each of which having a unique pointer? If |constraint(Unique)| is assumed
+This behaviour suggests that |Linearly| gives us precisely the discipline we
+want: a way to assume a constraint exactly once, thereby guaranteeing that any
+resource created under that assumption is itself used linearly.
+However, the picture is not yet complete.
+Assuming |constraint(Unique)| exactly once is not, by itself, enough:
+real programs allocate different numbers of arrays, may allocate none at all,
+and must ensure that no linear resource escapes its intended scope.
+These requirements are fulfilled by the interface to |constraint(Unique)| constraints (\cref{fig:unique-interface}).
+
+The remainder of this section explains why each of these operations is required,
+and how they allow |constraint(Unique)| to serve as a usable linear capability.
+We discuss, in turn, how to \emph{duplicate} a linear constraint, how to
+\emph{discard} it, and finally how to \emph{introduce} it.
+
+
+
+\paragraph*{Duplicating |constraint(Unique)|}
+Programs that require multiple arrays each with different unique
+pointers will need to interact well with |constraint(Unique)|.
+If |constraint(Unique)| is assumed
 linearly, then |let arr1 = new 5; arr2 = new 6| will fail, as it uses our
 |constraint(Unique)| assumption twice. We thus stipulate that |constraint(Unique)|
 must itself be duplicable: from one assumption of |constraint(Unique)|, we
 must be able to satisfy any arbitrary fixed number of demands on that constraint.
+Thus, the interface to |constraint(Unique)| provides |dup|, which
+allows this duplication:
+\begin{code}
+dup :: Unique =>. () .<= (Unique, Unique)
+\end{code}
 By ``arbitrary fixed number'', we mean to say that we can duplicate |constraint(Unique)|
 a finite number of times, but we may not use an assumption of |constraint(Unique)| with
 multiplicity 1 to satisfy |constraint(Unique)| at multiplicity $[[{omega}]]$.
 
-\item[Discarding |constraint(Unique)|] Similarly to allowing
+\paragraph*{Discarding |constraint(Unique)|} Similarly to allowing
   duplication, we must allow discarding, in case a function allocates
-  no arrays at all. Accordingly, we allow a linear assumption of
+  no arrays at all. This is made possible with a function |eps|:
+\begin{code}
+eps :: Unique =>. ()
+\end{code}
+  Accordingly, we allow a linear assumption of
   |constraint(Unique)| to be accepted even if the constraint is never
   used.
 
-\item[Initial assumption of |constraint(Unique)|] For this approach to work,
+\paragraph*{Introducing |constraint(Unique)|} For this approach to work,
 we must have an assumption of |constraint(Unique)| of multiplicity 1. We can
 achieve this via the following primitive:
 \begin{code}
@@ -943,59 +970,18 @@ with multiplicity 1. Because |unique| returns an unrestricted value, no restrict
 values from the continuation can escape the scope of the |constraint(Unique)|
 assumption. Thus, the continuation has exactly the condition we need: a
 linear assumption of |constraint(Unique)|.
-\end{description}
 
+\vspace{\baselineskip}
+
+With just these simple ingredients---a duplicable, discardable constraint
+that can be assumed linearly---we can write \textsc{api}s that require
+uniqueness without heavy use of continuations.
 The pattern of using a continuation in |unique| mirrors the use
 of that technique by \citet[Fig.~2]{LinearHaskell}. But
 |unique| is, now, the only place where we need a continuation: once
 we have our linear |constraint(Unique)| assumption, we can use it to produce
 new values that must be unique. We compare the two approaches further in
 \cref{sec:linearly-vs-sticky}.
-
-With just these simple ingredients -- a duplicable, discardable constraint
-that can be assumed linearly -- we can write \textsc{api}s that require
-uniqueness without heavy use of continuations.
-
-
-\nw{A new subsection might be good here to make clear that now we are dealing with linear constraint arrays, but then I don't know how to name the section above}
-The type of |new| for |UArray a n| arrays with capabilities as linear constraints is as follows:
-\begin{code}
-new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
-\end{code}
-This type, too, illustrates several new aspects:
-\begin{itemize}
-\item The |constraint(Unique)| constraint is a linear constraint, though
-it takes no type parameter. It restricts the result of |new|
-to be used linearly, meaning that any variable that stores the result of |new| must
-have multiplicity $[[{1}]]$. |constraint(Unique)| is explained more fully in \Cref{sec:Unique-constraint}.
-\nw{There's some repetition now that needs to be fixed}
-
-\item Because |UArray| is now parameterised by a type-level tag |n|, |new| must
-return a |UArray| with a fresh such |n|. This is achieved through returning an
-existentially-quantified type\footnote{There is a variety of ways that existential types can
-  be worked into a language. The existentials that we use here may be understood
-  as a generalisation of those presented by \citet[Chapter
-  24]{tapl}.
-  However, \citet{existentials} work out an
-  approach that makes linear constraints even easier to use, as we
-  discuss in \Cref{sec:implicit-existentials}. In order to separate
-  concerns, we do not build our formalism on \citet{existentials},
-  instead modeling our existentials on the more widely known formulation described by \citet{tapl}.
-  We additionally freely
-omit the |exists a1 ... an.| or |.<= constraint (Q)| parts when they are
-empty.
-  The idea of using existentials to return linear capabilities can be attributed to \citet{DBLP:conf/esop/FluetMA06}.
-} packing the type variable |n|. Such types are introduced with the $\packbox$ constructor.
-% , which some readers might recognize as $\keyword{pack}$. % redundant with "packing". If there is a specific concept that this refers to, a typeface isn't enough to identify it (explicit reference is needed)
-    \nw{This point makes no sense now. $\packbox$ isn't used. It needs to be demonstrated, or perhaps it is a good place to motivate the |Linearly.do|}
-
-\item Not only do we need a fresh type variable |n|, but we also need to introduce
-the linear constraint |constraint(RW n)| for use in subsequent calls to |read| and |free|.
-Our existentials also allow packing a constraint, thanks to the |.<=| operator.
-\end{itemize}
-
-With all these features working together, we see that |new| returns a non-duplicable
-|UArray| tagged with |n|, accessible only when the |constraint(RW n)| constraint is available.
 
 % The fact that existential quantification generates new type-level names
 %% is folklore. It's used crucially in the interface of the
