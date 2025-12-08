@@ -386,7 +386,11 @@ linear constraints are propagated implicitly by the compiler.
 Like linear arguments, they can safely be used to track resources such as arrays
 or file handles. Thus, linear constraints are the combination of these two
 concepts, which have been studied independently elsewhere
-\citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.
+\citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.\unsure{Arnaud:
+Hodas,Miller and Cervesato et al aren't really example of GHC-like constraints
+or linear types; they are examples of proof search for linear logic, the very
+kind that we're using in our solver. They're more one leg of the bridge than
+either shore, so maybe the phrasing is a bit awkward here}
 
 With our extension, we can write a new pure version of |read2AndDiscard| which does
 not require explicit threading of the array. This instead uses a \emph{unique} array
@@ -400,7 +404,7 @@ read2AndDiscard arr = Linearly.do
   Linearly.return (x, y)
 \end{code}
 The only changes from the impure version are that this version explicitly constrains
-the function to require require read and write access to the array, and the
+the function to require read and write access to the array, and the
 use of the qualified |Linearly.do| notation to sequence the appropriate actions.
 % and pattern-matching against $\packbox$ (read ``pack'') is necessary in order to access the linear constraint
 % packed in the result of |read| and |free|. (\Cref{sec:implicit-existentials}
@@ -497,7 +501,12 @@ To make sense of this statement we need to know what ``consumed exactly once'' m
 Our definition is based on the type of the value concerned:
 \begin{definition}[Consume exactly once]~ \label{def:consume}
 \begin{itemize}
-  \item To consume a value of atomic base type (e.g. |Int|) or abstract type (e.g. |MArray Int| or |MUArray Int n|) exactly once, evaluate it exactly once.
+  \item To consume a value of atomic base type (e.g. |Int|) or abstract type
+        (e.g. |MArray Int| or |MUArray Int n|) exactly once, evaluate it exactly
+        once.\unsure{I think this phrasing is a little misleading. Evaluating an
+        array once doesn't ensure that it's been consumed: its elements
+        must be consumed as well (if they are linear at least). It's not clear
+        to me how we can characterised consuming an abstract type.}
   \item To consume a function exactly once, apply it to one argument, and then consume its result exactly once.
   \item To consume a pair exactly once, pattern-match on it, and then consume each component exactly once.
   \item In general, to consume a value of an algebraic datatype exactly once, pattern-match on it,
@@ -505,9 +514,13 @@ Our definition is based on the type of the value concerned:
 \end{itemize}
 \end{definition}
 \noindent
-In the call-by-name setting of Haskell, evaluating a value of atomic base type or abstract
-type multiple times is the same as evaluating exactly once.
-\nw{Actually, the point is that |f x| should only have only one occurrence of |x| in its body, no?}
+In the call-by-need setting of Haskell, evaluating a value of atomic base type or abstract
+type multiple times is the same as evaluating exactly once.\unsure{This is true,
+but does it matter for the article?}
+\nw{Actually, the point is that |f x| should only have only one occurrence of
+  |x| in its body, no? [Arnaud] very much not: |if b then x else 0| isn't
+  linear, whereas |if b then x else x| is. It's more of a control-flow story:
+  only one of these will be evaluated}
 
 
 
@@ -580,7 +593,7 @@ providing the appropriate instance.
 Since |Show Int| is a valid instance, its use is entirely unrestricted.
 
 Just as constraint arrows allow a value to depend on \emph{unrestricted} implicit parameters,
-linear constrants allow a value to depend on \emph{linear} implicit parameters.
+linear constraints allow a value to depend on \emph{linear} implicit parameters.
 In order to manage linearity implicitly, this paper introduces a
 linear constraint arrow (|=>.|), much like Linear Haskell introduces a linear
 function arrow (|->.|). Constraints to the left of a linear constraint
@@ -595,8 +608,10 @@ arrow are \emph{linear constraints}. There thus four different arrows that can b
 The fact that linear constraints are implicit and inferred by the compiler is
 key to avoiding the tedium of passing resource variables around.
 This section proceeds by first demonstrating
-how linear constraints are consumed~\cref{sec:consuming-linear-constraints},
-then describes how these constraints are produced~\cref{sec:producing-linear-constraints}.
+how linear constraints are consumed (\cref{sec:consuming-linear-constraints}),
+then describes how these constraints are produced
+(\cref{sec:producing-linear-constraints}).\unsure{[Arnaud] I added the label to a
+  subsequent section, but is it the intended section?}
 
 
 
@@ -816,7 +831,7 @@ explain something about it.}
 \subsection{Producing Linear Contexts}
 \label{sec:linear-contexts}
 \label{sec:Unique-constraint}
-
+\label{sec:producing-linear-constraints}
 
 
 The above deals with freeing an array and ensuring that it cannot be used afterwards.
@@ -957,7 +972,8 @@ eps :: Unique =>. ()
 \end{code}
   Accordingly, we allow a linear assumption of
   |constraint(Unique)| to be accepted even if the constraint is never
-  used.
+  used.\unsure{I'm not sure it's clear enough in these past to paragraphs that
+    |dup| and |eps| really happen automatically in the typechecker.}
 
 \paragraph*{Introducing |constraint(Unique)|} For this approach to work,
 we must have an assumption of |constraint(Unique)| of multiplicity 1. We can
