@@ -4571,7 +4571,7 @@ $$
 \begin{proof}
   The two properties are equivalent
   \begin{itemize}
-  \item using $[[{C1}]]=[[{C2}]]=[[{Empty}]]$, the latter implies the
+  \item using $[[{Q1}]]=[[{Q2}]]=[[{Empty}]]$, the latter implies the
     former
   \item The former implies the latter by tensoring together
     $[[Q1 ||- Q2]]$ and $[[Qdup ||- Empty]]$ following the rules
