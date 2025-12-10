@@ -497,16 +497,13 @@ dubbed \emph{linear functions}, and written |a ⊸ b|.\footnote{The linear funct
 |f :: a ⊸ b| guarantees that if |(f u)| is consumed exactly once, \\
 then the argument |u| is consumed exactly once.
 \end{quote}
-To make sense of this statement we need to know what ``consumed exactly once'' means.
-Our definition is based on the type of the value concerned:
+To make sense of this statement we need to know what ``consumed exactly once'' means
+formally requires an understanding of the type system we introduce later.
+However, an intuitive understanding can be given by
+inspecting the type of the value concerned:
 \begin{definition}[Consume exactly once]~ \label{def:consume}
 \begin{itemize}
-  \item To consume a value of atomic base type (e.g. |Int|) or abstract type
-        (e.g. |MArray Int| or |MUArray Int n|) exactly once, evaluate it exactly
-        once.\unsure{I think this phrasing is a little misleading. Evaluating an
-        array once doesn't ensure that it's been consumed: its elements
-        must be consumed as well (if they are linear at least). It's not clear
-        to me how we can characterised consuming an abstract type.}
+  \item To consume a value of atomic base type (e.g. |Int|) evaluate it exactly once.
   \item To consume a function exactly once, apply it to one argument, and then consume its result exactly once.
   \item To consume a pair exactly once, pattern-match on it, and then consume each component exactly once.
   \item In general, to consume a value of an algebraic datatype exactly once, pattern-match on it,
@@ -514,14 +511,10 @@ Our definition is based on the type of the value concerned:
 \end{itemize}
 \end{definition}
 \noindent
-In the call-by-need setting of Haskell, evaluating a value of atomic base type or abstract
-type multiple times is the same as evaluating exactly once.\unsure{This is true,
-but does it matter for the article?}
-\nw{Actually, the point is that |f x| should only have only one occurrence of
-  |x| in its body, no? [Arnaud] very much not: |if b then x else 0| isn't
-  linear, whereas |if b then x else x| is. It's more of a control-flow story:
-  only one of these will be evaluated}
-
+Note that in this paper, we consider arrays to be generalised unrestricted containers.
+In fact, defining exactly what ``evaluate exactly once'' means for arrays is
+a difficult task. In this paper, we avoid the difficulty by considering the
+capabilities that these arrays need to maintain instead.
 
 
 %
