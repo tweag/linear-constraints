@@ -3181,7 +3181,7 @@ So far, the constraint domain has been kept abstract. For the sake of
 concreteness let us fix a particular constraint domain for the duration of this
 section. As atomic constraints, we take an arbitrary countable set. We will only
 compare atomic constraints for equality, so the only structure that we require
-is that equality of atomic constraints is decidable. Furthermore, we fix an
+is that equality of atomic constraints is decidable equality. Furthermore, we fix an
 arbitrary decidable subset $[[Dup]]$ of duplicable atomic constraints (to which
 the |Unique| constraint must belong). This is one of the simplest possible
 domain but it's sufficient to support our examples throughout this paper. The
@@ -3206,57 +3206,17 @@ $$
 [[ |-s C ~> Q]]
 $$
 %
-The judgement doesn't take any context as an input\unsure{Is this
-  over-simplifying. In real life we do need a context in order to dereference
-  names and all that.}. Instead the judgement outputs a simple constraint
+The judgement doesn't take any context as an input. Instead the judgement outputs a simple constraint
 $[[{Q}]]$, which we want to read as a context which entails $[[{C}]]$ (see
 \cref{lem:solver-soundness}).
 
 Returning a context rather than taking it as an argument lets us effectively
-count the occurrence of atomic constraint in the solution, which we can then
+count the number of occurrences of each atomic constraint in the solution, which we can then
 reject if it is not compatible with the multiplicity of the given constraint.
 This is essentially the same technique that \textsc{ghc} uses to implement
 linearity of regular terms in its typechecker. Note that we return the whole
 context here, whereas \textsc{ghc}'s typechecker only returns multiplicity,
 which is more suited for a concrete implementation.
-
-Returning whole contexts is unusual but not unheard of, see for instance
-\cite{algebraic-subtyping}, which returns whole contexts in order to implement
-subtyping. This particular presentation is, however, very unusual when it comes
-to proof search in linear logic. Most typically, linear-logic proof search is
-presented in state-passing style (\emph{e.g.}
-\cite{resource-management-for-ll-proof-search}): rules take an input context,
-and return a “leftover” context which contains all the remaining, unused
-hypotheses.
-
-The reasons to choose this presentation, which, for the Haskell practitioner, we
-could describe as writer-style rather than state-style, are\unsure{Is the item list below readable without giving
-  an example of a state-passing rule? In fact, I haven't explained the rules at
-  all yet. Maybe I should move this paragraph below}
-\begin{itemize}
-  \item When solving $[[{C1 * C2}]]$, $[[{C1}]]$ and $[[{C2}]]$ are perfectly
-        symmetric, making typechecking robust to reordering the source program.
-        This isn't the case in state-passing style where $[[{C1}]]$ and
-        $[[{C2}]]$ are checked in different contexts.
-  \item Solving $[[{C1 * C2}]]$ involves solving $[[{C1}]]$ and $[[{C2}]]$ in
-        parallel, whereas the state-passing style sequentialise $[[{C1}]]$ and
-        $[[{C2}]]$. This is important to integrate in \textsc{ghc}'s constraint
-        solver, which likes to suspend constraints it doesn't know how to solve
-        yet. Suspension isn't compatible with sequentialised state-passing
-        style: it isn't possible to wait until $[[{C2}]]$ is solved to solve
-        $[[{C1}]]$ if solving $[[{C2}]]$ requires the output of $[[{C1}]]$.
-  \item Incidentally, counting down from a context like the state-passing style
-        does doesn't generalise to arbitrary semiring. There is no current plan
-        to extend \text{ghc} with a richer semiring than multiplicities, but the
-        writer-style is more future proof.
-\end{itemize}
-However, a writer-style solver will explore fewer potential proofs than a
-state-style solver. Therefore this writer style is more suitable to produce an
-incomplete, guess-free solver; to write a complete solver, one should prefer the
-state style.\footnote{If you have
-  read the conference version of this article, you may remember that in that
-  version, we presented a state-passing constraint solver. We didn't understand
-  this trade-off at the time.}
 
 If the constraint solver finds a solution then $[[|-s C ~> Q]]$ then
 $[[{Q}]]$ entails $[[{C}]]$. In order to check that $[[Q_g |- C]]$, it therefore suffices to
@@ -3267,12 +3227,12 @@ check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
   If $[[|-s C ~> Q]]$, then $[[Q |- C]]$
 \end{lemma}
 
-\subsubsection{Constraint Solver Algorithm}
+% \subsubsection{Constraint Solver Algorithm}
 
 Building on this atomic-constraint solver, we use a linear proof
 search algorithm based on the recipe given
-by~\citet{resource-management-for-ll-proof-search}, though adapted to our writer
-style. \Cref{fig:constraint-solver}
+by~\citet{resource-management-for-ll-proof-search}, with one caveat that we
+discuss in \cref{sec:solver-design}. \Cref{fig:constraint-solver}
 presents the rules of the constraint solver.
 
 \begin{figure}
@@ -3357,101 +3317,8 @@ example can be ascribed a type in the declarative type system of
 similar constraints would be helpful, we consider it to be a reasonable
 restrictions as it's compatible with all our motivating examples
 (\cref{sec:memory-ownership}), and in exchange we get a solver which is only
-marginally more complex than, say, \textsc{ghc}'s solver, solves $[[{Q1 *
-  Q2}]]$ in parallel, and is guess free.
-
-We also believe that our strategy tends to match expectations in many cases.
-Consider the following example:
-\begin{code}
-f =   unique $ Linearly.do
-        Ur arr <- new 10
-        fr   ::  constraint (RW n) =>. () -- fails here with |constraint(RW n)| used more than once
-        fr   =   Linearly.do
-          free arr
-          free arr
-        ()   =   fr -- A cleverer solver may fail here saying that there is no |constraint(RW n)| left to use
-        Linearly.return $ Ur ()
-\end{code}
-In this example, it is possible to type |fr| in the declarative type system.
-However, |fr| is incorrect as it frees the array several time, which isn't
-permitted. It would only succeed because it can make use of the |constraint(RW
-n)| constraint which is meant to be used to call |fr| itself. Doing so would
-point at the wrong location for a mistake. Whereas our strategy points at the
-actual mistake. The fixed code, on the other hand, does typecheck
-\begin{code}
-f =   unique $ Linearly.do
-        Ur arr <- new 10
-        fr   ::  constraint (RW n) =>. ()
-        fr   =   free arr
-        ()   =   fr
-        Linearly.return $ Ur ()
-\end{code}
-As their is a strict nesting between the two occurrences of |constraint(RW n)|
-to choose from when calling |free|, so the solver chooses the innermost.
-
-\critical{Below this point, in this section, I don't think we need anything. But we'll see when we're done
-  with refactoring this section, so I'm keeping it to remember to check.}
-
-\Cref{fig:simpl-solver} is also where the fact that the
-$[[{LCtx}]]$ are lists comes into play. Indeed, \rref{Atom-OneL}
-takes care to use the most recent occurrence of $[[{q}]]$
-(remember that \rref{S-ImplOne} adds the new hypotheses on the front of
-the list). To understand why, consider the following example:
-|free| to use the |constraint(RW n)| constraint introduced locally in the type
-of |fr|. Yet
-there are actually two linear |constraint(RW n)| constraints: this local one and the
-one assumed when unpacking |arr|. The wrong
-choice among the constraints will lead the algorithm to fail.
-Choosing the first $[[{q}]]$ linear assumption guarantees we get the
-most local one.\jp{In the above paragraph, it says "most recent" I suggest sticking to this terminology here too.}
-
-Another interesting feature of the solver (\Cref{fig:simpl-solver}) is that
-no rule solves a linear constraint if it appears both in the
-unrestricted and a linear context.
-Consider the following (contrived) \textsc{api}:
-\begin{code}
-class constraint (C)
-\end{code}
-
-\vspace{-2ex}\noindent
-\begin{minipage}{0.5\linewidth}
-> giveC :: (constraint (C) => Int) -> Int
-\end{minipage}
-\begin{minipage}{0.5\linewidth}
-> useC :: constraint (C) =>. Int
-\end{minipage}
-|giveC| gives an unrestricted copy of |constraint (C)| to some continuation, while |useC|
-uses |constraint (C)| linearly. Now consider two potential consumers of this \textsc{api}:
-
-\noindent
-\begin{minipage}{0.5\linewidth}
-> ambiguous1 :: constraint (C) =>. Int
-> ambiguous1 = giveC useC
-\end{minipage}
-\begin{minipage}{0.5\linewidth}
-> ambiguous2 :: constraint (C) =>. (Int, Int)
-> ambiguous2 = (giveC useC, useC)
-\end{minipage}
-Looking at |ambiguous1|, the invocation of |useC| has both a linear |constraint (C)| in scope, and
-a more local unrestricted |constraint (C)|. The strategy to pick the more local constraint
-fails here, because it would leave the linear |constraint (C)| unconsumed. A
-tempting refinement might be to always consume the most local \emph{linear}
-constraint. That would handle |ambiguous1| correctly, but fail on |ambiguous2|. In
-the case of the latter, if the invocation of |giveC useC| consumes the linear
-|constraint (C)|, then the second |useC| invocation will fail. It is possible to
-give a type derivation to |ambiguous2| in the qualified type system
-of \cref{sec:qualified-type-system} by making the first |useC| consume the
-unrestricted |constraint (C)| and the second |useC| consume the linear
-|constraint (C)|.
-This assignment, however, would require
-the constraint solver to guess when solving the constraint from the first |useC|.
-Accordingly, in order to both avoid backtracking and to keep type inference
-independent of the order terms appear in the program text, |bad| is
-rejected.
-This introduces incompleteness with respect the entailment
-relation. We conjecture that this is the only source of
-incompleteness that we introduce beyond what is already in
-\textsc{ghc}~\cite[Section~6]{OutsideIn}.
+marginally more complex than, say, \textsc{ghc}'s solver (we discuss the design
+further in \cref{sec:solver-design}).
 
 \section{Desugaring}
 \label{sec:desugaring}
@@ -4070,6 +3937,122 @@ pretty low price to pay to lift this limitation.
 
 \subsection{Variation on release functions}
 \label{sec:unrestricted-release}
+
+\subsection{Design of the constraint solver}
+\label{sec:solver-design}
+
+The judgements of our constraint solver (\cref{sec:constraint-solver}) a of the
+form
+%
+$$
+[[ |-s C ~> Q]]
+$$
+%
+In which $[[{C}]]$ is an input and $[[{Q}]]$ is an output. This is not the
+typical shape of linear-logic proof-search algorithms, in particular
+\cite{hh-ll} and \cite{resource-management-for-ll-proof-search}, whose
+proof-search algorithm our constraint solver is based on, don't have judgement
+of this form (yet we still claim that our algorithm is essentially the same). In
+fact, even the earlier, shorter, version of this article \cite{SpiwackKBWE22}
+used the more typical form of judgement:
+%
+$$
+[[{UCtx}]] ; [[{LCtx_i}]] [[|-s]] [[{C}]] [[~>]] [[{LCtx_r}]]
+$$
+%
+In this judgement $[[{LCtx_i}]]$ is an input context of linear atomic constraints
+($[[{UCtx}]]$ are unrestricted constraints) available so solve $[[{C}]]$. The
+judgement then outputs the \emph{leftover} constraints $[[{LCtx_r}]]$, those
+linear atomic constraints from $[[{LCtx_i}]]$ which haven't been used in the
+resolution of $[[{C}]]$ and can (and, in fact, must) be used to solve other
+constraints. For instance the rule to solve $[[{C_1 * C_2}]]$ is the following:
+%
+$$
+\inferrule
+{ [[{UCtx}]] ; [[{LCtx_i}]] [[|-s]] [[{C_1}]] [[~>]] [[{LCtx_r}]]\\
+  [[{UCtx}]] ; [[{LCtx_r}]] [[|-s]] [[{C_2}]] [[~>]] [[{LCtx_o}]]
+}
+{[[{UCtx}]] ; [[{LCtx_i}]] [[|-s]] [[{C_1 * C_2}]] [[~>]] [[{LCtx_o}]]}
+$$
+%
+we see how the leftovers of $[[{C_1}]]$ are then used as the input of $[[C_2]]$.
+
+In reference to Haskell's classic monads, we will call our presentation a
+\emph{writer-style} solver and the classic presentation a \emph{state-style}
+solver.
+
+The proof-search literature prefers state-style solvers because they backtrack
+less. For instance, when solving $[[{1.(Q=>1.(Q=>Q*Q))}]]$, in the writer style,
+both branches of the tensor could use, say, the inner $[[{Q}]]$ hypothesis,
+which violates the linearity condition and will cause backtracking, while in the
+state style, both branch will coordinate and necessary pick different $[[{Q}]]$
+and find a proof without backtracking at all.
+
+But we're looking for a solving algorithm without backtracking (at the price of
+incompleteness). So we are not concerned with these consideration. That being
+said, the example $[[{1.(Q=>1.(Q=>Q*Q))}]]$ gives an example where the
+backtracking-free state-style solver can solve a constraint while the
+writer-style solver cannot.
+
+On the other hand, for the state-style solver to not be sensitive to the
+ordering of the constraints, we had to make a concession and consider that
+having the same atomic constraint as an unrestricted and a linear given was an
+ambiguity, so that the state-style solver of \cite{SpiwackKBWE22} cannot solve
+$[[{1.(omega.q=>1.(1.q=>1.q))}]]$. You can convince yourself that the
+writer-style solver of \cref{fig:constraint-solver} can solve this example.
+
+So really, the state-style and writer-style constraint solvers are incomparable.
+Why choose one over the other? Here are the consideration that went into this
+choice:
+
+\begin{itemize}
+  \item Writer-style solvers are generally simpler (both to present and to
+        implement). The use of state-style solver for proof-search sacrifices
+        simplicity for algorithmic considerations which don't apply to this
+        paper.
+  \item When solving $[[{C1 * C2}]]$, $[[{C1}]]$ and $[[{C2}]]$ are perfectly
+        symmetric, making typechecking robust to reordering the source program.
+        This isn't the case in state-passing style where $[[{C1}]]$ and
+        $[[{C2}]]$ are checked in different contexts. Which requires additional
+        care to make sure that reordering $[[{C1}]]$ and $[[{C2}]]$ won't affect
+        the resolution. The writer style preserves this symmetry.
+  \item Solving $[[{C1 * C2}]]$ with a writer-style solver processes $[[{C1}]]$
+        and $[[{C2}]]$ in parallel, whereas the state-passing style
+        sequentialises $[[{C1}]]$ and $[[{C2}]]$. This matters for integrating
+        linear constraints into \textsc{ghc}'s constraint solver. \textsc{Ghc}
+        likes to suspend constraints it doesn't know how to solve yet: if
+        \textsc{ghc} don't know how to solve $[[{C1}]]$, it will pause solving
+        $[[{C1}]]$ and start solving $[[{C2}]]$ hoping that the resolution of
+        $[[{C2}]]$ will give clues to help solve $[[{C1}]]$. Suspension,
+        however, isn't compatible with the sequentialised state-passing style:
+        it is not possible to wait until $[[{C2}]]$ is solved to solve
+        $[[{C1}]]$ if solving $[[{C2}]]$ requires the output of $[[{C1}]]$.
+  \item Incidentally, counting down from a context like the state-passing style
+        does doesn't generalise to arbitrary semiring in the style of
+        \cite{abel_unified_2020}. While there is no current plan to extend
+        \text{ghc} with a richer semiring than multiplicities, the
+        writer-style is more future proof.
+\end{itemize}
+
+A final consideration is that the errors of the writer-style solver seems to
+match programmers expectations better.
+Consider the following example:
+\begin{code}
+f =   unique $ Linearly.do
+        Ur arr <- new 10
+        fr   ::  constraint (RW n) =>. () .<= () -- fails here with |constraint(RW n)| used more than once
+        fr   =   Linearly.do
+          free arr
+          free arr
+        () <- fr -- A state-style solver would fail here saying that there is no |constraint(RW n)| left to use
+        Linearly.return $ Ur ()
+\end{code}
+In this example, it is possible to type |fr| in the declarative type system.
+However, |fr| is incorrect as it frees the array several time, which isn't
+permitted. A state-style solver would let |fr| typecheck by using the capability
+generated by |new| (on the second line) to free the array a second time,
+ultimately pointing at the wrong location for a mistake. Whereas the
+writer-style solver points at the actual mistake.
 
 \section{Related work}
 \label{sec:related-work}
@@ -5122,6 +5105,6 @@ $$
 % LocalWords:  sequent typechecker idempotence polymorphism desugar subarray
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable disjunction
 % LocalWords:  combinator sigils equalities wanteds intuitionistic modularity
-% LocalWords:  sequents implicational deallocate deallocating monadic
+% LocalWords:  sequents implicational deallocate deallocating monadic monads
 % LocalWords:  deallocated instantiations desugars unioned duplicable
 % LocalWords:  deterministically unrestrictedly subexponentials
