@@ -3399,7 +3399,7 @@ core calculus.
 \subsubsection{Evidence}
 In order to desugar derivations of the qualified system to the core calculus,
 we pass evidence explicitly\footnote{This technique is also often called
-  dictionary-passing style \cite{type-classes-impl} because, in the case of type classes, evidences are
+  dictionary-passing style \citep{type-classes-impl} because, in the case of type classes, evidences are
   dictionaries, and because type classes were the original form of constraints
   in Haskell.}.
 %
