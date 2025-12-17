@@ -4305,6 +4305,12 @@ Mezzo's, or \textsc{ats}'s.
 
 \appendix
 
+% Force conventional A, B, ... appendix sections. Not sure why it's not working.
+\setcounter{section}{0}
+\renewcommand{\thesection}{\Alph{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
 \section{Full descriptions}
 \label{sec:appendix:full-descriptions}
 
