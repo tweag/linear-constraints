@@ -3390,7 +3390,7 @@ Using \cref{lem:generation-soundness} together with
 $[[G |-> e : t ~> C]]$ and $[[|-s C ~> Q ]]$, then
 $[[Q ; G |- e : t]]$.
 %
-It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
+As such we only need to desugar derivations of $[[Q;G|-e : t]]$ into the
 core calculus.
 
 \subsection{From Qualified to Core}
