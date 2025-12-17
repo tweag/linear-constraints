@@ -3387,8 +3387,8 @@ comparison between an implicit core language D and an explicit one DC.}.
 
 Using \cref{lem:generation-soundness} together with
 \cref{lem:solver-soundness} we know that if
-$[[G |-> e : t ~> C]]$ and $[[UCtx ; DCtx ; LCtx |-s C ~> emptyset ]]$, then
-$[[(UCtx, DCtx \u LCtx) ; G |- e : t]]$.
+$[[G |-> e : t ~> C]]$ and $[[|-s C ~> Q ]]$, then
+$[[Q ; G |- e : t]]$.
 %
 It only remains to desugar derivations of $[[Q;G|-e : t]]$ into the
 core calculus.
