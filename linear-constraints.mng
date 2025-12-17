@@ -4075,11 +4075,15 @@ The solver judgement in OutsideIn takes the following form:
 The main differences between OutsideIn's solver judgement and our solver judgements in \cref{sec:constraint-solver} are:
 \begin{itemize}
   \item OutsideIn's judgement includes top-level axioms schemes separately
-($\mathcal{Q}$), which we have omitted for the sake of brevity and are instead
-included in $Q_{\mathit{given}}$.
-  \item We present the \emph{given} constraints ($Q_{\mathit{given}}$ in OutsideIn) as two separate
-constraint sets $[[{UCtx}]]$ and $[[{LCtx}]]$, standing for the unrestricted and linear
-parts respectively.
+($\mathcal{Q}$), which we have omitted for the sake of simplicity.
+  \item OutsideIn's judgement has an input context $Q_{\mathit{given}}$ whereas
+        we don't. Having such a context is more realistic from an implementation
+        point of view: in practice given constraints are named in
+        $Q_{\mathit{given}}$, the evidence for solving a constraint $[{{C}}]$
+        can then refer to those names. Since we avoid names in our presentation,
+        we don't need such a context. The context $Q_{\mathit{given}}$ is also
+        useful for quantified constraints \cite{quantified-constraints}, where
+        proving a given is allowed to be a pattern that matches the goal.
   \item In addition to constraint inference, OutsideIn performs type
 inference, requiring additional bookkeeping in the solver judgment. The solver
 takes as input a set of \emph{touchable} variables $\overline{\alpha}_{tch}$
@@ -4088,16 +4092,20 @@ produces a type substitution $\theta$ as an output.
 As discussed in \cref{sec:type-inference}, we do not perform type
 inference, only constraint inference. Therefore, our solver need not return a
 type assignment.
-  \item Both
-OutsideIn and our solver output a set of constraints, $Q_{\mathit{residual}}$ and
-$[[{LCtx_o}]]$ respectively. However, the meaning of these contexts is different.
-OutsideIn's \emph{residual} constraints $Q_{\mathit{residual}}$
-correspond to the part of $C_{\mathit{wanted}}$ that could not be solved from the
-assumptions. These residuals are then quantified over in the generalisation step
-of the inference algorithm. We omit these residuals, which means that our
-algorithm cannot infer qualified types.
-Our \emph{output} constraints $[[{LCtx_o}]]$ instead correspond to the part of the
-\emph{linear} givens $[[{LCtx_i}]]$ that were not used in the solution for $[[{C_w}]]$.
+  \item Both OutsideIn and our solver output a set of constraints,
+        $Q_{\mathit{residual}}$ and $[[{Q_r}]]$ respectively. They are similar
+        in spirit, but not used exactly the same. Note in particular that while
+        OutsideIn has both an input and output context, in the terminology of
+        \cref{sec:solver-design}, OutsideIn is a combination of writer-style and
+        reader-style, not a state-style solver.
+
+        Where they differ is that $Q_{\mathit{residual}}$ is used for type
+        inference (when a function has no type signature), and as such only
+        contains the constraints which are not in $Q_{\mathit{given}}$. In our
+        solver it is essential that $[[{Q_r}]]$ returns all the hypotheses that
+        have been needed, except those who have been discharged by an
+        implication, so that we can check that their usage respect the linearity
+        constraints.
 
 \item Finally, while OutsideIn has a single kind of conjunction, our constraint
 language requires two: $[[{Q1*Q2}]]$ and $[[{Q1&Q2}]]$. This shows up when
