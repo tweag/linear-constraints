@@ -3923,14 +3923,25 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
   \centering
   $$
   \begin{array}{lcll}
+    [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
+    [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
     [[{s}]] & \bnfeq & [[{forall as. t}]] & \text{Type schemes} \\
-    [[{t}]], [[{u}]] & \bnfeq & ... \bnfor [[{exists as. t o- u}]] & \text{Types} \\
-    [[{e}]] & \bnfeq & ... \bnfor [[{pack (e1, e2)}]] \bnfor [[{unpack (x,y)=e1 in e2}]] & \text{Expressions}
+    [[{t}]], [[{u}]] & \bnfeq & [[{a}]] \bnfor [[{exists as. t o- u}]] \bnfor [[{t1 ->_pi t2}]]
+                            \bnfor [[{T ts}]] & \text{Types} \\
+    [[{G}]], [[{D}]] & \bnfeq & [[{empty}]] \bnfor [[{G, x:_pi s}]] &
+                                                              \text{Contexts} \\
+    [[{e}]] & \bnfeq & [[{x}]] \bnfor [[{K}]] \bnfor [[{\x. e}]] \bnfor [[e1
+                     e2]] \bnfor [[{pack (e1, e2)}]] & \text{Expressions}\\
+                 &\bnfor & [[unpack (y,x)=e1 in
+                           e2]] \bnfor [[{case_pi e of { alts }}]] &\\
+                 &\bnfor & [[let_pi
+                           x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
   \end{array}
   $$
 
   \drules[L]{$[[G |- e : t]]$}{Core language
-    typing}{Pack,Unpack}
+    typing}{Var,Abs,App,Pack,Unpack,Let,Case}
   \caption{Core calculus (subset)}
   \label{fig:core-typing-rules}\label{fig:core-grammar}
 \end{figure}
@@ -3948,8 +3959,8 @@ Following $λ^q$, we assume the existence of the following data types:
   Ur a]]$
 \end{itemize}
 %
-\Cref{fig:core-typing-rules}
-highlights the differences from the qualified system:
+The core calculus is described inn \Cref{fig:core-typing-rules}.
+The main differences with the qualified system are as follows:
 \begin{itemize}
   \item Type schemes $[[{s}]]$ do not support qualified types.
   \item Existentially quantified types ($[[{exists as. t o= Q}]]$) are now represented as an (existentially quantified, linear) pair of values ($[[{exists as. t2 o- t1}]]$).
@@ -4900,56 +4911,8 @@ Mezzo's, or \textsc{ats}'s.
 \renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
 \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
 
-\section{Full descriptions}
+\subsection{Complete Desugaring}
 \label{sec:appendix:full-descriptions}
-
-In this appendix, we give, for reference, complete descriptions of the
-type systems, functions, etc. that we have abbreviated in the main % etc should never be followed by '…'
-body of the article.
-
-\subsection{Core calculus}
-\label{sec:appendix:core-calculus}
-
-This is the complete version of the core calculus described in
-\cref{sec:core-calculus}. The full grammar is given by
-\Cref{fig:full:core-grammar} and the type system by
-\Cref{fig:full:core-typing-rules}.
-
-\begin{figure}
-  \maybesmall
-  \centering
-  $$
-  \begin{array}{lcll}
-    [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
-    [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
-    [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
-    [[{s}]] & \bnfeq & [[{forall as. t}]] & \text{Type schemes} \\
-    [[{t}]], [[{u}]] & \bnfeq & [[{a}]] \bnfor [[{exists as. t o- u}]] \bnfor [[{t1 ->_pi t2}]]
-                            \bnfor [[{T ts}]] & \text{Types} \\
-    [[{G}]], [[{D}]] & \bnfeq & [[{empty}]] \bnfor [[{G, x:_pi s}]] &
-                                                              \text{Contexts} \\
-    [[{e}]] & \bnfeq & [[{x}]] \bnfor [[{K}]] \bnfor [[{\x. e}]] \bnfor [[e1
-                     e2]] \bnfor [[{pack (e1, e2)}]] & \text{Expressions}\\
-                 &\bnfor & [[unpack (y,x)=e1 in
-                           e2]] \bnfor [[{case_pi e of { alts }}]] &\\
-                 &\bnfor & [[let_pi
-                           x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
-  \end{array}
-  $$
-  \caption{Grammar of the core calculus}
-  \label{fig:full:core-grammar}
-\end{figure}
-
-\begin{figure}
-  \maybesmall
-  \centering
-  \drules[L]{$[[G |- e : t]]$}{Core language
-    typing}{Var,Abs,App,Pack,Unpack,Let,Case}
-  \caption{Core calculus type system}
-  \label{fig:full:core-typing-rules}
-\end{figure}
-
-\subsection{Desugaring}
 \label{sec:appendix:desugaring}
 
 The complete definition of the desugaring function from
