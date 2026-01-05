@@ -2965,6 +2965,16 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 \info{No substitution on $[[{Q1}]]$ in the E-Unpack rule, because there is
   only existential quantification.}
 
+\begin{toappendix}
+  \begin{lemma}\label{lem:simples:monoid-action}
+  The following equality holds $[[{pi.(rho.Q)}]]=[[{(pi.rho).Q}]]$
+\end{lemma}
+\begin{nestedproof}
+  Immediate by case analysis of $[[{pi}]]$ and $[[{rho}]]$.
+\end{nestedproof}
+
+\end{toappendix}
+
 \section{Constraint inference}
 \label{sec:type-inference}
 
@@ -3109,6 +3119,101 @@ Before we move on to constraint generation proper, let us highlight a few
 technical, yet essential, lemmas about the wanted-constraint
 entailment relation.
 
+\begin{toappendix}
+  \begin{lemma}[$[[{Dup}]]$ discarding]
+  \label{lem:dup-weakening}
+  The two following, equivalent, properties hold
+  \begin{itemize}
+  \item if $[[Qdup \in Dup]]$, then $[[Qdup ||- Empty]]$
+  \item if $[[Q1 ||- Q2]]$ and $[[Qdup \in Dup]]$, then $[[Q1 * Qdup ||- Q2]]$
+  \end{itemize}
+\end{lemma}
+\begin{nestedproof}
+  The two properties are equivalent
+  \begin{itemize}
+  \item using $[[{Q1}]]=[[{Q2}]]=[[{Empty}]]$, the latter implies the
+    former
+  \item The former implies the latter by tensoring together
+    $[[Q1 ||- Q2]]$ and $[[Qdup ||- Empty]]$ following the rules
+    of~\cref{fig:entailment-relation}.
+  \end{itemize}
+  Let $[[Qdup \in Dup]]$, then for each $[[{1.q}]] \in [[{Qdup}]]$,
+  $[[1.q ||- Empty]]$ (per~\cref{fig:entailment-relation}), tensoring
+  each of these entailments together and with the $[[{omega.q}]] \in [[{Qdup}]]$, we get $[[Qdup ||- Empty]]$.
+\end{nestedproof}
+
+\begin{lemma}[$[[{Dup}]]$ duplication]
+  \label{lem:dup-contraction}
+  The two following, equivalent, properties hold
+  \begin{itemize}
+  \item if $[[Qdup \in Dup]]$, then $[[Qdup ||- Qdup * Qdup]]$
+  \item if $[[Q1 * Qdup ||- Q2]]$, $[[Qdup * Q1' ||- Q2']]$, and
+    $[[Qdup \in Dup]]$, then $[[Q1 * Qdup * Q1'||- Q2 * Q2']]$
+  \end{itemize}
+\end{lemma}
+\begin{nestedproof}
+  The proof is similar to that of~\cref{lem:dup-weakening}
+\end{nestedproof}
+
+\begin{lemma}[Transitive tensor decomposition]
+  \label{lem:transitive-tensor-decomposition}
+  if $[[Qdup \in Dup]]$ and $[[Q ||- Q1 * Qdup * Q2]]$, then there
+  exists $[[Q1']]$, $[[Qdup']]$, $[[Q2']]$, such that
+  \begin{itemize}
+  \item $[[Q1' * Qdup' ||- Q1]]$
+  \item $[[Qdup' * Q2' ||- Q2]]$
+  \item $[[Qdup' ||- Qdup]]$
+  % \item $[[{Q}]] = [[{Q1' * Qdup' * Q2'}]]$
+  \end{itemize}
+\end{lemma}
+\begin{nestedproof}
+  By the inversion-of-tensor rule from~\cref{fig:entailment-relation},
+  we get that ther exists $[[{Q'}]]$, $[[{Qdup'}]]$, and $[[{Q2'}]]$,
+  such that
+  \begin{itemize}
+  \item $[[{Q}]] = [[{Q' * Qdup' * Q2'}]]$
+  \item $[[Qdup' * Q2' ||- Q2]]$
+  \item $[[Q' * Qdup' ||- Q1 * Qdup]]$. The inversion-of-tensor rule
+    applies further to this case: there exists $[[{Q1'}]]$,
+    $[[{Qdup''}]]$, and $[[{Q''}]]$ such that
+    \begin{itemize}
+    \item $[[{Q' * Qdup'}]] = [[{Q1' * Qdup'' * Q''}]]$
+    \item $[[Q1' * Qdup'' ||- Q1']]$
+    \item $[[Qdup'' * Q'' ||- Qdup']]$
+    \end{itemize}
+  \end{itemize}
+  Observe the following
+  \begin{itemize}
+  \item $[[Qdup'' * Q'' \in Dup]]$ (because of the requirements
+    of~\cref{fig:entailment-relation}). Let's write
+    $[[{Qdup'''}]] = [[{Qdup'' * Q''}]]$.
+  \item $[[{Q}]] = [[{Q1' * Qdup''' * Q2'}]]$
+  \item We have
+    \begin{itemize}
+    \item $[[Q1' * Qdup''' ||- Q1]]$. Because
+      \begin{itemize}
+      \item $[[{Q1' * Qdup'''}]] = [[{Q' * Qdup'}]]$
+      \item therefore $[[Q1' * Qdup''' ||- Q1 * Qdup]]$
+      \item by~\cref{lem:dup-weakening}, and by transitivity of the
+        entailment relation (per~\cref{fig:entailment-relation}), we
+        can drop $[[{Qdup}]]$ from the conclusion.
+      \end{itemize}
+    \item $[[Qdup''' ||- Qdup']]$ (by definition of $[[{Qdup'''}]]$)
+    \item $[[Qdup''' * Q2' ||- Q2]]$
+      \begin{itemize}
+      \item By tensoring together, per~\cref{fig:entailment-relation},
+        $[[Qdup''' ||- Qdup']]$ and $[[Q2' ||- Q2']]$, we get
+        $[[Qdup''' * Q2' ||- Qdup' * Q2']]$
+      \item then we get the desired result by transitivity of the
+        entailment relation.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+
+  This concludes the proof
+\end{nestedproof}
+\end{toappendix}
+
 \begin{lemmarep}[Inversion]
   \label{lem:inversion}
   The inference rules of $[[Q |- C]]$ can be read bottom-up (up to the
@@ -3220,6 +3325,18 @@ entailment relation.
   \end{itemize}
 \end{proof}
 
+\begin{toappendix}
+  
+  \begin{lemma}\label{lem:wanteds:module-action}
+  The following equality holds: $[[{pi.(rho.C)}]]=[[{(pi.rho).C}]]$.
+\end{lemma}
+\begin{nestedproof}
+  This is proved by a straightforward induction on the structure of
+  $[[{C}]]$, using \cref{lem:simples:monoid-action} for the case
+  $[[{C}]]=[[{Q}]]$.
+\end{nestedproof}
+
+\end{toappendix}
 
 \begin{lemmarep}[Inversion of scaling]
   \label{lem:wanted:demote}
@@ -3541,6 +3658,111 @@ which is more suited for a concrete implementation.
 If the constraint solver finds a solution then $[[|-s C ~> Q]]$ then
 $[[{Q}]]$ entails $[[{C}]]$. In order to check that $[[Q_g |- C]]$, it therefore suffices to
 check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
+
+\begin{toappendix}
+  \begin{lemma}[Soundess of $[[|-d Q_i \d Q_b ~> Q_o]]$]\label{l:diff-soundness}
+  If $[[|-d Q_i \d Q_b ~> Q_o]]$ is derivable (see \cref{fig:constraint-solver})),
+  then $[[Q_o * Q_b ||- Q_i]]$.
+\end{lemma}
+\begin{nestedproof}
+  By induction on the derivation of $[[|-d Q_i \d Q_b ~> Q_o]]$.
+  \begin{description}
+    \item[\rref*{D-Linear}] We have
+          \begin{itemize}
+            \item $[[{Q_b}]]=[[{(UCtx_b, LCtx_b \u q)}]]$
+            \item $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * 1.q]]$ hence, by
+            induction hypothesis $[[Q_o * 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$
+          \end{itemize}
+          We need to prove that $[[Q_o * (UCtx_b, LCtx_b \u q) ||- Q_i]]$, but
+          by definition of the tensor product
+          $[[{(UCtx_b, LCtx_b \u q)}]] = [[{1.q * (UCtx_b, LCtx_b)}]]$, so the
+          induction hypothesis proves this case.
+    \item[\rref*{D-Dup}] We have
+          \begin{itemize}
+            \item $[[q \in Dup]]$
+            \item $[[{Q_b}]]=[[{(UCtx_b, LCtx_b \u q)}]]$
+            \item $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * many 1.q]]$ hence, by
+            induction hypothesis $[[Q_o * many 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$
+          \end{itemize}
+          We need to prove that $[[Q_o * (UCtx_b, LCtx_b \u q) ||- Q_i]]$,
+          which, by definition of the tensor product is the same as
+          $[[Q_o * 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's hence
+          sufficient to prove that $[[1.q ||- many 1.q]]$, which is precisely
+          what $[[q \in Dup]]$ gives us.
+    \item[\rref*{D-Ur}] We have
+          \begin{itemize}
+            \item $[[{Q_b}]] = [[{(UCtx_b \u q, LCtx_b)}]]$
+            \item
+            $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * pi_1.q * ... * pi_n.q]]$
+            hence, by induction hypothesis $[[Q_o * pi_1.q * ... * pi_n.q * (UCtx_b, LCtx_b) ||- Q_i]]$ 
+          \end{itemize}
+          We need to prove that $[[Q_o * (UCtx_b \u q, LCtx_b) ||- Q_i]]$,
+          which, by definition of the tensor product is the same as
+          $[[Q_o *  omega.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's
+          hence sufficient to prove that $[[omega.q ||- pi_1.q * ... * pi_n.q]]$
+          which follows from the conditions in \cref{fig:entailment-relation}.
+  \end{description}
+\end{nestedproof}
+\begin{lemma}[Soundness of $[[{Q1/\Q2}]]$]\label{l:meet-soundness}
+  For any $[[Q1]]$, $[[Q2]]$, we have $[[Q1/\Q2 ||- Q1]]$ and $[[Q1/\Q2 ||- Q2]]$
+\end{lemma}
+\begin{nestedproof}
+  By induction on the derivation of $[[Q1/\Q2 = Q]]$
+  \begin{description}
+    \item[\rref*{Inf-Ur}] We have
+          \begin{itemize}
+            \item $[[{Q1}]] = [[{(UCtx1, emptyset)}]]$ in other words,
+            $[[{Q1}]] = [[{omega.Q1'}]]$ for some $[[{Q1'}]]$.
+            \item $[[{Q2}]] = [[{(UCtx2, emptyset)}]]$ in other words,
+            $[[{Q2}]] = [[{omega.Q2'}]]$ for some $[[{Q2'}]]$.
+            \item
+            $[[{Q1 /\ Q2}]] = [[{(UCtx1 \u UCtx2, emptyset)}]] = [[{omega.Q1' * omega. Q2'}]]$.
+          \end{itemize}
+          It is the case, as required, that
+          $[[omega.Q1' * omega. Q2' ||- omega.Q1']]$ and
+          $[[omega.Q1' * omega. Q2' ||- omega.Q2']]$ by the rules of
+          \cref{fig:entailment-relation}.
+    \item[\rref*{D-Match}] We have
+          \begin{itemize}
+            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
+            \item $[[{Q2}]] = [[{(UCtx2, LCtx2 \u q )}]] = [[{Q2' * 1.q}]]$
+            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2') * 1.q}]]$
+          \end{itemize}
+          By induction hypothesis, $[[Q1' /\ Q2' ||- Q1']]$ and
+          $[[Q1' /\ Q2' ||- Q2']]$. Which, tensoring with $[[{1.q}]]$ according
+          to the rules of \cref{fig:entailment-relation}, gives
+          $[[(Q1' /\ Q2') * 1.q ||- Q1' * 1.q]]$ and
+          $[[(Q1' /\ Q2') * 1.q ||- Q2' * 1.q]]$. We conclude by definition of
+          $[[{Q1 /\Q2}]]$.
+    \item[\rref*{Inf-DiffL} and \rref*{Inf-DiffR}] These two cases are
+          symmetric, so we'll proof the case of \rref*{Inf-DiffL},
+          \rref*{Inf-DiffL} is similar. That is we have
+          \begin{itemize}
+            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
+            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2) * omega.q}]]$
+          \end{itemize}
+          By induction hypothesis $[[Q1' /\ Q2 ||- Q1']]$ and
+          $[[Q1' /\ Q2 ||- Q2]]$. Now $[[(Q1' /\ Q2) * omega.q ||- Q2]]$ by the
+          weakening rule of \cref{fig:entailment-relation}. And
+          $[[(Q1' /\ Q2) * omega.q ||- Q1' * 1.q]]$ by the rules of
+          \cref{fig:entailment-relation}.
+    \item[\rref*{Inf-DiffDL} and \rref*{Inf-DiffDR}] These two cases are
+          symmetric so we'll only prove the case of \rref*{Inf-DiffDL},
+          \rref*{Inf-DiffDR} is similar. That is we have
+          \begin{itemize}
+            \item $[[q \in Dup]]$
+            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
+            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2) * 1.q}]]$
+          \end{itemize}
+          By induction hypothesis $[[Q1' /\ Q2 ||- Q1']]$ and
+          $[[Q1' /\ Q2 ||- Q2]]$. Now $[[(Q1' /\ Q2) * 1.q ||- Q2]]$ because
+          $[[q\in Dup]]$ therefore $[[1.q ||- Empty]]$. Finally
+          $[[(Q1' /\ Q2) * 1.q ||- Q1' * 1.q]]$ by the rules of
+          \cref{fig:entailment-relation}.
+  \end{description}
+\end{nestedproof}
+
+\end{toappendix}
 
 \begin{lemmarep}[Constraint solver soundness]
   \label{lem:solver-soundness}
@@ -4867,238 +5089,6 @@ $$
   \label{fig:full:desugaring}
 \end{figure}
 
-\section{Additional lemmas}
-\label{sec:appendix:proofs-lemmas}
-
-\setcounter{subsection}{4}
-\subsection{Lemmas on the qualified type system}
-\label{sec:appendix:qual-type-syst}
-
-\begin{lemma}\label{lem:simples:monoid-action}
-  The following equality holds $[[{pi.(rho.Q)}]]=[[{(pi.rho).Q}]]$
-\end{lemma}
-\begin{proof}
-  Immediate by case analysis of $[[{pi}]]$ and $[[{rho}]]$.
-\end{proof}
-
-\setcounter{subsection}{5}
-\subsection{Lemmas on constraint inference}
-\label{sec:appendix:constraint-inference}
-
-\begin{lemma}[$[[{Dup}]]$ discarding]
-  \label{lem:dup-weakening}
-  The two following, equivalent, properties hold
-  \begin{itemize}
-  \item if $[[Qdup \in Dup]]$, then $[[Qdup ||- Empty]]$
-  \item if $[[Q1 ||- Q2]]$ and $[[Qdup \in Dup]]$, then $[[Q1 * Qdup ||- Q2]]$
-  \end{itemize}
-\end{lemma}
-\begin{proof}
-  The two properties are equivalent
-  \begin{itemize}
-  \item using $[[{Q1}]]=[[{Q2}]]=[[{Empty}]]$, the latter implies the
-    former
-  \item The former implies the latter by tensoring together
-    $[[Q1 ||- Q2]]$ and $[[Qdup ||- Empty]]$ following the rules
-    of~\cref{fig:entailment-relation}.
-  \end{itemize}
-  Let $[[Qdup \in Dup]]$, then for each $[[{1.q}]] \in [[{Qdup}]]$,
-  $[[1.q ||- Empty]]$ (per~\cref{fig:entailment-relation}), tensoring
-  each of these entailments together and with the $[[{omega.q}]] \in [[{Qdup}]]$, we get $[[Qdup ||- Empty]]$.
-\end{proof}
-
-\begin{lemma}[$[[{Dup}]]$ duplication]
-  \label{lem:dup-contraction}
-  The two following, equivalent, properties hold
-  \begin{itemize}
-  \item if $[[Qdup \in Dup]]$, then $[[Qdup ||- Qdup * Qdup]]$
-  \item if $[[Q1 * Qdup ||- Q2]]$, $[[Qdup * Q1' ||- Q2']]$, and
-    $[[Qdup \in Dup]]$, then $[[Q1 * Qdup * Q1'||- Q2 * Q2']]$
-  \end{itemize}
-\end{lemma}
-\begin{proof}
-  The proof is similar to that of~\cref{lem:dup-weakening}
-\end{proof}
-
-\begin{lemma}[Transitive tensor decomposition]
-  \label{lem:transitive-tensor-decomposition}
-  if $[[Qdup \in Dup]]$ and $[[Q ||- Q1 * Qdup * Q2]]$, then there
-  exists $[[Q1']]$, $[[Qdup']]$, $[[Q2']]$, such that
-  \begin{itemize}
-  \item $[[Q1' * Qdup' ||- Q1]]$
-  \item $[[Qdup' * Q2' ||- Q2]]$
-  \item $[[Qdup' ||- Qdup]]$
-  % \item $[[{Q}]] = [[{Q1' * Qdup' * Q2'}]]$
-  \end{itemize}
-\end{lemma}
-\begin{proof}
-  By the inversion-of-tensor rule from~\cref{fig:entailment-relation},
-  we get that ther exists $[[{Q'}]]$, $[[{Qdup'}]]$, and $[[{Q2'}]]$,
-  such that
-  \begin{itemize}
-  \item $[[{Q}]] = [[{Q' * Qdup' * Q2'}]]$
-  \item $[[Qdup' * Q2' ||- Q2]]$
-  \item $[[Q' * Qdup' ||- Q1 * Qdup]]$. The inversion-of-tensor rule
-    applies further to this case: there exists $[[{Q1'}]]$,
-    $[[{Qdup''}]]$, and $[[{Q''}]]$ such that
-    \begin{itemize}
-    \item $[[{Q' * Qdup'}]] = [[{Q1' * Qdup'' * Q''}]]$
-    \item $[[Q1' * Qdup'' ||- Q1']]$
-    \item $[[Qdup'' * Q'' ||- Qdup']]$
-    \end{itemize}
-  \end{itemize}
-  Observe the following
-  \begin{itemize}
-  \item $[[Qdup'' * Q'' \in Dup]]$ (because of the requirements
-    of~\cref{fig:entailment-relation}). Let's write
-    $[[{Qdup'''}]] = [[{Qdup'' * Q''}]]$.
-  \item $[[{Q}]] = [[{Q1' * Qdup''' * Q2'}]]$
-  \item We have
-    \begin{itemize}
-    \item $[[Q1' * Qdup''' ||- Q1]]$. Because
-      \begin{itemize}
-      \item $[[{Q1' * Qdup'''}]] = [[{Q' * Qdup'}]]$
-      \item therefore $[[Q1' * Qdup''' ||- Q1 * Qdup]]$
-      \item by~\cref{lem:dup-weakening}, and by transitivity of the
-        entailment relation (per~\cref{fig:entailment-relation}), we
-        can drop $[[{Qdup}]]$ from the conclusion.
-      \end{itemize}
-    \item $[[Qdup''' ||- Qdup']]$ (by definition of $[[{Qdup'''}]]$)
-    \item $[[Qdup''' * Q2' ||- Q2]]$
-      \begin{itemize}
-      \item By tensoring together, per~\cref{fig:entailment-relation},
-        $[[Qdup''' ||- Qdup']]$ and $[[Q2' ||- Q2']]$, we get
-        $[[Qdup''' * Q2' ||- Qdup' * Q2']]$
-      \item then we get the desired result by transitivity of the
-        entailment relation.
-      \end{itemize}
-    \end{itemize}
-  \end{itemize}
-
-  This concludes the proof
-\end{proof}
-
-\begin{lemma}[Soundess of $[[|-d Q_i \d Q_b ~> Q_o]]$]\label{l:diff-soundness}
-  If $[[|-d Q_i \d Q_b ~> Q_o]]$ is derivable (see \cref{fig:constraint-solver})),
-  then $[[Q_o * Q_b ||- Q_i]]$.
-\end{lemma}
-\begin{proof}
-  By induction on the derivation of $[[|-d Q_i \d Q_b ~> Q_o]]$.
-  \begin{description}
-    \item[\rref*{D-Linear}] We have
-          \begin{itemize}
-            \item $[[{Q_b}]]=[[{(UCtx_b, LCtx_b \u q)}]]$
-            \item $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * 1.q]]$ hence, by
-            induction hypothesis $[[Q_o * 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$
-          \end{itemize}
-          We need to prove that $[[Q_o * (UCtx_b, LCtx_b \u q) ||- Q_i]]$, but
-          by definition of the tensor product
-          $[[{(UCtx_b, LCtx_b \u q)}]] = [[{1.q * (UCtx_b, LCtx_b)}]]$, so the
-          induction hypothesis proves this case.
-    \item[\rref*{D-Dup}] We have
-          \begin{itemize}
-            \item $[[q \in Dup]]$
-            \item $[[{Q_b}]]=[[{(UCtx_b, LCtx_b \u q)}]]$
-            \item $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * many 1.q]]$ hence, by
-            induction hypothesis $[[Q_o * many 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$
-          \end{itemize}
-          We need to prove that $[[Q_o * (UCtx_b, LCtx_b \u q) ||- Q_i]]$,
-          which, by definition of the tensor product is the same as
-          $[[Q_o * 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's hence
-          sufficient to prove that $[[1.q ||- many 1.q]]$, which is precisely
-          what $[[q \in Dup]]$ gives us.
-    \item[\rref*{D-Ur}] We have
-          \begin{itemize}
-            \item $[[{Q_b}]] = [[{(UCtx_b \u q, LCtx_b)}]]$
-            \item
-            $[[|-d Q_i \d (UCtx_b, LCtx_b) ~> Q_o * pi_1.q * ... * pi_n.q]]$
-            hence, by induction hypothesis $[[Q_o * pi_1.q * ... * pi_n.q * (UCtx_b, LCtx_b) ||- Q_i]]$ 
-          \end{itemize}
-          We need to prove that $[[Q_o * (UCtx_b \u q, LCtx_b) ||- Q_i]]$,
-          which, by definition of the tensor product is the same as
-          $[[Q_o *  omega.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's
-          hence sufficient to prove that $[[omega.q ||- pi_1.q * ... * pi_n.q]]$
-          which follows from the conditions in \cref{fig:entailment-relation}.
-  \end{description}
-\end{proof}
-
-\begin{lemma}[Soundness of $[[{Q1/\Q2}]]$]\label{l:meet-soundness}
-  For any $[[Q1]]$, $[[Q2]]$, we have $[[Q1/\Q2 ||- Q1]]$ and $[[Q1/\Q2 ||- Q2]]$
-\end{lemma}
-\begin{proof}
-  By induction on the derivation of $[[Q1/\Q2 = Q]]$
-  \begin{description}
-    \item[\rref*{Inf-Ur}] We have
-          \begin{itemize}
-            \item $[[{Q1}]] = [[{(UCtx1, emptyset)}]]$ in other words,
-            $[[{Q1}]] = [[{omega.Q1'}]]$ for some $[[{Q1'}]]$.
-            \item $[[{Q2}]] = [[{(UCtx2, emptyset)}]]$ in other words,
-            $[[{Q2}]] = [[{omega.Q2'}]]$ for some $[[{Q2'}]]$.
-            \item
-            $[[{Q1 /\ Q2}]] = [[{(UCtx1 \u UCtx2, emptyset)}]] = [[{omega.Q1' * omega. Q2'}]]$.
-          \end{itemize}
-          It is the case, as required, that
-          $[[omega.Q1' * omega. Q2' ||- omega.Q1']]$ and
-          $[[omega.Q1' * omega. Q2' ||- omega.Q2']]$ by the rules of
-          \cref{fig:entailment-relation}.
-    \item[\rref*{D-Match}] We have
-          \begin{itemize}
-            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
-            \item $[[{Q2}]] = [[{(UCtx2, LCtx2 \u q )}]] = [[{Q2' * 1.q}]]$
-            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2') * 1.q}]]$
-          \end{itemize}
-          By induction hypothesis, $[[Q1' /\ Q2' ||- Q1']]$ and
-          $[[Q1' /\ Q2' ||- Q2']]$. Which, tensoring with $[[{1.q}]]$ according
-          to the rules of \cref{fig:entailment-relation}, gives
-          $[[(Q1' /\ Q2') * 1.q ||- Q1' * 1.q]]$ and
-          $[[(Q1' /\ Q2') * 1.q ||- Q2' * 1.q]]$. We conclude by definition of
-          $[[{Q1 /\Q2}]]$.
-    \item[\rref*{Inf-DiffL} and \rref*{Inf-DiffR}] These two cases are
-          symmetric, so we'll proof the case of \rref*{Inf-DiffL},
-          \rref*{Inf-DiffL} is similar. That is we have
-          \begin{itemize}
-            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
-            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2) * omega.q}]]$
-          \end{itemize}
-          By induction hypothesis $[[Q1' /\ Q2 ||- Q1']]$ and
-          $[[Q1' /\ Q2 ||- Q2]]$. Now $[[(Q1' /\ Q2) * omega.q ||- Q2]]$ by the
-          weakening rule of \cref{fig:entailment-relation}. And
-          $[[(Q1' /\ Q2) * omega.q ||- Q1' * 1.q]]$ by the rules of
-          \cref{fig:entailment-relation}.
-    \item[\rref*{Inf-DiffDL} and \rref*{Inf-DiffDR}] These two cases are
-          symmetric so we'll only prove the case of \rref*{Inf-DiffDL},
-          \rref*{Inf-DiffDR} is similar. That is we have
-          \begin{itemize}
-            \item $[[q \in Dup]]$
-            \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
-            \item $[[{Q1 /\ Q2}]] = [[{(Q1' /\ Q2) * 1.q}]]$
-          \end{itemize}
-          By induction hypothesis $[[Q1' /\ Q2 ||- Q1']]$ and
-          $[[Q1' /\ Q2 ||- Q2]]$. Now $[[(Q1' /\ Q2) * 1.q ||- Q2]]$ because
-          $[[q\in Dup]]$ therefore $[[1.q ||- Empty]]$. Finally
-          $[[(Q1' /\ Q2) * 1.q ||- Q1' * 1.q]]$ by the rules of
-          \cref{fig:entailment-relation}.
-  \end{description}
-\end{proof}
-
-% \begin{lemma}[Weakening of wanteds]\label{lem:wanteds:weakening}
-%   If $[[Q |- C]]$, then $[[omega.Q'*Q |- C]]$
-% \end{lemma}
-% \begin{proof}
-%   This is proved by a straightforward induction on the derivation of
-%   $[[Q |- C]]$, using the corresponding property on the
-%   simple-constraint entailment relation from
-%   \cref{def:entailment-relation}, for the \rref*{C-Dom} case.
-% \end{proof}
-
-\begin{lemma}\label{lem:wanteds:module-action}
-  The following equality holds: $[[{pi.(rho.C)}]]=[[{(pi.rho).C}]]$.
-\end{lemma}
-\begin{proof}
-  This is proved by a straightforward induction on the structure of
-  $[[{C}]]$, using \cref{lem:simples:monoid-action} for the case
-  $[[{C}]]=[[{Q}]]$.
-\end{proof}
 \end{document}
 
 % Local Variables:
