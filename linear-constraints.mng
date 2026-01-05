@@ -1498,7 +1498,7 @@ called from pure functions, where the resulting matrix would be
 \label{sec:nested-arrays}
 
 In \cref{sec:borrowing-slices}, we split arrays in two at a position, in
-\ref{sec:valiant} we split matrices either at a vertical position or a
+\cref{sec:valiant} we split matrices either at a vertical position or a
 horizontal position. Higher-dimensional tensors could, in general, be split
 along any dimension. The good news is that we don't have to define a new
 interface from unsafe primitives for each dimension.
@@ -1827,7 +1827,7 @@ which affords us a lot of programming techniques. We don't have to develop any
 %
 When working with matrices in a functional language the most typical pattern is
 to use immutable matrices. Some algorithm, though, like Valiant's algorithm in
-Section~\ref{sec:valiant}, need to mutate matrices. In which case a mutable
+\cref{sec:valiant}, need to mutate matrices. In which case a mutable
 matrix is created temporarily, then \emph{frozen} into an immutable matrix when
 the algorithm is over.
 
@@ -2742,7 +2742,7 @@ Then the following properties hold
 If $[[Q1 ||- omega.Q2]]$, then $[[{Q1}]]$ contains no linear assumptions.
 \end{corollary}
 
-Proofs of these lemmas (and others) appear in Appendix~\ref{sec:appendix:proofs-lemmas};
+Proofs of these lemmas (and others) appear in \cref{sec:appendix:proofs-lemmas};
 they can be proved by straightforward use of the properties in \Cref{fig:entailment-relation}.
 
 \subsection{Typing Rules}
@@ -4706,7 +4706,7 @@ $$
     \item $[[Qdup * Q2 ||- Q2']]$
     \item $[[Qdup ||- Qdup']]$
     \end{itemize}
-    By~\ref{lem:dup-contraction}, we can further deduce that
+    By \cref{lem:dup-contraction}, we can further deduce that
     \begin{itemize}
     \item $[[Q1 * Qdup ||- Q1' * Qdup']]$
     \item $[[Qdup * Q2 ||- Qdup' * Q2']]$
