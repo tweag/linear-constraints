@@ -2789,8 +2789,7 @@ Then the following properties hold
 If $[[Q1 ||- omega.Q2]]$, then $[[{Q1}]]$ contains no linear assumptions.
 \end{corollary}
 
-Proofs of these lemmas (and others) appear in the appendices
-(\cref{sec:appendix:proofs-lemmas} and below);
+Proofs of these lemmas (and others) appear in the appendix;
 they can be proved by straightforward use of the properties in \Cref{fig:entailment-relation}.
 
 \subsection{Typing Rules}
