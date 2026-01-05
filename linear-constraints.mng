@@ -4058,7 +4058,8 @@ concluding judgement, the translation is defined recursively on the
 whole typing derivation: in particular, we have access to typing rule
 premises in the body of the definition.
 %
-We present some of the interesting cases in \Cref{fig:desugaring}.
+We present some of the interesting cases in \Cref{fig:desugaring}, the complete
+definition of desugaring can be found in \cref{sec:appendix:desugaring}.
 \begin{figure}
     \maybesmall
 \centering
@@ -4911,8 +4912,7 @@ Mezzo's, or \textsc{ats}'s.
 \renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
 \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
 
-\subsection{Complete Desugaring}
-\label{sec:appendix:full-descriptions}
+\section{Complete Desugaring}
 \label{sec:appendix:desugaring}
 
 The complete definition of the desugaring function from
