@@ -20,6 +20,11 @@ pkgs.mkShell
           mathpartir
           newunicodechar
 
+          # Move proofs to appendices
+          apxproof
+          ## deps
+          environ catchfile bibunits
+
           # for lhs2tex
           lazylist polytable
 
