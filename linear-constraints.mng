@@ -35,8 +35,6 @@ import GHC.Base
     citecolor={blue!50!black},
     urlcolor={blue!80!black}
   }
-% \usepackage[plain]{fancyref}
-\usepackage[capitalize]{cleveref}
 \usepackage{mathpartir}
 \usepackage{newunicodechar}
 \input{newunicodedefs}
