@@ -4292,7 +4292,7 @@ Mezzo's, or \textsc{ats}'s.
 \bibliography{bibliography}
 % For biblatex:
 % \printbibliography
-\newpage
+\clearpage
 
 \appendix
 
