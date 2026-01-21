@@ -487,7 +487,7 @@ dubbed \emph{linear functions}, and written |a ⊸ b|.\footnote{The linear funct
 then the argument |u| is consumed exactly once.
 \end{quote}
 To make precise sense of this statement, we need to know what ``consumed exactly once'' means
-formally, requiring an understanding of the type system which we introduce later.
+formally, which requires an understanding of the type system that we introduce later.
 However, an intuitive understanding can be given by
 inspecting the type of the value concerned:
 \begin{definition}[Consume exactly once]~ \label{def:consume}
@@ -569,12 +569,12 @@ Constraints are handled implicitly by
 the typechecker. That is, if we want to |show| the integer |n :: Int| we would write |show
 n|, and the typechecker is responsible for proving that |constraint (Show Int)| holds, without
 intervention from the programmer.
-Note that |(=>)| arrows are \emph{unrestricted}: they create a demand
+Note that |=>| arrows are \emph{unrestricted}: they create a demand
 from the compiler to supply the required constraint, which it achieves by
 providing the appropriate instance.
 Since |Show Int| is a valid instance, its use is entirely unrestricted.
 
-Just as |(=>)| arrows allow a value to depend on \emph{unrestricted} implicit parameters,
+Just as |=>| arrows allow a value to depend on \emph{unrestricted} implicit parameters,
 linear constraints allow a value to depend on \emph{linear} implicit parameters.
 In order to manage linearity implicitly, this paper introduces a
 linear constraint arrow (|=>.|), much like Linear Haskell introduces a linear
@@ -694,7 +694,7 @@ There are a few things to notice:
   times. Instead of restricting the use of this variable,
   the linear constraint |constraint(RW n)| controls access to the
   array.
-\item If we have a single\jp{this word suggests that we could have several such evidence. What is the situation? If there is no pitfall, I suggest deleting ``single''}, linear, |constraint (RW n)|
+\item If we have a linear |constraint (RW n)|
   available, then after |free| there will not be any |constraint (RW n)|
   left to use, thus preventing the array from being used after freeing.
   This is precisely what we were trying to achieve.
@@ -743,8 +743,8 @@ Finally, the following program is rejected because it uses |RW n| twice:
 indulging :: constraint (RW n) =>. UArray a n -> ((), ())
 indulging arr = (free arr, free arr)
 \end{code}
-Although freeing a resource multiple times is usually only considered bad form\jp{Source? In C for example it's a segmentation fault.},
-our type system rules this out completely.
+Although freeing a resource multiple times is sometimes only
+considered bad form, our type system rules this out completely.
 
 
 \subsection{Threading Linear Constraints}
@@ -924,14 +924,14 @@ The remainder of this section explains why each of these operations is required,
 and how they allow |constraint(Unique)| to serve as a usable linear capability.
 We discuss, in turn, how to \emph{duplicate} a linear constraint, how to
 \emph{discard} it, and finally how to \emph{introduce} it.
-\jp{|constraint(Unique)| is a flat coeffect isn't it?}
+% Sounds like |constraint(Unique)| is a flat coeffect. But let's not write anything in the paper about that.
 
 
 \paragraph*{Duplicating |constraint(Unique)|}
 Programs that require multiple arrays each with different unique
-pointers will need to interact well with |constraint(Unique)|.
+pointers need to interact well with |constraint(Unique)|.
 If |constraint(Unique)| is assumed
-linearly, then |let arr1 = new 5; arr2 = new 6| will fail, as it uses our
+linearly, then |let arr1 = new 5; arr2 = new 6| will fail, because it uses our
 |constraint(Unique)| assumption twice. We thus stipulate that |constraint(Unique)|
 must itself be duplicable: from one assumption of |constraint(Unique)|, we
 must be able to satisfy any arbitrary fixed number of demands on that constraint.
@@ -950,10 +950,12 @@ multiplicity 1 to satisfy |constraint(Unique)| at multiplicity $[[{omega}]]$.
 \begin{code}
 eps :: Unique =>. ()
 \end{code}
-  Accordingly, we allow a linear assumption of
-  |constraint(Unique)| to be accepted even if the constraint is never
-  used.\unsure{I'm not sure it's clear enough in these past to paragraphs that
-    |dup| and |eps| really happen automatically in the typechecker.}
+  Accordingly, we allow a linear assumption of |constraint(Unique)| to
+  be accepted even if the constraint is never used.  Our type-system
+  not only supports |dup| and |eps|, but will also infer when they
+  need to be used.  In sum, a single |constraint (Unique)| is
+  sufficient to indicate that the program can call any number of
+  functions that require this linear constraint.
 
 \paragraph*{Introducing |constraint(Unique)|} For this approach to work,
 we must have an assumption of |constraint(Unique)| of multiplicity 1. We can
@@ -967,7 +969,7 @@ values from the continuation can escape the scope of the |constraint(Unique)|
 assumption. Thus, the continuation has exactly the condition we need: a
 linear assumption of |constraint(Unique)|.
 
-\vspace{\baselineskip}
+\vspace{\baselineskip} % what is this for? Isn't this just a new paragraph?
 
 With just these simple ingredients---a duplicable, discardable constraint
 that can be assumed linearly---we can write \textsc{api}s that require
@@ -1085,9 +1087,9 @@ borrowing slices~(\cref{sec:borrowing-slices}),
 blockwise matrices~(\cref{sec:valiant}),
 nested arrays~(\cref{sec:nested-arrays}),
 freezing nested structures~(\cref{sec:o1-freeze}),
-spay trees~(\cref{sec:splay-trees}),
+splay trees~(\cref{sec:splay-trees}),
 non-lexical lifetimes~(\cref{sec:nl-lifetimes}),
-self-referential borrows~(\cref{sec:self-borrow}),
+self-referential borrows~(\cref{sec:self-borrow}), and
 capabilities in monadic computations~(\cref{sec:monad-capability}).
 
 \improvement{This introduction needs improvement; right now it just has references}
@@ -1103,7 +1105,7 @@ given subarray, or \emph{slice}, before returning control to the main algorithm.
 This section first covers simple slices where work only needs to
 be carried out on a restricted part of an array~(\cref{sec:simple-slices}).
 Then the more general case is considered, where independent parts of
-an array should be worked on simultaneously~(\cref{sec:slicing-two}).
+an array should be worked on simultaneously~(\cref{sec:slicing-two}).\jp{simultaneously implies parallelism. Later on the work ``concurrently'' is used, which is better because lambda calculi are automatically concurrent with CPS encoding. But perhaps this will trip some readers;  ``independently'' may even be better. Search ``simultaneously'' everywhere.}
 
 % As an introduction to a style that will be used a lot throughout this section,
 % let us start with answering the question of: how can we extend the purely
@@ -1144,23 +1146,21 @@ sub ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
 That is, |sub| returns an additional value of type |constraint(RW p) =>. () .<=
 (constraint(RW n))|. We call this additional value a \emph{release function}. We
 can then call this release function when we're done with the slice, and return
-to the original array.
+to the original array.\jp{This language bothers me a little; it is only an implicit function (taking a linear constraint). Also, calling such functions in haskell is unidiomatic due to laziness. This is solved by linearly.do; which should then be explained earlier.}
 
 For instance we can write the following in-place insertion sort function, where
 |insert a bs| inserts |a| into the already-sorted array |bs| in place. To
-preserve the size of the array, the smallest element of $\{|a|\}\cup |bs|$ is removed
+preserve the size of the array, the smallest element of $\{|a|\} ⊎ |bs|$ is removed
 from the result and returned. In the interesting case, |a| isn't the smallest
-element of $\{|a|\}\cup |bs|$, so |b=read bs 0| is, we return |b| and insert |a| to the
+element of $\{|a|\} ⊎ |bs|$, so |b=read bs 0| is, we return |b| and insert |a| to the
 tail of |bs|, that is |sub bs 1 (length bs - 1)|.
 
 \info{I'm using insertion sort as an example here to set up the merge sort
   example below.}
-\critical{I'm using length here, we need to define it somewhere}
-\critical{I'm using unless here, we need to define it somewhere}
+\critical{I'm using |when| here, we need to define it somewhere}
 \begin{code}
 insertSort :: constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
-insertSort as =
-  unless (length as <= 1) $ Linearly.do
+insertSort as = when (length as > 1) $ Linearly.do
     Ur a <- read 0 as
     (Ur tail, release) <-sub as 1 (len - 1)
     insertSort tail
@@ -1170,8 +1170,7 @@ insertSort as =
     Linearly.return ()
 
 insert :: constraint(RW n) =>. a -> UArray a n -> Ur a .<= constraint(RW n)
-insert a bs =
-  unless (length bs == 0) $ Linearly.do
+insert a bs = when (length bs > 0) $ Linearly.do
     Ur b <- read b in
     if a <= b then
       Linearly.return (Ur a)
@@ -1182,7 +1181,7 @@ insert a bs =
       write bs 0 b'
       Linearly.return (Ur b)
 \end{code}
-
+\jp{read b in? or read 0 b?}
 % \improvement{Define swap somewhere? The code is in comments below}
 % \begin{code}
 % -- Reversing the elements of an array, the array's length is a parameter
@@ -1211,7 +1210,7 @@ insert a bs =
 The release function returned by |sub| is linear, which means it must be called.
 \nw{This needs a bit of rephrasing}
 When an array has a linear release function attached, it can't be freed (with
-the |free| function of \cref{fig:constraints-interface}), for instance, since
+the |free| function of \cref{fig:constraints-interface}, for instance), because
 this would leave the release function unable to be called and the type system
 would reject the program.
 
@@ -1230,7 +1229,7 @@ supports higher-order constraints. With higher-order
 constraints, we could replace the release \emph{function} by a release
 \emph{constraint} of type |constraint(RW p) =>. constraint(RW n)|. The
 difference is that we wouldn't have to call |release| explicitly anymore, simply
-using the original array would implictly release the slice's permissions. We
+using the original array would implictly release the slice's capabilities. We
 didn't want to rely on higher-order constraints in this article, as we feel that
 the additional complications to \cref{sec:constraint-solver} would obscure the
 exposition. Either way, we haven't made our mind whether the explicit style or
@@ -1256,28 +1255,26 @@ slice ::  constraint(RW n) =>. UArray a n -> Int ->
 The result of |slice as n| is two slices, one with the first |n| elements of |as|,
 and one with the remaining |length as - n| elements. The two slices can be used
 simultaneously. Crucially, both slices must be released for the original
-array to be accessible again, this is represented as a single release function
-which consumes the permissions for both slices.
+array to be accessible again. This is represented as a single release function
+which consumes the capabilities for both slices.
 
 The |merge| function takes two sorted arrays |ls| and |rs|, and mutates them so that the
-concatenation of |ls| and |rs| becomes sorted as a whole%
+concatenation of |ls| and |rs| becomes sorted as a whole.%
 \footnote{The implementation of |merge| is chosen for simplicity over
 efficiency for the sake of this exposition. Inserting elements into |rs| with
 the |insert| function of \cref{sec:simple-slices} is convenient but not
-particularly efficient. In fact, neither |merge| nor |insert| are truly in
-place: while they do use $O(1)$ heap space, the actually use $O(n)$ stack
-space, since they aren't tail recursive.}.
+particularly efficient. In fact, neither |merge| nor |insert| are truly in-place:
+while they do use $O(1)$ heap space, the actually use $O(n)$ stack
+space, since they aren't tail recursive.}\jp{presumably ``release'' is a no-op, so I don't see what makes |merge| non-recursive.}
 It is crucial that the arrays |ls| and |rs| be disjoint, if they are not then
 referential transparency would be lost and |merge| would not be a pure function
 (for instance reordering |write ls 0 r| and |insert l rs|, which is a legal
 transformation, would change the result).
 
-
 \critical{I'm using length here, we need to define it somewhere}
 \begin{code}
 mergeSort ::  constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
-mergeSort as =
-  unless (length as <= 1) $ Linearly.do
+mergeSort as = when (length as > 1) $ Linearly.do
     (Ur(ls, rs), release) <- slice as (len / 2)
     mergeSort ls
     mergeSort rs
@@ -1285,8 +1282,7 @@ mergeSort as =
     Linear.return ()
 
 merge ::  constraint((RW p, RW q)) =>. UArray a p -> UArray a q -> () .<= constraint((RW p, RW q))
-merge ls rs =
-  unless (length ls == 0 || length rs == 0) $ Linearly.do
+merge ls rs = when (length ls > 0 && length rs > 0) $ Linearly.do
     Ur l <- read ls
     Ur r <- read rs
     if l <= r then Linearly.do
@@ -1303,6 +1299,7 @@ merge ls rs =
       release
       Linear.return ()
 \end{code}
+\jp{read without index in merge?}
 This code requires the two slices to be accessed concurrently, and this is
 achieved using the |slice| function in |mergeSort| which then goes
 on to work with |merge|.
@@ -1338,21 +1335,19 @@ second slice cannot exist simultaneously.
 \subsection{Blockwise matrices: in-place Valiant algorithm}
 \label{sec:valiant}
 
-\improvement{Come back to the introduction of this section to make sure that it
-  flows with the previous section}
-\nw{This section should start with a focus on matrices and why they are interesting.
-Then, we say we illustrate this with the parsing algorithm.}
-
-This subsection illustrates in-place modification of matrices.
-on a
-parsing algorithm. This algorithm was invented by
-\citet{valiant_general_1975} as a theoretical tool to show that
-context-free parsing could be sub-cubic, but has also
-found practical applications
+We have seen that linear constraints are an effective way of defining
+in-place algorithms on arrays. A question that arises naturally is
+whether they apply generally on matrices (and in general
+multi-dimensional arrays). We answer positively, and illustrate with
+in-place modification of matrices.  Specifically, we consider the
+context-free parsing algorithm invented by
+\citet{valiant_general_1975}. The original motivation was to show that
+context-free parsing was sub-cubic, but the algorithm has also found
+practical applications
 \citep{bernardy_efficient_2013,bernardy_efficient_2015}.  Valiant's
 algorithm is a divide-and conquer algorithm which works on matrices,
-and we use it illustrate how such corresponding ownership patterns can be
-encoded with our system.
+and we use it illustrate how such corresponding ownership patterns can
+be encoded with our system.
 
 We direct the curious reader to the cited works, but at its core,
 Valiant's algorithm consists in reducing context-free parsing to the
@@ -1484,7 +1479,7 @@ The structure of the algorithm follows exactly that outlined by
 \citet{valiant_general_1975}. The overhead is the
 explicitly calling of join functions to re-construct ownership
 of the analysed matrices. In return, one gets additional static
-checks: we do not demand full read-write permissions on complete
+checks: we do not demand full read-write capabilities on complete
 matrices. Besides, even though the algorithm is imperative, it can be
 called from pure functions, where the resulting matrix would be
 \emph{frozen}, see \cref{sec:o1-freeze}.
@@ -1503,7 +1498,7 @@ single interface which covers all dimensions.
 \paragraph*{Arrays with nesting}
 
 Specifically, we're going to represent matrices as arrays of arrays (say an
-array of columns). Higher-dimensional tensors will follow easily. To whet the
+array of columns). Higher-dimensional tensors are a straightforward generalisation. To whet the
 reader's appetite, slicing a matrix in two sets of columns is, rather
 straightforward: just consider two halves of the root array; but slicing a
 matrix in two sets of lines is much less obvious as it requires slicing each
@@ -1539,9 +1534,9 @@ type NArray :: (Reg -> Type) -> Reg -> Type
 Notice that it's convenient for the region parameter to be the last
 parameter, in order for the types to align when nesting arrays.
 
-In consequence, we can't have |NArray Int|, we will need a type to mediate
-between nested arrays, bound to a region, and ordinary values. We introduce the
-type |Val| to that effect.
+In consequence, we cannot have |NArray Int|: we must wrap atomic
+values in a type of kind |Reg -> Type|. We introduce the
+type constructor |Val| to that effect.
 
 \begin{code}
 type Val :: Type -> Reg -> Type
@@ -1549,10 +1544,9 @@ newtype Val a n = MkVal a
 instance constraint(R (Val a n))
 instance constraint(W (Val a n))
 \end{code}
-
 %format Matrix0 = "\Varid Matrix \ensuremath{_0}"
 
-Since |Val| isn't an abstract type, its free to ignore its capabilities (which
+Since |Val| isn't an abstract type, it is free to ignore its capabilities (which
 is fine since no mutation can occur in a |Val a r|). We provide unrestricted
 read and write access to |Val| since neither do anything, but they'll be needed
 to interface with the array functions\info{This means that we can have both
@@ -1562,8 +1556,8 @@ to interface with the array functions\info{This means that we can have both
 \begin{code}
 type Matrix0 a n = NArray (NArray (Val a)) n
 \end{code}
-This isn't quite the type that we will use to represent the matrices of
-\cref{sec:valiant}, because in this section it will be convenient to have a
+This isn't quite the type that we use to represent the matrices of
+\cref{sec:valiant}, because in this section it is convenient to have a
 separate type for full arrays (|NArray|) and slices (|Slice| below).
 
 \begin{code}
@@ -1572,20 +1566,23 @@ borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (cons
 borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
 writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
+\jp{Is it Linearly or Unique?}
 \info{Maybe something to be aware of here is that since |a p| is taken with
   multiplicity $[[{omega}]]$, any |Val a p| written in the array is
   unrestricted, hence points to an unrestricted |a|. So we have nested arrays,
   here, but they are ultimately arrays of unrestricted values. Which is why the
   types of the |write| functions work.}
 
-To write a value |u| into an array |a|, you need read and write access to |u| since
-you are going to give |a| permission to read and write to |u|. For the same
+To write a value |u| into an array |a|, one needs read and write
+capabilities to |u|, because these capabilities will be given to
+whomever already has them for |a|. For the same
 reason we need to produce read and write capabilities to the elements we
 initialise the array with in |newNArray|.
 
 Accessing inner arrays, both for reading and writing, is more interesting: it
 introduces a new kind of borrow, in the form of the functions |borrowNA| and
-|borrowNAR|. We don't borrow slices here, we borrow inner values. If you ignore
+|borrowNAR|. We don't borrow slices here, we borrow inner values.
+If you ignore
 all the capabilities, these borrows have the type signature we'd expect of a
 read function. They're borrows because they need to provide capabilities for the
 inner value, and a release function. The fresh capabilities and the release
@@ -1594,9 +1591,9 @@ function prevent aliasing mutable cells.
 \paragraph*{Slice type}
 \label{sec:slice-type}
 
-This is enough \textsc{api} on full arrays to let us implement slices. Because
+This\textsc{api} is sufficient to let us implement slices. Because
 we are going to be manipulating capabilities in an unsafe way, we shall need a
-handful of unsafe primitives to provide or consume capabilities.
+handful of unsafe primitives to provide or consume capabilities.\jp{I would have like to know that we'd do something unsafe at the start of the section. Also, what is the point of an unsafe implementation? Shouldn't we just have more primitives?}
 
 \begin{code}
 unsafeRead :: () .<= constraint(Read n)
@@ -1613,7 +1610,7 @@ These aren't user facing, as they would make the library unsound. They are only
 used as part of the implementation of our array and slice library.
 
 We shall use an object-oriented definition of slices because functions are a
-very powerful and convenient abstraction. An implementation aiming for
+powerful and convenient abstraction. An implementation aiming for
 efficiency would have to use a more specialised implementation (like above,
 |UnsafeMkSlice| isn't part of the public interface).
 \begin{code}
@@ -1821,7 +1818,7 @@ which affords us a lot of programming techniques. We don't have to develop any
   {sec:freezing-in-details}}
 %
 When working with matrices in a functional language the most typical pattern is
-to use immutable matrices. Some algorithm, though, like Valiant's algorithm in
+to use immutable matrices. Some algorithms, though, like Valiant's algorithm in
 \cref{sec:valiant}, need to mutate matrices. In which case a mutable
 matrix is created temporarily, then \emph{frozen} into an immutable matrix when
 the algorithm is over.
@@ -1857,7 +1854,7 @@ This has two shortcomings, however:
   \item The freezing function is unsafe, in that there's nothing preventing you
         from writing |buffer| to buffer after calling |unsafeFreeze|, in which
         case you'd mutate the immutable array which shares its memory.
-  \item It doesn't give an $O(1)$ way to freeze arrays of arrays. Such as our
+  \item It doesn't give a $O(1)$ way to freeze arrays of arrays. Such as our
         matrices, as described in \cref{sec:implementing-matrix}. If you have an
         |MArray s (MArray s a)|, then you need to first map over the outer array
         to freeze the inner arrays.
@@ -1874,11 +1871,11 @@ primitive:\critical{We haven't actually defined an |Ur| constraint or something
 freezeNA :: constraint((Read n, Write n)) => NArray a n -> () .<= constraint ((Ur (Read n)))
 \end{code}
 
-After calling |freeze|, we no longer have a |Write| permission on the array: it
+After calling |freeze|, we no longer have a |Write| capability on the array: it
 has become immutable. In exchange we gain an unrestricted |Read| access meaning
 that the array can safely be shared.
 
-If we are willing to fix a particular nesting, we can even hide the permissions
+If we are willing to fix a particular nesting, we can even hide the capabilities
 altogether and use a traditional Haskell style. For instance for matrices as
 defined in \cref{sec:implementing-matrix}:
 
@@ -1896,7 +1893,7 @@ readF (MkMatrix m) row_num col_num = do
 
 \subsection{Beyond arrays: splay Trees}
 \label{sec:splay-trees}
-
+\jp{flow sentence missing here}
 Another application of in-place updates are \emph{splay trees}. A
 splay tree acts like a binary search tree, but at every access, the
 tree structure is modified so that the recently accessed elements are
@@ -1904,7 +1901,7 @@ moved towards the root of the tree. This way, recently acessed
 elements are faster to reach in subsequent lookups.
 
 
-A tree associated with a region |n| will be defined as follows:
+A tree associated with a region |n| is defined as follows:
 
 > data Node n = Node (Ref Node n) Int (Ref Node n) | Leaf
 %
@@ -1915,7 +1912,7 @@ As usual, we need splitting and joining functions for this data:
 > joinTree :: constraint((RW p, RW q, TreeSlice p q n)) =>. Ref Node p -> Int -> Ref Node q -> Ref Node n .<= constraint((RW n))
 \todo{splitTree may fail (Leaf). Dealing with this case will considerably complexify the example. I'm not sure if it's worth it. But there is an interesting point belowwhich can be seen already with this simpler case: namely this is a bit convoluted compared to what one would write normally either with Haskell or C.}
 
-Accessing generic references would be done via the following two functions:\jp{we discussed |AtomRef| above, how |Ref| is different is unclear to me.}
+Accessing generic references would be done via the following two functions:\jp{we discussed |Val| above, how |Ref| is different is unclear to me.}
 > readRef :: constraint (Read n) =>. Ref a n -> Ur a .<= constraint (Read n)
 > writeRef :: constraint (RW n) =>. Ref a n -> a -> () .<= constraint (RW n)
 %
@@ -1981,7 +1978,7 @@ rotate root = do
 
 The above code mixes aspects of functional and imperative styles. Like
 in a functional language, we're explicitly pattern matching on nodes
-structures when accessing them, using splitTree. But we can't simply
+structures when accessing them, using |splitTree|. But we can't simply
 deep-match on the tree, and reconstruct it with the nodes at another
 place, because the calls to |joinTree| must reflect the exact original
 structure. So, we resort to local swaps, as one would do in an
@@ -1989,11 +1986,11 @@ imperative language.\jp{IMO we're reaching the limit of the system here.}
 
 \subsection{Non-lexical lifetimes}
 \label{sec:nl-lifetimes}
-
+\jp{We went gradually from examples to classes of problems. Maybe this should be another section, perhaps go much later in the paper (discussion)}
 \unsure{In this section and the next, it sounds like if I'm trying to say that
   we're better than Rust or something. This isn't the intent, the intent is to
   look at Rust for inspiration for interesting examples. How do I sound less
-  callous?}
+  callous?}\jp{is there a way to introduce ``lexical lifetime'' without reference to Rust, and maybe give some historical context at the end of the section?}
 In early versions of the Rust programming language, borrows were, for all
 intents and purposes, bound to lexical scopes. This turned out to be too coarse
 grained, rejecting natural sound programs. This became known as the problem of
@@ -2010,6 +2007,7 @@ key.
 We can model this problem with the following \textsc{api}, where references are
 taken to be arrays known to have exactly one cell.
 
+\jp{There is another kind of |Ref| down here}
 \begin{code}
 type Ref a s = UArray a s
 
@@ -2020,7 +2018,7 @@ add :: constraint(RW s) =>. Map v s -> Int -> v -> () .<= constraint(RW s)
 \end{code}
 
 The |get| function is the most interesting: if the key (here an |Int| is
-absent), |get| returns the read and write permissions to the map, otherwise, it
+absent), |get| returns the read and write capabilities to the map, otherwise, it
 borrows the corresponding cell. With this, we can easily write a |set| function
 with the above specification.
 
@@ -2052,7 +2050,7 @@ die, so |b| remains valid. A typical example is an array |o| paired with a
 slice of |o|. Such a pair shouldn't have restrictions on its lifetime, but Rust
 can't express the relationship between the fields.
 
-In our presentation, this can't-outlive requirement is enforced by the release
+In our presentation, this \emph{can't-outlive} requirement is enforced by the release
 function: as the release function is linear we must use the release function to
 return, say, read and write capabilities to |o|, which must then be disposed of
 some way. Until that happens, |o| lives. Making a self-referential borrow is as
@@ -2214,7 +2212,7 @@ references, including arrays of (mutable) arrays.
 % nested mutable arrays.
 % Crucially, and in contrast to the plain linear types \textsc{api} the
 % type |PArray| is both the type of mutable arrays and immutable arrays,
-% |freezePArray| only changes the permissions. And since permissions are
+% |freezePArray| only changes the capabilities. And since capabilities are
 % linear constraints, this is all managed automatically by the compiler.
 
 > data PArray (a :: Location -> Type) (n :: Location)
@@ -2504,9 +2502,7 @@ linear constraints. Our design, based on the work of \citet{OutsideIn}, is compa
 
 \subsection{Multiplicities}
 
-\nw{This will need fixing. I have just dumped these here from earlier on.}
-
-
+The first concept to define formally is that of \emph{multiplicity}. Multiplicity let us generalise over the linear (\(1\)) and unrestricted ($\omega$) cases.
 In general, given a
 multiplicity set, the desired
 (sub)structural rules can be obtained by endowing multiplicities with the appropriate
@@ -2586,7 +2582,7 @@ The following operations work with simple constraints:
 %
 However, we do not define $[[{Q}]]$ inductively, because we
 require certain equalities to hold:
-
+\jp{We define what Q is two paragraph below. And then the operations. So why not give the definition right away and provide those as a lemma.}
 \smallskip
 \begin{minipage}[c]{0.5\linewidth}
 $$
@@ -2621,7 +2617,7 @@ $$
 \end{array}
 $$
 We can now straightforwardly define the operations we need on simple
-constraints:
+constraints:\jp{scaling is not an operation. So there is a single operation. }
 $$
 \begin{array}{ccc}
   \begin{array}{r@@{\;}c@@{\;}l}
@@ -2891,11 +2887,11 @@ and writes. In contrast there will often be several instances of
 The type system of \Cref{fig:typing-rules} is purely
 declarative: note, for example, that \rref{E-App} does not describe
 how to break the typing assumptions into constraints
-$[[{Q1}]]$/$[[{Q2}]]$ and contexts $[[{G1}]]$/$[[{G2}]]$. We will see
+$[[{Q1}]]$,$[[{Q2}]]$ and contexts $[[{G1}]]$,$[[{G2}]]$. We will see
 how to infer constraints in \cref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
 definition that programmers can reason about typing.\jp{about typing but not operational meaning? I'm unclear here.} As is standard in
-the qualified-type literature (since the original paper~\cite{QualifiedTypes}), we do not
+the qualified-type literature (since the seminal work of \citet{QualifiedTypes}), we do not
 directly give a dynamic
 semantics to this language; instead, we will give it meaning via
 desugaring to a simpler core language in \cref{sec:desugaring}.
@@ -2915,7 +2911,7 @@ The type of linear functions is written $[[{a ->_1 b}]]$.
   $[[1.q ; f :_omega a ->_omega b, x :_omega 1.q =o a |- f x : b]]$.
   Otherwise we could make, for instance, the |overusing| function from
   \cref{sec:overusing}.
-  You can check that $[[1.q ; f :_omega a ->_omega b, x :_omega 1.q =o a |- f x : b]]$
+  One can check that $[[1.q ; f :_omega a ->_omega b, x :_omega 1.q =o a |- f x : b]]$
   indeed does not
   type check, because the scaling of $[[{Q2}]]$ in \rref{E-App} ensures that
   the constraint would be $[[{omega.q}]]$ instead. On the other hand,
@@ -2976,21 +2972,20 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 \section{Constraint inference}
 \label{sec:type-inference}
 
-The type system of \Cref{fig:typing-rules} gives a declarative description
+The type system of \cref{fig:typing-rules} gives a declarative description
 of what programs are acceptable. We now present the algorithmic counterpart to
 this system. Our algorithm is structured, unsurprisingly, around generating and
 solving constraints, broadly following the template of
 \citet{essence-of-ml-type-inference}.
-That is, our algorithm takes a pass over the abstract syntax entered by the
-user, generating constraints as it goes. Then, separately, we solve those
+That is, our algorithm takes a pass over the abstract syntax tree, generating constraints as it goes. Then, separately, we solve those
 constraints (that is, try to satisfy them) in the presence of a set of assumptions,
 or we determine that the assumptions do not imply that the constraints hold. In the
 latter case, we issue an error to the programmer.
 
 The procedure is responsible for inferring both \emph{types} and \emph{constraints}.
 For our type system, type inference can be done independently from constraint
-inference. Indeed, we focus on the latter, and defer type inference to
-an external oracle (such as~\cite{linear-types-inference}).
+inference. Thus, we focus on the latter, and defer type inference to
+an external oracle~\cite[e.g.][]{linear-types-inference}.
 That is, we assume an algorithm that produces typing derivations for the
 judgement $[[G |- e : t]]$, ignoring all the constraints. Then, we describe a
 constraint generation algorithm that passes over these typing derivations.
@@ -3011,7 +3006,7 @@ constraint generation algorithm that passes over these typing derivations.
 We can make this simplification for two reasons:
 \begin{itemize}
 \item We do not formalise type equality constraints, and our implementation
-  in \textsc{ghc} (\cref{sec:equality-constraints}) takes care to not allow linear equality constraints to influence type inference.
+  in \textsc{ghc} (\cref{sec:equality-constraints}) takes care to disallow linear equality constraints to influence type inference.
   Indeed, a typical treatment of unification
   would be unsound for linear equalities, because it reuses the same
   equality many times (or none at all). Linear equalities make sense
@@ -3078,7 +3073,7 @@ The last form of wanted constraint $[[{C}]]$ is an implication
 $[[{pi.(Q=>C)}]]$. The more interesting case is $[[{omega.(Q=>C)}]]$:
 to prove $[[{omega.(Q=>C)}]]$, you need to prove $[[{C}]]$ under the
 \emph{linear} assumption $[[{Q}]]$, but without using any other linear
-assumptions.
+assumptions.\jp{What about the same but substituting 1 for omega?}
 
 These implications arise when we unpack an existential
 package that contains a linear constraint and also when checking a |let|-binding.
@@ -4172,7 +4167,7 @@ linear constraints to \textsc{ghc}.
 \subsection{Implementation}
 \label{sec:implementation}
 
-We have written a prototype implementation~\cite{prototype} of linear constraints on top of \textsc{ghc} 9.1, a version that already
+We have written a prototype implementation~\citep{prototype} of linear constraints on top of \textsc{ghc} 9.1, a version that already
 ships with the @LinearTypes@ extension. Function arrows (|->|) and context arrows
 (|=>|) share the same internal representation in the typechecker, differentiated
 only by a boolean flag. Thus, the @LinearTypes@ implementation effort has already
