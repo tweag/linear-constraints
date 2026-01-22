@@ -2284,7 +2284,17 @@ $$
 $$
 
 The semantics of simple constraints (and, indeed, of atomic
-constraints) is given by an \emph{entailment relation}. Just like the
+constraints) is given by an \emph{entailment relation}. \jp{In practice, this entailment relation is used to model the subclass relationships between constraints. Perhaps at some point we need to review these requirements and check if they make sense.
+  Here is my breakdown:
+  
+  3. merits some more explanation. It seems that you'd want to say if \(Q ⊩ Q₁ ⊗ Q₂\) then \(Q = Q₁ ⊗ Q₂\), but you have a difficulty with duplicable constraints.
+  
+  9. Seems redundant? Consider: For every Q', then \(ωQ' ∈ D\). Then (surely) \(ωQ' ⊩ ε\). By 5, we get 9.
+  
+  The rest looks reasonable.
+  Some thoughts:
+   - maybe define D as the set of q satisfying the rhs. of 10 and 11?
+} Just like the
 set of atomic constraints, the entailment relation is a parameter of
 our system.
 
@@ -3516,14 +3526,14 @@ repeating take_one =
     take_one + take_one -- Ambiguity error: there are two different |constraint(C)| to choose from
 \end{code}
 
-In both of these are examples of incompleteness of the solver, as both of these
-example can be ascribed a type in the declarative type system of
+Both examples illustrate the incompleteness of the solver. Indeed, they can
+be ascribed a type in the declarative type system of
 \cref{sec:typing-rules}. Although we can imagine applications where solving
-similar constraints would be helpful, we consider it to be a reasonable
-restrictions as it's compatible with all our motivating examples
+such constraints would be helpful, we consider it to be a reasonable
+restriction, because it is compatible with all our motivating examples
 (\cref{sec:memory-ownership}), and in exchange we get a solver which is only
 marginally more complex than, say, \textsc{ghc}'s solver (we discuss the design
-further in \cref{sec:solver-design}).
+further in \cref{sec:solver-design}).\jp{It says above that unambiguity is an essential propery of ghc's typechecker. Hence this sentence sounds like beating around the bush.}
 
 \section{Desugaring}
 \label{sec:desugaring}
@@ -3820,7 +3830,7 @@ givens, the constraint solver selects the innermost one
 for this purpose).
 
 As constraint solving proceeds, the compiler pipeline constructs a
-term in a typed language known as \textsc{ghc} Core~\cite{system-fc}.
+term in a typed language known as \textsc{ghc} Core~\citep{system-fc}.
 In Core, type class constraints are turned into explicit evidence (see
 \cref{sec:desugaring}). Thanks to being fully annotated, Core has
 decidable typechecking, which is used to find and fix bugs in
@@ -3868,9 +3878,9 @@ class constraint(Eq a) =>. constraint(Ord a) where ...
 When given a linear |constraint(Ord a)|, should we keep it as |constraint(Ord a)|, or rewrite to
 |constraint(Eq a)| using the entailment? Short of backtracking, the constraint solver
 needs to make a guess, which \textsc{ghc} never does.
-
-To address both of these issues at once, we make the following rule: the
-superclasses of a linear constraint are ignored.
+%
+To address both of these issues at once, we assert the following principle: the
+superclasses of a linear constraint are ignored when solving constraints.\jp{check this sentence}
 
 \subsubsection{Equality Constraints}
 \label{sec:equality-constraints}
