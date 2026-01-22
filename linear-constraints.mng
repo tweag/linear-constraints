@@ -2289,7 +2289,8 @@ constraints) is given by an \emph{entailment relation}. \jp{In practice, this en
   
   3. merits some more explanation. It seems that you'd want to say if \(Q ⊩ Q₁ ⊗ Q₂\) then \(Q = Q₁ ⊗ Q₂\), but you have a difficulty with duplicable constraints.
   
-  9. Seems redundant? Consider: For every Q', then \(ωQ' ∈ D\). Then (surely) \(ωQ' ⊩ ε\). By 5, we get 9.
+  9. How about demanding  \(ωq ⊩ ε\) instead. Claim: it is equivalent. It is clear that it is implied by 9. as written. In the other direction:
+  For every \(Q'\),  \(ωQ' ∈ D\). By the new law, \(ωQ' ⊩ ε\). By 5 and \(ε\) neutral, we get 9.
   
   The rest looks reasonable.
   Some thoughts:
