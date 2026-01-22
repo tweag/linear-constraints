@@ -2149,8 +2149,7 @@ linear constraints. Our design, based on the work of \citet{OutsideIn}, is compa
 \subsection{Multiplicities}
 
 The first concept to define formally is that of \emph{multiplicity}. Multiplicity let us generalise over the linear (\(1\)) and unrestricted ($\omega$) cases.
-In general, given a
-multiplicity set, the desired
+In general, given a set of multiplicities, the desired
 (sub)structural rules can be obtained by endowing multiplicities with the appropriate
 semiring structure~\citep{abel_unified_2020}. In
 this paper, we use the same multiplicity structure as Linear Haskell:\footnote{Even though linear Haskell additionally supports multiplicity
@@ -2208,52 +2207,15 @@ qualified type system.
   are called \emph{atomic constraints}. We use the variable $[[{q}]]$
   to denote atomic constraints.
 \end{definition}
-
+%
 Atomic constraints are assembled into \emph{simple constraints}
 $[[{Q}]]$, which play the hybrid role of constraint contexts and
-(linear) logic formulae.
-The following operations work with simple constraints:
-\begin{description}
-\item[Scaled atomic constraints] $[[{pi.q}]]$ is a simple constraint,
-  where $[[{pi}]]$ specifies whether $[[{q}]]$ is to be used linearly
-  or not.
-\item[Conjunction] Two simple constraints can be paired up
-  $[[{Q1 * Q2}]]$. Semantically, this corresponds to the multiplicative
-  conjunction of linear logic. Tensor products represent pairs of
-  constraints such as |constraint((Read n, Write n))| from Haskell.
-\item[Empty conjunction] Finally we need a neutral element
-  $[[{Empty}]]$ to the tensor product. The empty conjunction is used
-  to represent functions which don't require any constraints.
-\end{description}
+(linear) logic formulae. We define a simple constraint to be a pair of
+a set of unrestricted constraints $[[{UCtx}]]$ and a multiset of
+linear constraints $[[{LCtx}]]$.  The linear constraints must be
+stored in a multiset, because assuming the same constraint twice is
+distinct from assuming it only once.
 %
-However, we do not define $[[{Q}]]$ inductively, because we
-require certain equalities to hold:
-\jp{We define what Q is two paragraph below. And then the operations. So why not give the definition right away and provide those as a lemma.}
-\smallskip
-\begin{minipage}[c]{0.5\linewidth}
-$$
-\begin{array}{rcl}
-  [[{Q1 * Q2}]] & = & [[{Q2 * Q1}]] \\
-  [[{(Q1*Q2)*Q3}]] & = & [[{Q1*(Q2*Q3)}]]
-\end{array}
-$$
-\end{minipage}
-\begin{minipage}[c]{0.4\linewidth}
-$$
-\begin{array}{rcl}
-  [[{omega.q * omega.q}]] & = & [[{omega.q}]] \\
-  [[{Q * Empty}]] & = & [[{Q}]]
-\end{array}
-$$
-\end{minipage}
-\smallskip
-
-We thus say that a simple constraint is a pair combining a set of unrestricted
-constraints $[[{UCtx}]]$ and a multiset of linear constraints $[[{LCtx}]]$.
-The linear constraints must
-be stored in a multiset, because assuming the same constraint twice is distinct
-from assuming it only once.
-
 \begin{definition}[Simple constraints]
 $$
 \begin{array}{rcll}
@@ -2262,8 +2224,26 @@ $$
   [[{Q}]] & \bnfeq & [[{(UCtx,LCtx)}]] & \text{simple constraints}
 \end{array}
 $$
-We can now straightforwardly define the operations we need on simple
-constraints:\jp{scaling is not an operation. So there is a single operation. }
+\end{definition}
+
+We won't manipulate simple constraints directly, but rather
+\textit{via} the following constructions:
+\begin{description}
+\item[Scaled atomic constraints] $[[{pi.q}]]$ is a simple constraint,
+  where $[[{pi}]]$ specifies whether $[[{q}]]$ is to be used linearly
+  or not.
+\item[Conjunction] Two simple constraints can be paired up
+  $[[{Q1 * Q2}]]$. Semantically, this corresponds to the multiplicative
+  conjunction of linear logic. Tensor products represent pairs of
+  constraints such as |constraint((Read n, Write n))| from Haskell.
+\item[Empty conjunction] The empty conjunction, $[[{Empty}]]$, is used
+  to represent functions which don't require any constraints. It is
+  the neutral element of conjunction.
+\end{description}
+
+The above constructions admit straightforward definitions:
+\begin{definition}
+  
 $$
 \begin{array}{ccc}
   \begin{array}{r@@{\;}c@@{\;}l}
@@ -2284,9 +2264,24 @@ $$
 $$
 \end{definition}
 
-In practice, we do not need to concern ourselves with the
-concrete representation of $[[{Q}]]$ as a pair of sets, instead
-using the operations defined just above.
+They satisfy the following laws:
+\begin{align*}
+  [[{Q1 * Q2}]] & = [[{Q2 * Q1}]] \\
+  [[{(Q1*Q2)*Q3}]] & = [[{Q1*(Q2*Q3)}]] \\
+  [[{omega.q * omega.q}]] & = [[{omega.q}]] \\
+  [[{Q * Empty}]] & = [[{Q}]]
+\end{align*}
+
+We overload the scaling notation to apply not just to atomic, but also simple constraints, and define
+$[[{pi.Q}]]$ as:
+$$
+                      \left\{
+                      \begin{array}{r@@{\;}c@@{\;}l}
+                        [[{1.(UCtx,LCtx)}]] &=& [[{(UCtx,LCtx)}]] \\
+                        [[{omega.(UCtx,LCtx)}]] &=& [[{(UCtx \u LCtx, emptyset)}]]
+                      \end{array}
+                                                    \right.
+$$
 
 The semantics of simple constraints (and, indeed, of atomic
 constraints) is given by an \emph{entailment relation}. Just like the
@@ -2349,20 +2344,6 @@ typechecker dispatch |constraint(Unique)| constraints (using
 duplication), but prevents the result of constrained functions to be used
 unrestrictedly.
 
-An important feature of simple constraints is that, while scaling
-syntactically happens at the level of atomic constraints, these properties
-of scaling extend to scaling of arbitrary constraints. Define
-$[[{pi.Q}]]$ as:
-
-$$
-                      \left\{
-                      \begin{array}{r@@{\;}c@@{\;}l}
-                        [[{1.(UCtx,LCtx)}]] &=& [[{(UCtx,LCtx)}]] \\
-                        [[{omega.(UCtx,LCtx)}]] &=& [[{(UCtx \u LCtx, emptyset)}]]
-                      \end{array}
-                                                    \right.
-$$
-%
 Then the following properties hold
 %
 \begin{lemmarep}[Scaling]
