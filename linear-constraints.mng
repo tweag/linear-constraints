@@ -4161,15 +4161,100 @@ pretty low price to pay to lift this limitation.
 \subsection{Further considerations on freezing}
 \label{sec:freezing-in-details}
 
-\unsure{I don't know yet whether we will need this space}
+\Cref{sec:o1-freeze} showed how linear constraints can be used to make a system
+of nested mutable data structures which can be safely frozen. That is, which can
+be turned into in an immutable data structure in $O(1)$.
 
-\subsection{Variation on release functions}
+Linear types on their own already give a solution~\citep{LinearHaskell} to safe
+freezing of non-nested data structures, the \textsc{api} is the following
+variant of \cref{fig:linear-interface}.
+
+\begin{code}
+new  :: Int -> (MArray a ->. Ur r) ->. Ur r
+write :: MArray a ->. Int -> a -> MArray a
+read :: MArray a ->. Int -> (MArray a, Ur a)
+freeze :: MArray a ->. Ur (Array a)
+readI :: Array a -> Int -> a
+\end{code}
+
+In this \textsc{api}, we can only read and write unrestricted values into an
+array. It has to be that way, otherwise it would be possible to turn any
+linear value into an unrestricted linear value:
+
+\begin{code}
+write' :: MArray a ->. Int -> a ->. MArray a
+read' :: MArray a ->. Int -> (MArray a, a)
+
+badUr :: a ->. Ur a
+badUr x = newArray 1 $ \arr ->
+  case freeze (write 0 x) of
+    Ur arr' -> Ur (readI arr' 0)
+\end{code}
+
+In particular there's no hope of ever having an |MArray (MArray a)| value: we
+can construct this type, but it's not inhabited.
+In order to build a nested mutable array, we seem to have to give up |freeze|.
+
+At the heart of this problem is the solution to change the type upon freezing.
+This is a rather standard solution in Haskell: mutable arrays and immutable
+arrays are distinguished by having different types. For |ST| arrays, for
+instance, you can read of an immutable array in pure code, while mutable array
+reads can only be done in the |ST| monad. In the linearly typed solution,
+similarly, immutable arrays must always be used linearly, while immutable arrays
+are typically unrestricted.
+
+So if we are to implement a freeze function for nested linear arrays, presumably
+it should change the type of the elements of the array too.
+
+\begin{code}
+freezeNested0 :: MArray a -> Ur (Array ^^ ??)
+\end{code}
+
+There's no uniform way to choose the type |??|, but we could use a type class.
+We can take our inspiration from Haskell's safe |Coerce| type
+class~\citep{safe-coercions}: |Coerce| is a type class to safely convert the
+type of a value to another type with the same runtime representation,
+implemented as a no-op. This is what we want our freeze function to do, it just
+needs more restriction. Here's what it could look like
+
+\begin{code}
+class Freeze a b
+instance Freeze (Ur a) (Ur a)
+instance constraint(Freeze a b) => Freeze (MArray a) (Array b)
+
+freeze :: constraint(Freeze a b) => a -> Ur b
+\end{code}
+
+Note that, since |Freeze| cannot be reflexive, a nested array structure must
+have leaves of type |Ur a|. Here, |Ur| plays the same role as |Val| in
+\cref{sec:nested-arrays,sec:o1-freeze}.
+
+An issue with this approach is that since |Freeze| must be abstract, for safety,
+it's hard to extend this type class. For instance, if one would make a
+\begin{code}
+newtype Matrix a = MkMatrix (MArray (MArray a))
+\end{code}
+then |Matrix| would not implement |Freeze|.
+
+Instead of going down this path, linear constraints suggest to rethink the
+initial postulate: that freezing an array requires changing its type. Instead we
+have a single type of arrays whose usage is constrained by a capability. For a
+nested data structure the capability applies to the entire array. Then, only
+this capability's type needs to change to freeze the entire nested data
+structure. Since the capability is computationally trivial, freezing is $O(1)$
+by construction. This solution is akin to Rust's ownership, where freezing
+corresponds to storing an owned value \verb+A+ inside an \verb+RC<A>+ or a similar
+structure. This is precisely what we propose in \cref{sec:o1-freeze}: the key is
+that freezing arrays doesn't change their type.
+
+\subsection{Variations on release functions}
 \label{sec:unrestricted-release}
 
 \begin{itemize}
   \item unrestricted release
   \item release as constraint
 \end{itemize}
+
 \subsection{Design of the constraint solver}
 \label{sec:solver-design}
 
