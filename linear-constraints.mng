@@ -4166,6 +4166,10 @@ pretty low price to pay to lift this limitation.
 \subsection{Variation on release functions}
 \label{sec:unrestricted-release}
 
+\begin{itemize}
+  \item unrestricted release
+  \item release as constraint
+\end{itemize}
 \subsection{Design of the constraint solver}
 \label{sec:solver-design}
 
