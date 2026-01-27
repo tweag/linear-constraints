@@ -4250,10 +4250,113 @@ that freezing arrays doesn't change their type.
 \subsection{Variations on release functions}
 \label{sec:unrestricted-release}
 
-\begin{itemize}
-  \item unrestricted release
-  \item release as constraint
-\end{itemize}
+In \cref{sec:borrowing-slices}, we introduced how linear constraints can be
+leveraged to create an ownership discipline where sub-structures (there array
+slices) can be borrowed. Borrowing functions return the borrowed sub-structure
+together with what we've been calling a release function. \emph{E.g.} in
+
+\begin{code}
+restrict ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
+             exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+\end{code}
+
+We borrow an |UArray| with a new type-level name |p|, and we also get a release
+function of type |constraint(RW p) =>. () .<= constraint(RW n)|. In this section
+we explore variations on their design.
+
+\subsubsection{Unrestricted release function}
+
+We've made it so that the release function is linear, so it must be called
+exactly once. It doesn't change the design a lot to return an unrestricted
+release function |Ur (constraint(RW p) =>. () .<= constraint(RW n))|. After all,
+the |RW p| constraint is linear as well, so you always must use the release
+function exactly once whether it's linear or unrestricted. Maybe it would be
+more convenient for the release functions to be unrestricted.
+
+Except, while this holds for the simple |UArray|, it's not entirely true of the
+nested |NArray| where there's another way to consume an |RW p| constraint in our
+\textsc{api}: the |write| function.
+
+\begin{code}
+borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
+\end{code}
+
+If the release function returned by |borrowNA| was unrestricted, then it would
+be possible to borrow a slice and never return it. Instead it could be stored in
+another |NArray|.
+
+This is semantically dubious, as it means never giving control back to the
+original owner, which remains unavailable for the rest of the computation. If
+the owner has responsibilities (\emph{e.g.} freeing memory), then they won't be
+performed. So linear release function, or rather lack of a linear release
+function, acts as a proof of ownership.
+
+In the case of our arrays there is no problem as significant as not freeing
+memory, however, in \cref{sec:nested-arrays}, linear release functions prevent
+writing borrowed slice inside deep borrows, which would be a runtime error.
+
+So if we were to have release function be unrestricted, we would presumably need
+to keep track of ownership another way. For instance by adding another
+linear-constraint capability for owned structure which would be consumed by
+|writeNA| but borrowed slice wouldn't have.
+
+\subsubsection{Release function as a constraint}
+
+An orthogonal variation that we could make to the release function is turn it
+into a constraint. That is borrowing functions would look like
+
+\begin{code}
+restrict ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
+             exists p. Ur (UArray a p) .<= constraint((RW p, (constraint(RW p) =>. constraint(RW n))))
+\end{code}
+
+The constraint solver that we've described in \cref{sec:constraint-solver},
+cannot handle such implication given constraints. But \textsc{ghc} can, via a
+feature called ``quantified constraints'' \citep{quantified-constraints}. In
+this article we didn't include quantified constraints because they add quite a
+bit of complication which we considered to be a distraction for the sake of this
+article. But we expect linear constraint and quantified constraints to integrate
+without an issue, and an integration into \textsc{ghc} would automatically
+have qualified linear constraint.
+
+If we were to use such release constraints instead of release functions, then
+release constraints would be called implicitly by the typechecker where they
+would be needed. For instance, the following snippet from \cref{sec:valiant}
+
+\begin{code}
+  if size p > size q
+    then Linearly.do
+      let i = size p `div` 2
+      (Ur (a,x,b), release_p) <- splitUpperMatrix p i
+      (Ur (y,z), release_n) <- sliceMatrixV n i
+      w b z q
+      multiplyMatricesInto y x z
+      w a y q
+      release_p; release_n
+    else
+\end{code}
+%
+would instead look like
+%
+\begin{code}
+  if size p > size q
+    then Linearly.do
+      let i = size p `div` 2
+      Ur (a,x,b) <- splitUpperMatrix p i
+      Ur (y,z) <- sliceMatrixV n i
+      w b z q
+      multiplyMatricesInto y x z
+      w a y q
+    else
+\end{code}
+
+Which, arguably, is a little cleaner. However, while the main reason for not
+including releases as constraints was that we didn't think it was worth treating
+quantified constraints in this article, it's worth mentioning that these authors
+have had discussions among ourselves as to whether release constraints were not
+a little too magical. Maybe clarifying the ends of scope with explicit calls to
+release functions is desirable.
 
 \subsection{Design of the constraint solver}
 \label{sec:solver-design}
