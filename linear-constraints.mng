@@ -671,13 +671,11 @@ in a function call) exactly once.
 
 The |free| function, which frees the contents of a given array will consume the |constraint(RW n)| constraint
 entirely, making it no longer available:
-\nw{Maybe we should rename |RW| to |Access|, since it makes more sense of |free|: after a free we can no longer access the array; both reading and writing are a form of access.}
 \begin{code}
 free :: constraint (RW n) =>. UArray a n -> ()
 \end{code}
 This function can only be called when |constraint (RW n)| can be satisfied for the given array of type |UArray a n|.
 
-\jp{There is a misuse of cref in the paper Cref is supposed to be used at the start of the sentence. If you want to capitalise everywhere, use the [capitalize] option in cleveref.}
 There are a few things to notice:
 \begin{itemize}
 \item We have introduced a new type variable |n|, which is a type-level tag
@@ -872,7 +870,7 @@ the new array |arr| of size |k|.
 type Unique :: Constraint
 
 dup :: Unique =>. () .<= (Unique, Unique)
-eps :: Unique =>. ()
+dis :: Unique =>. ()
 
 unique :: (Unique =>. Ur r) ->. Ur r
 \end{code}
@@ -903,7 +901,7 @@ we infer it to have multiplicity~$[[{1}]]$, in which case its use (twice) violat
 the linearity restriction. Likewise, the use of |Ur (new 10)| requires using
 the |constraint(Unique)| assumption $[[{omega}]]$ times and is thus rejected.
 
-In a similar way\jp{similar to what? Suggestion: use another transition phrase}, a |new| function that works for the linear constraints
+A |new| function that works for the linear constraints
 interface for arrays using |UArray| can also be defined:
 \begin{code}
 new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint (RW n)
@@ -946,13 +944,13 @@ multiplicity 1 to satisfy |constraint(Unique)| at multiplicity $[[{omega}]]$.
 
 \paragraph*{Discarding |constraint(Unique)|} Similarly to allowing
   duplication, we must allow discarding, in case a function allocates
-  no arrays at all. This is made possible with a function |eps|:
+  no arrays at all. This is made possible with a function |dis|:
 \begin{code}
-eps :: Unique =>. ()
+dis :: Unique =>. ()
 \end{code}
   Accordingly, we allow a linear assumption of |constraint(Unique)| to
   be accepted even if the constraint is never used.  Our type-system
-  not only supports |dup| and |eps|, but will also infer when they
+  not only supports |dup| and |dis|, but will also infer when they
   need to be used.  In sum, a single |constraint (Unique)| is
   sufficient to indicate that the program can call any number of
   functions that require this linear constraint.
