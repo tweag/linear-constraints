@@ -877,7 +877,6 @@ unique :: (Unique =>. Ur r) ->. Ur r
 \caption{Interface for the built-in |Unique| constraint}
 \label{fig:unique-interface}
 \end{figure}
-\jp{Consistent terminology: dup and eps? delta and epsilon? dup and discard?}
 Working within a linear context provided using a continuation-based interface
 restricts the scope within which the bound variable can occur.
 Thus, when multiple resources are required, instances of |new| must
@@ -1118,7 +1117,8 @@ an array should be worked on simultaneously~(\cref{sec:slicing-two}).\jp{simulta
 
 A first intuition may be to add a function that looks like this:
 \begin{code}
-sub1 :: constraint(RW n) =>. UArray a n -> Int -> Int -> exists p. Ur (UArray a p) .<= constraint(RW p)
+sub1 ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
+         exists p. Ur (UArray a p) .<= constraint(RW p)
 \end{code}
 Given an array |arr| together with and index |i| and a length |m|,
 the result of |sub1 arr i m| is the corresponding slice of |m|
