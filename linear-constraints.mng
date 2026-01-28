@@ -394,7 +394,7 @@ read2AndDiscard arr = Linearly.do
 \end{code}
 The only changes from the impure version are that this version explicitly constrains
 the function to require read and write access to the array, and the
-use of the qualified |Linearly.do| notation to sequence the appropriate actions.
+use of the qualified |Linearly.do| notation to sequence the actions.\jp{fwd ref to linearly.do explanation}
 % and pattern-matching against $\packbox$ (read ``pack'') is necessary in order to access the linear constraint
 % packed in the result of |read| and |free|. (\Cref{sec:implicit-existentials}
 % suggests how we can get rid of $\packbox$, too.)
@@ -402,7 +402,7 @@ Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
 In this approach the array is non-linear but its capabilities
-(\emph{i.e.} read or write access) are given by \emph{linear constraints}.
+(\textit{i.e.} read or write access) are given by \emph{linear constraints}.
 Once these capabilities are consumed, the array can no longer be read from
 or written to without triggering a compile time error.
 Additionally, using capabilities in this way prevents problems
@@ -804,12 +804,10 @@ capabilities that are being implicitly threaded around.
 When the work with the array is finished, the capabilities can be consumed with |free arr|,
 again using the same variable name.
 
-
 \subsection{Producing Linear Contexts}
 \label{sec:linear-contexts}
 \label{sec:Unique-constraint}
 \label{sec:producing-linear-constraints}
-
 
 The above deals with freeing an array and ensuring that it cannot be used afterwards.
 However, we still need to explain how a constraint |constraint (RW n)| can come
@@ -4371,7 +4369,7 @@ release functions is desirable.
 \subsection{Design of the constraint solver}
 \label{sec:solver-design}
 
-The judgements of our constraint solver (\cref{sec:constraint-solver}) a of the
+The judgements of our constraint solver (\cref{sec:constraint-solver}) are of the
 form
 %
 $$
@@ -4381,9 +4379,9 @@ $$
 In which $[[{C}]]$ is an input and $[[{Q}]]$ is an output. This is not the
 typical shape of linear-logic proof-search algorithms, in particular
 \cite{hh-ll} and \cite{resource-management-for-ll-proof-search}, whose
-proof-search algorithm our constraint solver is based on, don't have judgement
+proof-search algorithm our constraint solver is based on, do not have a judgement
 of this form (yet we still claim that our algorithm is essentially the same). In
-fact, even the earlier, shorter, version of this article \cite{SpiwackKBWE22}
+fact, even the earlier, shorter, version of this article \citep{SpiwackKBWE22}
 used the more typical form of judgement:
 %
 $$
@@ -4418,21 +4416,22 @@ which violates the linearity condition and will cause backtracking, while in the
 state style, both branch will coordinate and necessary pick different $[[{Q}]]$
 and find a proof without backtracking at all.
 
-But we're looking for a solving algorithm without backtracking (at the price of
-incompleteness). So we are not concerned with these consideration. That being
-said, the example $[[{1.(Q=>1.(Q=>Q*Q))}]]$ gives an example where the
-backtracking-free state-style solver can solve a constraint while the
-writer-style solver cannot.
+But we're looking for\jp{achieved?} a solving algorithm without
+backtracking (at the price of incompleteness), so we are not concerned
+with this consideration. However, the constraint
+$[[{1.(Q=>1.(Q=>Q*Q))}]]$ is an example where the backtracking-free
+state-style solver can solve a constraint while the writer-style
+solver cannot.
 
-On the other hand, for the state-style solver to not be sensitive to the
+On the other hand, for the state-style solver not to be sensitive to the
 ordering of the constraints, we had to make a concession and consider that
 having the same atomic constraint as an unrestricted and a linear given was an
-ambiguity, so that the state-style solver of \cite{SpiwackKBWE22} cannot solve
+ambiguity, so that the state-style solver of \citet{SpiwackKBWE22} cannot solve
 $[[{1.(omega.q=>1.(1.q=>1.q))}]]$. You can convince yourself that the
-writer-style solver of \cref{fig:constraint-solver} can solve this example.
+writer-style solver of \cref{fig:constraint-solver} can solve this example.\jp{Maybe just state as fact instead of convincing process. Because I'm not sure if I can easily do so.}
 
 So really, the state-style and writer-style constraint solvers are incomparable.
-Why choose one over the other? Here are the consideration that went into this
+Why choose one over the other? Here is the consideration that went into this
 choice:
 
 \begin{itemize}
