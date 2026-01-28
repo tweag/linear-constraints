@@ -1364,7 +1364,8 @@ By nature of the closure, the closure is built incrementally: one add labels to 
 In fact, Valiant's algorithm consists in two divide-and-conquer recursive functions:
 \begin{code}
 v :: constraint (RW n) =>. Matrix a n .<= constraint (RW n)
-w :: constraint((Read p, RW n, Read q)) =>. Matrix a p -> Matrix a n -> Matrix a q .<= constraint((Read p, RW n, Read q))
+w ::  constraint((Read p, RW n, Read q)) =>. 
+      Matrix a p -> Matrix a n -> Matrix a q .<= constraint((Read p, RW n, Read q))
 \end{code}
 Here |v| takes a writeable matrix |n|. When done |n| will be transitively
 closed. The |w| function is a
@@ -1434,7 +1435,8 @@ v n =
 The splitting upper triangular matrices is prodived by the function:
 \begin{code}
 splitUpperMatrix ::  constraint (RW n) =>. Matrix a n -> Int ->
-                     exists m l r. (Ur (Matrix a l, Matrix a m, Matrix a r), constraint((RW m, RW l, RW r) =>. () .<= RW n)) .<= constraint((RW m, RW l, RW r))
+  exists m l r. (Ur (Matrix a l, Matrix a m, Matrix a r), constraint((RW m, RW l, RW r) =>. () .<= RW n)) 
+  .<= constraint((RW m, RW l, RW r))
 \end{code}
 The helper |w p n q| is somewhat more involved. It won't touch the
 completed matrices |p| and |q|, as declared in its signature. If both
@@ -1445,6 +1447,9 @@ the same position, into |y| and |z|. The matrix |z| is closed by a recursive
 call. Then the multiplication of |x| and |z| is performed (the
 multiplication of elements, non-terminals, determines the grammar) and
 added (using set union) to |y|. Finally |z| is recursively closed. The case of splitting |q| is symmetric.
+%format release_p
+%format release_q
+%format release_n
 \begin{code}
 w p n q =
   if size p <= 1 && size q <= 1
@@ -1470,11 +1475,14 @@ w p n q =
 
 The splitting and joining of general rectangular matrices follows the usual pattern (and in fact, can be used to implement such operations on triangular matrices).
 
-> sliceMatrixH :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. (Ur (Matrix a l, Matrix a r), constraint(RW l, RW r) =>. () .<= constraint (RW n)) .<= constraint ((RW l, RW r))
-> sliceMatrixV :: constraint (RW n) =>. Matrix a n -> Int -> exists l r. (Ur (Matrix a l, Matrix a r), constraint(RW l, RW r) =>. () .<= constraint (RW n)) .<= constraint ((RW l, RW r))
+> sliceMatrixH :: constraint (RW n) =>. Matrix a n -> Int ->
+>   exists l r. (Ur (Matrix a l, Matrix a r), constraint(RW l, RW r) =>. () .<= constraint (RW n)) .<= constraint ((RW l, RW r))
+> sliceMatrixV :: constraint (RW n) =>. Matrix a n -> Int ->
+>   exists l r. (Ur (Matrix a l, Matrix a r), constraint(RW l, RW r) =>. () .<= constraint (RW n)) .<= constraint ((RW l, RW r))
 
 We won't detail the underlying matrix multiplication; but its signature is the following.
-> multiplyMatricesInto :: constraint ((RW x, Read y, Read z)) =>. Matrix NTSet x -> Matrix NTSet y -> Matrix NTSet z .<= constraint (RW x, Read y, Read z)
+> multiplyMatricesInto :: constraint ((RW x, Read y, Read z)) =>. 
+>   Matrix NTSet x -> Matrix NTSet y -> Matrix NTSet z .<= constraint (RW x, Read y, Read z)
 
 The structure of the algorithm follows exactly that outlined by
 \citet{valiant_general_1975}. The overhead is the
@@ -1502,12 +1510,13 @@ Specifically, we're going to represent matrices as arrays of arrays (say an
 array of columns). Higher-dimensional tensors are a straightforward generalisation. To whet the
 reader's appetite, slicing a matrix in two sets of columns is, rather
 straightforward: just consider two halves of the root array; but slicing a
+\nw{I think \emph{lines} is rows?}
 matrix in two sets of lines is much less obvious as it requires slicing each
 column in two.
 
-Let's first notice that we can't use the |UArray| type of
+Let us first notice that we cannot use the |UArray| type of
 \cref{sec:borrowing-slices}. Indeed, nesting |UArray| would give us a type like
-|UArray (UArray a p) n|. But this isn't what we want: presumably |p| should be
+|UArray (UArray a p) n|. But this is not what we want: presumably |p| should be
 different for each array. Nor can we use something like |UArray (exists p.
 UArray a p .<= RW p) n|, since |RW p| is a linear constraint, and an |UArray|
 can only store linear values.
@@ -1532,7 +1541,7 @@ the type-level name of |bs|.
 \begin{code}
 type NArray :: (Reg -> Type) -> Reg -> Type
 \end{code}
-Notice that it's convenient for the region parameter to be the last
+Notice that it is convenient for the region parameter to be the last
 parameter, in order for the types to align when nesting arrays.
 
 In consequence, we cannot have |NArray Int|: we must wrap atomic
@@ -1761,7 +1770,7 @@ sliceDeepR
       (forall p. constraint(Read p) =>. a p -> exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
       exists q. constraint((Read o, Read q)) =>. (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
 \end{code}
-We're omitting their implementation because it's becomes a little involved
+We're omitting their implementation because it becomes a little involved
 without being meaningfully different form the other borrowing functions we've
 seen so far. The idea is the same as deep borrowing: the slicing function is
 suspended until a borrows is called. But when we borrow, we only need one of the
@@ -2036,7 +2045,7 @@ The difficulty, when lifetimes are lexical, is that the borrow from |vs|, which
 comes from the |case| scrutinee, remains in the |Right| branch (hence |vs| is
 inaccessible here), but is written to directly in the |Left| branch. There is no
 lexical scope which encompasses the scrutinee and the |Right| branch but not the
-|Left| branch. With linear constraints and capabilities, it's explicit in the
+|Left| branch. With linear constraints and capabilities, it is explicit in the
 type of |get| that the |Left| branch doesn't borrow, so we get this non-lexical
 pattern at no cost.
 
@@ -3253,7 +3262,7 @@ compare atomic constraints for equality, so the only structure that we require
 is that equality of atomic constraints is decidable equality. Furthermore, we fix an
 arbitrary decidable subset $[[Dup]]$ of duplicable atomic constraints (to which
 the |Unique| constraint must belong). This is one of the simplest possible
-domain but it's sufficient to support our examples throughout this paper. The
+domain but it is sufficient to support our examples throughout this paper. The
 entailment relation for this domain is given by a simple recursive definition
 shown in \cref{fig:concrete-domain}. The intention for our definition relation
 is to mean that a constraint $[[{q}]]$ is entailed if and only if it is already
@@ -3318,7 +3327,7 @@ check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
           \end{itemize}
           We need to prove that $[[Q_o * (UCtx_b, LCtx_b \u q) ||- Q_i]]$,
           which, by definition of the tensor product is the same as
-          $[[Q_o * 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's hence
+          $[[Q_o * 1.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it is hence
           sufficient to prove that $[[1.q ||- many 1.q]]$, which is precisely
           what $[[q \in Dup]]$ gives us.
     \item[\rref*{D-Ur}] We have
@@ -3330,7 +3339,7 @@ check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
           \end{itemize}
           We need to prove that $[[Q_o * (UCtx_b \u q, LCtx_b) ||- Q_i]]$,
           which, by definition of the tensor product is the same as
-          $[[Q_o *  omega.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it's
+          $[[Q_o *  omega.q * (UCtx_b, LCtx_b) ||- Q_i]]$. By \rref{D-Dom} it is
           hence sufficient to prove that $[[omega.q ||- pi_1.q * ... * pi_n.q]]$
           which follows from the conditions in \cref{fig:entailment-relation}.
   \end{description}
@@ -4088,7 +4097,7 @@ make linear constraints easier to use.
 In \cref{sec:Unique-constraint}, we introduced the |Unique| constraint as a
 means of creating new linear values (in our case linear constraints). The
 |Unique| constraint is the motivation for introducing the set $[[{Dup}]]$ of
-duplicable atomic constraints. So it's natural to ask whether it's worth the
+duplicable atomic constraints. So it is natural to ask whether it is worth the
 complexity.
 
 Let's compare our |new| function with a |newScoped| function in the style
@@ -4100,7 +4109,7 @@ new  :: constraint (Unique) =>. Int -> exists n. Ur (UArray a n) .<= constraint 
 newScoped :: Int -> (forall n. constraint(RW n) =>. UArray a n -> Ur r) ->. Ur r
 \end{code}
 
-A first observation, maybe, is that |new| is more primitive. It's easy to
+A first observation, maybe, is that |new| is more primitive. It is easy to
 implement |newScoped| in terms of |new|:
 \begin{code}
 newScoped :: Int -> (forall n. constraint(RW n) =>. UArray a n -> Ur r) ->. Ur r
@@ -4193,7 +4202,7 @@ badUr x = newArray 1 $ \arr ->
 \end{code}
 
 In particular there's no hope of ever having an |MArray (MArray a)| value: we
-can construct this type, but it's not inhabited.
+can construct this type, but it is not inhabited.
 In order to build a nested mutable array, we seem to have to give up |freeze|.
 
 At the heart of this problem is the solution to change the type upon freezing.
@@ -4231,7 +4240,7 @@ have leaves of type |Ur a|. Here, |Ur| plays the same role as |Val| in
 \cref{sec:nested-arrays,sec:o1-freeze}.
 
 An issue with this approach is that since |Freeze| must be abstract, for safety,
-it's hard to extend this type class. For instance, if one would make a
+it is hard to extend this type class. For instance, if one would make a
 \begin{code}
 newtype Matrix a = MkMatrix (MArray (MArray a))
 \end{code}
@@ -4271,10 +4280,10 @@ We've made it so that the release function is linear, so it must be called
 exactly once. It doesn't change the design a lot to return an unrestricted
 release function |Ur (constraint(RW p) =>. () .<= constraint(RW n))|. After all,
 the |RW p| constraint is linear as well, so you always must use the release
-function exactly once whether it's linear or unrestricted. Maybe it would be
+function exactly once whether it is linear or unrestricted. Maybe it would be
 more convenient for the release functions to be unrestricted.
 
-Except, while this holds for the simple |UArray|, it's not entirely true of the
+Except, while this holds for the simple |UArray|, it is not entirely true of the
 nested |NArray| where there's another way to consume an |RW p| constraint in our
 \textsc{api}: the |write| function.
 
@@ -4354,7 +4363,7 @@ would instead look like
 
 Which, arguably, is a little cleaner. However, while the main reason for not
 including releases as constraints was that we didn't think it was worth treating
-quantified constraints in this article, it's worth mentioning that these authors
+quantified constraints in this article, it is worth mentioning that these authors
 have had discussions among ourselves as to whether release constraints were not
 a little too magical. Maybe clarifying the ends of scope with explicit calls to
 release functions is desirable.
@@ -4654,7 +4663,7 @@ constraints are compatible with quantified constraints: we simply need
 to adapt~\cref{lem:inversion}.
 
 It is interesting that goal-oriented search is baked into the
-definition of OutsideIn. It's not only used as the constraint solving
+definition of OutsideIn. It is not only used as the constraint solving
 strategy, but it seems to required for the soundness of the constraint
 generation algorithm. Or, if they are not required, uniform proofs are
 at least an effective strategy to prove soundness.
