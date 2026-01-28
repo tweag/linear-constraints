@@ -803,8 +803,6 @@ between different invocations of |read arr| and |write arr|, while it is the
 capabilities that are being implicitly threaded around.
 When the work with the array is finished, the capabilities can be consumed with |free arr|,
 again using the same variable name.
-\nw{This would be a great place to introduce the |Linearly.do| notation and
-explain something about it.}
 
 
 \subsection{Producing Linear Contexts}
@@ -977,6 +975,9 @@ of that technique by \citet[Fig.~2]{LinearHaskell}. But
 we have our linear |constraint(Unique)| assumption, we can use it to produce
 new values that must be unique. We compare the two approaches further in
 \cref{sec:linearly-vs-sticky}.
+
+\nw{This would be a great place to introduce the |Linearly.do| notation and
+explain something about it.}
 
 % The fact that existential quantification generates new type-level names
 %% is folklore. It's used crucially in the interface of the
