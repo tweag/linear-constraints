@@ -289,8 +289,6 @@ scope. Rust uses dedicated syntax and code generation
 to support management of resources, while Linear Haskell is a
 type system change without requiring any other impact on the compiler, such as in the
 code generator or runtime system.
-\rae{But actually we'd \emph{like} to have
-an impact on the runtime system to allow update-in-place.}
 Linear Haskell is powerful enough to emulate Rust's
 ownership, but using its linear arguments to do so is a tedious exercise,
 since it requires
@@ -323,7 +321,7 @@ possible to read or write to it.
 The values |x| and |y| read from the array are returned; their
 types include elements wrapped by the |Ur|
 (pronounced ``unrestricted'',  and corresponding to the
-``!'' operator of \citet{girard-linear-logic}) type, allowing them to be used
+``!'' operator of \citet{girard-linear-logic} and defined precisely by \citet{LinearHaskell}) type, allowing them to be used
 arbitrarily many times. This works because |read2AndDiscard| takes a restricted-use array
 containing unrestricted elements.
 
@@ -370,16 +368,11 @@ In fact, we show in this paper that such linear capabilities
 are the natural analogue of Haskell's type class
 constraints to the setting of linear types.
 We call these new constraints \emph{linear constraints}.
-Like class constraints,
+Like class constraints~\citep{OutsideIn},
 linear constraints are propagated implicitly by the compiler.
 Like linear arguments, they can be used to safely track resources such as arrays
 or file handles. Thus, linear constraints are the combination of these two
-concepts, which have been studied independently elsewhere
-\citep{OutsideIn,LinearHaskell,hh-ll,resource-management-for-ll-proof-search}.\unsure{Arnaud:
-Hodas,Miller and Cervesato et al aren't really example of GHC-like constraints
-or linear types; they are examples of proof search for linear logic, the very
-kind that we're using in our solver. They're more one leg of the bridge than
-either shore, so maybe the phrasing is a bit awkward here}
+concepts.
 
 With our extension, we can write a new pure version of |read2AndDiscard| which does
 not require explicit threading of the array. This instead uses a \emph{unique} array
@@ -422,10 +415,8 @@ that arise from aliasing.
 
 
 
-This paper is an extended version of~\cite{SpiwackKBWE22}; in particular, it adds numerous examples that were not included in the original.
-\nw{Add more here later}
-
-Our contributions are as follows:\jp{Do we really need this phrase? What about: We provide ...}
+This paper is an extended version of a conference
+publication~\citep{SpiwackKBWE22}. Overall our contributions are:
 \begin{itemize}
 \item A system of qualified types that allows a constraint assumption
   to be given a multiplicity (linear or unrestricted). Linear assumptions are used precisely
@@ -464,6 +455,14 @@ Our language is given semantics by desugaring into a core language based
 on that of \citet{LinearHaskell}.
 Our design is intended to work well with other features of Haskell and
 \textsc{ghc} extensions. Indeed, we have a prototype implementation (\cref{sec:implementation}).
+
+The specific contributions of  this extended version are:
+\begin{document}
+\item numerous new examples and applications~(\cref{sec:memory-ownership})
+\item a new and simplified constraint solver~(\cref{sec:constraint-solver})
+\item a discussion of the design decisions~(\cref{sec:design-considerations})
+\end{document}
+
 
 \section{Background: Linear Haskell}
 \label{sec:linear-types}
@@ -537,15 +536,6 @@ In particular, |duplicate| can pass two copies of |x| to two copies of |f|.
 Pattern matching on a value of type |Ur a| yields a payload of multiplicity
 $[[{omega}]]$, even when the scrutinee has multiplicity $[[{1}]]$.
 
-
-\nw{This would be a good place to discuss the interface for mutable arrays in \Cref{fig:linear-interface}.
-This would prepare the way for a better comparison of the constraints version, and
-would hopefully also let us see something about multiplicities. My hope is that
-here we can more carefully describe the linear type interface,
-but also motivate deficencies that are fixed later.}
-
-\nw{Potentially a good place to introduce how |Ur| is defined.}
-
 \section{Working With Linear Constraints}
 \label{sec:what-it-looks-like}
 
@@ -589,26 +579,10 @@ arrow are \emph{linear constraints}. There are thus four different arrows that c
 \]
 The fact that linear constraints are implicit and inferred by the compiler is
 key to avoiding the tedium of passing resource variables around.
-This section proceeds by first demonstrating
+This section proceeds by demonstrating
 how linear constraints are consumed (\cref{sec:consuming-linear-constraints}),
-then describes how these constraints are produced
-(\cref{sec:producing-linear-constraints}).\unsure{[Arnaud] I added the label to a
-  subsequent section, but is it the intended section?}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+how linear constraints are threaded through programs (\cref{sec:borrowing-linear-constraints}),
+and how these constraints are produced (\cref{sec:producing-linear-constraints}).
 
 \subsection{Consuming Linear Constraints}
 \label{sec:consuming-linear-constraints}
@@ -974,7 +948,7 @@ we have our linear |constraint(Unique)| assumption, we can use it to produce
 new values that must be unique. We compare the two approaches further in
 \cref{sec:linearly-vs-sticky}.
 
-\nw{This would be a great place to introduce the |Linearly.do| notation and
+\todo{ARNAUD: This would be a great place to introduce the |Linearly.do| notation and
 explain something about it.}
 
 % The fact that existential quantification generates new type-level names
@@ -1086,9 +1060,7 @@ freezing nested structures~(\cref{sec:o1-freeze}),
 splay trees~(\cref{sec:splay-trees}),
 non-lexical lifetimes~(\cref{sec:nl-lifetimes}),
 self-referential borrows~(\cref{sec:self-borrow}), and
-capabilities in monadic computations~(\cref{sec:monad-capability}).
-
-\improvement{This introduction needs improvement; right now it just has references}
+typestates in monadic computations~(\cref{sec:monad-capability}).
 
 
 \subsection{Borrowing slices}
@@ -1101,7 +1073,7 @@ given subarray, or \emph{slice}, before returning control to the main algorithm.
 This section first covers simple slices where work only needs to
 be carried out on a restricted part of an array~(\cref{sec:simple-slices}).
 Then the more general case is considered, where independent parts of
-an array should be worked on simultaneously~(\cref{sec:slicing-two}).\jp{simultaneously implies parallelism. Later on the work ``concurrently'' is used, which is better because lambda calculi are automatically concurrent with CPS encoding. But perhaps this will trip some readers;  ``independently'' may even be better. Search ``simultaneously'' everywhere.}
+an array should be worked on independently~(\cref{sec:slicing-two}).
 
 % As an introduction to a style that will be used a lot throughout this section,
 % let us start with answering the question of: how can we extend the purely
@@ -1141,9 +1113,9 @@ sub ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
         exists p. (Ur (UArray a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
 \end{code}
 That is, |sub| returns an additional value of type |constraint(RW p) =>. () .<=
-(constraint(RW n))|. We call this additional value a \emph{release function}. We
-can then call this release function when we're done with the slice, and return
-to the original array.\jp{This language bothers me a little; it is only an implicit function (taking a linear constraint). Also, calling such functions in haskell is unidiomatic due to laziness. This is solved by linearly.do; which should then be explained earlier.}
+(constraint(RW n))|. We call this additional value a \emph{release operator}. We
+can then call this release operator when we're done with the slice, and return
+to the original array.\jp{Explain what writing 'release' does in a linearly.do}
 
 For instance we can write the following in-place insertion sort function, where
 |insert a bs| inserts |a| into the already-sorted array |bs| in place. To
@@ -1152,9 +1124,7 @@ from the result and returned. In the interesting case, |a| isn't the smallest
 element of $\{|a|\} ⊎ |bs|$, so |b=read bs 0| is, we return |b| and insert |a| to the
 tail of |bs|, that is |sub bs 1 (length bs - 1)|.
 
-\info{I'm using insertion sort as an example here to set up the merge sort
-  example below.}
-\critical{I'm using |when| here, we need to define it somewhere}
+\critical{TODO: define return/when in linearly.do explanation}
 \begin{code}
 insertSort :: constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
 insertSort as = when (length as > 1) $ Linearly.do
@@ -1168,7 +1138,7 @@ insertSort as = when (length as > 1) $ Linearly.do
 
 insert :: constraint(RW n) =>. a -> UArray a n -> Ur a .<= constraint(RW n)
 insert a bs = when (length bs > 0) $ Linearly.do
-    Ur b <- read b in
+    Ur b <- read 0 bs
     if a <= b then
       Linearly.return (Ur a)
     else Linearly.do
@@ -1178,7 +1148,7 @@ insert a bs = when (length bs > 0) $ Linearly.do
       write bs 0 b'
       Linearly.return (Ur b)
 \end{code}
-\jp{read b in? or read 0 b?}
+
 % \improvement{Define swap somewhere? The code is in comments below}
 % \begin{code}
 % -- Reversing the elements of an array, the array's length is a parameter
@@ -1204,26 +1174,22 @@ insert a bs = when (length bs > 0) $ Linearly.do
 %   in ()
 % \end{code}
 
-The release function returned by |sub| is linear, which means it must be called.
+The release operator returned by |sub| is linear, which means it must be called.
 \nw{This needs a bit of rephrasing}
-When an array has a linear release function attached, it can't be freed (with
+When an array has a linear release operator attached, it can't be freed (with
 the |free| function of \cref{fig:constraints-interface}, for instance), because
-this would leave the release function unable to be called and the type system
+this would violate linearity: the release operator would be left unconsumed, and the type system
 would reject the program.
 
-When a value has such a linear release function we say that the value \emph{has
+When a value has such a linear release operator we say that the value \emph{has
   a lifetime}. When a value doesn't have a lifetime, we say it is \emph{owned}.
-This distinction will be quite important for \cref{sec:o1-freeze}, in
-particular.
-\nw{Perhaps so, but we don't need to know or you should elaborate}
 In addition, we refer to any function which returns one or more
 values with lifetimes as a \emph{borrow}.
 
-For completeness, let us observe that the Haskell language (at least
-\textsc{ghc}'s flavour)
-\nw{I'd remove this remark after we say something about how we use GHC at the start of the paper}
+\todo{ARNAUD: come back to this paragraph}
+For completeness, let us observe that Haskell
 supports higher-order constraints. With higher-order
-constraints, we could replace the release \emph{function} by a release
+constraints, we could replace the release \emph{operator} by a release
 \emph{constraint} of type |constraint(RW p) =>. constraint(RW n)|. The
 difference is that we wouldn't have to call |release| explicitly anymore, simply
 using the original array would implictly release the slice's capabilities. We
@@ -1231,7 +1197,7 @@ didn't want to rely on higher-order constraints in this article, as we feel that
 the additional complications to \cref{sec:constraint-solver} would obscure the
 exposition. Either way, we haven't made our mind whether the explicit style or
 implicit style is preferable in a fully fledged programming language.
-\nw{We should rephrase this! Not making up our mind sounds too informal}
+\nw{ARNAUD: We should rephrase this! Not making up our mind sounds too informal}
 
 \subsubsection{Independent slices}
 \label{sec:slicing-two}
@@ -1239,7 +1205,7 @@ implicit style is preferable in a fully fledged programming language.
 A more advanced form of borrowing slices of arrays is to borrow two independent
 slices from the same array simultaneously. As long as two slices do not overlap,
 mutating one does not affect the other, and it is therefore safe to mutate them
-concurrently.
+independently.
 The ability to work on disjoint array slices is crucial for certain algorithms,
 such as the |merge| function in a merge sort.
 
@@ -1252,7 +1218,7 @@ slice ::  constraint(RW n) =>. UArray a n -> Int ->
 The result of |slice as n| is two slices, one with the first |n| elements of |as|,
 and one with the remaining |length as - n| elements. The two slices can be used
 simultaneously. Crucially, both slices must be released for the original
-array to be accessible again. This is represented as a single release function
+array to be accessible again. This is represented as a single release operator
 which consumes the capabilities for both slices.
 
 The |merge| function takes two sorted arrays |ls| and |rs|, and mutates them so that the
@@ -1260,9 +1226,10 @@ concatenation of |ls| and |rs| becomes sorted as a whole.%
 \footnote{The implementation of |merge| is chosen for simplicity over
 efficiency for the sake of this exposition. Inserting elements into |rs| with
 the |insert| function of \cref{sec:simple-slices} is convenient but not
-particularly efficient. In fact, neither |merge| nor |insert| are truly in-place:
+particularly efficient. In fact, in the current implementation, neither |merge| nor |insert| are truly in-place:
 while they do use $O(1)$ heap space, the actually use $O(n)$ stack
-space, since they aren't tail recursive.}\jp{presumably ``release'' is a no-op, so I don't see what makes |merge| non-recursive.}
+space, since they aren't tail recursive; because the call to |release| has a runtime counterpart.}\jp{presumably ``release'' is a no-op, so I don't see what makes |merge| non-recursive.}
+% RESUME HERE AT NEXT CALL
 It is crucial that the arrays |ls| and |rs| be disjoint, if they are not then
 referential transparency would be lost and |merge| would not be a pure function
 (for instance reordering |write ls 0 r| and |insert l rs|, which is a legal
@@ -1297,7 +1264,7 @@ merge ls rs = when (length ls > 0 && length rs > 0) $ Linearly.do
       Linear.return ()
 \end{code}
 \jp{read without index in merge?}
-This code requires the two slices to be accessed concurrently, and this is
+This code requires the two slices to be accessed simultaneously, and this is
 achieved using the |slice| function in |mergeSort| which then goes
 on to work with |merge|.
 \nw{Probably need to explain the mechanics of how |merge| returns |(RW p, RW q)| constraint,
@@ -1317,7 +1284,7 @@ sub as start len = Linearly.do
 \end{code}
 Notice how the unneeded
 slices are released, by partially discharging the linear constraint of the
-release functions.
+release operators.
 
 Conversely, The |sub| function from cannot be used to define |slice| since it
 cannot be used to borrow two independent slices: when a slice is borrowed,
@@ -1593,8 +1560,8 @@ introduces a new kind of borrow, in the form of the functions |borrowNA| and
 If you ignore
 all the capabilities, these borrows have the type signature we'd expect of a
 read function. They're borrows because they need to provide capabilities for the
-inner value, and a release function. The fresh capabilities and the release
-function prevent aliasing mutable cells.
+inner value, and a release operator. The fresh capabilities and the release
+operator prevent aliasing mutable cells.
 
 \paragraph*{Slice type}
 \label{sec:slice-type}
@@ -1753,7 +1720,7 @@ always be |Slice c| for some |c|, so |writeS| would have to replace a slice of
 an array wholesale, this isn't an operation which can be performed without
 copying the inner array, while |writeS| is supposed to be of $O(1)$ write
 operation. Fortunately, slices are always borrowed, and attempting to write a
-slice to an array cell would result in a static error: the release function
+slice to an array cell would result in a static error: the release operator
 hasn't been called.
 
 Similarly we can lift a slicing function on the inner |a| with the following
@@ -2059,11 +2026,11 @@ slice of |o|. Such a pair shouldn't have restrictions on its lifetime, but Rust
 can't express the relationship between the fields.
 
 In our presentation, this \emph{can't-outlive} requirement is enforced by the release
-function: as the release function is linear we must use the release function to
+operator: as the release operator is linear we must use the release operator to
 return, say, read and write capabilities to |o|, which must then be disposed of
 some way. Until that happens, |o| lives. Making a self-referential borrow is as
 easy as storing not only the original value and the borrow, but also the release
-function.
+operator.
 
 \begin{code}
 data Buffer s a n =
@@ -2075,7 +2042,7 @@ the |NArray|, making a |Buffer| look very similar to a slice.
 Note that buffers define in this manner are always going to be linear values,
 rather than unrestricted value with linear constraints like our arrays and
 matrices so far. Here both the value and the constraints are linear. This is
-because a |Buffer| contains a release function, which is always linear. It may
+because a |Buffer| contains a release operator, which is always linear. It may
 make |Buffer| less convenient to use than it should, we revisit this aspect
 in~\cref{sec:unrestricted-release}.
 
@@ -4255,13 +4222,13 @@ corresponds to storing an owned value \verb+A+ inside an \verb+RC<A>+ or a simil
 structure. This is precisely what we propose in \cref{sec:o1-freeze}: the key is
 that freezing arrays doesn't change their type.
 
-\subsection{Variations on release functions}
+\subsection{Variations on release operators}
 \label{sec:unrestricted-release}
 
 In \cref{sec:borrowing-slices}, we introduced how linear constraints can be
 leveraged to create an ownership discipline where sub-structures (there array
 slices) can be borrowed. Borrowing functions return the borrowed sub-structure
-together with what we've been calling a release function. \emph{E.g.} in
+together with what we've been calling a release operator. \emph{E.g.} in
 
 \begin{code}
 restrict ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
@@ -4269,17 +4236,17 @@ restrict ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
 \end{code}
 
 We borrow an |UArray| with a new type-level name |p|, and we also get a release
-function of type |constraint(RW p) =>. () .<= constraint(RW n)|. In this section
+operator of type |constraint(RW p) =>. () .<= constraint(RW n)|. In this section
 we explore variations on their design.
 
-\subsubsection{Unrestricted release function}
+\subsubsection{Unrestricted release operator}
 
-We've made it so that the release function is linear, so it must be called
+We've made it so that the release operator is linear, so it must be called
 exactly once. It doesn't change the design a lot to return an unrestricted
-release function |Ur (constraint(RW p) =>. () .<= constraint(RW n))|. After all,
+release operator |Ur (constraint(RW p) =>. () .<= constraint(RW n))|. After all,
 the |RW p| constraint is linear as well, so you always must use the release
-function exactly once whether it is linear or unrestricted. Maybe it would be
-more convenient for the release functions to be unrestricted.
+operator exactly once whether it is linear or unrestricted. Maybe it would be
+more convenient for the release operators to be unrestricted.
 
 Except, while this holds for the simple |UArray|, it is not entirely true of the
 nested |NArray| where there's another way to consume an |RW p| constraint in our
@@ -4290,28 +4257,28 @@ borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (cons
 writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
 
-If the release function returned by |borrowNA| was unrestricted, then it would
+If the release operator returned by |borrowNA| was unrestricted, then it would
 be possible to borrow a slice and never return it. Instead it could be stored in
 another |NArray|.
 
 This is semantically dubious, as it means never giving control back to the
 original owner, which remains unavailable for the rest of the computation. If
 the owner has responsibilities (\emph{e.g.} freeing memory), then they won't be
-performed. So linear release function, or rather lack of a linear release
-function, acts as a proof of ownership.
+performed. So linear release operator, or rather lack of a linear release
+operator, acts as a proof of ownership.
 
 In the case of our arrays there is no problem as significant as not freeing
-memory, however, in \cref{sec:nested-arrays}, linear release functions prevent
+memory, however, in \cref{sec:nested-arrays}, linear release operators prevent
 writing borrowed slice inside deep borrows, which would be a runtime error.
 
-So if we were to have release function be unrestricted, we would presumably need
+So if we were to have release operator be unrestricted, we would presumably need
 to keep track of ownership another way. For instance by adding another
 linear-constraint capability for owned structure which would be consumed by
 |writeNA| but borrowed slice wouldn't have.
 
 \subsubsection{Release function as a constraint}
 
-An orthogonal variation that we could make to the release function is turn it
+An orthogonal variation that we could make to the release operator is turn it
 into a constraint. That is borrowing functions would look like
 
 \begin{code}
@@ -4328,7 +4295,7 @@ article. But we expect linear constraint and quantified constraints to integrate
 without an issue, and an integration into \textsc{ghc} would automatically
 have qualified linear constraint.
 
-If we were to use such release constraints instead of release functions, then
+If we were to use such release constraints instead of release operators, then
 release constraints would be called implicitly by the typechecker where they
 would be needed. For instance, the following snippet from \cref{sec:valiant}
 
@@ -4364,7 +4331,7 @@ including releases as constraints was that we didn't think it was worth treating
 quantified constraints in this article, it is worth mentioning that these authors
 have had discussions among ourselves as to whether release constraints were not
 a little too magical. Maybe clarifying the ends of scope with explicit calls to
-release functions is desirable.
+release operators is desirable.
 
 \subsection{Design of the constraint solver}
 \label{sec:solver-design}
