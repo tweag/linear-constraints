@@ -457,11 +457,11 @@ Our design is intended to work well with other features of Haskell and
 \textsc{ghc} extensions. Indeed, we have a prototype implementation (\cref{sec:implementation}).
 
 The specific contributions of  this extended version are:
-\begin{document}
+\begin{itemize}
 \item numerous new examples and applications~(\cref{sec:memory-ownership})
 \item a new and simplified constraint solver~(\cref{sec:constraint-solver})
 \item a discussion of the design decisions~(\cref{sec:design-considerations})
-\end{document}
+\end{itemize}
 
 
 \section{Background: Linear Haskell}
