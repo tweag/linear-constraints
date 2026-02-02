@@ -1166,7 +1166,8 @@ insert a bs = when (length bs > 0) $ Linearly.do
 %   in ()
 % \end{code}
 
-The release operator returned by |sub| is linear, which means it must be called.
+The release operator returned by |sub| is linear, which means it must be called
+(though, see \cref{sec:unrestricted-release} for further thoughts).
 \nw{This needs a bit of rephrasing}
 When an array has a linear release operator attached, it can't be freed (with
 the |free| function of \cref{fig:constraints-interface}, for instance), because
@@ -1177,19 +1178,6 @@ When a value has such a linear release operator we say that the value \emph{has
   a lifetime}. When a value doesn't have a lifetime, we say it is \emph{owned}.
 In addition, we refer to any function which returns one or more
 values with lifetimes as a \emph{borrow}.
-
-\todo{ARNAUD: come back to this paragraph}
-For completeness, let us observe that Haskell
-supports higher-order constraints. With higher-order
-constraints, we could replace the release \emph{operator} by a release
-\emph{constraint} of type |constraint(RW p) =>. constraint(RW n)|. The
-difference is that we wouldn't have to call |release| explicitly anymore, simply
-using the original array would implictly release the slice's capabilities. We
-didn't want to rely on higher-order constraints in this article, as we feel that
-the additional complications to \cref{sec:constraint-solver} would obscure the
-exposition. Either way, we haven't made our mind whether the explicit style or
-implicit style is preferable in a fully fledged programming language.
-\nw{ARNAUD: We should rephrase this! Not making up our mind sounds too informal}
 
 \subsubsection{Independent slices}
 \label{sec:slicing-two}
