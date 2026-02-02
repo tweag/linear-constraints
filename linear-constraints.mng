@@ -1039,6 +1039,12 @@ when True a = a
 when False _ = pack ()
 \end{code}
 
+\info{This section doesn't talk about it at all, but the do notation, here,
+  doesn't strictly sequence its commands. The sequencing that you get is that
+  any command which uses the output constraint of a previous command
+  (necessarily above in the text) is after said commands. Other commands can
+  commute (and the compiler can plausibly reorder such commands). It's purely
+  data dependencies, and they are more fine grained than with a monad.}
 
 \section{Applications}
 \label{sec:memory-ownership}
