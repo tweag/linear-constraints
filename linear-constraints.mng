@@ -963,30 +963,28 @@ This is a mild, yet quite convenient, extension over Haskell where different
 instances would be encoded with a different \textsc{gadt}. We discuss a more
 ambitious extension in \cref{sec:implicit-existentials}.
 
-\change{This read awful rewrite to inference rules, probably}
-We write the constructor (read as ``pack u'')
-\begin{code}
-pack u :: exists a1 ... an. t .<= constraint(Q)
-\end{code}
-where for some substitution |sigma|
-\begin{code}
-u :: t[sigma] .<= constraint(Q[sigma])
-\end{code}
+We write |pack|
+(read as ``pack'')for the constructor of this synthetic type, subject to the
+following typing rules:
 
-Conversely, if
-\begin{code}
-u :: exists a1 ... an. t .<= constraint(Q)
-\x. v :: forall a1 an. constraint(Q) =>. k
-\end{code}
-then
-\begin{code}
-case u of { pack x -> v } :: k
-\end{code}
+$$
+\inferrule
+{\vdash |u :: t[sigma] .<= constraint(Q[sigma])|}
+{\vdash |pack u :: exists a1 ... an. t .<= constraint(Q)|}
+\qquad
+\inferrule
+{\vdash |u :: exists a1 ... an. t .<= constraint(Q)|\\
+\vdash |\x. v :: forall a1 an. constraint(Q) =>. k|}
+{\vdash |case u of { pack x -> v } :: k|}
+$$
+\unsure{I'm using a lambda in the type judgement for |v| to avoid having to
+  introduce notations for the context, since there are qualified types, and
+  linearity, etc… How good an idea it is, I don't know}
 
-These are precisely the primitives we need. Indeed we will be using quite direct
-counterparts in the calculus of \cref{sec:qualified-type-system}. However,
-they're a bit cumbersome to use directly: we are going to pack and unpack
-constraints a lot.
+These are precisely what we need to thread and combine linear constraints.
+Indeed we will be using quite direct counterparts in the calculus of
+\cref{sec:qualified-type-system}. However, |pack| is a bit cumbersome to use
+directly: we are going to pack and unpack constraints a lot.
 
 So we take advantage of Haskell's feature to define custom do notations with
 qualifier, so that we can write
@@ -1006,7 +1004,8 @@ new 57 >>= \arr -> write 42 "answer" >> read 0 >>= \ !(Ur x) -> ...
 \end{code}
 
 So we arrange for |>>=| and |>>| to pack and unpack existentials and constraints
-for us so that we will almost never have to see |pack|.
+for us so that we will almost never have to see |pack|. They're type are only
+pretend Haskell, as Haskell can't express this sort of schematic types.
 
 \begin{code}
 (>>=) :: (exists a1 ... an. t .<= constraint(Q)) -> (forall a1 ... an. constraint(Q) =>. t -> exists b1 ... bm. t' .<= constraint(Q')) -> exists b1 ... bm. t' .<= constraint(Q')
