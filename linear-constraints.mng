@@ -948,8 +948,97 @@ we have our linear |constraint(Unique)| assumption, we can use it to produce
 new values that must be unique. We compare the two approaches further in
 \cref{sec:linearly-vs-sticky}.
 
-\todo{ARNAUD: This would be a great place to introduce the |Linearly.do| notation and
-explain something about it.}
+\subsection{Packing, unpacking, and ``do'' notation}
+\label{sec:packing-unpacking-do}
+
+%format sigma = "\ensuremath{\sigma}"
+
+In this section we've been using types |exists a. t| and |t .<= constraint(Q)|
+but we have yet to define them. In fact, in this article we consider that
+there's a single type |exists a1 ... an. t .<= constraint(Q)|, with a single
+constructor. We omit the existential quantifier if the list of |a_i| is empty,
+and we omit |.<= constraint(Q)| if the constraint |constraint(Q)| is trivial.
+
+This is a mild, yet quite convenient, extension over Haskell where different
+instances would be encoded with a different \textsc{gadt}. We discuss a more
+ambitious extension in \cref{sec:implicit-existentials}.
+
+\change{This read awful rewrite to inference rules, probably}
+We write the constructor (read as ``pack u'')
+\begin{code}
+pack u :: exists a1 ... an. t .<= constraint(Q)
+\end{code}
+where for some substitution |sigma|
+\begin{code}
+u :: t[sigma] .<= constraint(Q[sigma])
+\end{code}
+
+Conversely, if
+\begin{code}
+u :: exists a1 ... an. t .<= constraint(Q)
+\x. v :: forall a1 an. constraint(Q) =>. k
+\end{code}
+then
+\begin{code}
+case u of { pack x -> v } :: k
+\end{code}
+
+These are precisely the primitives we need. Indeed we will be using quite direct
+counterparts in the calculus of \cref{sec:qualified-type-system}. However,
+they're a bit cumbersome to use directly: we are going to pack and unpack
+constraints a lot.
+
+So we take advantage of Haskell's feature to define custom do notations with
+qualifier, so that we can write
+
+\begin{code}
+Linearly.do
+  arr <- new 57
+  write 42 "answer"
+  Ur x <- read 0
+  ...
+\end{code}
+%
+What Haskell requires of us is to define |>>=| and |>>| so that the above can be
+desugared to
+\begin{code}
+new 57 >>= \arr -> write 42 "answer" >> read 0 >>= \ !(Ur x) -> ...
+\end{code}
+
+So we arrange for |>>=| and |>>| to pack and unpack existentials and constraints
+for us so that we will almost never have to see |pack|.
+
+\begin{code}
+(>>=) :: (exists a1 ... an. t .<= constraint(Q)) -> (forall a1 ... an. constraint(Q) =>. t -> exists b1 ... bm. t' .<= constraint(Q')) -> exists b1 ... bm. t' .<= constraint(Q')
+(pack a) >>= f = pack (f a)
+
+(>>) :: (exists a1 ... an. t .<= constraint(Q)) -> (forall a1 ... an. constraint(Q) =>. exists b1 ... bm. t' .<= constraint(Q')) -> exists b1 ... bm. t' .<= constraint(Q')
+(pack _) >> b = pack b
+\end{code}
+%
+When using the |Linearly.do| notation we will also write |Linearly.return| for
+|pack|. We will see the following idiom quite often:
+\begin{code}
+Linearly.do
+  ...
+  foo
+  Linearly.return ()
+\end{code}
+%
+In the ordinary ``do'' notation for monads, the last line would be superfluous.
+But here it lets the type system rejig the constraints; \emph{e.g.} if |foo|
+operates on an array, it will only return linear constraints pertaining for that
+array, and |Linearly.return ()| may be needed to combine the linear constraints
+of all the arrays in scope.
+
+This notation can be augmented with familiar combinators for the ``do''
+notation. For instance we will be using
+
+\begin{code}
+when :: Bool -> exists a1 ... an. () .<= constraint(Q) -> exists a1 ... an. () .<= constraint(Q)
+when True a = a
+when False _ = pack ()
+\end{code}
 
 % The fact that existential quantification generates new type-level names
 %% is folklore. It's used crucially in the interface of the
@@ -4861,5 +4950,6 @@ $$
 % LocalWords:  desugaring ghc OutsideIn quotiented gadt typeable disjunction
 % LocalWords:  combinator sigils equalities wanteds intuitionistic modularity
 % LocalWords:  sequents implicational deallocate deallocating monadic monads
-% LocalWords:  deallocated instantiations desugars unioned duplicable
-% LocalWords:  deterministically unrestrictedly subexponentials
+% LocalWords:  deallocated instantiations desugars unioned duplicable desugared
+% LocalWords:  deterministically unrestrictedly subexponentials existentials
+% LocalWords:  combinators
