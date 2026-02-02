@@ -1247,8 +1247,8 @@ mergeSort as = when (length as > 1) $ Linearly.do
 
 merge ::  constraint((RW p, RW q)) =>. UArray a p -> UArray a q -> () .<= constraint((RW p, RW q))
 merge ls rs = when (length ls > 0 && length rs > 0) $ Linearly.do
-    Ur l <- read ls
-    Ur r <- read rs
+    Ur l <- read 0 ls
+    Ur r <- read 0 rs
     if l <= r then Linearly.do
       (Ur (_, ls'), release) <- slice ls 1
       merge ls' rs
@@ -1263,7 +1263,6 @@ merge ls rs = when (length ls > 0 && length rs > 0) $ Linearly.do
       release
       Linear.return ()
 \end{code}
-\jp{read without index in merge?}
 This code requires the two slices to be accessed simultaneously, and this is
 achieved using the |slice| function in |mergeSort| which then goes
 on to work with |merge|.
