@@ -1475,8 +1475,7 @@ Specifically, we're going to represent matrices as arrays of arrays (say an
 array of columns). Higher-dimensional tensors are a straightforward generalisation. To whet the
 reader's appetite, slicing a matrix in two sets of columns is, rather
 straightforward: just consider two halves of the root array; but slicing a
-\nw{I think \emph{lines} is rows?}
-matrix in two sets of lines is much less obvious as it requires slicing each
+matrix in two sets of rows is much less obvious as it requires slicing each
 column in two.
 
 Let us first notice that we cannot use the |UArray| type of
