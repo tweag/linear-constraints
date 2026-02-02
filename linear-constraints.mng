@@ -1243,6 +1243,7 @@ mergeSort as = when (length as > 1) $ Linearly.do
     mergeSort ls
     mergeSort rs
     merge ls rs
+    release
     Linear.return ()
 
 merge ::  constraint((RW p, RW q)) =>. UArray a p -> UArray a q -> () .<= constraint((RW p, RW q))
