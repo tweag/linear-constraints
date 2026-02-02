@@ -3984,6 +3984,10 @@ Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit packing and unpacking would
 make linear constraints easier to use.
 
+Using \textsc{edwl} would presumably remove the need for the |Linearly.do|
+notation as well. Since the types involved in the |Linearly.do| notation cannot
+be written in Haskell, it would alleviate the need for \emph{ad hoc} extensions.
+
 \unsure{There is a bunch of commented out text below this point, is it worth reviving?}
 
 % One challenge if existential packing and unpacking are inferred is that
