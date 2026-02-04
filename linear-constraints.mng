@@ -977,6 +977,7 @@ $$
 \vdash |\x. v :: forall a1 an. constraint(Q) =>. k|}
 {\vdash |case u of { pack x -> v } :: k|}
 $$
+
 \unsure{I'm using a lambda in the type judgement for |v| to avoid having to
   introduce notations for the context, since there are qualified types, and
   linearity, etc… How good an idea it is, I don't know}
@@ -1212,9 +1213,11 @@ concatenation of |ls| and |rs| becomes sorted as a whole.%
 \footnote{The implementation of |merge| is chosen for simplicity over
 efficiency for the sake of this exposition. Inserting elements into |rs| with
 the |insert| function of \cref{sec:simple-slices} is convenient but not
-particularly efficient. In fact, in the current implementation, neither |merge| nor |insert| are truly in-place:
-while they do use $O(1)$ heap space, the actually use $O(n)$ stack
-space, since they aren't tail recursive; because the call to |release| has a runtime counterpart.}\jp{presumably ``release'' is a no-op, so I don't see what makes |merge| non-recursive.}
+particularly efficient.
+In fact, in the current implementation, |insert| is not truly in-place:
+while is uses $O(1)$ heap space,  it actually uses $O(n)$ stack
+space, since it is not tail recursive. The |merge| may be compiled to a tail-recursive
+function if the compiler is able to optimise away the call to |release|.}
 % RESUME HERE AT NEXT CALL
 It is crucial that the arrays |ls| and |rs| be disjoint, if they are not then
 referential transparency would be lost and |merge| would not be a pure function
