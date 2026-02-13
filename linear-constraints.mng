@@ -388,9 +388,6 @@ read2AndDiscard arr = Linearly.do
 The only changes from the impure version are that this version explicitly constrains
 the function to require read and write access to the array, and the
 use of the qualified |Linearly.do| notation to sequence the actions.\jp{fwd ref to linearly.do explanation}
-% and pattern-matching against $\packbox$ (read ``pack'') is necessary in order to access the linear constraint
-% packed in the result of |read| and |free|. (\Cref{sec:implicit-existentials}
-% suggests how we can get rid of $\packbox$, too.)
 Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
@@ -948,76 +945,75 @@ we have our linear |constraint(Unique)| assumption, we can use it to produce
 new values that must be unique. We compare the two approaches further in
 \cref{sec:linearly-vs-sticky}.
 
-\subsection{Packing, unpacking, and ``do'' notation}
+\subsection{Chaining with the ``do'' notation}
 \label{sec:packing-unpacking-do}
 
-%format sigma = "\ensuremath{\sigma}"
+%format ~> = "\ensuremath{\leadsto}"
 
-In this section we've been using types |exists a. t| and |t .<= constraint(Q)|
-but we have yet to define them. In fact, in this article we consider that
-there's a single type |exists a1 ... an. t .<= constraint(Q)|, with a single
-constructor. We omit the existential quantifier if the list of |a_i| is empty,
-and we omit |.<= constraint(Q)| if the constraint |constraint(Q)| is trivial.
-
-This is a mild, yet quite convenient, extension over Haskell where different
-instances would be encoded with a different \textsc{gadt}. We discuss a more
-ambitious extension in \cref{sec:implicit-existentials}.
-
-We write |pack|
-(read as ``pack'')for the constructor of this synthetic type, subject to the
-following typing rules:
-
-$$
-\inferrule
-{\vdash |u :: t[sigma] .<= constraint(Q[sigma])|}
-{\vdash |pack u :: exists a1 ... an. t .<= constraint(Q)|}
-\qquad
-\inferrule
-{\vdash |u :: exists a1 ... an. t .<= constraint(Q)|\\
-\vdash |\x. v :: forall a1 an. constraint(Q) =>. k|}
-{\vdash |case u of { pack x -> v } :: k|}
-$$
-
-\unsure{I'm using a lambda in the type judgement for |v| to avoid having to
-  introduce notations for the context, since there are qualified types, and
-  linearity, etc… How good an idea it is, I don't know}
-
-These are precisely what we need to thread and combine linear constraints.
-Indeed we will be using quite direct counterparts in the calculus of
-\cref{sec:qualified-type-system}. However, |pack| is a bit cumbersome to use
-directly: we are going to pack and unpack constraints a lot.
-
-So we take advantage of Haskell's feature to define custom do notations with
-qualifier, so that we can write
+The last ingredient that we need is the ability to string
+linear-constraint-threading function together. For this we will rely on a ``do''
+notation. We want to write functions like:
 
 \begin{code}
 Linearly.do
   arr <- new 57
   write 42 "answer"
   Ur x <- read 0
-  ...
+  Linearly.return x
 \end{code}
-%
-What Haskell requires of us is to define |>>=| and |>>| so that the above can be
-desugared to
+
+The simplest part of this expression is the |Linearly.return| function in the
+final line. Its role is merely to package a value with the necessary linear
+constraints and existential quantifiers. It has type
+
+\unsure{is it obvious that the intension is that |t| and |Q| have variables |a1
+  ... an| and these get instantiated on the left (due to the |forall|)?}
 \begin{code}
-new 57 >>= \arr -> write 42 "answer" >> read 0 >>= \ !(Ur x) -> ...
+Linearly.return :: forall a1 ... an t Q. Q =>. t -> exists a1 ... an. t .<= Q
 \end{code}
 
-So we arrange for |>>=| and |>>| to pack and unpack existentials and constraints
-for us so that we will almost never have to see |pack|. They're type are only
-pretend Haskell, as Haskell can't express this sort of schematic types.
+This isn't a real Haskell type, but it's very convenient to pretend that it is.
+Admitting such types, questions about syntax nonewithstanding, is a mild
+extension of Haskell. In real Haskell you would have to rely on several
+\textsc{gadt}s instead (though we discuss a more ambitious extension in
+\cref{sec:implicit-existentials}).
+
+The rest of the ``do'' notation is understood by desugaring to more atomic
+function. Specifically, \textsc{ghc}'s ``qualified do'' feature will translate
+our example
+
+\unsure{Alternative presentations for the pattern case: |\case| or |\x -> case x
+  of|}
+\begin{code}
+new 57                Linearly.>>= \arr ->
+write 42 "answer" ^^  Linearly.>>
+read 0                Linearly.>>= \!(Ur x) ->
+Linearly.return x
+\end{code}
+
+In general terms, we have:
 
 \begin{code}
-(>>=) :: (exists a1 ... an. t .<= constraint(Q)) -> (forall a1 ... an. constraint(Q) =>. t -> exists b1 ... bm. t' .<= constraint(Q')) -> exists b1 ... bm. t' .<= constraint(Q')
-(pack a) >>= f = pack (f a)
-
-(>>) :: (exists a1 ... an. t .<= constraint(Q)) -> (forall a1 ... an. constraint(Q) =>. exists b1 ... bm. t' .<= constraint(Q')) -> exists b1 ... bm. t' .<= constraint(Q')
-(pack _) >> b = pack b
+Linear.do {x <- u; stmts}    ~>  u ^^ Linear.>>= \x -> Linear.do { stmts }
+Linear.do {pat <- u; stmts}  ~>  u ^^ Linear.>>= \!pat -> Linear.do { stmts }
+Linear.do {u; stmts}         ~>  u ^^ Linear.>> Linear.do { stmts }
 \end{code}
-%
-When using the |Linearly.do| notation we will also write |Linearly.return| for
-|pack|. We will see the following idiom quite often:
+Where |pat| is a non-variable pattern.
+
+The role of |Linearly.>>=| and |Linearly.>>| is to pass both the returned value
+and returned constraints to their continuation..
+\begin{code}
+(Linearly.>>=)  :: (exists a1 ... an. ^^t   .<= constraint(Q))  ->. (forall a1 ... an. ^^constraint(Q) =>. t ->  s) ->. s
+(Linearly.>>)   :: (exists a1 ... an. ^^()  .<= constraint(Q))  ->. (forall a1 ... an. ^^constraint(Q) =>.       s) ->. s
+\end{code}
+
+For the time being, we shall be considering these functions as primitives which
+package and unpackage values with constraints and possibly existential
+quantifiers. We will give them a more explicit definition in
+\cref{sec:typing-rules,sec:desugaring}.
+
+The |Linearly.do| notation does not always behave exactly like the ordinary ``do''
+notation for monads. So will we see idioms like the following:
 \begin{code}
 Linearly.do
   ...
@@ -1025,19 +1021,19 @@ Linearly.do
   Linearly.return ()
 \end{code}
 %
-In the ordinary ``do'' notation for monads, the last line would be superfluous.
-But here it lets the type system rejig the constraints; \emph{e.g.} if |foo|
-operates on an array, it will only return linear constraints pertaining for that
-array, and |Linearly.return ()| may be needed to combine the linear constraints
-of all the arrays in scope.
+In the ``do'' notation for monads, the last line would be superfluous. But here
+it lets the type system rejig the constraints. The call to |foo| will consume
+\emph{some} of the linear constraints in scope, and return some new constraints.
+The call to |Linearly.return| will package together the remaining constraints
+that |foo| left untouched, and the new constraints returned by |foo|.
 
-This notation can be augmented with familiar combinators for the ``do''
-notation. For instance we will be using
+We can also use familiar combinators adapted to the |Linearly.do|
+notation. For instance we will be using:
 
 \begin{code}
-when :: Bool -> exists a1 ... an. () .<= constraint(Q) -> exists a1 ... an. () .<= constraint(Q)
+when :: constraint(Q) =>. Bool -> (constraint(Q) =>. () .<= constraint(Q)) -> () .<= constraint(Q)
 when True a = a
-when False _ = pack ()
+when False _ = Linearly.return ()
 \end{code}
 
 \info{This section doesn't talk about it at all, but the do notation, here,
@@ -1147,31 +1143,6 @@ insert a bs = when (length bs > 0) $ Linearly.do
       write bs 0 b'
       Linearly.return (Ur b)
 \end{code}
-
-% \improvement{Define swap somewhere? The code is in comments below}
-% \begin{code}
-% -- Reversing the elements of an array, the array's length is a parameter
-% rev :: constraint(RW n) =>. UArray a n -> Int -> () .<= constraint(RW n)
-% rev as len =
-%   if len <= 1 then pack ()
-%   else
-%     let        ilen                 =  len - 2
-%          pack  (Ur inner, release)  =  sub as 1 ilen       -- take a slice
-%          pack  ()                   =  rev inner ilen      -- reverse the slice recursively
-%          pack  ()                   =  release             -- return to the old array
-%          pack  ()                   =  swap as 0 (len -1)  -- swap the first and last element
-%     in pack ()
-% \end{code}
-
-% \begin{code}
-% swap :: constraint(RW n) =>. UArray a n -> Int -> Int -> () .<= constraint(RW n)
-% swap as i j =
-%   let  pack  (Ur ai)  =  read as i
-%        pack  (Ur aj)  =  read as j
-%        pack  ()       =  write as i aj
-%        pack  ()       =  write as j ai
-%   in ()
-% \end{code}
 
 The release operator returned by |sub| is linear, which means it must be called
 (though, see \cref{sec:unrestricted-release} for further thoughts).
@@ -1985,13 +1956,11 @@ absent), |get| returns the read and write capabilities to the map, otherwise, it
 borrows the corresponding cell. With this, we can easily write a |set| function
 with the above specification.
 
-\unsure{This is a case where we can't easily make the pack constructor disappear
-  with a do notation. It's possible, but more verbose.}
 \begin{code}
 set :: constraint(RW s) =>. Map v s -> Int -> v -> () .<= constraint(RW s)
 set vs i v = case get vs i of
-  Right (pack (rv, release)) -> Linearly.do {write rv 0 v; release}
-  Left (pack ()) -> add vs i v
+  Right ev -> Linearly.do {(rv, release) <- ev; write rv 0 v; release}
+  Left ev -> Linearly.do {ev; add vs i v}
 \end{code}
 
 The difficulty, when lifetimes are lexical, is that the borrow from |vs|, which
@@ -2556,7 +2525,15 @@ Bindings in a |let| may be for either linear or unrestricted variables.
  We include $[[{exists as. t o= Q}]]$, as
   introduced in \cref{sec:what-it-looks-like}, together with
   the $\packbox$ constructor. See rules~\rref*{E-Pack} and
-  \rref*{E-Unpack}.
+  \rref*{E-Unpack}. We use these rules are the type system's counterpart to our
+  |Linearly.do| notation (see \cref{sec:packing-unpacking-do}):
+  $$
+  \begin{array}{lcl}
+    |Linearly.return| &=& [[{\x. pack x}]]\\
+    |(Linearly.>>=)| &=& [[{\x.\f. unpack x' = x in f x'}]]\\
+    |(Linearly.>>)| &=& [[{\x.\y. unpack x' = x in case_ 1 x of {() -> y}}]]
+  \end{array}
+  $$
 \info{No substitution on $[[{Q1}]]$ in the E-Unpack rule, because there is
   only existential quantification.}
 
