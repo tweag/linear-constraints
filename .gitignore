@@ -1,6 +1,7 @@
 ### Local rules ###
 
 linear-constraints.lhs
+linear-constraints.axp
 ott.tex
 *.ptb
 
