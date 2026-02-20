@@ -997,8 +997,11 @@ Linear.do {u; stmts}         ~>  u ^^ Linear.>> Linear.do { stmts }
 \end{code}
 Where |pat| is a non-variable pattern.
 
-The role of |Linearly.>>=| and |Linearly.>>| is to pass both the returned value
-and returned constraints to their continuation.
+The role of |Linearly.>>=| and |Linearly.>>| is to pass both the
+returned value and returned constraints to their continuation. Thus,
+the |Linearly.do| notation does not strictly sequence commands in
+textual order.  It only sequences commands when the one consumes the
+output constraint of another one.
 \begin{code}
 (Linearly.>>=)  :: (exists a1 ... an. ^^t   .<= constraint(Q))  ->. (forall a1 ... an. ^^constraint(Q) =>. t ->  s) ->. s
 (Linearly.>>)   :: (exists a1 ... an. ^^()  .<= constraint(Q))  ->. (forall a1 ... an. ^^constraint(Q) =>.       s) ->. s
@@ -1035,12 +1038,6 @@ when False  _  = Linearly.return ()
 %
 Other combinators follow a similar pattern.
 
-\info{This section doesn't talk about it at all, but the do notation, here,
-  doesn't strictly sequence its commands. The sequencing that you get is that
-  any command which uses the output constraint of a previous command
-  (necessarily above in the text) is after said commands. Other commands can
-  commute (and the compiler can plausibly reorder such commands). It's purely
-  data dependencies, and they are more fine grained than with a monad.}
 
 \section{Applications}
 \label{sec:memory-ownership}
