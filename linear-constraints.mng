@@ -4048,9 +4048,9 @@ we aren't allowed to write after exiting the scope. The only solution to make
 this example work is to extend the scope of |prefix| all the way to the end of
 the scope of |arr|.
 
-So the end of |Ur|-terminated scope tend to stick together. And that's pretty
-detrimental to the modularity of programs. Duplicable constraints seems to be a
-pretty low price to pay to lift this limitation.
+So the end of |Ur|-terminated scope tend to stick together, which is
+detrimental to the modularity of programs. Duplicable constraints is a
+low price to pay to lift this limitation.
 
 \subsection{Further considerations on freezing}
 \label{sec:freezing-in-details}
