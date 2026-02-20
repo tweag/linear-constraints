@@ -951,7 +951,7 @@ new values that must be unique. We compare the two approaches further in
 %format ~> = "\ensuremath{\leadsto}"
 
 The last ingredient that we need is the ability to string
-linear-constraint-threading function together. For this we will rely on a ``do''
+linear-constraint-threading functions together. For this we will rely on a ``do''
 notation. We want to write functions like:
 
 \begin{code}
@@ -966,42 +966,39 @@ The simplest part of this expression is the |Linearly.return| function in the
 final line. Its role is merely to package a value with the necessary linear
 constraints and existential quantifiers. It has type
 
-\unsure{is it obvious that the intension is that |t| and |Q| have variables |a1
-  ... an| and these get instantiated on the left (due to the |forall|)?}
 \begin{code}
-Linearly.return :: forall a1 ... an t Q. Q =>. t -> exists a1 ... an. t .<= Q
+Linearly.return :: constraint(Q) =>. t -> exists a1 ... an. t .<= constraint(Q)
 \end{code}
 
 This isn't a real Haskell type, but it's very convenient to pretend that it is.
-Admitting such types, questions about syntax nonewithstanding, is a mild
-extension of Haskell. In real Haskell you would have to rely on several
-\textsc{gadt}s instead (though we discuss a more ambitious extension in
-\cref{sec:implicit-existentials}).
+Admitting such types, questions about syntax notwithstanding, is a mild
+extension of Haskell. In real Haskell you would have to rely on a family of
+\textsc{gadt}s instead (one for each |t| and |constraint(Q)|). Though we discuss a more ambitious extension in
+\cref{sec:implicit-existentials}.
 
 The rest of the ``do'' notation is understood by desugaring to more atomic
 function. Specifically, \textsc{ghc}'s ``qualified do'' feature will translate
-our example
+our example to the following:
 
-\unsure{Alternative presentations for the pattern case: |\case| or |\x -> case x
-  of|}
 \begin{code}
 new 57                Linearly.>>= \arr ->
 write 42 "answer" ^^  Linearly.>>
-read 0                Linearly.>>= \!(Ur x) ->
+read 0                Linearly.>>= \ !(Ur x) ->
 Linearly.return x
 \end{code}
 
-In general terms, we have:
+More generally, this follows the standard translation:
 
+\improvement{The spacing of |Linear.>>=| is strange, revisit when the cls is fixed}
 \begin{code}
 Linear.do {x <- u; stmts}    ~>  u ^^ Linear.>>= \x -> Linear.do { stmts }
-Linear.do {pat <- u; stmts}  ~>  u ^^ Linear.>>= \!pat -> Linear.do { stmts }
+Linear.do {pat <- u; stmts}  ~>  u ^^ Linear.>>= \ !pat -> Linear.do { stmts }
 Linear.do {u; stmts}         ~>  u ^^ Linear.>> Linear.do { stmts }
 \end{code}
 Where |pat| is a non-variable pattern.
 
 The role of |Linearly.>>=| and |Linearly.>>| is to pass both the returned value
-and returned constraints to their continuation..
+and returned constraints to their continuation.
 \begin{code}
 (Linearly.>>=)  :: (exists a1 ... an. ^^t   .<= constraint(Q))  ->. (forall a1 ... an. ^^constraint(Q) =>. t ->  s) ->. s
 (Linearly.>>)   :: (exists a1 ... an. ^^()  .<= constraint(Q))  ->. (forall a1 ... an. ^^constraint(Q) =>.       s) ->. s
@@ -1013,7 +1010,7 @@ quantifiers. We will give them a more explicit definition in
 \cref{sec:typing-rules,sec:desugaring}.
 
 The |Linearly.do| notation does not always behave exactly like the ordinary ``do''
-notation for monads. So will we see idioms like the following:
+notation for monads. In particular we will see idioms like the following:
 \begin{code}
 Linearly.do
   ...
@@ -1032,9 +1029,11 @@ notation. For instance we will be using:
 
 \begin{code}
 when :: constraint(Q) =>. Bool -> (constraint(Q) =>. () .<= constraint(Q)) -> () .<= constraint(Q)
-when True a = a
-when False _ = Linearly.return ()
+when True   a  = a
+when False  _  = Linearly.return ()
 \end{code}
+%
+Other combinators follow a similar pattern.
 
 \info{This section doesn't talk about it at all, but the do notation, here,
   doesn't strictly sequence its commands. The sequencing that you get is that
@@ -1110,7 +1109,7 @@ sub ::  constraint(RW n) =>. UArray a n -> Int -> Int ->
 That is, |sub| returns an additional value of type |constraint(RW p) =>. () .<=
 (constraint(RW n))|. We call this additional value a \emph{release operator}. We
 can then call this release operator when we're done with the slice, and return
-to the original array.\jp{Explain what writing 'release' does in a linearly.do}
+to the original array.
 
 For instance we can write the following in-place insertion sort function, where
 |insert a bs| inserts |a| into the already-sorted array |bs| in place. To
@@ -1144,8 +1143,7 @@ insert a bs = when (length bs > 0) $ Linearly.do
 \end{code}
 
 The release operator returned by |sub| is linear, which means it must be called
-(though, see \cref{sec:unrestricted-release} for further thoughts).
-\nw{This needs a bit of rephrasing}
+(see \cref{sec:unrestricted-release} for alternative designs).
 When an array has a linear release operator attached, it can't be freed (with
 the |free| function of \cref{fig:constraints-interface}, for instance), because
 this would violate linearity: the release operator would be left unconsumed, and the type system
@@ -1194,7 +1192,7 @@ referential transparency would be lost and |merge| would not be a pure function
 (for instance reordering |write ls 0 r| and |insert l rs|, which is a legal
 transformation, would change the result).
 
-\critical{I'm using length here, we need to define it somewhere}
+\improvement{Add available (after the line) constraints in a second column}
 \begin{code}
 mergeSort ::  constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
 mergeSort as = when (length as > 1) $ Linearly.do
@@ -1226,9 +1224,6 @@ merge ls rs = when (length ls > 0 && length rs > 0) $ Linearly.do
 This code requires the two slices to be accessed simultaneously, and this is
 achieved using the |slice| function in |mergeSort| which then goes
 on to work with |merge|.
-\nw{Probably need to explain the mechanics of how |merge| returns |(RW p, RW q)| constraint,
-which is sufficient to discharge |RW n|}
-
 
 
 The |slice| function is both simple and general. Indeed, it can be used to
@@ -1499,7 +1494,6 @@ borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (cons
 borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
 writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
-\jp{Is it Linearly or Unique?}
 \info{Maybe something to be aware of here is that since |a p| is taken with
   multiplicity $[[{omega}]]$, any |Val a p| written in the array is
   unrestricted, hence points to an unrestricted |a|. So we have nested arrays,
@@ -1524,7 +1518,7 @@ operator prevent aliasing mutable cells.
 \paragraph*{Slice type}
 \label{sec:slice-type}
 
-This\textsc{api} is sufficient to let us implement slices. Because
+This \textsc{api} is sufficient to let us implement slices. Because
 we are going to be manipulating capabilities in an unsafe way, we shall need a
 handful of unsafe primitives to provide or consume capabilities.\jp{I would have like to know that we'd do something unsafe at the start of the section. Also, what is the point of an unsafe implementation? Shouldn't we just have more primitives?}
 
@@ -1793,7 +1787,7 @@ This has two shortcomings, however:
         to freeze the inner arrays.
 \end{itemize}
 
-Traditional linear type give a good solution to unsafe
+Traditional linear types give a good solution to unsafe
 freeze~\citep{LinearHaskell}. With linear constraints, we can solve both
 problems handily (we compare linear solutions with and without linear
 constraints in \cref{sec:freezing-in-details}). We can provide a
