@@ -2373,16 +2373,11 @@ contexts is always satisfied.
 \begin{figure}
   \maybesmall
   $$
-  \begin{array}{@@{}c@@{}}
-  [[{a}]], [[{b}]] \quad \text{Type vars} \qquad
-  [[{x}]], [[{y}]] \quad \text{Expression vars} \qquad
-  [[T]] \quad \text{Type constructors} \qquad
-  [[{K}]] \quad \text{Data constructors} \\
   \begin{array}[b]{lcll}
-    % [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
-    % [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
-    % [[T]] & \bnfeq & \ldots & \text{Type constructors} \\
-    % [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
+    [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
+    [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[T]] & \bnfeq & \ldots & \text{Type constructors} \\
+    [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
     [[{s}]] & \bnfeq & [[{forall as. Q =o t}]] & \text{Type schemes} \\
     [[{t}]], [[{u}]] & \bnfeq & [[{a}]] \bnfor [[{exists as. t o= Q}]] \bnfor [[{t1 ->_pi t2}]]
                             \bnfor [[{T ts}]] & \text{Types} \\
@@ -2395,7 +2390,6 @@ contexts is always satisfied.
                  &\bnfor & [[let_pi
                      x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
   \end{array} \\[1ex]
-  \end{array}
   $$
   Context scaling $[[{pi.G}]]$ and addition of contexts $[[{G1+G2}]]$ is defined as follows:
   $$
@@ -3496,6 +3490,7 @@ is the same, \emph{mutatis mutandis}, as that of Linear Haskell.
   \begin{array}{lcll}
     [[{a}]], [[{b}]] & \bnfeq & \ldots & \text{Type variables} \\
     [[{x}]], [[{y}]] & \bnfeq & \ldots & \text{Expression variables} \\
+    [[T]] & \bnfeq & \ldots & \text{Type constructors} \\
     [[{K}]] & \bnfeq & \ldots & \text{Data constructors} \\
     [[{s}]] & \bnfeq & [[{forall as. t}]] & \text{Type schemes} \\
     [[{t}]], [[{u}]] & \bnfeq & [[{a}]] \bnfor [[{exists as. t o- u}]] \bnfor [[{t1 ->_pi t2}]]
