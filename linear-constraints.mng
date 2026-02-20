@@ -3950,7 +3950,8 @@ In Section~9.2 of that paper,
 the authors extend their system to include class constraints,
 much as we allow our existential packages to carry linear constraints.
 
-Accordingly, \textsc{edwl} would work well for us here and remove the need for these annotations.
+Accordingly, \textsc{edwl} would work well for us here and remove the need for
+these annotations in the type system of \cref{sec:typing-rules}.
 The \textsc{edwl} algorithm is only a small change on the way some types are treated during
 bidirectional type-checking. Though the presentation of linear constraints is not
 written using a bidirectional algorithm, our implementation in \textsc{ghc}
@@ -3962,9 +3963,9 @@ Indeed, it would seem that the two extensions are orthogonal in implementation,
 though avoiding the need for explicit packing and unpacking would
 make linear constraints easier to use.
 
-Using \textsc{edwl} would presumably remove the need for the |Linearly.do|
+On the Haskell side, \textsc{edwl} would correspondingly remove the need for the |Linearly.do|
 notation as well. Since the types involved in the |Linearly.do| notation cannot
-be written in Haskell, it would alleviate the need for \emph{ad hoc} extensions.
+properly be written in Haskell, it would alleviate the need for \emph{ad hoc} extensions.
 
 \section{Design considerations}
 \label{sec:design-considerations}
