@@ -2436,17 +2436,14 @@ is used implicitly in \rref{E-Var}.
 
 Because constraints are used implicitly, if there are several instances
 of the same $[[{1.q}]]$\jp{it is unclear to me why there is an explicit scaling by 1 here}, it is non-deterministic which one is used in
-which instance of \rref*{E-Var}. As a consequence, we must require
-that any two instances of $[[{1.q}]]$ in a constraint $[[{Q}]]$ have
-the same computational content (see \cref{sec:desugaring}). How do we
+which instance of \rref*{E-Var}. How do we
 reconcile this non-determinism with the use of linear constraints, in
-\cref{sec:arrays} to thread mutations?\jp{reconcile ... with ?} We certainly don't want type
+\cref{sec:memory-ownership} to thread mutations? We certainly don't want type
 inference to non-deterministically reorder a |readRef| and a
 |writeRef|! The solution is that the \textsc{api} is arranged so that
 only a single instance of |constraint(RW n)| is ever
 provided. Therefore there is a single possible threading of the reads
-and writes. In contrast there will often be several instances of
-|Unique| in scope.
+and writes.
 
 The type system of \Cref{fig:typing-rules} is purely
 declarative: note, for example, that \rref{E-App} does not describe
