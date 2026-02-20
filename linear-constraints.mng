@@ -1831,7 +1831,7 @@ readF (MkMatrix m) row_num col_num = do
 Another application of in-place updates are \emph{splay trees}. A
 splay tree acts like a binary search tree, but at every access, the
 tree structure is modified so that the recently accessed elements are
-moved towards the root of the tree. This way, recently acessed
+moved towards the root of the tree. This way, recently accessed
 elements are faster to reach in subsequent lookups.
 
 
