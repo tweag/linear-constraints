@@ -1119,7 +1119,6 @@ from the result and returned. In the interesting case, |a| isn't the smallest
 element of $\{|a|\} ⊎ |bs|$, so |b=read bs 0| is, we return |b| and insert |a| to the
 tail of |bs|, that is |sub bs 1 (length bs - 1)|.
 
-\critical{TODO: define return/when in linearly.do explanation}
 \begin{code}
 insertSort :: constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
 insertSort as = when (length as > 1) $ Linearly.do
@@ -1846,7 +1845,9 @@ As usual, we need splitting and joining functions for this data:
 > joinTree :: constraint((RW p, RW q, TreeSlice p q n)) =>. Ref Node p -> Int -> Ref Node q -> Ref Node n .<= constraint((RW n))
 \todo{splitTree may fail (Leaf). Dealing with this case will considerably complexify the example. I'm not sure if it's worth it. But there is an interesting point belowwhich can be seen already with this simpler case: namely this is a bit convoluted compared to what one would write normally either with Haskell or C.}
 
-Accessing generic references would be done via the following two functions:\jp{we discussed |Val| above, how |Ref| is different is unclear to me.}
+Accessing generic references would be done via the following two
+functions:\jp{we discussed |Val| above, how |Ref| is different is unclear to me.
+Arnaud: Val isn't mutable, Ref is an array of size 1.}
 > readRef :: constraint (Read n) =>. Ref a n -> Ur a .<= constraint (Read n)
 > writeRef :: constraint (RW n) =>. Ref a n -> a -> () .<= constraint (RW n)
 %
@@ -2264,7 +2265,8 @@ our system.
 
   We write, abusing notation, $[[Q \in Dup]]$ for a simple constraint
   $[[{Q}]]=[[{(UCtx, LCtx)}]]$ if for all $[[{q}]]\in[[{LCtx}]]$ we
-  have $[[q \in Dup]]$. \jp{How about writing using set inclusion?}
+  have $[[q \in Dup]]$. \jp{How about writing using set inclusion? Arnaud: L is
+    a multiset and D a set, is it still ok to use inclusion?}
 
   The entailment relation must obey the laws listed in
   \Cref{fig:entailment-relation}.
