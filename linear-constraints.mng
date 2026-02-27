@@ -2337,7 +2337,7 @@ $$
 $$
 
 The semantics of simple constraints (and, indeed, of atomic
-constraints) is given by an \emph{entailment relation}. \jp{In practice, this entailment relation is used to model the subclass relationships between constraints. Perhaps at some point we need to review these requirements and check if they make sense.
+constraints) is given by an \emph{entailment relation}. \jp{In practice, this entailment relation is used to model the subclass relationships between constraints. Perhaps at some point we need to write a section of the paper that explains why these requirements make sense intuitively.
   Here is my breakdown:
   
   3. merits some more explanation. It seems that you'd want to say if \(Q ⊩ Q₁ ⊗ Q₂\) then \(Q = Q₁ ⊗ Q₂\), but you have a difficulty with duplicable constraints.
