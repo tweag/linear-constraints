@@ -1046,7 +1046,7 @@ There are many different applications of linear constraints.
 In this section, we consider
 borrowing slices~(\cref{sec:borrowing-slices}),
 blockwise matrices~(\cref{sec:valiant}),
-nested arrays~(\cref{sec:nested-arrays}),
+nested arrays~(\cref{sec:nested-arrays}) and their implementation~(\cref{sec:narray-impl}),
 freezing nested structures~(\cref{sec:o1-freeze}),
 splay trees~(\cref{sec:splay-trees}),
 non-lexical lifetimes~(\cref{sec:nl-lifetimes}),
@@ -1486,10 +1486,10 @@ This isn't quite the type that we use to represent the matrices of
 separate type for full arrays (|NArray|) and slices (|Slice| below).
 
 \begin{code}
-newNArray :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. NArray a n .<= constraint(RW n)
-borrowNA :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
-borrowNAR :: constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
-writeNA :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
+newNArray  :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. NArray a n .<= constraint(RW n)
+borrowNA   :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+borrowNAR  :: constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
+writeNA    :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
 \info{Maybe something to be aware of here is that since |a p| is taken with
   multiplicity $[[{omega}]]$, any |Val a p| written in the array is
@@ -1515,76 +1515,30 @@ operator prevent aliasing mutable cells.
 \paragraph*{Slice type}
 \label{sec:slice-type}
 
-This \textsc{api} is sufficient to let us implement slices. Because
-we are going to be manipulating capabilities in an unsafe way, we shall need a
-handful of unsafe primitives to provide or consume capabilities.\jp{I would have like to know that we'd do something unsafe at the start of the section. Also, what is the point of an unsafe implementation? Shouldn't we just have more primitives?}
+We introduce a separate type for slices. The intuition is that
+is that a block of a matrix is a |Slice (Slice (Val a)) n|. The inner |Slice
+(Val a)| (columns, say) has a |RW| capability so that we can write its scalar,
+but it can't itself be overwritten, as the slice itself isn't stored in the row.
+What's actually stored in the row in the full column of the full matrix, and
+overwriting it would modify the matrix outside of the current block. This would
+be unsound. So |Slice| is a marker to mean that the cells of the arrays can be
+mutated but not the array itself.
 
-\begin{code}
-unsafeRead :: () .<= constraint(Read n)
-unsafeWrite :: () .<= constraint(Write n)
-unsafeRW :: () .<= constraint(RW n)
-unsafeRW = Linearly.do { unsafeRead; unsafeWrite ; Linear.return ()}
-
-unsafeConsumeRead :: constraint(Read n) =>. ()
-unsafeConsumeWrite :: constraint(Write n) =>. ()
-unsafeConsumeRW :: constraint(RW n) =>. ()
-unsafeConsumeRW = Linearly.do { unsafeConsumeRead; unsafeConsumeWrite ; Linear.return ()}
-\end{code}
-These aren't user facing, as they would make the library unsound. They are only
-used as part of the implementation of our array and slice library.
-
-We shall use an object-oriented definition of slices because functions are a
-powerful and convenient abstraction. An implementation aiming for
-efficiency would have to use a more specialised implementation (like above,
-|UnsafeMkSlice| isn't part of the public interface).
 \begin{code}
 type Slice :: (Reg -> Type) -> Reg -> Type
-data Slice a n = UnsafeMkSlice {
-  borrowS  ::  constraint(RW n) =>. Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p),
-  writeS   ::  forall p. constraint((RW n, RW p)) =>. Int -> a p -> () .<= constraint(RW n) }
-\end{code}
-An array can be converted into a slice which spans the whole array
-\begin{code}
-fullSlice :: constraint(RW n) =>. NArray a n -> exists p. (Ur (Slice a p), constraint(RW p) =>. () .<= constraint(RW n)) .<= constraint(RW p)
-fullSlice as = Linearly.return
-  (  (UnsafeMkSlice { borrowS = borrowNA as, writeS = writeNA as }),
-     Linearly.return ())
 \end{code}
 
-More interestingly, we can slice a |Slice| in two\unsure{The type applications
-  are a bit of a lie here. But this is already quite a complicated function, so
-  I don't know whether we should go even more in the weeds. In fact, I don't
-  even think the text of this function really helps at anything. It was meant as
-  evidence that, yes, this can be done, but I don't like it anymore.}
+To create a slice, we can simply convert a regular array, forgetting about its
+extra power.
+\begin{code}
+fullSlice :: constraint(RW n) =>. NArray a n -> exists p. (Ur (Slice a p), constraint(RW p) =>. () .<= constraint(RW n)) .<= constraint(RW p)
+\end{code}
+%
+A slice can be split in two, as expected.
 \begin{code}
 sliceS ::  constraint(RW n) =>. Slice a n -> Int ->
            exists p q. (Ur (Slice a p, Slice a q), (constraint(RW p, RW q) =>. () .<= constraint(RW n))) .<= constraint(RW p, RW q)
-sliceS as i = Linearly.return
-   (  ( UnsafeMkSlice {
-          borrowS = (\j ->
-            if j > i then
-              error "Index out of bound"
-            else Linearly.do
-              unsafeRw @n
-              borrowS as j),
-          writeS = (\j v ->
-            if j > i then
-              error "Index out of bound"
-            else
-              unsafeRw @n
-              writeS as j v )},
-        UnsafeMkSlice {
-          borrowS = (\j -> Linearly.do
-             unsafeRW @n
-             borrowS as (i+j)),
-          writeS = (\j v -> Linearly.do
-            unsafeRW @n
-            writeS as (i+j) v) }),
-      (Linearly.do { unsafeConsumeRW @p; unsafeConsumeRW @q; Linearly.return () }) )
 \end{code}
-Note that the implementation uses unsafe creation and consumption of
-capabilities, since it creates a new access pattern. As the library author, we
-must, in exchange, ensure that this access pattern doesn't create aliases.
 
 \paragraph*{Implementing UArray}
 \label{sec:implementing-uarray}
@@ -1640,8 +1594,205 @@ slice (SliceArray as) i = Linearly.do
 \paragraph*{Deep borrowing and slicing}
 \label{sec:deep-slicing}
 
-The motivation for defining the |Slice| type, however, is that we can lift any
-borrow operation on the inner type |a| to a borrow on slices. The idea is
+The whole reason for the |Slice| type, however, is that we want to borrow and slice deep
+inside a structure. To this effect, we introduce a function |borrowDeep| (resp.
+|sliceDeep|) which takes a borrowing function (resp. a slicing function) on the inner type of a slice, and
+returns a borrowing function (resp. a slicing function) on the slice itself.
+
+\begin{code}
+borrowDeep ::  constraint(RW n) =>. Slice a n ->
+               (forall p. constraint(RW p) =>. a p -> exists q. (Ur (b p), (constraint(RW b) =>. () .<= constraint(RW p)))) ->
+               exists r. (Ur (Slice b r), constraint(RW r) =>. () .<= constraint(RW n))
+borrowDeepR ::  constraint(Read n) =>. Slice a n ->
+                (forall p. constraint(Read p) =>. a p -> exists q. (Ur (b p), (constraint(Read b) =>. () .<= constraint(Read p)))) ->
+                exists r. (Ur (Slice b r), constraint(Read r) =>. () .<= constraint(Read n))
+sliceDeep
+  ::  constraint(RW n) =>. Slice a n ->
+      (forall p. constraint(RW p) =>. a p -> exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
+      exists q. constraint((RW o, RW q)) =>. (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
+sliceDeepR
+  ::  constraint(Read n) =>. Slice a n ->
+      (forall p. constraint(Read p) =>. a p -> exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
+      exists q. constraint((Read o, Read q)) =>. (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
+\end{code}
+Note that the type
+of the inner slicing function, in |sliceDeep| is slightly abstracted compared to the type of
+|sliceS|: it doesn't take an integer argument, instead it assumes that the
+integer is captured by the inner slicing function's closure.
+
+The key, here, is that |borrowDeep| and |sliceDeep| can be nested,
+so that we can borrow (or slice) at an arbitrary depth.
+
+\paragraph*{Implementing Matrix}
+\label{sec:implementing-matrix}
+
+\begin{figure}
+  \maybesmall
+\begin{code}
+type NArray :: (Reg -> Type) -> Reg -> Type
+newNArray  :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. NArray a n .<= constraint(RW n)
+borrowNA   :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+borrowNAR  :: constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
+writeNA    :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
+
+type Val :: Type -> Reg -> Type
+newtype Val a n = MkVal a
+instance constraint(R (Val a n))
+instance constraint(W (Val a n))
+
+type Slice :: (Reg -> Type) -> Reg -> Type
+fullSlice :: constraint(RW n) =>. NArray a n -> exists p. (Ur (Slice a p), constraint(RW p) =>. () .<= constraint(RW n)) .<= constraint(RW p)
+sliceS ::  constraint(RW n) =>. Slice a n -> Int ->
+           exists p q. (Ur (Slice a p, Slice a q), (constraint(RW p, RW q) =>. () .<= constraint(RW n))) .<= constraint(RW p, RW q)
+borrowDeep ::  constraint(RW n) =>. Slice a n ->
+               (forall p. constraint(RW p) =>. a p -> exists q. (Ur (b p), (constraint(RW b) =>. () .<= constraint(RW p)))) ->
+               exists r. (Ur (Slice b r), constraint(RW r) =>. () .<= constraint(RW n))
+borrowDeepR ::  constraint(Read n) =>. Slice a n ->
+                (forall p. constraint(Read p) =>. a p -> exists q. (Ur (b p), (constraint(Read b) =>. () .<= constraint(Read p)))) ->
+                exists r. (Ur (Slice b r), constraint(Read r) =>. () .<= constraint(Read n))
+sliceDeep
+  ::  constraint(RW n) =>. Slice a n ->
+      (forall p. constraint(RW p) =>. a p -> exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
+      exists q. constraint((RW o, RW q)) =>. (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
+sliceDeepR
+  ::  constraint(Read n) =>. Slice a n ->
+      (forall p. constraint(Read p) =>. a p -> exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
+      exists q. constraint((Read o, Read q)) =>. (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
+\end{code}
+  \caption{Nested array \textsc{api}}
+  \label{fig:narray-api}
+\end{figure}
+
+\unsure{In the figure: A |SliceSR| function is missing. We don't show its use, but should it be
+  there for symmetry? Functions such as |WriteS| are also missing}
+This \textsc{api}, which we repeat in full in \cref{fig:narray-api},
+is enough to implement the |Matrix| type from \cref{sec:valiant}.
+Like arrays, matrices are implemented as a disjunction
+\begin{code}
+data Matrix a n
+  = OwnedMatrix (NArray (NArray (Val a)) n)
+  | SliceMatrix (Slice (Slice (Val a)) n)
+\end{code}
+
+We can see the deep borrowing and slicing functions at work, for instance, in
+the |sliceMatrixV| function, which splits a matrix vertically into a top matrix
+and a bottom matrix.
+\begin{code}
+sliceMatrixV ::  constraint(RW n) =>. Matrix a n -> Int ->
+                 exists p q. (Ur (Matrix p, Matrix q), constraint((RW p, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW p, RW q))
+sliceMatrixV (OwnedMatrix m) row_num = Linearly.do
+  (Ur m', release_top) <- fullSlice m
+  (Ur m'', release_top_deep) <- borrowDeep m' fullSlice
+  (Ur (t, b), release_slices) <- sliceDeep m'' (\col -> slice col row_num)
+  Linearly.return (
+    Ur (SliceMatrix t, SliceMatrix b),
+    Linearly.do { release_slices; release_top_deep; release_top })
+sliceMatrixV (SliceMatrix m) row_num = Linearly.do
+  (Ur (t, b), release_slices) <- sliceDeep m (\col -> slice col row_num)
+  Linearly.return (Ur (SliceMatrix t, SliceMatrix b), release_slices )
+\end{code}
+Notice how we use |borrowDeep| in the |OwnedMatrix| case to convert an |Array
+(Array _)| into a |Slice (Slice _)|. The rest of the matrix functions follow
+easily.
+
+As promised our nested array \textsc{api} is general enough to support slicing
+along both dimension of matrices. Of course, there's nothing special about
+matrices, higher dimension tensors would work as well. The key to all this is
+that all this flexibility follows from the theory of linear constraints, which
+is a natural extension of Haskell's constraints. Constraints can be captured in
+closure, and in existential types (or \textsc{gadt}s in real-life Haskell),
+which affords us a lot of programming techniques. We don't have to develop any
+\emph{ad hoc} theory of capabilities.
+
+\subsection{Behind the curtain: implementing slices}
+\label{sec:narray-impl}
+
+One may wonder how they can go and implement a library of capability such as the
+nested array \textsc{api} of \cref{fig:narray-api}. In this section we will do
+just that.
+
+Capabilities like |Read| and |Write| don't have an intrinsic meaning for the
+compiler. They are just constraints, not unlike type-class constraints. We
+impose a semantics on those constraints by making them abstract, just like
+abstract types. In this section, however, we will be inside the library, and
+have access to the concrete constraints. Specifically we will need the following
+primitives:
+
+\begin{code}
+unsafeRead :: () .<= constraint(Read n)
+unsafeWrite :: () .<= constraint(Write n)
+unsafeRW :: () .<= constraint(RW n)
+unsafeRW = Linearly.do { unsafeRead; unsafeWrite ; Linear.return ()}
+
+unsafeConsumeRead :: constraint(Read n) =>. ()
+unsafeConsumeWrite :: constraint(Write n) =>. ()
+unsafeConsumeRW :: constraint(RW n) =>. ()
+unsafeConsumeRW = Linearly.do { unsafeConsumeRead; unsafeConsumeWrite ; Linear.return ()}
+\end{code}
+
+In this section, we will assume the functions |newNArray|, |borrowNA|,
+|borrowNAR|, and |writeNA |, and will implement the rest of
+\cref{fig:narray-api}.
+
+To implement slices, we will use an object-oriented definition functions are a
+powerful and convenient abstraction. An implementation aiming for
+efficiency would have to use a more specialised implementation (like above,
+|UnsafeMkSlice| isn't part of the public interface).
+\begin{code}
+type Slice :: (Reg -> Type) -> Reg -> Type
+data Slice a n = UnsafeMkSlice {
+  borrowS  ::  constraint(RW n) =>. Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p),
+  writeS   ::  forall p. constraint((RW n, RW p)) =>. Int -> a p -> () .<= constraint(RW n) }
+\end{code}
+Converting an array into a slice is straightforward.
+\begin{code}
+fullSlice :: constraint(RW n) =>. NArray a n -> exists p. (Ur (Slice a p), constraint(RW p) =>. () .<= constraint(RW n)) .<= constraint(RW p)
+fullSlice as = Linearly.return
+  (  (UnsafeMkSlice { borrowS = borrowNA as, writeS = writeNA as }),
+     Linearly.return ())
+\end{code}
+In this implementation $|p|=|n|$, but this information is, crucially,
+unavailable to client code, because |p| is existentially quantified. This
+explains why the release function is trivial.
+
+The implementation of |sliceS| is more interesting\unsure{The type applications
+  are a bit of a lie here. But this is already quite a complicated function, so
+  I don't know whether we should go even more in the weeds. In fact, I don't
+  even think the text of this function really helps at anything. It was meant as
+  evidence that, yes, this can be done, but I don't like it anymore.}
+\begin{code}
+sliceS ::  constraint(RW n) =>. Slice a n -> Int ->
+           exists p q. (Ur (Slice a p, Slice a q), (constraint(RW p, RW q) =>. () .<= constraint(RW n))) .<= constraint(RW p, RW q)
+sliceS as i = Linearly.return
+(  Ur
+   ( UnsafeMkSlice {
+          borrowS = (\j ->
+            if j > i then
+              error "Index out of bound"
+            else Linearly.do
+              unsafeRw @n
+              borrowS as j),
+          writeS = (\j v ->
+            if j > i then
+              error "Index out of bound"
+            else
+              unsafeRw @n
+              writeS as j v )},
+        UnsafeMkSlice {
+          borrowS = (\j -> Linearly.do
+             unsafeRW @n
+             borrowS as (i+j)),
+          writeS = (\j v -> Linearly.do
+            unsafeRW @n
+            writeS as (i+j) v) }),
+      (Linearly.do { unsafeConsumeRW @p; unsafeConsumeRW @q; Linearly.return () }) )
+\end{code}
+Note that the implementation uses unsafe creation and consumption of
+capabilities, since it creates a new access pattern. As the library author, we
+must, in exchange, ensure that this access pattern doesn't create aliases.
+
+The deep borrows is where we really leverage the object-oriented definition of
+slices. The idea is
 simple: we delay actually calling the inner borrow function until we borrow an
 inner value from the slice.
 \begin{code}
@@ -1679,60 +1830,35 @@ sliceDeep
   ::  constraint(RW n) =>. Slice a n ->
       (forall p. constraint(RW p) =>. a p -> exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
       exists q. constraint((RW o, RW q)) =>. (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
-sliceDeepR
-  ::  constraint(Read n) =>. Slice a n ->
+sliceDeep as slc = Linearly.return (
+  ( Ur
+    (UnsafeMkSlice
+      { borrowS = (\rwn' i -> Linearly.do
+          (Ur a, release_a) <- borrowS as rwn' i
+          (Ur (l,_), release_lr) <- slc a
+          Linearly.return (Ur l, Linearly.do {release_lr; release_a})),
+        writeS =
+          error "Attempt to write to a borrowed space" })
+    (UnsafeMkSlice
+      { borrowS = (\rwn' i -> Linearly.do
+          (Ur a, release_a) <- borrowS as rwn' i
+          (Ur (_,r), release_lr) <- slc a
+          Linearly.return (Ur r, Linearly.do {release_lr; release_a})),
+        writeS =
+          error "Attempt to write to a borrowed space" })
+  ),
+  (Linearly.do { unsafeConsumeRW @p;  unsafeConsumeRW @q; Linearly.return ()}) )
+
+sliceDeepR ::  constraint(Read n) =>. Slice a n ->
       (forall p. constraint(Read p) =>. a p -> exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
       exists q. constraint((Read o, Read q)) =>. (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
+sliceDeepR = … -- Mutatis mutandis
 \end{code}
-We're omitting their implementation because it becomes a little involved
-without being meaningfully different form the other borrowing functions we've
-seen so far. The idea is the same as deep borrowing: the slicing function is
+The idea is the same as deep borrowing: the slicing function is
 suspended until a borrows is called. But when we borrow, we only need one of the
-two produce slices, so we return the other one immediately. Note that the type
-of the inner slicing function is slightly abstracted compared to the type of
-`sliceS`: it doesn't take an integer argument, which we assume to be captured by
-the closure.
-
-\paragraph*{Implementing Matrix}
-\label{sec:implementing-matrix}
-
-This is enough material to implement the |Matrix| type from \cref{sec:valiant}.
-Like arrays, matrices are implemented as a disjunction
-\begin{code}
-data Matrix a n
-  = OwnedMatrix (NArray (NArray (Val a)) n)
-  | SliceMatrix (Slice (Slice (Val a)) n)
-\end{code}
-
-We can see the deep borrowing and slicing functions at work, for instance, in
-the |sliceMatrixV| function, which splits a matrix vertically into a top matrix
-and a bottom matrix.
-\begin{code}
-sliceMatrixV ::  constraint(RW n) =>. Matrix a n -> Int ->
-                 exists p q. (Ur (Matrix p, Matrix q), constraint((RW p, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW p, RW q))
-sliceMatrixV (OwnedMatrix m) row_num = Linearly.do
-  (Ur m', release_top) <- fullSlice m
-  (Ur m'', release_top_deep) <- borrowDeep m' fullSlice
-  (Ur (t, b), release_slices) <- sliceDeep m'' (\col -> slice col row_num)
-  Linearly.return (
-    Ur (SliceMatrix t, SliceMatrix b),
-    Linearly.do { release_slices; release_top_deep; release_top })
-sliceMatrixV (SliceMatrix m) row_num = Linearly.do
-  (Ur (t, b), release_slices) <- sliceDeep m (\col -> slice col row_num)
-  Linearly.return (Ur (SliceMatrix t, SliceMatrix b), release_slices )
-\end{code}
-Notice how we use |borrowDeep| in the |OwnedMatrix| case to convert an |Array
-(Array _)| into a |Slice (Slice _)|. The rest of the matrix functions follow
-easily.
-
-As promised our nested array \textsc{api} is general enough to support slicing
-along both dimension of matrices. Of course, there's nothing special about
-matrices, higher dimension tensors would work as well. The key to all this is
-that all this flexibility follows from the theory of linear constraints, which
-is a natural extension of Haskell's constraints. Constraints can be captured in
-closure, and in existential types (or \textsc{gadt}s in real-life Haskell),
-which affords us a lot of programming techniques. We don't have to develop any
-\emph{ad hoc} theory of capabilities.
+two produce slices, so we drop the other one immediately. Note that the |Read|
+and |Write| capabilities for the dropped slice is captured by the corresponding
+release function (that is the constraints of |release_lr| are partially discharged).
 
 \subsection{Freezing nested structures}
 \label{sec:o1-freeze}
@@ -4112,7 +4238,7 @@ freeze :: constraint(Freeze a b) => a -> Ur b
 
 Note that, since |Freeze| cannot be reflexive, a nested array structure must
 have leaves of type |Ur a|. Here, |Ur| plays the same role as |Val| in
-\cref{sec:nested-arrays,sec:o1-freeze}.
+\cref{sec:nested-arrays,sec:narray-impl,sec:o1-freeze}.
 
 An issue with this approach is that since |Freeze| must be abstract, for safety,
 it is hard to extend this type class. For instance, if one would make a
