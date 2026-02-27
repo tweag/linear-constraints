@@ -1183,7 +1183,6 @@ In fact, in the current implementation, |insert| is not truly in-place:
 while is uses $O(1)$ heap space,  it actually uses $O(n)$ stack
 space, since it is not tail recursive. The |merge| may be compiled to a tail-recursive
 function if the compiler is able to optimise away the call to |release|.}
-% RESUME HERE AT NEXT CALL
 It is crucial that the arrays |ls| and |rs| be disjoint, if they are not then
 referential transparency would be lost and |merge| would not be a pure function
 (for instance reordering |write ls 0 r| and |insert l rs|, which is a legal
