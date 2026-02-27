@@ -1189,34 +1189,34 @@ referential transparency would be lost and |merge| would not be a pure function
 (for instance reordering |write ls 0 r| and |insert l rs|, which is a legal
 transformation, would change the result).
 
-\improvement{Add available (after the line) constraints in a second column}
+\improvement{In the current format the constraints on the left don't feel very useful}
 \begin{code}
 mergeSort ::  constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
 mergeSort as = when (length as > 1) $ Linearly.do
-    (Ur(ls, rs), release) <- slice as (len / 2)
-    mergeSort ls
-    mergeSort rs
-    merge ls rs
-    release
-    Linear.return ()
+    (Ur(ls, rs), release) <- slice as (len / 2)  -- |constraint((RW p, RW q))|
+    mergeSort ls                                 -- |constraint((RW p, RW q))|
+    mergeSort rs                                 -- |constraint((RW p, RW q))|
+    merge ls rs                                  -- |constraint((RW p, RW q))|
+    release                                      -- |constraint((RW n))|
+    Linear.return ()                             -- |constraint((RW n))|
 
 merge ::  constraint((RW p, RW q)) =>. UArray a p -> UArray a q -> () .<= constraint((RW p, RW q))
 merge ls rs = when (length ls > 0 && length rs > 0) $ Linearly.do
-    Ur l <- read 0 ls
-    Ur r <- read 0 rs
+    Ur l <- read 0 ls                       -- |constraint((RW p, RW q))|
+    Ur r <- read 0 rs                       -- |constraint((RW p, RW q))|
     if l <= r then Linearly.do
-      (Ur (_, ls'), release) <- slice ls 1
-      merge ls' rs
-      release
-      Linear.return ()
+      (Ur (_, ls'), release) <- slice ls 1  -- |constraint((RW pp, RW pq, RW q))|
+      merge ls' rs                          -- |constraint((RW pp, RW pq, RW q))|
+      release                               -- |constraint((RW p, RW q))|
+      Linear.return ()                      -- |constraint((RW p, RW q))|
     else Linearly.do
-      write ls 0 r
-      (Ur ls', release) <- slice 1 ls
-      Ur r' <- insert l rs
-      write rs 0 r'
-      merge ls' rs
-      release
-      Linear.return ()
+      write ls 0 r                          -- |constraint((RW p, RW q))|
+      (Ur ls', release) <- slice 1 ls       -- |constraint((RW p, RW qp, RW qq))|
+      Ur r' <- insert l rs                  -- |constraint((RW p, RW qp, RW qq))|
+      write rs 0 r'                         -- |constraint((RW p, RW qp, RW qq))|
+      merge ls' rs                          -- |constraint((RW p, RW qp, RW qq))|
+      release                               -- |constraint((RW p, RW q))|
+      Linear.return ()                      -- |constraint((RW p, RW q))|
 \end{code}
 This code requires the two slices to be accessed simultaneously, and this is
 achieved using the |slice| function in |mergeSort| which then goes
