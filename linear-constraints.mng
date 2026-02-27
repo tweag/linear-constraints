@@ -1707,14 +1707,14 @@ which affords us a lot of programming techniques. We don't have to develop any
 \subsection{Behind the curtain: implementing slices}
 \label{sec:narray-impl}
 
-One may wonder how they can go and implement a library of capability such as the
-nested array \textsc{api} of \cref{fig:narray-api}. In this section we will do
-just that.
+\improvement{Nick to improve the phrasing in these two paragraphs}
+One may wonder how a library with capabilities such as the
+nested array \textsc{api} of \cref{fig:narray-api} might be implemented.
+In this section we will do just that.
 
 Capabilities like |Read| and |Write| don't have an intrinsic meaning for the
-compiler. They are just constraints, not unlike type-class constraints. We
-impose a semantics on those constraints by making them abstract, just like
-abstract types. In this section, however, we will be inside the library, and
+compiler. They are just constraints, not unlike type-class constraints.
+In this section, however, we will be go behind the abstraction barrier, and
 have access to the concrete constraints. Specifically we will need the following
 primitives:
 
@@ -1863,10 +1863,6 @@ release function (that is the constraints of |release_lr| are partially discharg
 \subsection{Freezing nested structures}
 \label{sec:o1-freeze}
 
-\unsure{I put this introduction here to explain why there was even a problem to
-  solve. But possibly it's better to move more of the discussion to
-  {sec:freezing-in-details}}
-%
 When working with matrices in a functional language the most typical pattern is
 to use immutable matrices. Some algorithms, though, like Valiant's algorithm in
 \cref{sec:valiant}, need to mutate matrices. In which case a mutable
@@ -1914,8 +1910,7 @@ Traditional linear types give a good solution to unsafe
 freeze~\citep{LinearHaskell}. With linear constraints, we can solve both
 problems handily (we compare linear solutions with and without linear
 constraints in \cref{sec:freezing-in-details}). We can provide a
-primitive:\critical{We haven't actually defined an |Ur| constraint or something
-  equivalent yet, we need to fix it for this example}
+primitive:
 
 \begin{code}
 freezeNA :: constraint((Read n, Write n)) => NArray a n -> () .<= constraint ((Ur (Read n)))
@@ -1943,7 +1938,7 @@ readF (MkMatrix m) row_num col_num = do
 
 \subsection{Beyond arrays: splay Trees}
 \label{sec:splay-trees}
-\jp{flow sentence missing here}
+
 Another application of in-place updates are \emph{splay trees}. A
 splay tree acts like a binary search tree, but at every access, the
 tree structure is modified so that the recently accessed elements are
@@ -1960,19 +1955,20 @@ updateable reference.
 As usual, we need splitting and joining functions for this data:
 > splitTree :: constraint (RW n) => Ref Node n -> ∃ p q. (Ref Node p, Int, Ref Node q) .<= constraint((RW p, RW q, TreeSlice p q n))
 > joinTree :: constraint((RW p, RW q, TreeSlice p q n)) =>. Ref Node p -> Int -> Ref Node q -> Ref Node n .<= constraint((RW n))
-\todo{splitTree may fail (Leaf). Dealing with this case will considerably complexify the example. I'm not sure if it's worth it. But there is an interesting point belowwhich can be seen already with this simpler case: namely this is a bit convoluted compared to what one would write normally either with Haskell or C.}
 
-Accessing generic references would be done via the following two
-functions:\jp{we discussed |Val| above, how |Ref| is different is unclear to me.
-Arnaud: Val isn't mutable, Ref is an array of size 1.}
-> readRef :: constraint (Read n) =>. Ref a n -> Ur a .<= constraint (Read n)
-> writeRef :: constraint (RW n) =>. Ref a n -> a -> () .<= constraint (RW n)
+The type |Ref| is defines as follows:
+> type Ref  :: (Reg -> Type) -> Reg -> Type
+> newRef    :: constraint (Unique) =>. a -> exists n. Ref a n .<= constraint (RW n)
+> readRef   :: constraint (Read n) =>. Ref a n -> Ur a .<= constraint (Read n)
+> writeRef  :: constraint (RW n) =>. Ref a n -> a -> () .<= constraint (RW n)
+> swapRefs  :: constraint((RW p, RW q)) =>. Ref f p -> Ref f q -> () .<= constraint((RW p, RW q))
+> freeRefs  :: constraint(RW n) =>. Ref f n -> ()
 %
-But for this application we also need a way to exchange the contents of references:
-> swapRefs :: constraint((RW p, RW q)) =>. Ref f p -> Ref f q -> () .<= constraint((RW p, RW q))
+Where |swapRefs| exchanges the contents of two references, which we will need
+for this application.
 
 When accessing a node in the splay tree, it is brought towards the
-root by repeated use of 'rotate' operations which effectively exchange
+root by repeated use of |rotate| operations which effectively exchange
 a node with either its left or right child. There follows a schematic
 representation of the rotation with the left child:
 \begin{center}
@@ -2001,7 +1997,10 @@ representation of the rotation with the left child:
   \end{tikzpicture}
 \end{center}
 
-Using our ownership system, the implementation of the above rotation would be:
+% The call to (partial) |splitTree| is fine because we would never call |rotate|
+% on a Leaf node.
+Using our ownership system, the implementation of the above rotation would
+be:
 \begin{code}
 rotate :: constraint (RW n) =>. Ref Node n -> () .<= constraint (RW n)
 rotate root = do
