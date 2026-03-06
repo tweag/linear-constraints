@@ -1955,21 +1955,27 @@ A tree associated with a region |n| is defined as follows:
 > data Node n = Node (Ref Node n) Int (Ref Node n) | Leaf
 %
 The noteworthy feature is that each child is accessible via an
-updateable reference.
-As usual, we need splitting and joining functions for this data:
-> splitTree :: constraint (RW n) => Ref Node n -> ∃ p q. (Ref Node p, Int, Ref Node q) .<= constraint((RW p, RW q, TreeSlice p q n))
-> joinTree :: constraint((RW p, RW q, TreeSlice p q n)) =>. Ref Node p -> Int -> Ref Node q -> Ref Node n .<= constraint((RW n))
+updateable reference. To access a tree, we need a borrowing function. We'll
+assume a borrowing function which decomposes the structure as follows:
+> splitTree  :: constraint (RW n) => Ref Node n
+>            -> ∃ p q. (Ref Node p, Int, Ref Node q, constraint((RW p, RW q)) =>. () .<= constraint (RW n)) .<= constraint((RW p, RW q))
 
-The type |Ref| is defines as follows:
+We will regard the type |Ref| as being defined merely as an array whose length
+is known to be one:
 > type Ref  :: (Reg -> Type) -> Reg -> Type
-> newRef    :: constraint (Unique) =>. a -> exists n. Ref a n .<= constraint (RW n)
-> readRef   :: constraint (Read n) =>. Ref a n -> Ur a .<= constraint (Read n)
-> writeRef  :: constraint (RW n) =>. Ref a n -> a -> () .<= constraint (RW n)
+> newtype Ref f n = UnsafeMkRef (NArray f n)
+%
+In this section we will be using the following functions on references:
+> newRef    :: constraint (Unique, RW p) =>. a p -> exists n. Ref a n .<= constraint (RW n)
 > swapRefs  :: constraint((RW p, RW q)) =>. Ref f p -> Ref f q -> () .<= constraint((RW p, RW q))
 > freeRefs  :: constraint(RW n) =>. Ref f n -> ()
 %
-Where |swapRefs| exchanges the contents of two references, which we will need
-for this application.
+The implementation of |newRef| and |freeRefs| are straightforward wrappers
+around |newNArray| (\cref{fig:narray-api}) and |freezeNA| (\cref{sec:o1-freeze}) respectively.
+On the other hand, |swapRefs| is new: |swapRefs| exchanges the contents of two
+references. It can't be implemented in terms of writes and borrows because
+|swapRefs| lets two references trade ownership of their contents, borrows never
+give such permission.
 
 When accessing a node in the splay tree, it is brought towards the
 root by repeated use of |rotate| operations which effectively exchange
@@ -2001,32 +2007,30 @@ representation of the rotation with the left child:
   \end{tikzpicture}
 \end{center}
 
-% The call to (partial) |splitTree| is fine because we would never call |rotate|
+% The call1s to (partial) |splitTree| is fine because we would never call |rotate|
 % on a Leaf node.
 Using our ownership system, the implementation of the above rotation would
-be:
+be:\improvement{There lacks a source of |constraint(Unique)| for |newRef|}
 \begin{code}
 rotate :: constraint (RW n) =>. Ref Node n -> () .<= constraint (RW n)
-rotate root = do
+rotate root = Linearly.do
   -- create a new temporary tree for the exchange
   newRoot <- newRef Leaf
 
   -- swap newRoot (root.left)
-  (l, x, r) <- splitTree root
+  (yl, y, yr, release_root) <- splitTree root
   swapRefs newRoot l
-  joinTree l x r
 
   -- swap (newRoot.right) (root.left)
-  (l, x, r) <- splitTree newRoot
-  (l', x', r') <- borrow root
-  swapRefs r l'
-  joinTree l x r >> joinTree l' x' r'
+  (xl, x, xr, release_new) <- splitTree newRoot
+  swapRefs xr yl
 
   -- swap (newRoot.right) root
-  (l, x, r) <- borrow newRoot
-  swapRefs root l
-  joinTree l x r
+  release_root
+  swapRefs xr root
 
+  -- cleanup
+  release_new
   swapRefs root newRoot
   freeRef newRoot
 \end{code}
@@ -2035,9 +2039,69 @@ The above code mixes aspects of functional and imperative styles. Like
 in a functional language, we're explicitly pattern matching on nodes
 structures when accessing them, using |splitTree|. But we can't simply
 deep-match on the tree, and reconstruct it with the nodes at another
-place, because the calls to |joinTree| must reflect the exact original
+place, the calls to |release| must reflect the exact original
 structure. So, we resort to local swaps, as one would do in an
 imperative language.\jp{IMO we're reaching the limit of the system here.}
+\improvement{[Arnaud]: I'm not sure the claim that we can't simply replace with
+  a shape is completely true. Huge syntactic overhead aside, I think the is an
+  implementation of the straightforward algorithm from functional programming}
+\begin{code}
+rotate :: constraint (RW n) =>. Ref Node n -> () .<= constraint (RW n)
+rotate root = Linearly.do
+  -- Receptacle for the new tree
+  newRoot <- newRef Leaf
+  
+  -- Deep match
+  (yl, y, yr, release_root) <- splitTree root
+  (xl, x, xr, release_left) <- splitTree yl
+  
+  -- Build-up
+  xl' <- newRef Leaf
+  xr' <- newRef Leaf
+  yl' <- newRef Leaf
+  yr' <- newRef Leaf
+  
+  swap yl' xr
+  swap yr' yr
+  writeTree xr (Node (yl', y, yr')) -- new but natural operation, can be implemented with swapRef anyway
+  swap xl' xl
+  writeTree newRoot (Node (xl', x, xr'))
+  
+  -- cleanup
+  release_left; release_root
+  swap root newRoot
+  freeRef newRoot
+\end{code}
+%
+Or with
+\begin{code}
+swallowRef :: constraint(RW n) =>. Ref Node n -> exists p. Ref Node p .<= constraint((RW n, RW q))
+swallowRef r = Linearly.do
+  res <- newRef Leaf
+  swap res r
+  Linearly.return res
+\end{code}
+%
+We can give a more straightforward
+\begin{code}
+rotate :: constraint (RW n) =>. Ref Node n -> () .<= constraint (RW n)
+rotate root = Linearly.do
+  -- Deep match
+  (yl, y, yr, release_root) <- splitTree root
+  (xl, x, xr, release_left) <- splitTree yl
+  
+  -- Build-up
+  yl' <- swallowRef xr
+  yr' <- swallowRef yr
+  xr' <- newRef (Node (yl', y, yr')) -- This doesn't typecheck, there are two regions instead of just the one.
+  xl' <- swallowRef xl
+  newRoot <- newRef (Node (xl', x, xr'))
+  
+  -- cleanup
+  release_left; release_root
+  swap root newRoot
+  freeRef newRoot
+\end{code}
 
 \subsection{Non-lexical lifetimes}
 \label{sec:nl-lifetimes}
@@ -2059,16 +2123,13 @@ map attaching references to keys, if a key is present we want to update the
 corresponding reference, otherwise we want to create a new reference at that
 key.
 
-We can model this problem with the following \textsc{api}, where references are
-taken to be arrays known to have exactly one cell.
+We can model this problem with the following \textsc{api} (where |Ref| is the
+type of mutable references from \cref{sec:splay-trees}):
 
-\jp{There is another kind of |Ref| down here}
 \begin{code}
-type Ref a s = UArray a s
-
 type Map :: Type -> Reg -> Type
 get ::  constraint(RW s) =>. Map v s -> Int ->
-        Either (() .<= constraint(RW s)) (exists r. (Ref v r, constraint(RW r) =>. () .<= constraint(RW s)) .<= constraint(RW r))
+        Either (() .<= constraint(RW s)) (exists r. (Ref (Val v) r, constraint(RW r) =>. () .<= constraint(RW s)) .<= constraint(RW r))
 add :: constraint(RW s) =>. Map v s -> Int -> v -> () .<= constraint(RW s)
 \end{code}
 
