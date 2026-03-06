@@ -1966,7 +1966,7 @@ is known to be one:
 > newtype Ref f n = UnsafeMkRef (NArray f n)
 %
 In this section we will be using the following functions on references:
-> newRef    :: constraint (Unique, RW p) =>. a p -> exists n. Ref a n .<= constraint (RW n)
+> newRef    :: constraint ((Unique, RW p)) =>. f p -> exists n. Ref f n .<= constraint (RW n)
 > swapRefs  :: constraint((RW p, RW q)) =>. Ref f p -> Ref f q -> () .<= constraint((RW p, RW q))
 > freeRefs  :: constraint(RW n) =>. Ref f n -> ()
 %
@@ -2075,7 +2075,7 @@ rotate root = Linearly.do
 %
 Or with
 \begin{code}
-swallowRef :: constraint(RW n) =>. Ref Node n -> exists p. Ref Node p .<= constraint((RW n, RW q))
+swallowRef :: constraint(RW n) =>. Ref Node n -> exists p. Ref Node p .<= constraint((RW n, RW p))
 swallowRef r = Linearly.do
   res <- newRef Leaf
   swap res r
@@ -2223,13 +2223,13 @@ below:
 While Brady's API uses linear types, we can capture the (effectful)
 transitions using linear constraints, as follows:
 \begin{code}
-initATM :: L (∃ s. ATM s .<= Ready s)
-shutDown :: Ready s =>. ATM s -> L ()
-insertCard :: Ready s =>. ATM s -> L (() .<= CardInserted s)
-checkPIN :: CardInserted s =>. ATM s -> Int -> L (Either (() .<= Session s)  (() .<= CardInserted))
-dispense :: Session s =>.  ATM s -> L (() .<= Session s) 
-ejectCard :: CardInserted s =>. L (() .<= Ready s)
-terminateSession :: Session s =>. L (() .<= CardInserted s)
+initATM :: L (∃ s. ATM s .<= constraint(Ready s))
+shutDown :: constraint(Ready s) =>. ATM s -> L ()
+insertCard :: constraint(Ready s) =>. ATM s -> L (() .<= constraint(CardInserted s))
+checkPIN :: constraint(CardInserted s) =>. ATM s -> Int -> L (Either (() .<= Session s)  (() .<= constraint(CardInserted)))
+dispense :: constraint(Session s) =>.  ATM s -> L (() .<= constraint(Session s)) 
+ejectCard :: constraint(CardInserted s) =>. L (() .<= constraint(Ready s))
+terminateSession :: constraint(Session s) =>. L (() .<= constraint(CardInserted s))
 message :: ATM s -> String -> L ()
 \end{code}
 One possible use of the above API is the following:
