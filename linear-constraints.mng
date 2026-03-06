@@ -1190,13 +1190,13 @@ transformation, would change the result).
 
 \begin{code}
 mergeSort ::  constraint(RW n) =>. UArray a n -> () .<= constraint(RW n)
-mergeSort as = when (length as > 1) $ Linearly.do
-    (Ur(ls, rs), release) <- slice as (len / 2)  -- |constraint((RW p, RW q))|
-    mergeSort ls                                 -- |constraint((RW p, RW q))|
-    mergeSort rs                                 -- |constraint((RW p, RW q))|
-    merge ls rs                                  -- |constraint((RW p, RW q))|
-    release                                      -- |constraint((RW n))|
-    Linear.return ()                             -- |constraint((RW n))|
+mergeSort as = when (length as > 1) $ Linearly.do  -- |constraint((RW n))|
+    (Ur(ls, rs), release) <- slice as (len / 2)    -- |constraint((RW p, RW q))|
+    mergeSort ls                                   -- |constraint((RW p, RW q))|
+    mergeSort rs                                   -- |constraint((RW p, RW q))|
+    merge ls rs                                    -- |constraint((RW p, RW q))|
+    release                                        -- |constraint((RW n))|
+    Linear.return ()                               -- |constraint((RW n))|
 \end{code}
 As comments, we write the linear constraints which are in context
 after the call on their left. Most notably we can see the effect of
