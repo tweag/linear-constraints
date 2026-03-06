@@ -1711,16 +1711,16 @@ which affords us a lot of programming techniques. We don't have to develop any
 \subsection{Behind the curtain: implementing slices}
 \label{sec:narray-impl}
 
-\improvement{Nick to improve the phrasing in these two paragraphs}
-One may wonder how a library with capabilities such as the
-nested array \textsc{api} of \cref{fig:narray-api} might be implemented.
-In this section we will do just that.
+One may naturally ask how a library providing the capabilities such as the
+nested array \textsc{api} of \cref{fig:narray-api} can be implemented. In this
+section we will do exactly that.
 
-Capabilities like |Read| and |Write| don't have an intrinsic meaning for the
-compiler. They are just constraints, not unlike type-class constraints.
-In this section, however, we will be go behind the abstraction barrier, and
-have access to the concrete constraints. Specifically we will need the following
-primitives:
+Capabilities like |Read| and |Write| carry no intrinsic meaning for the
+compiler. They are simply constraints, much like type-class constraints. Their
+interpretation is determined by the library that implements them. To users of
+the library these constraints remain abstract, but now we look inside the
+library to see how to implement their concrete definitions. In particular, we
+will require the following primitives:
 
 \begin{code}
 unsafeRead :: () .<= constraint(Read n)
