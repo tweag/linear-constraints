@@ -2105,11 +2105,6 @@ rotate root = Linearly.do
 
 \subsection{Non-lexical lifetimes}
 \label{sec:nl-lifetimes}
-\jp{We went gradually from examples to classes of problems. Maybe this should be another section, perhaps go much later in the paper (discussion)}
-\unsure{In this section and the next, it sounds like if I'm trying to say that
-  we're better than Rust or something. This isn't the intent, the intent is to
-  look at Rust for inspiration for interesting examples. How do I sound less
-  callous?}\jp{is there a way to introduce ``lexical lifetime'' without reference to Rust, and maybe give some historical context at the end of the section?}
 In early versions of the Rust programming language, borrows were, for all
 intents and purposes, bound to lexical scopes. This turned out to be too coarse
 grained, rejecting natural sound programs. This became known as the problem of
@@ -2403,6 +2398,8 @@ constraints) is given by an \emph{entailment relation}. \jp{In practice, this en
   Here is my breakdown:
   
   3. merits some more explanation. It seems that you'd want to say if \(Q ⊩ Q₁ ⊗ Q₂\) then \(Q = Q₁ ⊗ Q₂\), but you have a difficulty with duplicable constraints.
+
+  8. Check if it is equivalent to \(ωq ⊩ q\).
   
   The rest looks reasonable.
   Some thoughts:
