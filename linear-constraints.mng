@@ -2470,39 +2470,6 @@ unrestrictedly.
 
 Then the following properties hold
 %
-\begin{lemmarep}[Scaling]
-  \label{lem:q:scaling}
-  If $[[Q1 ||- Q2]]$, then $[[pi.Q1 ||- pi.Q2]]$.
-\end{lemmarep}
-\begin{proof}
-  Let us prove separately the cases $[[{pi}]]=[[{1}]]$ and
-  $[[{pi}]]=[[{omega}]]$.
-  \begin{itemize}
-  \item When $[[{pi}]]=[[{1}]]$, then $[[{pi.Q}]]=[[{Q}]]$ for all
-    $[[{Q}]]$, hence $[[Q1||-Q2]]$ implies $[[pi.Q1 ||- pi.Q2]]$.
-  \item For the case $[[{pi}]]=[[{omega}]]$, let us consider a few
-    properties. First note that, for any $[[{Q}]]$,
-    $[[{omega.Q}]]=[[{omega.Q * omega.Q}]]$. From which it follows,
-    using the laws of \cref{def:entailment-relation}, that
-    $[[omega.Q ||- Q1 * Q2]]$ if and only if $[[omega.Q ||- Q1]]$ and
-    $[[omega.Q ||- Q2]]$.
-
-    This means that to verify that
-    $[[omega.Q1 ||- omega.Q2]]$, it is equivalent to prove that $[[omega.Q1
-    ||- omega.q2]]$ for each
-    $[[{q2}]]∈[[{UCtx}]]$ (letting $[[{omega.Q2}]]=[[{(UCtx,
-      emptyset)}]]$). In turn, by \cref{def:entailment-relation} and
-    observing that $[[{omega.(omega.Q1)}]] = [[{Q1}]]$, this is
-    equivalent to $[[omega.Q1 ||- 1.q2]]$.
-
-    This follows from the fact that $[[Q1 ||- Q2]]$ implies
-    $[[omega.Q1 ||- Q2]]$ (\cref{def:entailment-relation}) and the
-    property, shown above, that $[[omega.Q1 ||- Q2 * Q2']]$ if and
-    only if $[[omega.Q1 ||- Q2]]$ and $[[omega.Q1 ||- Q2']]$.
-  \end{itemize}
-\end{proof}
-
-
 \begin{lemmarep}[Inversion of scaling]
   \label{lem:q:scaling-inversion}
   If $[[Q1 ||- pi.Q2]]$, then $[[{Q1}]]=[[{pi.Q'}]]$ and $[[Q' ||- Q2]]$ for some $[[{Q'}]]$.
@@ -3041,30 +3008,26 @@ entailment relation.
   If $[[Q |- C]]$, then $[[pi.Q |- pi.C]]$.
 \end{lemmarep}
 \begin{proof}
-  By induction on the syntax of $[[{C}]]$
+  By induction on the derivation of $[[Q |- C]]$
   \begin{itemize}
-  \item If $[[{C}]]=[[{Q'}]]$, then the result follows
-    from \cref{lem:q:scaling}
-  \item If $[[{C}]]=[[{C1*C2}]]$, then we can prove the result like we
-    proved the corresponding case in \cref{lem:q:scaling},
-    using \cref{lem:inversion}.
-  \item If $[[{C}]]=[[{C1&C2}]]$, then we the case where $[[{pi}]]=[[{1}]]$ is
-    immediate, so we can assume without loss of generality that
-    $[[{pi}]]=[[{omega}]]$, and, therefore, that $[[{pi.C}]] = [[pi.C1 *
-    pi.C2]]$.
-    By \cref{lem:inversion}, we have that $[[Q|-C1]]$ and
-    $[[Q|-C2]]$; hence, by induction, $[[omega.Q |- omega.C1]]$ and
-    $[[omega.Q |- omega.C1]]$.
-    Then, by definition of the entailment relation, we have $[[omega.Q
-    * omega.Q |- omega.C1 * omega.C2]]$, which concludes,
-    since $[[{omega.Q}]] = [[{omega.Q * omega.Q}]]$.
-  \item If $[[{C}]]=[[{rho.(Q1 => C')}]]$, then by
-    \cref{lem:inversion}, there is a $[[{Q'}]]$ such that
-    $[[{Q}]]=[[{pi.Q'}]]$ and $[[Q'*Q1 |- C']]$. Applying
-    rule~\rref*{C-Impl} with $[[{pi.rho}]]$, we get
-    $[[(pi.rho).Q' |- (pi.rho).(Q1 => C')]]$.
-
-    In other words: $[[pi.Q |- pi.(rho.(Q=>C))]]$ as expected.
+    \item \Rref*{C-Dom}: there exists $[[{Q'}]]$ such that $[[Q' |- C]]$
+          and $[[Q ||- Q']]$. By induction $[[pi.Q' |- pi.C]]$, and by
+          \cref{fig:entailment-relation} $[[pi.Q ||- pi.Q']]$, then by
+          \rref*{C-Dom}, we conclude that $[[pi.Q |- pi.C]]$.
+    \item \Rref*{C-Id}: by \rref*{C-Id}, $[[pi.Q |- pi.Q]]$.
+    \item \Rref*{C-Tensor}: $[[{Q}]]=[[{Q1*Q2}]]$ and $[[{C}]]=[[{C1*C2}]]$, with
+          $[[Q1 |- C1]]$ and $[[Q2 |- C2]]$. By induction,
+          $[[pi.Q1 |- pi.C1]]$ and $[[pi.Q2 |- pi.C2]]$, then by
+          \rref*{C-Tensor},
+          $[[{pi.Q}]]=[[pi.Q1 * pi.Q2 |- pi.C1 * pi.C2]]=[[{pi.C}]]$.
+    \item \Rref*{C-With}: by case of $[[{pi}]]$, if $[[{pi}]]=[[{1}]]$, then the
+          result holds by definition. If $[[{pi}]]=[[{omega}]]$, then and
+          $[[{C}]]=[[{C1&C2}]]$ with $[[Q |- C1]]$ and $[[Q |- C2]]$. By
+          induction, $[[omega.Q |- omega.C1]]$ and $[[omega.Q |- omega.C2]]$,
+          and we conclude with \rref*{C-Tensor} (not \rref*{C-With}, due to the
+          definition of $[[{omega.(C1&C2)}]]$)): 
+          $[[{omega.Q}]]=[[omega.Q * omega.Q |- omega.C1 * omega.C2]]=[[{omega.(C1&C2)}]]=[[{omega.C}]]$.
+    \item \Rref*{C-Impl}: straightforward as scaling is built in the rule.
   \end{itemize}
 \end{proof}
 
