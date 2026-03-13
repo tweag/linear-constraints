@@ -456,6 +456,8 @@ Our design is intended to work well with other features of Haskell and
 The specific contributions of  this extended version are:
 \begin{itemize}
 \item numerous new examples and applications~(\cref{sec:memory-ownership})
+\item simplified requirements for the entailment relation of simple
+        constraints~(\cref{sec:qualified-type-system})
 \item a new and simplified constraint solver~(\cref{sec:constraint-solver})
 \item a discussion of the design decisions~(\cref{sec:design-considerations})
 \end{itemize}
@@ -2394,17 +2396,7 @@ $$
 $$
 
 The semantics of simple constraints (and, indeed, of atomic
-constraints) is given by an \emph{entailment relation}. \jp{In practice, this entailment relation is used to model the subclass relationships between constraints. Perhaps at some point we need to write a section of the paper that explains why these requirements make sense intuitively.
-  Here is my breakdown:
-  
-  3. merits some more explanation. It seems that you'd want to say if \(Q ⊩ Q₁ ⊗ Q₂\) then \(Q = Q₁ ⊗ Q₂\), but you have a difficulty with duplicable constraints.
-
-  8. Check if it is equivalent to \(ωq ⊩ q\).
-  
-  The rest looks reasonable.
-  Some thoughts:
-   - maybe define D as the set of q satisfying the rhs. of 10 and 11?
-} Just like the
+constraints) is given by an \emph{entailment relation}. Just like the
 set of atomic constraints, the entailment relation is a parameter of
 our system.
 
@@ -2413,26 +2405,16 @@ our system.
   \begin{enumerate}
   \item $[[Q ||- Q]]$.
   \item If $[[Q1 ||- Q2]]$  and $[[Q2 ||- Q3]]$, then $[[Q1 ||- Q3]]$.
-  \item If $[[Q ||- Q1 * Q2]]$, then there exist $[[{Q'}]]$, $[[{Qdup}]]$, and $[[{Q''}]]$
-        such that:
-        $$
-         [[Qdup \in Dup]], \quad [[{Q}]]=[[{Q' * Qdup * Q''}]], \quad [[Q' * Qdup ||- Q1]]\text{, and } \quad
-        [[Qdup * Q'' ||- Q2]].
-        $$
-  \item If $[[Q ||- Empty]]$, then $[[Q \in Dup]]$.
   \item If $[[Q1 ||- Q1']]$ and $[[Q2 ||- Q2']]$, then $[[Q1 * Q2 ||- Q1' * Q2']]$.
   \item If $[[Q1 ||- Q2]]$, then $[[pi . Q1 ||- pi.Q2]]$.
-  \item If $[[Q ||- (pi.rho) . q]]$, then there exists $[[{Q'}]]$ such that $[[{Q}]] = [[{pi. Q'}]]$ and $[[Q' ||- rho . q]]$.
   \item If $[[omega.Q ||- Q]]$.
   \item If $[[omega.Q ||- Empty]]$.
   \item If $[[q \in Dup]]$, then $[[1.q ||- 1.q * 1.q]]$.
   \item If $[[q \in Dup]]$, then $[[1.q ||- Empty]]$.
-  \item If $[[Q \in Dup]]$ and $[[Q' ||- Q]]$, then $[[Q' \in Dup]]$.
   \end{enumerate}
 \caption{Requirements for the entailment relation $[[Q1 ||- Q2]]$}
 \label{fig:entailment-relation}
 \end{figure}
-\jp{In the requirements, the RHS of entailment has a variable form. Clarify.}
 \begin{definition}[Entailment relation]
   \label{def:entailment-relation}
   The qualified type system is parameterised by a relation
@@ -2444,7 +2426,9 @@ our system.
   have $[[q \in Dup]]$. (This isn't a plain inclusion because $[[{LCtx}]]$ is a multiset and $[[Dup]]$.)
 
   The entailment relation must obey the laws listed in
-  \Cref{fig:entailment-relation}.
+  \Cref{fig:entailment-relation}. Note that $[[Dup]]$ being a set of atomic
+  constraints, the rules pertaining to $[[Dup]]$ are in terms of atomic
+  constraints rather than of arbitrary simple constraints.
 \end{definition}
 %
 \info{See Fig 3, p14 of OutsideIn\cite{OutsideIn}.}
@@ -2452,9 +2436,7 @@ our system.
 The set $[[{Dup}]]$ is a set of constraints which can be duplicated and
 discarded (see~\cref{fig:entailment-relation}). We use $[[{Dup}]]$ to
 model the |constraint(Unique)| constraint. Crucially, it is \emph{not
-  the case} that $[[1.q ||- omega.q]]$ for $[[q\in Dup]]$; such an
-entailment is, in fact, prohibited (\cref{lem:q:scaling-inversion}) by
-the rules of~\cref{fig:entailment-relation}. While it may seem
+  the case} that $[[1.q ||- omega.q]]$ for $[[q\in Dup]]$. While it may seem
 counter-intuitive, there is nothing in linear logic mandating that a
 formula that can be duplicated and discarded be (equivalent to) an
 unrestricted formula. This observation has been exploited, for
@@ -2463,43 +2445,6 @@ subexponentials~\cite{subexponentials}. For our use case, it lets the
 typechecker dispatch |constraint(Unique)| constraints (using
 duplication), but prevents the result of constrained functions to be used
 unrestrictedly.
-
-Then the following properties hold
-%
-\begin{lemmarep}[Inversion of scaling]
-  \label{lem:q:scaling-inversion}
-  If $[[Q1 ||- pi.Q2]]$, then $[[{Q1}]]=[[{pi.Q'}]]$ and $[[Q' ||- Q2]]$ for some $[[{Q'}]]$.
-\end{lemmarep}
-\begin{proof}
-  Let us prove separately the cases $[[{pi}]]=[[{1}]]$ and
-  $[[{pi}]]=[[{omega}]]$.
-  \begin{itemize}
-  \item When $[[{pi}]]=[[{1}]]$, then $[[{pi.Q}]]=[[{Q}]]$ for all
-    $[[{Q}]]$, in particular $[[Q1||- 1.Q2]]$ implies that
-    $[[{Q1}]]=[[{1.Q1}]]$ with $[[Q1 ||- Q2]]$.
-  \item When $[[{pi}]]=[[{omega}]]$, then let us first remark, letting
-    $[[{omega.Q2}]]=[[{(UCtx, emptyset)}]]$ that, by a straightforward
-    induction on the cardinality of $[[{UCtx}]]$ it is sufficient to
-    prove that the result holds for atomic constraints.
-
-    That is, we need to prove that if $[[Q1 ||- omega.q2]]$ then
-    there exists $[[{Q'}]]$ such that $[[{Q1}]]=[[{omega.Q'}]]$ and
-    $[[Q' ||- rho.q2]]$ (for all $[[{rho}]]$).
-
-    This result, in turns, holds by \cref{def:entailment-relation}.
-  \end{itemize}
-\end{proof}
-
-\begin{corollary}[Linear assumptions]
-If $[[Q1 ||- omega.Q2]]$, then $[[{Q1}]]$ contains no linear assumptions.
-\end{corollary}
-
-\begin{toappendix}
-  \label{sec:appendix:proofs-lemmas}
-\end{toappendix}
-
-Proofs of these lemmas (and others) appear in \cref{sec:appendix:proofs-lemmas};
-they can be proved by straightforward use of the properties in \Cref{fig:entailment-relation}.
 
 \subsection{Typing Rules}
 \label{sec:typing-rules}
@@ -2671,16 +2616,6 @@ Bindings in a |let| may be for either linear or unrestricted variables.
 \info{No substitution on $[[{Q1}]]$ in the E-Unpack rule, because there is
   only existential quantification.}
 
-\begin{toappendix}
-  \begin{lemma}\label{lem:simples:monoid-action}
-  The following equality holds $[[{pi.(rho.Q)}]]=[[{(pi.rho).Q}]]$
-\end{lemma}
-\begin{nestedproof}
-  Immediate by case analysis of $[[{pi}]]$ and $[[{rho}]]$.
-\end{nestedproof}
-
-\end{toappendix}
-
 \section{Constraint inference}
 \label{sec:type-inference}
 
@@ -2820,107 +2755,14 @@ in assumptions is the subject of work by \citet{quantified-constraints}.}.
   \label{fig:wanted:entailment}
 \end{figure}
 
+\begin{toappendix}
+  \label{sec:appendix:proofs-lemmas}
+\end{toappendix}
+
 Before we move on to constraint generation proper, let us highlight a few
 technical, yet essential, lemmas about the wanted-constraint
-entailment relation.
+entailment relation. Proofs of these lemmas (and others) appear in \cref{sec:appendix:proofs-lemmas}.
 
-\begin{toappendix}
-  \begin{lemma}[$[[{Dup}]]$ discarding]
-  \label{lem:dup-weakening}
-  The two following, equivalent, properties hold
-  \begin{itemize}
-  \item if $[[Qdup \in Dup]]$, then $[[Qdup ||- Empty]]$
-  \item if $[[Q1 ||- Q2]]$ and $[[Qdup \in Dup]]$, then $[[Q1 * Qdup ||- Q2]]$
-  \end{itemize}
-\end{lemma}
-\begin{nestedproof}
-  The two properties are equivalent
-  \begin{itemize}
-  \item using $[[{Q1}]]=[[{Q2}]]=[[{Empty}]]$, the latter implies the
-    former
-  \item The former implies the latter by tensoring together
-    $[[Q1 ||- Q2]]$ and $[[Qdup ||- Empty]]$ following the rules
-    of~\cref{fig:entailment-relation}.
-  \end{itemize}
-  Let $[[Qdup \in Dup]]$, then for each $[[{1.q}]] \in [[{Qdup}]]$, $[[{q}]] \in [[{Dup}]]$,
-  $[[1.q ||- Empty]]$ (per \cref{fig:entailment-relation}), and for all
-  $[[{omega.q}]] \in [[{Qdup}]]$, $[[{q}]]$ is arbitrary bu
-  $[[omega.q ||- Empty]]$ regarless (per \cref{fig:entailment-relation}).
-  tensoring
-  each of these entailments together we get $[[Qdup ||- Empty]]$.
-\end{nestedproof}
-
-\begin{lemma}[$[[{Dup}]]$ duplication]
-  \label{lem:dup-contraction}
-  The two following, equivalent, properties hold
-  \begin{itemize}
-  \item if $[[Qdup \in Dup]]$, then $[[Qdup ||- Qdup * Qdup]]$
-  \item if $[[Q1 * Qdup ||- Q2]]$, $[[Qdup * Q1' ||- Q2']]$, and
-    $[[Qdup \in Dup]]$, then $[[Q1 * Qdup * Q1'||- Q2 * Q2']]$
-  \end{itemize}
-\end{lemma}
-\begin{nestedproof}
-  The proof is similar to that of~\cref{lem:dup-weakening}
-\end{nestedproof}
-
-\begin{lemma}[Transitive tensor decomposition]
-  \label{lem:transitive-tensor-decomposition}
-  if $[[Qdup \in Dup]]$ and $[[Q ||- Q1 * Qdup * Q2]]$, then there
-  exists $[[Q1']]$, $[[Qdup']]$, $[[Q2']]$, such that
-  \begin{itemize}
-  \item $[[Q1' * Qdup' ||- Q1]]$
-  \item $[[Qdup' * Q2' ||- Q2]]$
-  \item $[[Qdup' ||- Qdup]]$
-  % \item $[[{Q}]] = [[{Q1' * Qdup' * Q2'}]]$
-  \end{itemize}
-\end{lemma}
-\begin{nestedproof}
-  By the inversion-of-tensor rule from~\cref{fig:entailment-relation},
-  we get that ther exists $[[{Q'}]]$, $[[{Qdup'}]]$, and $[[{Q2'}]]$,
-  such that
-  \begin{itemize}
-  \item $[[{Q}]] = [[{Q' * Qdup' * Q2'}]]$
-  \item $[[Qdup' * Q2' ||- Q2]]$
-  \item $[[Q' * Qdup' ||- Q1 * Qdup]]$. The inversion-of-tensor rule
-    applies further to this case: there exists $[[{Q1'}]]$,
-    $[[{Qdup''}]]$, and $[[{Q''}]]$ such that
-    \begin{itemize}
-    \item $[[{Q' * Qdup'}]] = [[{Q1' * Qdup'' * Q''}]]$
-    \item $[[Q1' * Qdup'' ||- Q1']]$
-    \item $[[Qdup'' * Q'' ||- Qdup']]$
-    \end{itemize}
-  \end{itemize}
-  Observe the following
-  \begin{itemize}
-  \item $[[Qdup'' * Q'' \in Dup]]$ (because of the requirements
-    of~\cref{fig:entailment-relation}). Let's write
-    $[[{Qdup'''}]] = [[{Qdup'' * Q''}]]$.
-  \item $[[{Q}]] = [[{Q1' * Qdup''' * Q2'}]]$
-  \item We have
-    \begin{itemize}
-    \item $[[Q1' * Qdup''' ||- Q1]]$. Because
-      \begin{itemize}
-      \item $[[{Q1' * Qdup'''}]] = [[{Q' * Qdup'}]]$
-      \item therefore $[[Q1' * Qdup''' ||- Q1 * Qdup]]$
-      \item by~\cref{lem:dup-weakening}, and by transitivity of the
-        entailment relation (per~\cref{fig:entailment-relation}), we
-        can drop $[[{Qdup}]]$ from the conclusion.
-      \end{itemize}
-    \item $[[Qdup''' ||- Qdup']]$ (by definition of $[[{Qdup'''}]]$)
-    \item $[[Qdup''' * Q2' ||- Q2]]$
-      \begin{itemize}
-      \item By tensoring together, per~\cref{fig:entailment-relation},
-        $[[Qdup''' ||- Qdup']]$ and $[[Q2' ||- Q2']]$, we get
-        $[[Qdup''' * Q2' ||- Qdup' * Q2']]$
-      \item then we get the desired result by transitivity of the
-        entailment relation.
-      \end{itemize}
-    \end{itemize}
-  \end{itemize}
-
-  This concludes the proof
-\end{nestedproof}
-\end{toappendix}
 
 \begin{lemmarep}[Inversion]
   \label{lem:inversion}
@@ -2929,17 +2771,16 @@ entailment relation.
   as top-down, as is required of $[[Q1 ||- Q2]]$ in
   \Cref{fig:entailment-relation}. That is:
   \begin{itemize}
-  \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$, $[[{Qdup}]]$ and $[[{Q2}]]$
-    such that $[[Qdup \in Dup]]$, $[[Q1 * Qdup |- C1]]$, $[[Qdup * Q2 |- C2]]$, and
-    $[[{Q}]] = [[{Q1 * Qdup * Q2}]]$.
+  \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$ and $[[{Q2}]]$
+    such that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
+    $[[Q ||- Q1 * Q2]]$.
   \item If $[[Q |- C1 & C2]]$, then $[[Q |- C1]]$ and $[[Q |- C2]]$.
   \item If $[[Q |- pi.(Q2 => C)]]$, then there exists $[[{Q1}]]$ such
-    that $[[Q1 * Q2 |- C]]$ and  $[[{Q}]] = [[{pi.Q1}]]$
+    that $[[Q1 * Q2 |- C]]$ and  $[[Q ||- pi.Q1]]$
   \end{itemize}
 \end{lemmarep}
 \begin{proof}
-  The cases $[[Q |- C1 & C2]]$ and $[[Q |- pi.(Q2 => C)]]$ are
-  straightforward by induction, so let us prove them first
+  We prove each of these statement by induction
   \begin{itemize}
   \item Suppose $[[Q |- C1 & C2]]$, then there are two cases
     \begin{itemize}
@@ -2962,15 +2803,10 @@ entailment relation.
       exists $[[{Q'}]]$, such that $[[Q ||- Q']]$ and
       $[[Q' |- pi.(Q2 => C)]]$.
 
-      By induction, there exists $[[{Q1'}]]$ such that $[[Q1' * Q2 |-
-      C]]$ and $[[{Q'}]] = [[{pi.Q1'}]]$,
-      by~\cref{fig:entailment-relation}, there exists $[[{Q1}]]$ such
-      that $[[{Q}]] = [[{pi.Q1}]]$ and $[[Q1 ||- Q1']]$. Hence $[[Q1 *
-      Q2 ||- Q1' * Q2]]$, which lets us conclude with \rref*{C-Dom}.
+      By induction, there exists $[[{Q1}]]$ such that $[[Q1 * Q2 |-
+      C]]$ and $[[Q' ||- pi.Q1]]$, then we conclude by \rref*{C-Dom}.
     \end{itemize}
-  \end{itemize}
-
-  For $[[Q |- C1 * C2]]$ we have the following cases:
+  \item Suppose $[[Q |- C1 * C2]]$ we have the following cases:
   \begin{itemize}
   \item either it is the conclusion of a \rref*{C-Tensor} rule, and
     the result is immediate
@@ -2979,25 +2815,12 @@ entailment relation.
   \item or it is the result of a \rref*{C-Dom} rule, in which case
     there is $[[{Q'}]]$ such that $[[Q ||- Q']]$ and $[[Q' |- C1 * C2]]$.
 
-    By induction, there exist $[[{Q1'}]]$, $[[{Qdup'}]]$, and
-    $[[{Q2'}]]$, such that $[[Qdup' \in Dup]]$, $[[Q1' * Qdup' |- C1]]$,
-    $[[Qdup' * Q2' |- C2]]$, and $[[{Q'}]] = [[{Q1' * Qdup' * Q2'}]]$.
+    By induction, there exist $[[{Q1'}]]$, and
+    $[[{Q2'}]]$, such that $[[Q1' |- C1]]$,
+    $[[Q2' |- C2]]$, and $[[Q' ||- Q1' * Q2']]$.
 
-    Then~\cref{lem:transitive-tensor-decomposition}, gives us
-    $[[{Q1}]]$, $[[{Qdup}]]$, and $[[{Q2}]]$ such that
-    \begin{itemize}
-    \item $[[{Q}]] = [[{Q1* Qdup * Q2}]]$
-    \item $[[Qdup \in Dup]]$
-    \item $[[Q1 * Qdup ||- Q1']]$
-    \item $[[Qdup * Q2 ||- Q2']]$
-    \item $[[Qdup ||- Qdup']]$
-    \end{itemize}
-    By \cref{lem:dup-contraction}, we can further deduce that
-    \begin{itemize}
-    \item $[[Q1 * Qdup ||- Q1' * Qdup']]$
-    \item $[[Qdup * Q2 ||- Qdup' * Q2']]$
-    \end{itemize}
-    Which concludes the proof, by the \rref*{C-Dom} rule
+    By transitivity of entailment, $[[Q ||- Q1' * Q2']]$, as required.
+  \end{itemize}
   \end{itemize}
 \end{proof}
 
@@ -3029,50 +2852,34 @@ entailment relation.
   \end{itemize}
 \end{proof}
 
-\begin{toappendix}
-  
-  \begin{lemma}\label{lem:wanteds:module-action}
-  The following equality holds: $[[{pi.(rho.C)}]]=[[{(pi.rho).C}]]$.
-\end{lemma}
-\begin{nestedproof}
-  This is proved by a straightforward induction on the structure of
-  $[[{C}]]$, using \cref{lem:simples:monoid-action} for the case
-  $[[{C}]]=[[{Q}]]$.
-\end{nestedproof}
-
-\end{toappendix}
-
 \begin{lemmarep}[Inversion of scaling]
   \label{lem:wanted:demote}
-  If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[{Q}]] = [[{pi.Q'}]]$ for some $[[{Q'}]]$.
+  If $[[Q |- pi.C]]$ then $[[Q' |- C]]$ and $[[Q ||- pi.Q']]$ for some $[[{Q'}]]$.
 \end{lemmarep}
 \begin{proof}
-  By induction on the syntax of $[[{C}]]$
-  \begin{itemize}
-  \item If $[[{C}]]=[[{Q'}]]$, then the result follows from
-    \cref{lem:q:scaling-inversion}
-  \item If $[[{C}]]=[[{C1*C2}]]$, then we can prove the result like we
-    proved the corresponding case in
-    \cref{lem:q:scaling-inversion} using
-    \cref{lem:inversion}.
-  \item If $[[{C}]]=[[{C1&C2}]]$, then we the case where $[[{pi}]]=[[{1}]]$ is
-    immediate, so we can assume without loss of generality that
-    $[[{pi}]]=[[{omega}]]$, and, therefore, that
-    $[[{pi.C}]] = [[{pi.C1 * pi.C2}]]$. By \cref{lem:inversion},
-    there exist $[[{Q1}]]$ and $[[{Q2}]]$ such that $[[Q1|- omega.C1]]$,
-    $[[Q2|- omega.C2]]$ and $[[{Q}]]=[[{Q1 * Q2}]]$. By induction
-    hypothesis, we get $[[{Q1}]] = [[{omega.Q1'}]]$ and $[[{Q2}]] = [[{omega.Q2'}]]$
-    such that $[[Q1' |- C1]]$ and $[[Q2' |- C2]]$. From which it
-    follows that $[[omega.Q1'*omega.Q2' |- C1]]$ and
-    $[[omega.Q1'*omega.Q2' |- C1]]$ (by \rref{C-Dom} because $[[omega.Q' * Q ||- Q]]$) and, finally,
-    $[[{Q}]]=[[{omega.Q}]]$ (by \cref{lem:wanteds:module-action})
-    and $[[Q |- C1 & C2]]$.
-  \item If $[[{C}]]=[[{rho.(Q1 => C')}]]$, then
-    $[[{pi.C}]] = [[{(pi.rho). (Q1 => C')}]]$. The result follows
-    immediately by \cref{lem:inversion}.
-  \end{itemize}
-\end{proof}
+  By induction on the proof of of $[[Q |- pi.C]]$
+  \begin{description}
+    \item[\Rref*{C-Dom}] We have $[[Q2 |- pi.C]]$ and $[[Q ||- Q2]]$. By induction
+          hypothesis there exists $[[Q' |- C]]$ and $[[Q2 ||- Q']]$. Then, by
+          transitivity of the entailment relation $[[Q ||- Q']]$ as required.
+    \item[\Rref*{C-Id}] We have $[[{pi.C}]] = [[{pi.Q'}]]=[[{Q}]]$, so the result holds by
+          reflexivity of the entailment relation.
+    \item[\Rref*{C-Tensor}] The conclusion is of the form $[[{Q}]]=[[{Q1*Q2}]]$,
+          $[[Q1 |- pi.C1 * pi.C2]]$, and we have $[[Q1 |- pi.C1]]$ and
+          $[[Q2 |- pi.C2]]$ as the premises.
 
+          By induction we have $[[Q1' |- C1]]$ and $[[Q2' |- C2]]$ with
+          $[[Q1 ||- pi.Q1']]$ and $[[Q2 ||- pi.Q2']]$. by \Rref*{C-Tensor}
+          $[[Q1'*Q2' |- C1*C2]]$ and by tensoring of the entailment relation
+          (\cref{fig:entailment-relation}) $[[Q1*Q2 ||- pi.Q1*pi.Q2]]$ as
+          required.
+    \item[\Rref*{C-With}] We have that $[[{pi}]]=[[{1}]]$ since $[[{C1&C2}]]$ is
+          not in the image of scaling by $[[{omega}]]$. Therefore we can choose
+          $[[Q']]=[[Q]]$ and the result holds trivially.
+    \item[\Rref*{C-Impl}] In the conclusion of the rule, $[[Q]]$ is already of
+          the form $[[pi.Q']]$, so the result holds trivially
+  \end{description}
+\end{proof}
 
 \subsection{Constraint Generation}
 \label{sec:constraint-generation}
@@ -3177,25 +2984,19 @@ type system.
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \item $[[G1 |-> e1 : t1 ~> C1]]$
     \end{itemize}
-    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$,
-    $[[{Qdup}]]$ and $[[{Q_2}]]$ such that\info{Here I used,
-      implicitly (and without proof), the easy fact that if there
-      exists $[[{Q'}]]$ such that $[[{Q}]]=[[{pi.Q'}]]$, then
-      $[[{Q}]]=[[{pi.Q}]]$ (because $[[{pi.pi}]] = [[{pi}]]$) and $[[Q
-      ||- Q']]$ (identity for $[[{pi}]]=[[{1}]]$ and dereliction for $[[{pi}]]=[[{omega}]]$).}
+    By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$
+    and $[[{Q_2}]]$ such that
     \begin{itemize}
-    \item $[[Q_1 * Qdup |- C1]]$
-    \item $[[Qdup * Q_2 |- C2]]$
-    \item $[[{Q_g}]] = [[{pi.Q_1 * Qdup * Q_2}]]$
-    \item $[[Qdup \in Dup]]$
-    \item $[[{pi.Qdup}]] = [[{Qdup}]]$
+    \item $[[Q_1 |- C1]]$
+    \item $[[Q_2 |- C2]]$
+    \item $[[Q_g ||- pi.Q_1 * Q_2]]$
     \end{itemize}
     By induction hypothesis we have
     \begin{itemize}
-    \item $[[Q_1 * Qdup; G1 |- e1 : t1]]$
-    \item $[[Qdup * Q_2; G2, x:_pi  t1 |- e1 : t1]]$
+    \item $[[Q_1 ; G1 |- e1 : t1]]$
+    \item $[[Q_2; G2, x:_pi  t1 |- e1 : t1]]$
     \end{itemize}
-    From which follows that $[[Q_g; pi.G1+G2 |- let_pi x = e1 in e2 :
+    From which follows (by \rref*{E-Let} and \rref*{E-Sub}) that $[[Q_g; pi.G1+G2 |- let_pi x = e1 in e2 :
     t]]$.
   \item[\rref*{G-LetSig}] We have
     \begin{itemize}
@@ -3206,21 +3007,19 @@ type system.
     \item $[[G2, x:_pi forall as. Q =o t1 |-> e2 : t ~> C2]]$
     \end{itemize}
     By \cref{lem:inversion,lem:wanted:demote}, there exist $[[{Q1}]]$,
-    $[[Qdup]]$, $[[{Q2}]]$ such
+    $[[{Q2}]]$ such
     that
     \begin{itemize}
-    \item $[[Qdup * Q2 |- C2]]$
-    \item $[[Q1*Qdup*Q |- C]]$
-    \item $[[{Q_g}]] = [[{pi.Q_1 * Qdup * Q_2}]]$
-    \item $[[Qdup \in Dup]]$
-    \item $[[{pi.Qdup}]] = [[{Qdup}]]$
+    \item $[[Q2 |- C2]]$
+    \item $[[Q1*Q |- C1]]$
+    \item $[[Q_g ||- pi.Q_1 * Q_2]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q1*Qdup*Q;G1 |- e1 : t1]]$
-    \item $[[Qdup*Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
+    \item $[[Q1*Q;G1 |- e1 : t1]]$
+    \item $[[Q2; G2, x:_pi forall as. Q =o t1 |- e2 : t]]$
     \end{itemize}
-    Hence $[[Q_g; pi.G1+G2 |- let_pi x : forall as. Q =o t1 = e1 in e2 : t]]$
+    Hence (by \rref*{E-LetSig} and \rref*{E-Sub}) $[[Q_g; pi.G1+G2 |- let_pi x : forall as. Q =o t1 = e1 in e2 : t]]$
   \item[\rref*{G-App}] \info{Most of the linearity problems are in the App
       rule. Unpack is also relevant.}
     We have
@@ -3231,40 +3030,37 @@ type system.
     \item $[[G2 |-> e2 : t2 ~> C2]]$
     \end{itemize}
     By \cref{lem:inversion,lem:wanted:demote}, there exist
-    $[[{Q1}]]$, $[[{Qdup}]]$, $[[{Q2}]]$ such that
+    $[[{Q1}]]$, $[[{Q2}]]$ such that
     \begin{itemize}
-    \item $[[Q1*Qdup |- C1]]$
-    \item $[[Qdup*Q2 |- C2]]$
-    \item $[[{Q_g}]] = [[{Q1 * Qdup * pi.Q2}]]$
-    \item $[[Qdup \in Dup]]$
-    \item $[[{pi.Qdup}]] = [[{Qdup}]]$
+    \item $[[Q1 |- C1]]$
+    \item $[[Q2 |- C2]]$
+    \item $[[Q_g ||- Q1 * pi.Q2]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q1*Qdup; G1 |- e1 : t2 ->_pi t]]$
-    \item $[[Qdup* Q2; G2 |- e2 : t2]]$
+    \item $[[Q1; G1 |- e1 : t2 ->_pi t]]$
+    \item $[[Q2; G2 |- e2 : t2]]$
     \end{itemize}
-    Hence $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
+    Hence (by \rref*{E-App} and \rref*{E-Sub}) $[[Q_g; G1+pi.G2 |- e1 e2 : t]]$.
   \item[\rref*{G-Pack}] We have
     \begin{itemize}
     \item $[[G |-> pack e : exists as. t o= Q ~> C * Q[us/as] ]]$
     \item $[[Q_g |- C * Q[us/as] ]]$
     \item $[[G |-> e : t[us/as] ~> C]]$
     \end{itemize}
-    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Qdup}]]$, $[[{Q_2}]]$
+    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
     such that
     \begin{itemize}
-    \item $[[Q_1 * Qdup |- C]]$
-    \item $[[Qdup * Q_2 |- Q[us/as] ]]$
-    \item $[[{Q_g}]] = [[{Q_1*Qdup*Q_2}]]$
-    \item $[[Qdup \in Dup]]$
+    \item $[[Q_1 |- C]]$
+    \item $[[Q_2 |- Q[us/as] ]]$
+    \item $[[Q_g ||- Q_1*Q_2]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q_1 * Qdup; G |- e : t[us/as] ]]$
+    \item $[[Q_1 ; G |- e : t[us/as] ]]$
     \end{itemize}
-    So we have $[[Q_1 * Qdup * Q[us/as] ; G |- pack e : exists as. t o=
-    Q]]$. By~\cref{lem:dup-contraction} rule~\rref*{E-Sub}, we conclude
+    So, by \rref{E-Pack}, we have $[[Q_1 * Q[us/as] ; G |- pack e : exists as. t o=
+    Q]]$. By \rref{E-Sub}, we conclude
     $[[Q_g ; omega.G |- pack e : exists as. t o= Q]]$.
   \item[\rref*{G-Unpack}] We have
     \begin{itemize}
@@ -3273,20 +3069,19 @@ type system.
     \item $[[G1 |-> e1 : exists as. t1 o= Q' ~> C1]]$
     \item $[[G2, x:_pi t1 |-> e2 : t ~> C2]]$
     \end{itemize}
-    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Qdup}]]$, $[[{Q_2}]]$
+    By \cref{lem:inversion}, there exist $[[{Q_1}]]$, $[[{Q_2}]]$
     such that
     \begin{itemize}
-    \item $[[Q_1 * Qdup |- C1]]$
-    \item $[[Qdup * Q_2 * Q' |- C2]]$
-    \item $[[{Q_g}]] = [[{Q1 * Qdup * Q2}]]$
-    \item $[[Qdup \in Dup]]$
+    \item $[[Q_1 |- C1]]$
+    \item $[[Q_2 * Q' |- C2]]$
+    \item $[[Q_g ||- Q1 * Q2]]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q_1*Qdup; G1 |- e1 : exists as. t1 o= Q']]$
-    \item $[[Qdup*Q_2*Q ; G2 |- e2 : t]]$
+    \item $[[Q_1; G1 |- e1 : exists as. t1 o= Q']]$
+    \item $[[Q_2*Q ; G2 |- e2 : t]]$
     \end{itemize}
-    Therefore $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
+    Therefore (by \rref*{E-Unpack} and \rref*{E-Sub}) $[[Q_g ; G1 + G2 |- unpack x = e1 in e2 : t]]$.
   \item[\rref*{G-Case}] We have
     \begin{itemize}
     \item $[[pi.G + D |-> case_pi e of {alts} : t ~> pi.C * && Ci]]$
@@ -3295,20 +3090,18 @@ type system.
     \item For each $i$, $[[D, <xi:_(pi.pii) ui[ss/as]> |-> ei : t ~> Ci]]$
     \end{itemize}
     By repeated uses of \cref{lem:inversion} as well as \cref{lem:wanted:demote}, there exist
-    $[[{Q}]]$, $[[{Qdup}]]$, $[[{Q'}]]$ such that
+    $[[{Q}]]$, $[[{Q'}]]$ such that
     \begin{itemize}
-    \item $[[Q * Qdup |- C]]$
-    \item For each $i$, $[[Qdup * Q' |- Ci]]$
-    \item $[[{Q_g}]] = [[{pi.Q * Qdup * Q'}]]$
-    \item $[[Qdup \in Dup]]$
-    \item $[[{pi.Qdup}]] = [[{Qdup}]]$
+    \item $[[Q |- C]]$
+    \item For each $i$, $[[Q' |- Ci]]$
+    \item $[[Q_g ||- pi.Q * Q']]$
     \end{itemize}
     By induction hypothesis
     \begin{itemize}
-    \item $[[Q*Qdup; G |- e : T ss]]$
-    \item For each $i$, $[[Qdup*Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
+    \item $[[Q; G |- e : T ss]]$
+    \item For each $i$, $[[Q';D, <xi:_(pi.pii) ui[ss/as]> |- ei : t]]$
     \end{itemize}
-    Therefore $[[Q_g ; pi.G + D |- case_pi e of {alts} : t]]$.
+    Therefore (by \rref*{E-Case} and \rref*{E-Sub}) $[[Q_g ; pi.G + D |- case_pi e of {alts} : t]]$.
   \end{description}
 \end{proof}
 
@@ -3408,7 +3201,7 @@ check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
   \end{description}
 \end{nestedproof}
 \begin{lemma}[Soundness of $[[{Q1/\Q2}]]$]\label{l:meet-soundness}
-  For any $[[Q1]]$, $[[Q2]]$, we have $[[Q1/\Q2 ||- Q1]]$ and $[[Q1/\Q2 ||- Q2]]$
+  For any $[[{Q1}]]$, $[[{Q2}]]$, we have $[[Q1/\Q2 ||- Q1]]$ and $[[Q1/\Q2 ||- Q2]]$
 \end{lemma}
 \begin{nestedproof}
   By induction on the derivation of $[[Q1/\Q2 = Q]]$
@@ -3439,7 +3232,7 @@ check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
           $[[(Q1' /\ Q2') * 1.q ||- Q2' * 1.q]]$. We conclude by definition of
           $[[{Q1 /\Q2}]]$.
     \item[\rref*{Inf-DiffL} and \rref*{Inf-DiffR}] These two cases are
-          symmetric, so we'll proof the case of \rref*{Inf-DiffL},
+          symmetric, so we'll prove the case of \rref*{Inf-DiffL},
           \rref*{Inf-DiffL} is similar. That is we have
           \begin{itemize}
             \item $[[{Q1}]] = [[{(UCtx1, LCtx1 \u q )}]] = [[{Q1' * 1.q}]]$
@@ -3934,26 +3727,29 @@ all of the instances of that class. For example, the |Ord| class is defined as
 \begin{code}
 class constraint(Eq a) => constraint(Ord a) where ...
 \end{code}
-\todo{This means adding axiom(omega.(Ord a) => Eq a)}
-which means that every ordered type must also support equality. Such
-superclass declarations extend the entailment relation: if we know that a type
-is ordered, we also know that it supports equality. This is troublesome if we
-have a linear occurrence of |constraint(Ord a)|, because then using this entailment, we could
-conclude that a linear constraint (|constraint(Ord a)|) implies an unrestricted constraint
-(|constraint(Eq a)|), which violates \cref{lem:q:scaling-inversion}.\todo{arnaud should Check this. }
+which means that every ordered type must also support equality. Such superclass
+declarations extend the entailment relation: if we know that a type is ordered,
+we also know that it supports equality. Namely, such a superclass declaration
+adds an axiom $|constraint(Ord a)| \Vdash |constraint(Eq a)|$ to the entailment
+relation, and a corresponding axiom in the solver.
 
-But even linear superclass constraints cause trouble. Consider a version of |constraint(Ord a)|
-that has |constraint(Eq a)| as a linear superclass.
-\begin{code}
-class constraint(Eq a) =>. constraint(Ord a) where ...
-\end{code}
-\todo{This means that no axiom is added}
-When given a linear |constraint(Ord a)|, should we keep it as |constraint(Ord a)|, or rewrite to
-|constraint(Eq a)| using the entailment? Short of backtracking, the constraint solver
+In practice, the solver saturates the given constraints with the superclasses of
+the declared given constraints. This is a departure from the otherwise
+goal-oriented discipline of the solver.
+
+Saturation isn't really compatible with linear constraints, however. Since if we
+have a linear |Ord a| we would have to choose whether to leave it alone or
+replace it with an |Eq a|. Short of backtracking, the constraint solver
 needs to make a guess, which \textsc{ghc} never does.
-%
-To address this issue, we assert the following principle: the
-superclasses of a linear constraint are ignored when solving constraints. \jp{what does it mean in term of entailment}
+
+Our solution is to consider that superclass declaration add axioms of the form
+
+$$
+[[{omega}]].|constraint(Ord a)| \Vdash [[{omega}]].|constraint(Eq a)|
+$$
+
+That is, only unrestricted given constraints expose their superclasses. Saturation
+is restricted to unrestricted given constraints avoiding any complication.
 
 \subsubsection{Equality Constraints}
 \label{sec:equality-constraints}
@@ -3963,12 +3759,6 @@ In \cref{sec:type-inference} we argued that \emph{type} inference and
 the case for \textsc{ghc}'s constraint domain, because it supports equality
 constraints, which allows unification problems to be deferred, and potentially
 be solvable only after solving other constraints first.
-
-To reconcile this with our presentation, we need to ensure that
-\emph{unrestricted constraint} inference and \emph{linear constraint} inference
-can be performed independently. That is, solving a linear constraint should
-never be required for solving an unrestricted constraint. This is ensured by
-\cref{lem:q:scaling-inversion}.
 
 They key is to represent unification problems as \emph{unrestricted} equality
 constraints, so a given linear equality constraint cannot be used during type
