@@ -2382,8 +2382,9 @@ They satisfy the following laws:
 \begin{align*}
   [[{Q1 * Q2}]] & = [[{Q2 * Q1}]] \\
   [[{(Q1*Q2)*Q3}]] & = [[{Q1*(Q2*Q3)}]] \\
-  [[{omega.q * omega.q}]] & = [[{omega.q}]] \\
-  [[{Q * Empty}]] & = [[{Q}]]
+  [[{omega.Q * omega.Q}]] & = [[{omega.Q}]] \\
+  [[{Q * Empty}]] & = [[{Q}]]\\
+  [[{pi.(rho.q)}]] &= [[{(pi.rho).q}]]
 \end{align*}
 
 We overload the scaling notation to apply not just to atomic, but also simple constraints, and define
@@ -2402,9 +2403,6 @@ constraints) is given by an \emph{entailment relation}. \jp{In practice, this en
   Here is my breakdown:
   
   3. merits some more explanation. It seems that you'd want to say if \(Q ⊩ Q₁ ⊗ Q₂\) then \(Q = Q₁ ⊗ Q₂\), but you have a difficulty with duplicable constraints.
-  
-  9. How about demanding  \(ωq ⊩ ε\) instead. Claim: it is equivalent. It is clear that it is implied by 9. as written. In the other direction:
-  For every \(Q'\),  \(ωQ' ∈ D\). By the new law, \(ωQ' ⊩ ε\). By 5 and \(ε\) neutral, we get 9.
   
   The rest looks reasonable.
   Some thoughts:
@@ -2426,10 +2424,10 @@ our system.
         $$
   \item If $[[Q ||- Empty]]$, then $[[Q \in Dup]]$.
   \item If $[[Q1 ||- Q1']]$ and $[[Q2 ||- Q2']]$, then $[[Q1 * Q2 ||- Q1' * Q2']]$.
-  \item If $[[Q ||- rho. q]]$, then $[[pi . Q ||- (pi.rho). q]]$.
+  \item If $[[Q1 ||- Q2]]$, then $[[pi . Q1 ||- pi.Q2]]$.
   \item If $[[Q ||- (pi.rho) . q]]$, then there exists $[[{Q'}]]$ such that $[[{Q}]] = [[{pi. Q'}]]$ and $[[Q' ||- rho . q]]$.
-  \item If $[[Q1 ||- Q2]]$, then $[[omega.Q1 ||- Q2]]$.
-  \item If $[[Q1 ||- Q2]]$, then for all $[[{Q'}]]$, it is the case that $[[omega.Q' * Q1 ||- Q2]]$.
+  \item If $[[Q1 ||- Q2]]$, then $[[omega.Q1 ||- Q2]]$. % Same as omega.Q ||- Q  +  Q1 ||- Q2 ==> omega.Q1 ||- omega.Q2
+  \item If $[[omega.Q ||- Empty]]$.
   \item If $[[q \in Dup]]$, then $[[1.q ||- 1.q * 1.q]]$.
   \item If $[[q \in Dup]]$, then $[[1.q ||- Empty]]$.
   \item If $[[Q \in Dup]]$ and $[[Q' ||- Q]]$, then $[[Q' \in Dup]]$.
