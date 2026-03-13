@@ -3369,7 +3369,7 @@ $[[{Q}]]$ entails $[[{C}]]$. In order to check that $[[Q_g |- C]]$, it therefore
 check that $[[|-s 1.(Q_g => C) ~> Empty]]$.
 
 \begin{toappendix}
-  \begin{lemma}[Soundess of $[[|-d Q_i \d Q_b ~> Q_o]]$]\label{l:diff-soundness}
+  \begin{lemma}[Soundness of $[[|-d Q_i \d Q_b ~> Q_o]]$]\label{l:diff-soundness}
   If $[[|-d Q_i \d Q_b ~> Q_o]]$ is derivable (see \cref{fig:constraint-solver})),
   then $[[Q_o * Q_b ||- Q_i]]$.
 \end{lemma}
