@@ -2441,8 +2441,7 @@ our system.
 
   We write, abusing notation, $[[Q \in Dup]]$ for a simple constraint
   $[[{Q}]]=[[{(UCtx, LCtx)}]]$ if for all $[[{q}]]\in[[{LCtx}]]$ we
-  have $[[q \in Dup]]$. \jp{How about writing using set inclusion? Arnaud: L is
-    a multiset and D a set, is it still ok to use inclusion?}
+  have $[[q \in Dup]]$. (This isn't a plain inclusion because $[[{LCtx}]]$ is a multiset and $[[Dup]]$.)
 
   The entailment relation must obey the laws listed in
   \Cref{fig:entailment-relation}.
@@ -2567,7 +2566,6 @@ contexts is always satisfied.
   \caption{Qualified type system}
   \label{fig:typing-rules}
 \end{figure}
-\jp{in the above figure; I'm unclear if only having linear variable occurences is enough. omega is convertible to 1, but where is this captured? }
 
 The typing rules are in \Cref{fig:typing-rules}.
 A qualified type system~\cite{QualifiedTypes} such as ours introduces a
@@ -2580,7 +2578,7 @@ that $[[{G}]]$ is addressed explicitly, whereas $[[{Q}]]$
 is used implicitly in \rref{E-Var}.
 
 Because constraints are used implicitly, if there are several instances
-of the same $[[{1.q}]]$\jp{it is unclear to me why there is an explicit scaling by 1 here}, it is non-deterministic which one is used in
+of the same $[[{q}]]$, it is non-deterministic which one is used in
 which instance of \rref*{E-Var}. How do we
 reconcile this non-determinism with the use of linear constraints, in
 \cref{sec:memory-ownership} to thread mutations? We certainly don't want type
@@ -2596,7 +2594,7 @@ how to break the typing assumptions into constraints
 $[[{Q1}]]$,$[[{Q2}]]$ and contexts $[[{G1}]]$,$[[{G2}]]$. We will see
 how to infer constraints in \cref{sec:type-inference}. Yet,
 this system is our ground truth: a system with a simple enough
-definition that programmers can reason about typing.\jp{about typing but not operational meaning? I'm unclear here.} As is standard in
+definition that programmers can reason about typing. As is standard in
 the qualified-type literature (since the seminal work of \citet{QualifiedTypes}), we do not
 directly give a dynamic
 semantics to this language; instead, we will give it meaning via
@@ -2631,7 +2629,7 @@ our rule allows only
 \emph{unrestricted} variables to be discarded; linear variables \emph{must} be
 used. We can see this in the rule by noticing that the context has an unrestricted
 component $[[{omega.G_2}]]$. The $[[{G1}]]$ component might be restricted or might not,
-allowing this rule to apply both for restricted and unrestricted $[[{x}]]$.
+allowing this rule to apply both for restricted and unrestricted $[[{x}]]$ \todo{jp: leveraging the equality 1+ω = ω}
 
 \paragraph*{Data constructors.}
 Data constructors $[[{K}]]$ don't have a dedicated typing
@@ -2784,10 +2782,10 @@ one of $[[{C1}]]$ or $[[{C2}]]$ will be eventually used. ``With'' constraints
 arise from the branches in a $\kcase$-expression.
 
 The last form of wanted constraint $[[{C}]]$ is an implication
-$[[{pi.(Q=>C)}]]$. The more interesting case is $[[{omega.(Q=>C)}]]$:
+$[[{pi.(Q=>C)}]]$. If $[[{pi}]]$ is 1, the rule is unsurprising. The more interesting case is $[[{omega.(Q=>C)}]]$:
 to prove $[[{omega.(Q=>C)}]]$, you need to prove $[[{C}]]$ under the
 \emph{linear} assumption $[[{Q}]]$, but without using any other linear
-assumptions.\jp{What about the same but substituting 1 for omega?}
+assumptions.
 
 These implications arise when we unpack an existential
 package that contains a linear constraint and also when checking a |let|-binding.
@@ -3940,24 +3938,26 @@ all of the instances of that class. For example, the |Ord| class is defined as
 \begin{code}
 class constraint(Eq a) => constraint(Ord a) where ...
 \end{code}
+\todo{This means adding axiom(omega.(Ord a) => Eq a)}
 which means that every ordered type must also support equality. Such
 superclass declarations extend the entailment relation: if we know that a type
 is ordered, we also know that it supports equality. This is troublesome if we
 have a linear occurrence of |constraint(Ord a)|, because then using this entailment, we could
 conclude that a linear constraint (|constraint(Ord a)|) implies an unrestricted constraint
-(|constraint(Eq a)|), which violates \cref{lem:q:scaling-inversion}.
+(|constraint(Eq a)|), which violates \cref{lem:q:scaling-inversion}.\todo{arnaud should Check this. }
 
 But even linear superclass constraints cause trouble. Consider a version of |constraint(Ord a)|
 that has |constraint(Eq a)| as a linear superclass.
 \begin{code}
 class constraint(Eq a) =>. constraint(Ord a) where ...
 \end{code}
+\todo{This means that no axiom is added}
 When given a linear |constraint(Ord a)|, should we keep it as |constraint(Ord a)|, or rewrite to
 |constraint(Eq a)| using the entailment? Short of backtracking, the constraint solver
 needs to make a guess, which \textsc{ghc} never does.
 %
-To address both of these issues at once, we assert the following principle: the
-superclasses of a linear constraint are ignored when solving constraints.\jp{check this sentence}
+To address this issue, we assert the following principle: the
+superclasses of a linear constraint are ignored when solving constraints. \jp{what does it mean in term of entailment}
 
 \subsubsection{Equality Constraints}
 \label{sec:equality-constraints}
@@ -4082,7 +4082,7 @@ special treatment, and are harmless.
 
 \subsection{Inferring Packing and Unpacking}
 \label{sec:implicit-existentials}
-\critical{This section is out of sync with the current paper's presentation.}
+
 Recent work~\cite{existentials} describes an algorithm (call it \textsc{edwl}, after the
 authors' names) that
 can infer the location of the pack and unpack annotations (our $\packbox$ and $\kunpack$)
