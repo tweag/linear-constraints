@@ -2423,7 +2423,7 @@ our system.
   \item If $[[Q1 ||- Q1']]$ and $[[Q2 ||- Q2']]$, then $[[Q1 * Q2 ||- Q1' * Q2']]$.
   \item If $[[Q1 ||- Q2]]$, then $[[pi . Q1 ||- pi.Q2]]$.
   \item If $[[Q ||- (pi.rho) . q]]$, then there exists $[[{Q'}]]$ such that $[[{Q}]] = [[{pi. Q'}]]$ and $[[Q' ||- rho . q]]$.
-  \item If $[[Q1 ||- Q2]]$, then $[[omega.Q1 ||- Q2]]$. % Same as omega.Q ||- Q  +  Q1 ||- Q2 ==> omega.Q1 ||- omega.Q2
+  \item If $[[omega.Q ||- Q]]$.
   \item If $[[omega.Q ||- Empty]]$.
   \item If $[[q \in Dup]]$, then $[[1.q ||- 1.q * 1.q]]$.
   \item If $[[q \in Dup]]$, then $[[1.q ||- Empty]]$.
