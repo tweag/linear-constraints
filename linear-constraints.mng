@@ -4455,8 +4455,7 @@ On the other hand, for the state-style solver not to be sensitive to the
 ordering of the constraints, we had to make a concession and consider that
 having the same atomic constraint as an unrestricted and a linear given was an
 ambiguity, so that the state-style solver of \citet{SpiwackKBWE22} cannot solve
-$[[{1.(omega.q=>1.(1.q=>1.q))}]]$. You can convince yourself that the
-writer-style solver of \cref{fig:constraint-solver} can solve this example.\jp{Maybe just state as fact instead of convincing process. Because I'm not sure if I can easily do so.}
+$[[{1.(omega.q=>1.(1.q=>1.q))}]]$. Yet the writer-style solver of \cref{fig:constraint-solver} can solve this example.
 
 So really, the state-style and writer-style constraint solvers are incomparable.
 Why choose one over the other? Here is the consideration that went into this
