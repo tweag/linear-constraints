@@ -4458,7 +4458,7 @@ ambiguity, so that the state-style solver of \citet{SpiwackKBWE22} cannot solve
 $[[{1.(omega.q=>1.(1.q=>1.q))}]]$. Yet the writer-style solver of \cref{fig:constraint-solver} can solve this example.
 
 So really, the state-style and writer-style constraint solvers are incomparable.
-Why choose one over the other? Here is the consideration that went into this
+Why choose one over the other? Here are the considerations that went into this
 choice:
 
 \begin{itemize}
