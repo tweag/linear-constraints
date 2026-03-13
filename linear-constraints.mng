@@ -2847,9 +2847,12 @@ entailment relation.
     $[[Q1 ||- Q2]]$ and $[[Qdup ||- Empty]]$ following the rules
     of~\cref{fig:entailment-relation}.
   \end{itemize}
-  Let $[[Qdup \in Dup]]$, then for each $[[{1.q}]] \in [[{Qdup}]]$,
-  $[[1.q ||- Empty]]$ (per~\cref{fig:entailment-relation}), tensoring
-  each of these entailments together and with the $[[{omega.q}]] \in [[{Qdup}]]$, we get $[[Qdup ||- Empty]]$.
+  Let $[[Qdup \in Dup]]$, then for each $[[{1.q}]] \in [[{Qdup}]]$, $[[{q}]] \in [[{Dup}]]$,
+  $[[1.q ||- Empty]]$ (per \cref{fig:entailment-relation}), and for all
+  $[[{omega.q}]] \in [[{Qdup}]]$, $[[{q}]]$ is arbitrary bu
+  $[[omega.q ||- Empty]]$ regarless (per \cref{fig:entailment-relation}).
+  tensoring
+  each of these entailments together we get $[[Qdup ||- Empty]]$.
 \end{nestedproof}
 
 \begin{lemma}[$[[{Dup}]]$ duplication]
