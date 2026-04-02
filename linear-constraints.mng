@@ -4440,8 +4440,7 @@ which violates the linearity condition and will cause backtracking, while in the
 state style, both branch will coordinate and necessary pick different $[[{Q}]]$
 and find a proof without backtracking at all.
 
-But we're looking for\jp{achieved?} a solving algorithm without
-backtracking (at the price of incompleteness), so we are not concerned
+But our solving algorithm must not backtrack, so we are not concerned
 with this consideration. However, the constraint
 $[[{1.(Q=>1.(Q=>Q*Q))}]]$ is an example where the backtracking-free
 state-style solver can solve a constraint while the writer-style
