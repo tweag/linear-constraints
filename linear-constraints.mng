@@ -3600,14 +3600,10 @@ repeating take_one =
     take_one + take_one -- Ambiguity error: there are two different |constraint(C)| to choose from
 \end{code}
 
-Both examples illustrate the incompleteness of the solver. Indeed, they can
-be ascribed a type in the declarative type system of
-\cref{sec:typing-rules}. Although we can imagine applications where solving
-such constraints would be helpful, we consider it to be a reasonable
-restriction, because it is compatible with all our motivating examples
-(\cref{sec:memory-ownership}), and in exchange we get a solver which is only
-marginally more complex than, say, \textsc{ghc}'s solver (we discuss the design
-further in \cref{sec:solver-design}).\jp{It says above that unambiguity is an essential propery of ghc's typechecker. Hence this sentence sounds like beating around the bush.}
+Both examples illustrate ways in which the solver is incomplete, which it has to
+be to be guess free. Indeed, they can be ascribed a type in the declarative type
+system of \cref{sec:typing-rules}. This solver is, nevertheless, enough to
+handle all our motivating examples (\cref{sec:memory-ownership})
 
 \section{Desugaring}
 \label{sec:desugaring}
