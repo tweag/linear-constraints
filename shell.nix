@@ -23,7 +23,7 @@ pkgs.mkShell
           # Move proofs to appendices
           apxproof
           ## deps
-          environ catchfile bibunits
+          catchfile bibunits
 
           # for lhs2tex
           lazylist polytable
@@ -34,10 +34,16 @@ pkgs.mkShell
           # jfp dependencies
           soul framed tex-gyre
 
+          # acmart and dependencies
+          acmart totpages trimspaces
+          libertine environ hyperxmp
+          ifmtarg comment ncctools
+          inconsolata newtx txfonts
+          xpatch xurl doclicense
+
           # don't know why but needed
           # TODO
-          newtx txfonts fontaxes breakurl
-          helvetic
+          fontaxes breakurl helvetic
           ;
       })
 

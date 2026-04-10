@@ -17,8 +17,10 @@ import GHC.Base
 \end{code}
 %endif
 
-\documentclass{jfp}
+\documentclass[review]{jfp-epi}
+\citestyle{acmauthoryear}
 % \settopmatter{printacmref=false,printfolios=true}
+\usepackage{jfp-cup2epi}
 
 % \usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
 % \usepackage[backend=biber,datamodel=acmdatamodel, style=acmauthoryear,uniquename=false]{biblatex}
@@ -31,6 +33,7 @@ import GHC.Base
 \usepackage{mathpartir}
 \usepackage{newunicodechar}
 \usepackage[bibliography=common]{apxproof}
+\usepackage{cleveref}
 \input{newunicodedefs}
 
 %%%%%%%%%%%%%%%%% ott %%%%%%%%%%%%%%%%%
@@ -209,37 +212,56 @@ import GHC.Base
 
 \begin{document}
 
-\journaltitle{JFP} % What's the correct value here?
-\cpr{The Author(s),} % What's the correct value here?
-\jnlDoiYr{2025}
-\doival{10.1017/xxxxx} % dummy value
+\jfpJournal{JFP} % What's the correct value here?
+\jfpYear{2025}
+\jfpDOI{10.1017/xxxxx} % dummy value
 
-\title{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
+\title{Linearly Qualified Types}
+\subtitle{Generic Inference for Capabilities and Uniqueness}
 \righttitle{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
 
-\begin{authgrp}
 \author{Arnaud Spiwack}
-\affiliation{Tweag, Paris, France
-  \email{arnaud.spiwack@@tweag.io}
-}
+\orcid{0000-0002-5985-2086}
+\affiliation{
+  \institution{Tweag}
+  \city{Paris}
+  \country{France}
+  \authoremail{arnaud.spiwack@@tweag.io}
+ }
 \author{Csongor Kiss}
-\affiliation{Independent,
-  \email{kiss.csongor.kiss@@gmail.com}
-}
+\orcid{0000-0002-0195-2420}
+\affiliation{
+  \institution{Imperial College London}
+  \city{London}
+  \country{United Kingdom}
+  \authoremail{csongor.kiss14@@imperial.ac.uk}
+ }
 \author{Jean-Philippe Bernardy}
-\affiliation{University of Gothenburg, Gothenburg, Sweden
-  \email{jean-philippe.bernardy@@gu.se}
-}
+\orcid{0000-0002-8469-5617}
+\affiliation{
+  \institution{University of Gothenburg}
+  \city{Gothenburg}
+  \country{Sweden}
+  \authoremail{jean-philippe.bernardy@@gu.se}
+ }
 \author{Nicolas Wu}
-\affiliation{Imperial College London, London, United Kingdom
-  \email{n.wu@@imperial.ac.uk}
-}
+\orcid{0000-0002-4161-985X}
+\affiliation{
+  \institution{Imperial College London}
+  \city{London}
+  \country{United Kingdom}
+  \authoremail{n.wu@@imperial.ac.uk}
+ }
 \author{Richard A.~Eisenberg}
-\affiliation{Tweag, Paris, France\footnote{Since working on this paper, Richard
-    Eisenberg's affiliation has changed to Jane Street, USA}
-  \email{rae@@richarde.dev}
-}
-\end{authgrp}
+\orcid{0000-0002-7669-9781}
+\affiliation{
+  \institution{Tweag\footnote{Since working on this paper, Richard
+    Eisenberg's affiliation has changed to Jane Street, USA}}
+  \city{Paris}
+  \country{France}
+  \authoremail{rae@@richarde.dev}
+ }
+
 % I don't know why this isn't computed automatically
 \lefttitle{A. Spiwack, C. Kiss, J.-P. Bernardy, N. Wu, R. A.~Eisenberg}
 
@@ -257,7 +279,6 @@ import GHC.Base
   %
   This paper presents \emph{linear constraints}, a front-end feature for
   linear typing that
-  decreases the bureaucracy of working with linear types.
   %
   Linear constraints are implicit linear arguments that are
   filled in automatically by the compiler.
@@ -2478,7 +2499,7 @@ contexts is always satisfied.
                      e2]] \bnfor [[{case_pi e of { alts }}]] &\\
                  &\bnfor & [[let_pi
                      x=e1 in e2]] \bnfor [[{let_pi x : s = e1 in e2}]] &
-  \end{array} \\[1ex]
+  \end{array}
   $$
   Context scaling $[[{pi.G}]]$ and addition of contexts $[[{G1+G2}]]$ is defined as follows:
   $$
@@ -4538,7 +4559,7 @@ Mezzo's, or \textsc{ats}'s.
 % \end{acks}
 
 % For natbib:
-\bibliographystyle{JFPlike}
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
 % For biblatex:
 % \printbibliography
@@ -4549,12 +4570,6 @@ Mezzo's, or \textsc{ats}'s.
 % Prevents apxproofs from inserting its own \appendix
 \renewcommand{\appendix}{}
 \renewcommand{\appendixprelim}{}
-
-% Force conventional A, B, ... appendix sections. Not sure why it's not working.
-\setcounter{section}{0}
-\renewcommand{\thesection}{\Alph{section}}
-\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
-\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
 
 \section{Complete Desugaring}
 \label{sec:appendix:desugaring}
