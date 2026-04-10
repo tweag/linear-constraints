@@ -255,7 +255,7 @@ import GHC.Base
   \country{United Kingdom}
   \authoremail{n.wu@@imperial.ac.uk}
  }
-\author{Richard A.~Eisenberg}
+\author{Richard A. Eisenberg}
 \orcid{0000-0002-7669-9781}
 \affiliation{
   \institution{Tweag}
@@ -1999,9 +1999,9 @@ In this section we will be using the following functions on references:
 The implementation of |newRef| and |freeRefs| are straightforward wrappers
 around |newNArray| (\cref{fig:narray-api}) and |freezeNA| (\cref{sec:o1-freeze}) respectively.
 On the other hand, |swapRefs| is new: |swapRefs| exchanges the contents of two
-references. It can't be implemented in terms of writes and borrows because
-|swapRefs| lets two references trade ownership of their contents, borrows never
-give such permission.
+references. It can't be implemented in terms of borrows and writes, because
+writes consume a |RW p| capability but borrows require the same |RW p| to be
+passed to their release function.
 
 When accessing a node in the splay tree, it is brought towards the
 root by repeated use of |rotate| operations which effectively exchange
@@ -2043,15 +2043,15 @@ rotate root = Linearly.do
   -- create a new temporary tree for the exchange
   newRoot <- newRef Leaf
 
-  -- swap newRoot (root.left)
+  -- Move $x$'s subtree to the new root
   (yl, y, yr, release_root) <- splitTree root
   swapRefs newRoot l
 
-  -- swap (newRoot.right) (root.left)
+  -- Move $B$ to $y$'s left child
   (xl, x, xr, release_new) <- splitTree newRoot
   swapRefs xr yl
 
-  -- swap (newRoot.right) root
+  -- Move $y$'s subtree to $x$'s right child
   release_root
   swapRefs xr root
 
@@ -2061,73 +2061,10 @@ rotate root = Linearly.do
   freeRef newRoot
 \end{code}
 
-The above code mixes aspects of functional and imperative styles. Like
-in a functional language, we're explicitly pattern matching on nodes
-structures when accessing them, using |splitTree|. But we can't simply
-deep-match on the tree, and reconstruct it with the nodes at another
-place, the calls to |release| must reflect the exact original
-structure. So, we resort to local swaps, as one would do in an
-imperative language.\jp{IMO we're reaching the limit of the system here.}
-\improvement{[Arnaud]: I'm not sure the claim that we can't simply replace with
-  a shape is completely true. Huge syntactic overhead aside, I think the is an
-  implementation of the straightforward algorithm from functional programming}
-\begin{code}
-rotate :: constraint (RW n) =>. Ref Node n -> () .<= constraint (RW n)
-rotate root = Linearly.do
-  -- Receptacle for the new tree
-  newRoot <- newRef Leaf
-  
-  -- Deep match
-  (yl, y, yr, release_root) <- splitTree root
-  (xl, x, xr, release_left) <- splitTree yl
-  
-  -- Build-up
-  xl' <- newRef Leaf
-  xr' <- newRef Leaf
-  yl' <- newRef Leaf
-  yr' <- newRef Leaf
-  
-  swap yl' xr
-  swap yr' yr
-  writeTree xr (Node (yl', y, yr')) -- new but natural operation, can be implemented with swapRef anyway
-  swap xl' xl
-  writeTree newRoot (Node (xl', x, xr'))
-  
-  -- cleanup
-  release_left; release_root
-  swap root newRoot
-  freeRef newRoot
-\end{code}
-%
-Or with
-\begin{code}
-swallowRef :: constraint(RW n) =>. Ref Node n -> exists p. Ref Node p .<= constraint((RW n, RW p))
-swallowRef r = Linearly.do
-  res <- newRef Leaf
-  swap res r
-  Linearly.return res
-\end{code}
-%
-We can give a more straightforward
-\begin{code}
-rotate :: constraint (RW n) =>. Ref Node n -> () .<= constraint (RW n)
-rotate root = Linearly.do
-  -- Deep match
-  (yl, y, yr, release_root) <- splitTree root
-  (xl, x, xr, release_left) <- splitTree yl
-  
-  -- Build-up
-  yl' <- swallowRef xr
-  yr' <- swallowRef yr
-  xr' <- newRef (Node (yl', y, yr')) -- This doesn't typecheck, there are two regions instead of just the one.
-  xl' <- swallowRef xl
-  newRoot <- newRef (Node (xl', x, xr'))
-  
-  -- cleanup
-  release_left; release_root
-  swap root newRoot
-  freeRef newRoot
-\end{code}
+The above code mixes aspects of functional and imperative styles. Like in a
+functional language, we're explicitly pattern matching on nodes structures when
+accessing them, using |splitTree|. Like in an imperative programing language, we
+perform assignments (via |swapRefs|) rather than allocating new data.
 
 \subsection{Non-lexical lifetimes}
 \label{sec:nl-lifetimes}
@@ -2238,7 +2175,7 @@ below:
     \draw[->] (cardinserted) to[bend left] node[above] {checkPIN (incorrect)} (ready);
     \draw[->] (cardinserted) -- node[right] {checkPIN (correct)} (session);
     \draw[->] (session) edge[loop above] node {dispense} ();
-    \draw[->] (cardinserted) -- node[left] {ejectCard} (ready);
+    \draw[->] (cardinserted) -- node[below] {ejectCard} (ready);
   \end{tikzpicture}
 \end{center}
 While Brady's API uses linear types, we can capture the (effectful)
@@ -2598,7 +2535,8 @@ our rule allows only
 \emph{unrestricted} variables to be discarded; linear variables \emph{must} be
 used. We can see this in the rule by noticing that the context has an unrestricted
 component $[[{omega.G_2}]]$. The $[[{G1}]]$ component might be restricted or might not,
-allowing this rule to apply both for restricted and unrestricted $[[{x}]]$ \todo{jp: leveraging the equality 1+ω = ω}
+allowing this rule to apply both for restricted and unrestricted $[[{x}]]$
+(leveraging the equality $[[{1+omega}]]=[[{omega}]]$).
 
 \paragraph*{Data constructors.}
 Data constructors $[[{K}]]$ don't have a dedicated typing
