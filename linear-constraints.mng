@@ -255,16 +255,13 @@ import GHC.Base
 \author{Richard A.~Eisenberg}
 \orcid{0000-0002-7669-9781}
 \affiliation{
-  \institution{Tweag\footnote{Since working on this paper, Richard
-    Eisenberg's affiliation has changed to Jane Street, USA}}
+  \institution{Tweag}
   \city{Paris}
   \country{France}
   \authoremail{rae@@richarde.dev}
  }
-
-% I don't know why this isn't computed automatically
-\lefttitle{A. Spiwack, C. Kiss, J.-P. Bernardy, N. Wu, R. A.~Eisenberg}
-
+\authornote{Since working on this paper, Richard Eisenberg's affiliation has
+changed to Jane Street, USA}
 % \begin{keywords}
 %   GHC, Haskell, linear logic, linear types, constraints, qualified types,
 %   inference
