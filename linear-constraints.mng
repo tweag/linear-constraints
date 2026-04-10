@@ -70,6 +70,9 @@ import GHC.Base
 %format constraint (c) = "\constraintfont{" c "}"
 %format multiplicity (p) = "\multiplicityfont{" p "}"
 %
+%format Linearly.>>= = Linearly "{.\!}" >>=
+%format Linearly.>> = Linearly "{.\!}" >>
+%
 %format a1
 %format a_n
 %format an = a_n
@@ -1009,11 +1012,10 @@ Linearly.return x
 
 More generally, this follows the standard translation:
 
-\improvement{The spacing of |Linear.>>=| is strange, revisit when the cls is fixed}
 \begin{code}
-Linear.do {x <- u; stmts}    ~>  u ^^ Linear.>>= \x -> Linear.do { stmts }
-Linear.do {pat <- u; stmts}  ~>  u ^^ Linear.>>= \ !pat -> Linear.do { stmts }
-Linear.do {u; stmts}         ~>  u ^^ Linear.>> Linear.do { stmts }
+Linearly.do {x <- u; stmts}    ~>  u ^^ ^^ Linearly.>>= \x -> Linearly.do { stmts }
+Linearly.do {pat <- u; stmts}  ~>  u ^^ ^^ Linearly.>>= \ !pat -> Linearly.do { stmts }
+Linearly.do {u; stmts}         ~>  u ^^ ^^ Linearly.>> Linearly.do { stmts }
 \end{code}
 Where |pat| is a non-variable pattern.
 
@@ -1022,6 +1024,10 @@ returned value and returned constraints to their continuation. Thus,
 the |Linearly.do| notation does not strictly sequence commands in
 textual order.  It only sequences commands when the one consumes the
 output constraint of another one.
+
+%format Linearly.>>= = Linearly "{.}" >>=
+%format Linearly.>> = Linearly "{.}" >>
+
 \begin{code}
 (Linearly.>>=)  :: (exists a1 ... an. ^^t   .<= constraint(Q))  ->. (forall a1 ... an. ^^constraint(Q) =>. t ->  s) ->. s
 (Linearly.>>)   :: (exists a1 ... an. ^^()  .<= constraint(Q))  ->. (forall a1 ... an. ^^constraint(Q) =>.       s) ->. s
