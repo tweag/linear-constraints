@@ -1516,10 +1516,11 @@ This isn't quite the type that we use to represent the matrices of
 separate type for full arrays (|NArray|) and slices (|Slice| below).
 
 \begin{code}
-newNArray  :: constraint(Linearly) =>. Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. NArray a n .<= constraint(RW n)
-borrowNA   :: constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
-borrowNAR  :: constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
-writeNA    :: constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
+newNArray  ::  constraint(Linearly) =>.
+               Int -> (constraint(Linearly) =>. Int -> exists p. a p .<= constraint(RW p) ) -> exists n. NArray a n .<= constraint(RW n)
+borrowNA   ::  constraint(RW n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(RW p) =>. () .<= constraint(RW n))) .<= constraint(RW p)
+borrowNAR  ::  constraint(R n) =>. NArray a n -> Int -> exists p. (Ur (a p), (constraint(R p) =>. () .<= (constraint(R n)))) .<= constraint(R p)
+writeNA    ::  constraint((RW n, RW p)) =>. NArray a n -> Int -> a p -> () .<= constraint(RW n)
 \end{code}
 \info{Maybe something to be aware of here is that since |a p| is taken with
   multiplicity $[[{omega}]]$, any |Val a p| written in the array is
@@ -1638,12 +1639,16 @@ borrowDeepR ::  constraint(Read n) =>. Slice a n ->
                 exists r. (Ur (Slice b r), constraint(Read r) =>. () .<= constraint(Read n))
 sliceDeep
   ::  constraint(RW n) =>. Slice a n ->
-      (forall p. constraint(RW p) =>. a p -> exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
-      exists q. constraint((RW o, RW q)) =>. (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
+      (forall p.  constraint(RW p) =>. a p ->
+                  exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
+      exists q.  constraint((RW o, RW q)) =>.
+                 (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
 sliceDeepR
   ::  constraint(Read n) =>. Slice a n ->
-      (forall p. constraint(Read p) =>. a p -> exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
-      exists q. constraint((Read o, Read q)) =>. (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
+      (forall p.  constraint(Read p) =>. a p ->
+                  exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
+      exists q.  constraint((Read o, Read q)) =>.
+                 (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
 \end{code}
 Note that the type
 of the inner slicing function, in |sliceDeep| is slightly abstracted compared to the type of
@@ -1682,12 +1687,16 @@ borrowDeepR ::  constraint(Read n) =>. Slice a n ->
                 exists r. (Ur (Slice b r), constraint(Read r) =>. () .<= constraint(Read n))
 sliceDeep
   ::  constraint(RW n) =>. Slice a n ->
-      (forall p. constraint(RW p) =>. a p -> exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
-      exists q. constraint((RW o, RW q)) =>. (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
+      (forall p.  constraint(RW p) =>. a p ->
+                  exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
+      exists q.  constraint((RW o, RW q)) =>.
+                 (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
 sliceDeepR
   ::  constraint(Read n) =>. Slice a n ->
-      (forall p. constraint(Read p) =>. a p -> exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
-      exists q. constraint((Read o, Read q)) =>. (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
+  (forall p.  constraint(Read p) =>. a p ->
+              exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
+      exists q.  constraint((Read o, Read q)) =>.
+                 (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
 \end{code}
   \caption{Nested array \textsc{api}}
   \label{fig:narray-api}
@@ -1709,7 +1718,8 @@ the |sliceMatrixV| function, which splits a matrix vertically into a top matrix
 and a bottom matrix.
 \begin{code}
 sliceMatrixV ::  constraint(RW n) =>. Matrix a n -> Int ->
-                 exists p q. (Ur (Matrix p, Matrix q), constraint((RW p, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW p, RW q))
+                 exists p q. (Ur (Matrix p, Matrix q), constraint((RW p, RW q)) =>.
+                             () .<= constraint(RW n)) .<= constraint((RW p, RW q))
 sliceMatrixV (OwnedMatrix m) row_num = Linearly.do
   (Ur m', release_top) <- fullSlice m
   (Ur m'', release_top_deep) <- borrowDeep m' fullSlice
@@ -1858,8 +1868,10 @@ functions
 \begin{code}
 sliceDeep
   ::  constraint(RW n) =>. Slice a n ->
-      (forall p. constraint(RW p) =>. a p -> exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
-      exists q. constraint((RW o, RW q)) =>. (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
+      (forall p.  constraint(RW p) =>. a p ->
+                  exists r s. constraint((RW r, RW s)) =>. (Ur (a r, a s), constraint((RW r, RW s)) =>. () .<= constraint(RW p))) ->
+      exists q.  constraint((RW o, RW q)) =>.
+                 (Ur (Slice a o, Slice a q), constraint((RW o, RW q)) =>. () .<= constraint(RW n)) .<= constraint((RW o, RW q))
 sliceDeep as slc = Linearly.return (
   ( Ur
     (UnsafeMkSlice
@@ -1880,8 +1892,11 @@ sliceDeep as slc = Linearly.return (
   (Linearly.do { unsafeConsumeRW @p;  unsafeConsumeRW @q; Linearly.return ()}) )
 
 sliceDeepR ::  constraint(Read n) =>. Slice a n ->
-      (forall p. constraint(Read p) =>. a p -> exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
-      exists q. constraint((Read o, Read q)) =>. (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
+  ::  constraint(Read n) =>. Slice a n ->
+  (forall p.  constraint(Read p) =>. a p ->
+              exists r s. constraint((Read r, Read s)) =>. (Ur (a r, a s), constraint((Read r, Read s)) =>. () .<= constraint(Read p))) ->
+      exists q.  constraint((Read o, Read q)) =>.
+                 (Ur (Slice a o, Slice a q), constraint((Read o, Read q)) =>. () .<= constraint(Read n)) .<= constraint((Read o, Read q))
 sliceDeepR = … -- Mutatis mutandis
 \end{code}
 The idea is the same as deep borrowing: the slicing function is
@@ -1984,7 +1999,8 @@ The noteworthy feature is that each child is accessible via an
 updateable reference. To access a tree, we need a borrowing function. We'll
 assume a borrowing function which decomposes the structure as follows:
 > splitTree  :: constraint (RW n) => Ref Node n
->            -> ∃ p q. (Ref Node p, Int, Ref Node q, constraint((RW p, RW q)) =>. () .<= constraint (RW n)) .<= constraint((RW p, RW q))
+>            -> ∃ p q.  (Ref Node p, Int, Ref Node q,
+>                       constraint((RW p, RW q)) =>. () .<= constraint (RW n)) .<= constraint((RW p, RW q))
 
 We will regard the type |Ref| as being defined merely as an array whose length
 is known to be one:
@@ -2184,7 +2200,8 @@ transitions using linear constraints, as follows:
 initATM :: L (∃ s. ATM s .<= constraint(Ready s))
 shutDown :: constraint(Ready s) =>. ATM s -> L ()
 insertCard :: constraint(Ready s) =>. ATM s -> L (() .<= constraint(CardInserted s))
-checkPIN :: constraint(CardInserted s) =>. ATM s -> Int -> L (Either (() .<= Session s)  (() .<= constraint(CardInserted)))
+checkPIN ::  constraint(CardInserted s) =>.
+             ATM s -> Int -> L (Either (() .<= Session s)  (() .<= constraint(CardInserted)))
 dispense :: constraint(Session s) =>.  ATM s -> L (() .<= constraint(Session s)) 
 ejectCard :: constraint(CardInserted s) =>. L (() .<= constraint(Ready s))
 terminateSession :: constraint(Session s) =>. L (() .<= constraint(CardInserted s))
