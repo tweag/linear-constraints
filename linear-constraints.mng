@@ -408,7 +408,7 @@ read2AndDiscard arr = Linearly.do
 \end{code}
 The only changes from the impure version are that this version explicitly constrains
 the function to require read and write access to the array, and the
-use of the qualified |Linearly.do| notation to sequence the actions.\jp{fwd ref to linearly.do explanation}
+use of the qualified |Linearly.do| notation to sequence the actions (see \cref{sec:packing-unpacking-do}).
 Crucially, the resource representing the ownership of the
 array is a linear constraint and is separate from the array itself, which no
 longer needs to be threaded manually.
@@ -2036,9 +2036,9 @@ representation of the rotation with the left child:
 % The call1s to (partial) |splitTree| is fine because we would never call |rotate|
 % on a Leaf node.
 Using our ownership system, the implementation of the above rotation would
-be:\improvement{There lacks a source of |constraint(Unique)| for |newRef|}
+be:
 \begin{code}
-rotate :: constraint (RW n) =>. Ref Node n -> () .<= constraint (RW n)
+rotate :: constraint ((Linearly, RW n)) =>. Ref Node n -> () .<= constraint (RW n)
 rotate root = Linearly.do
   -- create a new temporary tree for the exchange
   newRoot <- newRef Leaf
@@ -3319,10 +3319,7 @@ presents the rules of the constraint solver.
 The solving strategy is mainly embodied by the~\rref*{S-Impl} rule. It makes
 strong assumptions in order to avoid guesses. Avoiding guesses is a key property
 of \textsc{ghc}'s solver~\cite[Section~6.4]{OutsideIn}, one we must maintain if
-we are to be compatible with \textsc{ghc}.\unsure{We probably want a forward
-  reference to the discussion on implementation; should that discussion happen
-  in the related work section, like it currently sort of does, or in a separate
-  subsection of the new Design consideration section?}
+we are to be compatible with \textsc{ghc}.
 
 One consequence of our strategy is that the solver can only ever use
 the occurrence of $[[{1.q}]]$ introduced by the innermost implication.
@@ -3862,7 +3859,14 @@ properly be written in Haskell, it would alleviate the need for \emph{ad hoc} ex
 \section{Design considerations}
 \label{sec:design-considerations}
 
-\critical{TODO}
+In this section we discuss the designs described throughout this paper. Why we
+chose these particular designs and what could be potential alternative.
+Concretely, we discuss the motivations behind and alternatives designs for the
+|Unique| constraint (\cref{sec:linearly-vs-sticky}), nested freezing
+(\cref{sec:freezing-in-details}), release functions in borrowing
+(\cref{sec:unrestricted-release}), and our constraint solving algorithm
+(\cref{sec:solver-design}).
+
 
 \subsection{Linearly vs sticky scopes}
 \label{sec:linearly-vs-sticky}
