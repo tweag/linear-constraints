@@ -2207,10 +2207,10 @@ runATM = do  m <- initATM
 Compared to the (plain) use of linear types of Brady, linear
 constraints allows one to use a single value of type |ATM|, instead of
 consuming and recreating for each call.  Note that for Brady,
-|ejectCard| can work both in |Session| and |CardInserted| state. One
-idea would be add an extra state |Ejectable| which is the union of
+|ejectCard| can work both in |constraint(Session)| and |constraint(CardInserted)| state. One
+idea would be add an extra state |constraint(Ejectable)| which is the union of
 those.  This is possible for classes in Haskell; i.e. we can have
-instances |Session => Ejectable| and |CardInserted => Ejectable|, but
+instances |constraint(Session) => constraint(Ejectable)| and |constraint(CardInserted) => constraint(Ejectable)|, but
 such instances won't be used by our system to resolve constraints.
 \section{A qualified type system for linear constraints}
 \label{sec:qualified-type-system}
