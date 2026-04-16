@@ -439,22 +439,22 @@ publication~\citep{SpiwackKBWE22}. Overall our contributions are:
 \item A system of qualified types that allows a constraint assumption
   to be given a multiplicity (linear or unrestricted). Linear assumptions are used precisely
   once in the body of a definition
-  (\Cref{sec:qualified-type-system}). This system supports examples
+  (\cref{sec:qualified-type-system}). This system supports examples
   that have motivated the design of several resource-aware systems,
-  such as ownership \textit{à la} Rust (\Cref{sec:memory-ownership}), or
+  such as ownership \textit{à la} Rust (\cref{sec:memory-ownership}), or
   capabilities in the style of Mezzo~\cite{mezzo-permissions} or
   \textsc{ats}~\cite{AtsLinearViews}; accordingly, our system points
   towards a possible unification of these lines of research.
 
 \item Applications of this qualified type system to allow writing
   \begin{itemize}
-  \item functions whose result can only be used linearly (\Cref{sec:Unique-constraint})
-  \item resource-aware algorithms without explicit threading (\Cref{sec:memory-ownership}); and
+  \item functions whose result can only be used linearly (\cref{sec:Unique-constraint})
+  \item resource-aware algorithms without explicit threading (\cref{sec:memory-ownership}); and
   \end{itemize}
 
 \item An inference algorithm that respects the multiplicity of
   assumptions. We prove that this algorithm is sound with respect to
-  our type system~(\Cref{sec:type-inference}). It consists of
+  our type system~(\cref{sec:type-inference}). It consists of
   \begin{itemize}
   \item a constraint generation
     algorithm~(\cref{sec:constraint-generation}). The language of
@@ -2387,7 +2387,7 @@ our system.
   have $[[q \in Dup]]$. (This isn't a plain inclusion because $[[{LCtx}]]$ is a multiset and $[[Dup]]$.)
 
   The entailment relation must obey the laws listed in
-  \Cref{fig:entailment-relation}. Note that $[[Dup]]$ being a set of atomic
+  \cref{fig:entailment-relation}. Note that $[[Dup]]$ being a set of atomic
   constraints, the rules pertaining to $[[Dup]]$ are in terms of atomic
   constraints rather than of arbitrary simple constraints.
 \end{definition}
@@ -2411,7 +2411,7 @@ unrestrictedly.
 \label{sec:typing-rules}
 
 With this material in place, we can now present our type system. The
-grammar is given in \Cref{fig:declarative:grammar}, which also
+grammar is given in \cref{fig:declarative:grammar}, which also
 includes the definitions of scaling on contexts $[[{pi.G}]]$ and addition
 of contexts $[[{G1+G2}]]$. Note that addition on contexts is actually
 a partial function, as it requires that, if a variable $[[{x}]]$ is bound
@@ -2473,7 +2473,7 @@ contexts is always satisfied.
   \label{fig:typing-rules}
 \end{figure}
 
-The typing rules are in \Cref{fig:typing-rules}.
+The typing rules are in \cref{fig:typing-rules}.
 A qualified type system~\cite{QualifiedTypes} such as ours introduces a
 judgement of the form $[[Q;G |- e : t]]$, where $[[{G}]]$ is a standard
 type context, and $[[{Q}]]$ is a constraint we have assumed to be true.
@@ -2494,7 +2494,7 @@ only a single instance of |constraint(RW n)| is ever
 provided. Therefore there is a single possible threading of the reads
 and writes.
 
-The type system of \Cref{fig:typing-rules} is purely
+The type system of \cref{fig:typing-rules} is purely
 declarative: note, for example, that \rref{E-App} does not describe
 how to break the typing assumptions into constraints
 $[[{Q1}]]$,$[[{Q2}]]$ and contexts $[[{G1}]]$,$[[{G2}]]$. We will see
@@ -2704,7 +2704,7 @@ $[[{omega}]]$, the result is a multiplicative conjunction. The intuition here is
 that when if we have both $[[{omega.C1}]]$ and $[[{omega.C2}]]$, then
 a choice between $[[{C1}]]$ and $[[{C2}]]$ can be made $[[{omega}]]$ times.
 
-We define an entailment relation over wanteds in \Cref{fig:wanted:entailment}.
+We define an entailment relation over wanteds in \cref{fig:wanted:entailment}.
 Note that this relation uses only simple constraints $[[{Q}]]$ as assumptions, as
 there is no way to assume the more elaborate $[[{C}]]$\footnote{Allowing the full wanted-constraint syntax
 in assumptions is the subject of work by \citet{quantified-constraints}.}.
@@ -2731,7 +2731,7 @@ entailment relation. Proofs of these lemmas (and others) appear in \cref{sec:app
   The inference rules of $[[Q |- C]]$ can be read bottom-up (up to the
   set $[[{Dup}]]$) as well
   as top-down, as is required of $[[Q1 ||- Q2]]$ in
-  \Cref{fig:entailment-relation}. That is:
+  \cref{fig:entailment-relation}. That is:
   \begin{itemize}
   \item If $[[Q |- C1*C2]]$, then there exists $[[{Q1}]]$ and $[[{Q2}]]$
     such that $[[Q1 |- C1]]$, $[[Q2 |- C2]]$, and
@@ -2851,7 +2851,7 @@ The process of inferring constraints is split into two parts: generating
 constraints, which we do in this section, then solving them in
 \cref{sec:constraint-solver}. Constraint generation is described by
 the judgement $[[G |-> e : t ~> C]]$ (defined in
-\Cref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
+\cref{fig:constraint-generation}) which outputs a constraint $[[{C}]]$
 required to make $[[e]]$ typecheck.
 The definition
 $[[G |-> e : t ~> C]]$ is syntax directed, so it can directly be read as an
@@ -2876,8 +2876,8 @@ thus indeed syntax directed.
   \label{fig:constraint-generation}
 \end{figure}
 
-The rules of \Cref{fig:constraint-generation} constitute a mostly
-unsurprising translation of the rules of \Cref{fig:typing-rules},
+The rules of \cref{fig:constraint-generation} constitute a mostly
+unsurprising translation of the rules of \cref{fig:typing-rules},
 except for the following points of interest:
 
 \emph{Case expressions.}
@@ -3412,7 +3412,7 @@ Following $λ^q$, we assume the existence of the following data types:
   Ur a]]$
 \end{itemize}
 %
-The core calculus is described inn \Cref{fig:core-typing-rules}.
+The core calculus is described in \cref{fig:core-typing-rules}.
 The main differences with the qualified system are as follows:
 \begin{itemize}
   \item Type schemes $[[{s}]]$ do not support qualified types.
@@ -3455,7 +3455,7 @@ we pass evidence explicitly\footnote{This technique is also often called
 To do so, we require some more material from
 constraints. Namely, we assume a type $[[{Ev(q)}]]$ for each atomic
 constraint $[[{q}]]$,
-defined in \Cref{fig:evidence}.  The $[[Ev(Hole)]]$ operation
+defined in \cref{fig:evidence}.  The $[[Ev(Hole)]]$ operation
 extends to simple constraints as
 $[[{Ev(Q)}]]$.
 Furthermore, we require that for every $[[{Q1}]]$ and $[[{Q2}]]$
@@ -3511,7 +3511,7 @@ concluding judgement, the translation is defined recursively on the
 whole typing derivation: in particular, we have access to typing rule
 premises in the body of the definition.
 %
-We present some of the interesting cases in \Cref{fig:desugaring}, the complete
+We present some of the interesting cases in \cref{fig:desugaring}, the complete
 definition of desugaring can be found in \cref{sec:appendix:desugaring}.
 \begin{figure}
     \maybesmall
@@ -4521,7 +4521,7 @@ Mezzo's, or \textsc{ats}'s.
 
 The complete definition of the desugaring function from
 \cref{sec:desugaring} can be found in
-\Cref{fig:full:desugaring}.
+\cref{fig:full:desugaring}.
 
 For the sake of concision, we allow ourselves to write nested patterns
 in $\kcase$ expressions of the core language. Desugaring nested patterns
