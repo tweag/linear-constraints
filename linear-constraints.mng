@@ -219,8 +219,8 @@ import GHC.Base
 \jfpYear{2025}
 \jfpDOI{10.1017/xxxxx} % dummy value
 
-\title{Linearly Qualified Types}
-\subtitle{Generic Inference for Capabilities and Uniqueness}
+\title{Linear Constraints}
+% \subtitle{Generic Inference for Capabilities and Uniqueness}
 \righttitle{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
 
 \author{Arnaud Spiwack}
