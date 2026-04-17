@@ -271,23 +271,27 @@ changed to Jane Street, USA}
 % \end{keywords}
 
 \begin{abstract}
-  A linear parameter must be consumed exactly once in the body of its
-  function. When declaring resources such as file handles and manually
-  managed memory as linear arguments, a linear type system can verify
-  that these resources are used safely.
-  However, writing code with explicit linear arguments requires bureaucracy.
+  Linear constraints are the linear counterpart of Haskell's class
+  constraints.
   %
-  This paper presents \emph{linear constraints}, a front-end feature for
-  linear typing that
-  %
-  Linear constraints are implicit linear arguments that are
-  filled in automatically by the compiler.
-  %
-  We present linear constraints as a qualified type system,
+  Linearly typed parameters allow the programmer to control resources
+  such as file handles and manually managed memory as linear
+  arguments. Indeed, a linear type system can verify that these
+  resources are used safely.  However, writing code with explicit
+  linear arguments requires bureaucracy. Linear constraints address
+  this shortcoming: a linear constraint acts as an implicit linear
+  argument that can be filled in automatically by the compiler.
+  
+  We present this new feature as a qualified type system,
   together with an inference algorithm which extends
   \textsc{ghc}'s existing constraint solver algorithm. Soundness of
   linear constraints is ensured by the fact that they desugar into
   Linear Haskell.
+
+  This paper is a revised and extended version of a previous paper by
+  the same authors~\citep{SpiwackKBWE22}. The formal system and the
+  constraint solver have been significantly simplified and numerous
+  additional applications are described.
 \end{abstract}
 
 \maketitle
