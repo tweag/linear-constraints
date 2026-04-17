@@ -221,7 +221,7 @@ import GHC.Base
 
 \title{Linear Constraints}
 % \subtitle{Generic Inference for Capabilities and Uniqueness}
-\righttitle{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
+% \righttitle{Linearly Qualified Types: Generic Inference for Capabilities and Uniqueness}
 
 \author{Arnaud Spiwack}
 \orcid{0000-0002-5985-2086}
