@@ -215,9 +215,9 @@ import GHC.Base
 
 \begin{document}
 
-\jfpJournal{JFP} % What's the correct value here?
-\jfpYear{2025}
-\jfpDOI{10.1017/xxxxx} % dummy value
+% \jfpJournal{JFP} % What's the correct value here?
+\jfpYear{2026}
+% \jfpDOI{10.1017/xxxxx} % dummy value
 
 \title{Linear Constraints}
 % \subtitle{Generic Inference for Capabilities and Uniqueness}
