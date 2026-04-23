@@ -4383,6 +4383,19 @@ Clean is another language with built-in ownership typing. Like Haskell
 it is a lazy language. Mutation is performed by returning a new
 reference, like in Linear Haskell without linear constraints.
 
+More recently,~\cite{pure-borrow} proposes another representation of borrowing
+also built on top of Linear Haskell. In there presentation borrowed types are
+marked with type wrappers and borrowing can only be done in a specialised monad
+similar to the |ST| monad. That is, lifetimes are tracked as type arguments both
+to the wrappers and the monad. Lifetime inclusion is represented by an |α<=β|
+type class (|α| and |β| are lifetimes). Relying on a monad means that it is more
+difficult to combine borrows with other effects. But, as they argue, when
+comparing to~\cite{SpiwackKBWE22}, our release functions impose a form of
+post-processing to borrows, which can prevent some parallelism by forcing some
+synchronisation between two slices, where their approach doesn't require any
+form of such syncronisation. Their tagged monad approach also lets them tackle
+shared borrows, which our capabilities don't seem to have a good answer to.
+
 \paragraph*{Languages with capabilities}
 
 The idea of using capabilities to enforce high-level resource usage protocols is not new~\citep{DBLP:conf/pldi/DeLineF01},
